@@ -7,13 +7,25 @@ environment:
   sdk: ">=3.1.0 <4.0.0"
 
 dependencies:
+  api_client:
+    path: packages/api_client
+  app_ui:
+    path: packages/app_ui
   bloc: ^8.1.2
+  equatable: ^2.0.5
+  firebase_core: ^2.25.3
+  firebase_database: ^10.4.4
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.3
   flutter_localizations:
     sdk: flutter
+  font_awesome_flutter: ^10.7.0
+  go_router: ^13.1.0
   intl: ^0.18.0
+  provider: ^6.1.1
+  scryfall_repository:
+    path: packages/scryfall_repository
 
 dev_dependencies:
   bloc_test: ^9.1.4

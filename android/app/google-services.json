@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "621633361811",
+    "project_id": "mtg-yeti",
+    "storage_bucket": "mtg-yeti.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:621633361811:android:a3829ee5b92b3d5af57a66",
+        "android_client_info": {
+          "package_name": "com.com.crossout.magic_yeti"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "621633361811-mharn8jia20186cutmj33fqgtbulqonm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJi9ttHg0HYpCP1K_ag3ZxFoHuIqHI2WA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "621633361811-hj4gjjclfas2h46qi0qfe5fakkndaldn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "621633361811-7qenvcpee9gkj2bl6pt041fak20nb6f5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.verygoodcore.magic-yeti"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:621633361811:android:275ff956820ed375f57a66",
+        "android_client_info": {
+          "package_name": "com.crossout.org.magic_yeti"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "621633361811-mharn8jia20186cutmj33fqgtbulqonm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJi9ttHg0HYpCP1K_ag3ZxFoHuIqHI2WA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "621633361811-hj4gjjclfas2h46qi0qfe5fakkndaldn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "621633361811-7qenvcpee9gkj2bl6pt041fak20nb6f5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.verygoodcore.magic-yeti"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

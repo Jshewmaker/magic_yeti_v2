@@ -1,0 +1,38 @@
+name: app_ui
+description: UI components for Valkyrie mobile app
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ">=2.19.0 <3.0.0"
+  flutter: 3.7.0
+
+dependencies:
+  flag: ^7.0.0
+  flutter:
+    sdk: flutter
+  dotted_decoration: ^2.0.0
+  linked_scroll_controller: ^0.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mocktail: ^0.3.0
+  very_good_analysis: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Teko
+      fonts:
+        - asset: assets/fonts/Teko-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Teko-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Teko-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Teko-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Teko-Light.ttf
+          weight: 300
+       
