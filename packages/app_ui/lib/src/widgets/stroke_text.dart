@@ -21,16 +21,16 @@ class StrokeText extends StatelessWidget {
         shadows: const [
           Shadow(
               // bottomLeft
-              offset: Offset(-1.5, -1.5)),
+              offset: Offset(-1.5, -1.5),),
           Shadow(
               // bottomRight
-              offset: Offset(1.5, -1.5)),
+              offset: Offset(1.5, -1.5),),
           Shadow(
               // topRight
-              offset: Offset(1.5, 1.5)),
+              offset: Offset(1.5, 1.5),),
           Shadow(
               // topLeft
-              offset: Offset(-1.5, 1.5)),
+              offset: Offset(-1.5, 1.5),),
         ],
       ).copyWith(color: color),
     );
