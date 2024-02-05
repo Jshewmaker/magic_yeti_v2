@@ -215,6 +215,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.5+20"
+  firebase_database_repository:
+    dependency: "direct main"
+    description:
+      path: "packages/firebase_database_repository"
+      relative: true
+    source: path
+    version: "0.1.0+1"
   firebase_database_web:
     dependency: transitive
     description:

@@ -15,6 +15,8 @@ dependencies:
   equatable: ^2.0.5
   firebase_core: ^2.25.3
   firebase_database: ^10.4.4
+  firebase_database_repository:
+    path: packages/firebase_database_repository
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.3

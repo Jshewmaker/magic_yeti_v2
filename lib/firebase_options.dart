@@ -2,7 +2,7 @@
 // ignore_for_file: lines_longer_than_80_chars, avoid_classes_with_only_static_members
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform, kIsWeb;
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -47,30 +47,29 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD_no1k3ser82hig8jyh1xKEszi7KZNS9s',
-    appId: '1:621633361811:web:a7244534866aeb9bf57a66',
-    messagingSenderId: '621633361811',
-    projectId: 'mtg-yeti',
-    authDomain: 'mtg-yeti.firebaseapp.com',
-    storageBucket: 'mtg-yeti.appspot.com',
-    measurementId: 'G-LKQSKBV3PR',
+    apiKey: 'AIzaSyDurTh4BqkJQmClz5jKY9xkZmjZFIRoJhY',
+    appId: '1:370172089725:web:c20bb3cc0c965681ad6814',
+    messagingSenderId: '370172089725',
+    projectId: 'magic-yeti',
+    authDomain: 'magic-yeti.firebaseapp.com',
+    storageBucket: 'magic-yeti.appspot.com',
+    measurementId: 'G-G4L2EVY7HS',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAJi9ttHg0HYpCP1K_ag3ZxFoHuIqHI2WA',
-    appId: '1:621633361811:android:275ff956820ed375f57a66',
-    messagingSenderId: '621633361811',
-    projectId: 'mtg-yeti',
-    storageBucket: 'mtg-yeti.appspot.com',
+    apiKey: 'AIzaSyCyfZ5e-cbnu6YYfzIhs_E4K6LwhmUN84s',
+    appId: '1:370172089725:android:26131762052d9ba0ad6814',
+    messagingSenderId: '370172089725',
+    projectId: 'magic-yeti',
+    storageBucket: 'magic-yeti.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBCgxhw8rYb-Pw0QBxozi94OkUUpcTftss',
-    appId: '1:621633361811:ios:bea39277eece8d75f57a66',
-    messagingSenderId: '621633361811',
-    projectId: 'mtg-yeti',
-    storageBucket: 'mtg-yeti.appspot.com',
-    iosClientId: '621633361811-b9n6sac53ht8a9hunsr3r6k79vaij7la.apps.googleusercontent.com',
-    iosBundleId: 'com.crossout.org.magic-yeti',
+    apiKey: 'AIzaSyBUONDMUnjBNKlxCu6DzG0VHtWbwyUuCro',
+    appId: '1:370172089725:ios:e5f69a3843833908ad6814',
+    messagingSenderId: '370172089725',
+    projectId: 'magic-yeti',
+    storageBucket: 'magic-yeti.appspot.com',
+    iosBundleId: 'com.crossout.org.magicyeti',
   );
 }
