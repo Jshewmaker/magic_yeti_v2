@@ -52,6 +52,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '370172089725',
     projectId: 'magic-yeti',
     authDomain: 'magic-yeti.firebaseapp.com',
+    databaseURL: 'https://magic-yeti-default-rtdb.firebaseio.com',
     storageBucket: 'magic-yeti.appspot.com',
     measurementId: 'G-G4L2EVY7HS',
   );
@@ -61,6 +62,7 @@ class DefaultFirebaseOptions {
     appId: '1:370172089725:android:26131762052d9ba0ad6814',
     messagingSenderId: '370172089725',
     projectId: 'magic-yeti',
+    databaseURL: 'https://magic-yeti-default-rtdb.firebaseio.com',
     storageBucket: 'magic-yeti.appspot.com',
   );
 
@@ -69,6 +71,7 @@ class DefaultFirebaseOptions {
     appId: '1:370172089725:ios:e5f69a3843833908ad6814',
     messagingSenderId: '370172089725',
     projectId: 'magic-yeti',
+    databaseURL: 'https://magic-yeti-default-rtdb.firebaseio.com',
     storageBucket: 'magic-yeti.appspot.com',
     iosBundleId: 'com.crossout.org.magicyeti',
   );

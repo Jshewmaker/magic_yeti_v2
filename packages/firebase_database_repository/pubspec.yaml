@@ -11,4 +11,5 @@ dev_dependencies:
   test: ^1.19.2
   very_good_analysis: ^5.1.0
 dependencies:
-  firebase_database: ^9.0.17
+  cloud_firestore: ^4.15.3
+  firebase_database: ^10.4.4

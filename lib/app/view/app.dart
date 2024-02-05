@@ -23,7 +23,6 @@ class App extends StatelessWidget {
   final ScryfallRepository _scryfallRepository;
   @override
   Widget build(BuildContext context) {
-    _firebaseDatabaseRepository.writeToDB();
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: _scryfallRepository),

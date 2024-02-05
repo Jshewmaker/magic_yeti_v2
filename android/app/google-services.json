@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "370172089725",
+    "firebase_url": "https://magic-yeti-default-rtdb.firebaseio.com",
     "project_id": "magic-yeti",
     "storage_bucket": "magic-yeti.appspot.com"
   },

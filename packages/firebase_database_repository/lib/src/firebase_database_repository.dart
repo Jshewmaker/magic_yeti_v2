@@ -1,16 +1,21 @@
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// {@template firebase_database_repository}
 /// Firebase database package
 /// {@endtemplate}
 class FirebaseDatabaseRepository {
   /// {@macro firebase_database_repository}
-  const FirebaseDatabaseRepository({required FirebaseDatabase firebase})
+  const FirebaseDatabaseRepository({required FirebaseFirestore firebase})
       : _firebase = firebase;
 
-  final FirebaseDatabase _firebase;
+  final FirebaseFirestore _firebase;
 
-  void writeToDB() async {
-    await _firebase.ref().set({'name': 'joshua'});
+  /// Save game stats at end of game.
+  Future<void> saveGameStats() async {
+    final date = DateTime.now();
+    await _firebase.collection('game').doc(date.toString()).set({
+      'name': 'joshua',
+      'wins': 1,
+    });
   }
 }

@@ -2,22 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CLIENT_ID</key>
-	<string>621633361811-b9n6sac53ht8a9hunsr3r6k79vaij7la.apps.googleusercontent.com</string>
-	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.621633361811-b9n6sac53ht8a9hunsr3r6k79vaij7la</string>
 	<key>API_KEY</key>
-	<string>AIzaSyBCgxhw8rYb-Pw0QBxozi94OkUUpcTftss</string>
+	<string>AIzaSyBUONDMUnjBNKlxCu6DzG0VHtWbwyUuCro</string>
 	<key>GCM_SENDER_ID</key>
-	<string>621633361811</string>
+	<string>370172089725</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.crossout.org.magic-yeti</string>
+	<string>com.crossout.org.magicyeti</string>
 	<key>PROJECT_ID</key>
-	<string>mtg-yeti</string>
+	<string>magic-yeti</string>
 	<key>STORAGE_BUCKET</key>
-	<string>mtg-yeti.appspot.com</string>
+	<string>magic-yeti.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +25,8 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:621633361811:ios:bea39277eece8d75f57a66</string>
+	<string>1:370172089725:ios:e5f69a3843833908ad6814</string>
+	<key>DATABASE_URL</key>
+	<string>https://magic-yeti-default-rtdb.firebaseio.com</string>
 </dict>
 </plist>
