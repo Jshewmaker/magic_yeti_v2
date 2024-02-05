@@ -11,11 +11,12 @@ class FirebaseDatabaseRepository {
   final FirebaseFirestore _firebase;
 
   /// Save game stats at end of game.
-  Future<void> saveGameStats() async {
+  Future<void> saveGameStats(List<Map<String, dynamic>> json) async {
     final date = DateTime.now();
-    await _firebase.collection('game').doc(date.toString()).set({
-      'name': 'joshua',
-      'wins': 1,
-    });
+
+    await _firebase
+        .collection('game')
+        .doc(date.toString())
+        .set({'players': json});
   }
 }

@@ -5,6 +5,7 @@ enum PlayerStatus {
   playerCreated,
   idle,
   updating,
+  died,
 }
 
 final class PlayerState extends Equatable {

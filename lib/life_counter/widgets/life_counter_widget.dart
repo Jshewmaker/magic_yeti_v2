@@ -15,6 +15,7 @@ class LifeCounterWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     textController.text = player.name;
+    final dead = player.lifePoints < 1;
     return RotatedBox(
       quarterTurns: player.playerNumber < 2 ? 0 : 2,
       child: Stack(
@@ -23,9 +24,10 @@ class LifeCounterWidget extends StatelessWidget {
             borderRadius: const BorderRadius.all(Radius.circular(20)),
             child: Image.network(
               player.picture,
+              opacity: AlwaysStoppedAnimation(dead ? .2 : 1),
               errorBuilder: (context, error, stackTrace) => Container(
                 decoration: BoxDecoration(
-                  color: player.color,
+                  color: Color(player.color).withOpacity(dead ? 0 : 1),
                   borderRadius: const BorderRadius.all(Radius.circular(20)),
                 ),
               ),
@@ -35,7 +37,7 @@ class LifeCounterWidget extends StatelessWidget {
             child: StrokeText(
               text: '${player.lifePoints}',
               fontSize: 96,
-              color: AppColors.white,
+              color: dead ? AppColors.black : AppColors.white,
             ),
           ),
           Row(
@@ -51,6 +53,14 @@ class LifeCounterWidget extends StatelessWidget {
                           decrement: true,
                         ),
                       ),
+                  onLongPress: () => context.read<PlayerBloc>().add(
+                        UpdatePlayerLifeByXEvent(
+                          playerNumber: player.playerNumber,
+                          decrement: true,
+                        ),
+                      ),
+                  onLongPressUp: () =>
+                      context.read<PlayerBloc>().add(PlayerStopDecrement()),
                 ),
               ),
               Expanded(
@@ -64,6 +74,13 @@ class LifeCounterWidget extends StatelessWidget {
                           decrement: false,
                         ),
                       ),
+                  onLongPress: () =>
+                      context.read<PlayerBloc>().add(UpdatePlayerLifeByXEvent(
+                            playerNumber: player.playerNumber,
+                            decrement: false,
+                          )),
+                  onLongPressUp: () =>
+                      context.read<PlayerBloc>().add(PlayerStopDecrement()),
                 ),
               ),
             ],

@@ -35,8 +35,20 @@ class UpdatePlayerLifeEvent extends PlayerEvent {
     required this.decrement,
   });
   final int playerNumber;
+
   final bool decrement;
 }
+
+class UpdatePlayerLifeByXEvent extends PlayerEvent {
+  const UpdatePlayerLifeByXEvent({
+    required this.playerNumber,
+    required this.decrement,
+  });
+  final int playerNumber;
+  final bool decrement;
+}
+
+class PlayerStopDecrement extends PlayerEvent {}
 
 class PlayerDiesEvent extends PlayerEvent {
   const PlayerDiesEvent({required this.playerNumber});

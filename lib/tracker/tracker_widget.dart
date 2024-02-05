@@ -43,7 +43,7 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
                 children: [
                   CommanderDamageTracker(
                     imageUrl: player.picture,
-                    color: player.color,
+                    color: Color(player.color).withOpacity(1),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                 ],

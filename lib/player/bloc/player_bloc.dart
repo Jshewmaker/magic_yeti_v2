@@ -1,5 +1,5 @@
+import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -14,9 +14,18 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<UpdateCommanderEvent>(_onCommanderUpdated);
     on<UpdatePlayerNameEvent>(_updatePlayerName);
     on<UpdatePlayerLifeEvent>(_updatePlayerLifeTotal);
-    // on<PlayerDiesEvent>(_PlayerDiesEvent);
+    on<UpdatePlayerLifeByXEvent>(_updatePlayerLifeTotalByX);
+    on<PlayerStopDecrement>(_onStopDecrementing);
   }
   List<Player> playerList = [];
+  Timer? _timer;
+
+  @override
+  Future<void> close() {
+    _timer?.cancel();
+    return super.close();
+  }
+
   Future<void> _onPlayerCreated(
     CreatePlayerEvent event,
     Emitter<PlayerState> emit,
@@ -25,8 +34,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     for (var i = 0; i < event.numberOfPlayers; ++i) {
       playerList.add(
         Player(
-          color: Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
-              .withOpacity(1),
+          color: (math.Random().nextDouble() * 0xFFFFFF).toInt(),
           name: 'Player ${playerList.length}',
           picture: '',
           playerNumber: playerList.length,
@@ -107,7 +115,14 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         : player.copyWith(lifePoints: player.lifePoints + 1);
     state.playerList.add(update);
     state.playerList.sort((a, b) => a.playerNumber.compareTo(b.playerNumber));
-
+    if (update.lifePoints < 1) {
+      emit(
+        state.copyWith(
+          status: PlayerStatus.died,
+          playerList: state.playerList,
+        ),
+      );
+    }
     emit(
       state.copyWith(
         status: PlayerStatus.idle,
@@ -116,28 +131,49 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
   }
 
-  // void _PlayerDiesEvent(
-  //   PlayerDiesEvent event,
-  //   Emitter<PlayerState> emit,
-  // ) {
-  //   emit(state.copyWith(status: PlayerStatus.updating));
+  void _updatePlayerLifeTotalByX(
+    UpdatePlayerLifeByXEvent event,
+    Emitter<PlayerState> emit,
+  ) {
+    emit(state.copyWith(status: PlayerStatus.updating));
 
-  //   final player = state.playerList
-  //       .firstWhere((element) => element.playerNumber == event.playerNumber);
-  //   state.playerList
-  //       .removeWhere((element) => element.playerNumber == event.playerNumber);
+    final player = state.playerList
+        .firstWhere((element) => element.playerNumber == event.playerNumber);
+    state.playerList
+        .removeWhere((element) => element.playerNumber == event.playerNumber);
 
-  //   final update = event.decrement
-  //       ? player.copyWith(lifePoints: player.lifePoints - 1)
-  //       : player.copyWith(lifePoints: player.lifePoints + 1);
-  //   state.playerList.add(update);
-  //   state.playerList.sort((a, b) => a.playerNumber.compareTo(b.playerNumber));
+    final update = event.decrement
+        ? player.copyWith(lifePoints: player.lifePoints - 10)
+        : player.copyWith(lifePoints: player.lifePoints + 10);
+    state.playerList.add(update);
+    state.playerList.sort((a, b) => a.playerNumber.compareTo(b.playerNumber));
+    emit(
+      state.copyWith(
+        status: PlayerStatus.idle,
+        playerList: state.playerList,
+      ),
+    );
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      add(
+        UpdatePlayerLifeByXEvent(
+          playerNumber: event.playerNumber,
+          decrement: event.decrement,
+        ),
+      );
+    });
+  }
 
-  //   emit(
-  //     state.copyWith(
-  //       status: PlayerStatus.idle,
-  //       playerList: state.playerList,
-  //     ),
-  //   );
-  // }
+  void _onStopDecrementing(
+    PlayerStopDecrement event,
+    Emitter<PlayerState> emit,
+  ) {
+    _timer?.cancel();
+    emit(
+      state.copyWith(
+        status: PlayerStatus.idle,
+        playerList: state.playerList,
+      ),
+    );
+  }
 }

@@ -1,8 +1,10 @@
-import 'dart:ui';
-
 import 'package:equatable/equatable.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'player.g.dart';
 
 /// Player object that holds all player info
+@JsonSerializable(explicitToJson: true)
 class Player extends Equatable {
   const Player({
     required this.name,
@@ -17,14 +19,16 @@ class Player extends Equatable {
   final int playerNumber;
   final int lifePoints;
   final int placement;
-  final Color color;
+  final int color;
 
+  /// Connect the generated [_$PlayerToJson] function to the `toJson` method.
+  Map<String, dynamic> toJson() => _$PlayerToJson(this);
   Player copyWith({
     String? name,
     String? picture,
     int? playerNumber,
     int? lifePoints,
-    Color? color,
+    int? color,
     int? placement,
   }) {
     return Player(

@@ -8,5 +8,7 @@ sealed class GameEvent extends Equatable {
 }
 
 final class GameOverEvent extends GameEvent {
-  const GameOverEvent();
+  const GameOverEvent({required this.player});
+
+  final List<Player> player;
 }

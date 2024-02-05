@@ -45,7 +45,7 @@ class CustomizePlayerPage extends StatelessWidget {
                           borderRadius: const BorderRadius.all(
                             Radius.circular(20),
                           ),
-                          color: player.color,
+                          color: Color(player.color).withOpacity(1),
                         ),
                       ),
                     ),
