@@ -15,7 +15,7 @@ dependencies:
   cloud_firestore: ^4.15.3
   equatable: ^2.0.5
   firebase_core: ^2.25.3
-  firebase_database: ^10.4.4
+  firebase_database: ^10.4.9
   firebase_database_repository:
     path: packages/firebase_database_repository
   flutter:
