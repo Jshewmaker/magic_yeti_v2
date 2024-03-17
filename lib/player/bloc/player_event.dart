@@ -7,44 +7,30 @@ sealed class PlayerEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class CreatePlayerEvent extends PlayerEvent {
-  const CreatePlayerEvent({required this.numberOfPlayers});
-
-  final int numberOfPlayers;
-}
-
-class UpdateCommanderEvent extends PlayerEvent {
-  const UpdateCommanderEvent({
-    required this.pictureUrl,
-    required this.playerNumber,
+class UpdatePlayerInfoEvent extends PlayerEvent {
+  const UpdatePlayerInfoEvent({
+    required this.player,
   });
 
-  final String pictureUrl;
-  final int playerNumber;
-}
-
-class UpdatePlayerNameEvent extends PlayerEvent {
-  const UpdatePlayerNameEvent({required this.playerNumber, required this.name});
-  final int playerNumber;
-  final String name;
+  final Player player;
 }
 
 class UpdatePlayerLifeEvent extends PlayerEvent {
   const UpdatePlayerLifeEvent({
-    required this.playerNumber,
+    required this.player,
     required this.decrement,
   });
-  final int playerNumber;
+  final Player player;
 
   final bool decrement;
 }
 
 class UpdatePlayerLifeByXEvent extends PlayerEvent {
   const UpdatePlayerLifeByXEvent({
-    required this.playerNumber,
+    required this.player,
     required this.decrement,
   });
-  final int playerNumber;
+  final Player player;
   final bool decrement;
 }
 

@@ -10,20 +10,20 @@ enum PlayerStatus {
 
 final class PlayerState extends Equatable {
   const PlayerState({
+    this.player,
     this.status = PlayerStatus.noPlayers,
-    this.playerList = const <Player>[],
   });
 
   final PlayerStatus status;
-  final List<Player> playerList;
+  final Player? player;
 
   PlayerState copyWith({
     PlayerStatus? status,
-    List<Player>? playerList,
+    Player? player,
   }) {
     return PlayerState(
       status: status ?? this.status,
-      playerList: playerList ?? this.playerList,
+      player: player ?? this.player,
     );
   }
 

@@ -6,9 +6,8 @@ import 'package:scryfall_repository/scryfall_repository.dart';
 part 'player_settings_event.dart';
 part 'player_settings_state.dart';
 
-class PlayerSettingsBloc
-    extends Bloc<PlayerSettingsEvent, PlayerSettingsState> {
-  PlayerSettingsBloc({required ScryfallRepository scryfallRepository})
+class ScryfallBloc extends Bloc<PlayerSettingsEvent, PlayerSettingsState> {
+  ScryfallBloc({required ScryfallRepository scryfallRepository})
       : _scryfallRepository = scryfallRepository,
         super(PlayerSettingsInitial()) {
     on<PlayerSettingsCardRequested>(_cardListRequested);

@@ -1,7 +1,10 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/home/home_page.dart';
-import 'package:magic_yeti/life_counter/view/life_counter_page.dart';
+import 'package:magic_yeti/life_counter/life_counter.dart';
+import 'package:magic_yeti/player/bloc/player_bloc.dart';
+import 'package:magic_yeti/player/models/player.dart';
 import 'package:magic_yeti/player/view/customize_player_page.dart';
 
 final appRoutes = [
@@ -26,13 +29,23 @@ class LifeCounterRoute extends AppRoute {
   @override
   String get path => '/life_counter';
 
-  static GoRoute get route => GoRoute(
-        path: '/life_counter',
-        builder: (context, state) {
-          return const LifeCounterPage();
+  static RouteBase get route => ShellRoute(
+        builder: (context, state, child) {
+          return BlocProvider(
+            create: (context) => PlayerBloc(),
+            child: child,
+          );
         },
         routes: [
-          CustomizePlayerRoute.route,
+          GoRoute(
+            path: '/life_counter',
+            builder: (context, state) {
+              return const LifeCounterPage();
+            },
+            routes: [
+              CustomizePlayerRoute.route,
+            ],
+          )
         ],
       );
 }
@@ -55,16 +68,16 @@ class CustomizePlayerRoute extends AppRoute {
   const CustomizePlayerRoute() : super();
 
   @override
-  String get path => 'customize_player/:player';
+  String get path => 'customize_player';
 
   String get name => 'customizePlayer';
 
   static GoRoute get route => GoRoute(
         name: 'customizePlayer',
-        path: 'customize_player/:player',
+        path: 'customize_player',
         builder: (context, state) {
           return CustomizePlayerPage(
-            playerNumber: state.pathParameters['player']!,
+            player: state.extra! as Player,
           );
         },
       );

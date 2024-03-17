@@ -7,6 +7,7 @@ part 'player.g.dart';
 @JsonSerializable(explicitToJson: true)
 class Player extends Equatable {
   const Player({
+    required this.id,
     required this.name,
     required this.picture,
     required this.playerNumber,
@@ -14,6 +15,7 @@ class Player extends Equatable {
     required this.color,
     this.placement = 99,
   });
+  final int id;
   final String name;
   final String picture;
   final int playerNumber;
@@ -24,6 +26,7 @@ class Player extends Equatable {
   /// Connect the generated [_$PlayerToJson] function to the `toJson` method.
   Map<String, dynamic> toJson() => _$PlayerToJson(this);
   Player copyWith({
+    int? id,
     String? name,
     String? picture,
     int? playerNumber,
@@ -32,6 +35,7 @@ class Player extends Equatable {
     int? placement,
   }) {
     return Player(
+      id: id ?? this.id,
       name: name ?? this.name,
       color: color ?? this.color,
       picture: picture ?? this.picture,
@@ -43,6 +47,7 @@ class Player extends Equatable {
 
   @override
   List<Object?> get props => [
+        id,
         name,
         color,
         picture,

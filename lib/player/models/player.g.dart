@@ -7,6 +7,7 @@ part of 'player.dart';
 // **************************************************************************
 
 Player _$PlayerFromJson(Map<String, dynamic> json) => Player(
+      id: json['id'] as int,
       name: json['name'] as String,
       picture: json['picture'] as String,
       playerNumber: json['playerNumber'] as int,
@@ -16,6 +17,7 @@ Player _$PlayerFromJson(Map<String, dynamic> json) => Player(
     );
 
 Map<String, dynamic> _$PlayerToJson(Player instance) => <String, dynamic>{
+      'id': instance.id,
       'name': instance.name,
       'picture': instance.picture,
       'playerNumber': instance.playerNumber,

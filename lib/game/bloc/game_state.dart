@@ -1,16 +1,34 @@
 part of 'game_bloc.dart';
 
-sealed class GameState extends Equatable {
-  const GameState();
-
-  @override
-  List<Object> get props => [];
+enum GameStatus {
+  initial,
+  loading,
+  idle,
+  failure,
 }
 
-final class GameInitialState extends GameState {}
+final class GameState extends Equatable {
+  const GameState({
+    this.status = GameStatus.initial,
+    this.playerList = const [],
+  });
 
-final class GameLoadingState extends GameState {}
+  final GameStatus status;
+  final List<Player> playerList;
 
-final class GameIdleState extends GameState {}
+  GameState copyWith({
+    GameStatus? status,
+    List<Player>? playerList,
+  }) {
+    return GameState(
+      status: status ?? this.status,
+      playerList: playerList ?? this.playerList,
+    );
+  }
 
-final class GameFailureState extends GameState {}
+  @override
+  List<Object> get props => [
+        status,
+        playerList,
+      ];
+}

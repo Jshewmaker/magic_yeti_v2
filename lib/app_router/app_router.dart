@@ -12,6 +12,7 @@ class AppRouter {
   }) {
     _goRouter = goRouter ??
         GoRouter(
+          initialLocation: HomeRoute.route.path,
           routes: appRoutes,
           debugLogDiagnostics: kDebugMode,
         );

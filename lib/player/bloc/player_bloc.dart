@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -10,14 +9,12 @@ part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   PlayerBloc() : super(const PlayerState()) {
-    on<CreatePlayerEvent>(_onPlayerCreated);
-    on<UpdateCommanderEvent>(_onCommanderUpdated);
-    on<UpdatePlayerNameEvent>(_updatePlayerName);
+    on<UpdatePlayerInfoEvent>(_onPlayerInfoUpdate);
     on<UpdatePlayerLifeEvent>(_updatePlayerLifeTotal);
     on<UpdatePlayerLifeByXEvent>(_updatePlayerLifeTotalByX);
     on<PlayerStopDecrement>(_onStopDecrementing);
   }
-  List<Player> playerList = [];
+
   Timer? _timer;
 
   @override
@@ -26,75 +23,16 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     return super.close();
   }
 
-  Future<void> _onPlayerCreated(
-    CreatePlayerEvent event,
-    Emitter<PlayerState> emit,
-  ) async {
-    emit(state.copyWith(status: PlayerStatus.noPlayers));
-    for (var i = 0; i < event.numberOfPlayers; ++i) {
-      playerList.add(
-        Player(
-          color: (math.Random().nextDouble() * 0xFFFFFF).toInt(),
-          name: 'Player ${playerList.length}',
-          picture: '',
-          playerNumber: playerList.length,
-          lifePoints: 40,
-        ),
-      );
-    }
-
-    emit(
-      state.copyWith(
-        status: PlayerStatus.idle,
-        playerList: playerList,
-      ),
-    );
-  }
-
-  void _onCommanderUpdated(
-    UpdateCommanderEvent event,
+  void _onPlayerInfoUpdate(
+    UpdatePlayerInfoEvent event,
     Emitter<PlayerState> emit,
   ) {
     emit(state.copyWith(status: PlayerStatus.updating));
-    final player = state.playerList
-        .firstWhere((element) => element.playerNumber == event.playerNumber);
-    state.playerList
-        .removeWhere((element) => element.playerNumber == event.playerNumber);
-
-    final update = player.copyWith(picture: event.pictureUrl);
-    state.playerList.add(update);
-    state.playerList.sort((a, b) => a.playerNumber.compareTo(b.playerNumber));
 
     emit(
       state.copyWith(
         status: PlayerStatus.idle,
-        playerList: state.playerList,
-      ),
-    );
-  }
-
-  void _updatePlayerName(
-    UpdatePlayerNameEvent event,
-    Emitter<PlayerState> emit,
-  ) {
-    emit(state.copyWith(status: PlayerStatus.updating));
-    playerList[event.playerNumber].copyWith(
-      name: event.name,
-    );
-
-    final player = state.playerList
-        .firstWhere((element) => element.playerNumber == event.playerNumber);
-    state.playerList
-        .removeWhere((element) => element.playerNumber == event.playerNumber);
-
-    final update = player.copyWith(name: event.name);
-    state.playerList.add(update);
-    state.playerList.sort((a, b) => a.playerNumber.compareTo(b.playerNumber));
-
-    emit(
-      state.copyWith(
-        status: PlayerStatus.idle,
-        playerList: state.playerList,
+        player: event.player,
       ),
     );
   }
@@ -105,28 +43,22 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) {
     emit(state.copyWith(status: PlayerStatus.updating));
 
-    final player = state.playerList
-        .firstWhere((element) => element.playerNumber == event.playerNumber);
-    state.playerList
-        .removeWhere((element) => element.playerNumber == event.playerNumber);
+    final player = event.decrement
+        ? event.player.copyWith(lifePoints: event.player.lifePoints - 1)
+        : event.player.copyWith(lifePoints: event.player.lifePoints + 1);
 
-    final update = event.decrement
-        ? player.copyWith(lifePoints: player.lifePoints - 1)
-        : player.copyWith(lifePoints: player.lifePoints + 1);
-    state.playerList.add(update);
-    state.playerList.sort((a, b) => a.playerNumber.compareTo(b.playerNumber));
-    if (update.lifePoints < 1) {
+    if (player.lifePoints < 1) {
       emit(
         state.copyWith(
           status: PlayerStatus.died,
-          playerList: state.playerList,
+          player: player,
         ),
       );
     }
     emit(
       state.copyWith(
         status: PlayerStatus.idle,
-        playerList: state.playerList,
+        player: player,
       ),
     );
   }
@@ -137,27 +69,21 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) {
     emit(state.copyWith(status: PlayerStatus.updating));
 
-    final player = state.playerList
-        .firstWhere((element) => element.playerNumber == event.playerNumber);
-    state.playerList
-        .removeWhere((element) => element.playerNumber == event.playerNumber);
+    final player = event.decrement
+        ? event.player.copyWith(lifePoints: event.player.lifePoints - 10)
+        : event.player.copyWith(lifePoints: event.player.lifePoints + 10);
 
-    final update = event.decrement
-        ? player.copyWith(lifePoints: player.lifePoints - 10)
-        : player.copyWith(lifePoints: player.lifePoints + 10);
-    state.playerList.add(update);
-    state.playerList.sort((a, b) => a.playerNumber.compareTo(b.playerNumber));
     emit(
       state.copyWith(
         status: PlayerStatus.idle,
-        playerList: state.playerList,
+        player: player,
       ),
     );
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       add(
         UpdatePlayerLifeByXEvent(
-          playerNumber: event.playerNumber,
+          player: player,
           decrement: event.decrement,
         ),
       );
@@ -172,7 +98,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     emit(
       state.copyWith(
         status: PlayerStatus.idle,
-        playerList: state.playerList,
+        player: state.player,
       ),
     );
   }

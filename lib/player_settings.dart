@@ -11,8 +11,8 @@ class SelectCommanderWidget extends StatelessWidget {
   final Player player;
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<PlayerSettingsBloc>(
-      create: (_) => PlayerSettingsBloc(
+    return BlocProvider<ScryfallBloc>(
+      create: (_) => ScryfallBloc(
         scryfallRepository: context.read<ScryfallRepository>(),
       ),
       child: PlayerSettingsView(
@@ -35,49 +35,51 @@ class _PlayerSettingsViewState extends State<PlayerSettingsView> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return BlocBuilder<PlayerSettingsBloc, PlayerSettingsState>(
-      builder: (context, state) {
-        if (state is PlayerSettingsLoadSuccess) {
-          return Expanded(
-            child: Column(
-              children: [
-                TextField(
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
+
+    return Expanded(
+      child: Column(
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              suffixIcon: Container(
+                margin: const EdgeInsets.all(8),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(100, 50),
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    suffixIcon: Container(
-                      margin: const EdgeInsets.all(8),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(100, 50),
-                          backgroundColor: Colors.red,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: Text(l10n.searchButtonText),
-                        onPressed: () => context.read<PlayerSettingsBloc>().add(
-                              PlayerSettingsCardRequested(
-                                textController.text,
-                              ),
-                            ),
-                      ),
-                    ),
                   ),
-                  controller: textController,
+                  child: Text(l10n.searchButtonText),
+                  onPressed: () => context.read<ScryfallBloc>().add(
+                        PlayerSettingsCardRequested(
+                          textController.text,
+                        ),
+                      ),
                 ),
-                Expanded(
+              ),
+            ),
+            controller: textController,
+          ),
+          BlocBuilder<ScryfallBloc, PlayerSettingsState>(
+            builder: (context, state) {
+              if (state is PlayerSettingsLoadSuccess) {
+                return Expanded(
                   child: ListView.builder(
                     itemCount: state.cardList.data.length,
                     itemBuilder: (context, index) {
                       return GestureDetector(
                         onTap: () => context.read<PlayerBloc>().add(
-                              UpdateCommanderEvent(
-                                pictureUrl: state
-                                    .cardList.data[index].imageUris!.artCrop,
-                                playerNumber: widget.player.playerNumber,
+                              UpdatePlayerInfoEvent(
+                                player: widget.player.copyWith(
+                                  picture: state
+                                      .cardList.data[index].imageUris!.artCrop,
+                                ),
                               ),
                             ),
                         child: Row(
@@ -113,39 +115,14 @@ class _PlayerSettingsViewState extends State<PlayerSettingsView> {
                       );
                     },
                   ),
-                ),
-              ],
-            ),
-          );
-        }
-        return TextField(
-          decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.search),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-            suffixIcon: Container(
-              margin: const EdgeInsets.all(8),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(100, 50),
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                child: Text(l10n.searchButtonText),
-                onPressed: () => context.read<PlayerSettingsBloc>().add(
-                      PlayerSettingsCardRequested(
-                        textController.text,
-                      ),
-                    ),
-              ),
-            ),
+                );
+              } else {
+                return const CircularProgressIndicator();
+              }
+            },
           ),
-          controller: textController,
-        );
-      },
+        ],
+      ),
     );
   }
 }
