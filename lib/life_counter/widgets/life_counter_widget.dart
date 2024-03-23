@@ -19,7 +19,9 @@ class LifeCounterWidget extends StatelessWidget {
     final dead = player.lifePoints < 1;
     return BlocConsumer<PlayerBloc, PlayerState>(
       listener: (context, state) {
-        context.read<GameBloc>().add(UpdatePlayerEvent(player: state.player!));
+        if (state is PlayerUpdated) {
+          context.read<GameBloc>().add(UpdatePlayerEvent(player: state.player));
+        }
       },
       builder: (context, state) {
         return RotatedBox(
@@ -31,12 +33,15 @@ class LifeCounterWidget extends StatelessWidget {
                 child: Image.network(
                   player.picture,
                   opacity: AlwaysStoppedAnimation(dead ? .2 : 1),
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    decoration: BoxDecoration(
-                      color: Color(player.color).withOpacity(dead ? 0 : 1),
-                      borderRadius: const BorderRadius.all(Radius.circular(20)),
-                    ),
-                  ),
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Color(player.color).withOpacity(dead ? 0 : 1),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(20)),
+                      ),
+                    );
+                  },
                 ),
               ),
               Center(
@@ -59,14 +64,15 @@ class LifeCounterWidget extends StatelessWidget {
                               decrement: true,
                             ),
                           ),
-                      onLongPress: () => context.read<PlayerBloc>().add(
-                            UpdatePlayerLifeEvent(
-                              player: player,
-                              decrement: true,
-                            ),
-                          ),
-                      onLongPressUp: () =>
-                          context.read<PlayerBloc>().add(PlayerStopDecrement()),
+                      onLongPress: () => context
+                          .read<PlayerBloc>()
+                          .add(UpdatePlayerLifeByXEvent(
+                            player: player,
+                            decrement: true,
+                          )),
+                      onLongPressUp: () => context
+                          .read<PlayerBloc>()
+                          .add(PlayerStopDecrement(player: player)),
                     ),
                   ),
                   Expanded(
@@ -86,8 +92,9 @@ class LifeCounterWidget extends StatelessWidget {
                             player: player,
                             decrement: false,
                           )),
-                      onLongPressUp: () =>
-                          context.read<PlayerBloc>().add(PlayerStopDecrement()),
+                      onLongPressUp: () => context
+                          .read<PlayerBloc>()
+                          .add(PlayerStopDecrement(player: player)),
                     ),
                   ),
                 ],

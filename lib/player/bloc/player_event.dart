@@ -7,6 +7,8 @@ sealed class PlayerEvent extends Equatable {
   List<Object> get props => [];
 }
 
+class PlayerEventReset extends PlayerEvent {}
+
 class UpdatePlayerInfoEvent extends PlayerEvent {
   const UpdatePlayerInfoEvent({
     required this.player,
@@ -34,7 +36,11 @@ class UpdatePlayerLifeByXEvent extends PlayerEvent {
   final bool decrement;
 }
 
-class PlayerStopDecrement extends PlayerEvent {}
+class PlayerStopDecrement extends PlayerEvent {
+  const PlayerStopDecrement({required this.player});
+
+  final Player player;
+}
 
 class PlayerDiesEvent extends PlayerEvent {
   const PlayerDiesEvent({required this.playerNumber});

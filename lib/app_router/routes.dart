@@ -45,7 +45,7 @@ class LifeCounterRoute extends AppRoute {
             routes: [
               CustomizePlayerRoute.route,
             ],
-          )
+          ),
         ],
       );
 }

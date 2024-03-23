@@ -24,21 +24,22 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider.value(value: _scryfallRepository),
+        RepositoryProvider.value(value: _firebaseDatabaseRepository),
+      ],
+      child: MultiBlocProvider(
         providers: [
-          RepositoryProvider.value(value: _scryfallRepository),
-          RepositoryProvider.value(value: _firebaseDatabaseRepository),
-        ],
-        child: MultiBlocProvider(
-          providers: [
-            BlocProvider(
-              create: (_) => GameBloc(firebase: _firebaseDatabaseRepository),
-            ),
-          ],
-          child: Provider<AppRouter>(
-            create: (context) => AppRouter(),
-            child: const AppView(),
+          BlocProvider(
+            create: (_) => GameBloc(firebase: _firebaseDatabaseRepository),
           ),
-        ));
+        ],
+        child: Provider<AppRouter>(
+          create: (context) => AppRouter(),
+          child: const AppView(),
+        ),
+      ),
+    );
   }
 }
 

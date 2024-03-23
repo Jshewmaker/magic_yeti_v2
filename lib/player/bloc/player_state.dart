@@ -8,25 +8,55 @@ enum PlayerStatus {
   died,
 }
 
-final class PlayerState extends Equatable {
-  const PlayerState({
-    this.player,
-    this.status = PlayerStatus.noPlayers,
-  });
+// final class PlayerState extends Equatable {
+//   const PlayerState({
+//     this.player,
+//     this.status = PlayerStatus.noPlayers,
+//   });
 
-  final PlayerStatus status;
-  final Player? player;
+//   final PlayerStatus status;
+//   final Player? player;
 
-  PlayerState copyWith({
-    PlayerStatus? status,
-    Player? player,
-  }) {
-    return PlayerState(
-      status: status ?? this.status,
-      player: player ?? this.player,
-    );
-  }
+//   PlayerState copyWith({
+//     PlayerStatus? status,
+//     Player? player,
+//   }) {
+//     return PlayerState(
+//       status: status ?? this.status,
+//       player: player ?? this.player,
+//     );
+//   }
+
+//   @override
+//   List<Object?> get props => [status];
+// }
+
+@immutable
+sealed class PlayerState extends Equatable {
+  const PlayerState();
+}
+
+final class PlayerLoading extends PlayerState {
+  const PlayerLoading();
 
   @override
-  List<Object?> get props => [status];
+  List<Object?> get props => [];
+}
+
+final class PlayerUpdated extends PlayerState {
+  const PlayerUpdated({required this.player});
+
+  final Player player;
+
+  @override
+  List<Object?> get props => [];
+}
+
+final class PlayerDied extends PlayerState {
+  const PlayerDied({required this.player});
+
+  final Player player;
+
+  @override
+  List<Object?> get props => [];
 }

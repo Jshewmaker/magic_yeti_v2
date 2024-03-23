@@ -24,7 +24,6 @@ class AppRouter {
   ///
   /// Example routes:
   /// * [HomeRoute]
-  /// * [LoginRoute]
   void push(AppRoute appRoute) {
     final path = appRoute.path;
     final data = appRoute.extra;
@@ -39,7 +38,6 @@ class AppRouter {
   ///
   /// Example routes:
   /// * [HomeRoute]
-  /// * [LoginRoute]
   void pushFromPath(String path, {Object? extra}) {
     _goRouter.push(
       path,

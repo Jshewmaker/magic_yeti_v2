@@ -82,42 +82,74 @@ class _PlayerSettingsViewState extends State<PlayerSettingsView> {
                                 ),
                               ),
                             ),
-                        child: Row(
-                          children: [
-                            Image.network(
-                              state.cardList.data[index].imageUris!.large,
-                              scale: 4,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Container(),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Card(
+                          color: Colors.black.withOpacity(0.9),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
                               children: [
-                                Text(
-                                  state.cardList.data[index].name,
-                                  style: const TextStyle(fontSize: 36)
-                                      .copyWith(color: AppColors.white),
+                                Image.network(
+                                  state.cardList.data[index].imageUris!
+                                      .borderCrop,
+                                  scale: 4,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(),
                                 ),
-                                Text(
-                                  state.cardList.data[index].setName,
-                                  style: const TextStyle(fontSize: 24)
-                                      .copyWith(color: AppColors.white),
+                                const SizedBox(
+                                  width: AppSpacing.md,
                                 ),
-                                Text(
-                                  state.cardList.data[index].artist ?? '',
-                                  style: const TextStyle(fontSize: 24)
-                                      .copyWith(color: AppColors.white),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      state.cardList.data[index].name,
+                                      style: const TextStyle(fontSize: 36)
+                                          .copyWith(color: AppColors.white),
+                                    ),
+                                    Text(
+                                      state.cardList.data[index].setName,
+                                      style: const TextStyle(fontSize: 24)
+                                          .copyWith(color: AppColors.white),
+                                    ),
+                                    Text(
+                                      state.cardList.data[index].artist ?? '',
+                                      style: const TextStyle(fontSize: 24)
+                                          .copyWith(color: AppColors.white),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
+                          ),
                         ),
                       );
                     },
                   ),
                 );
+              }
+              if (state is PlayerSettingsLoading) {
+                return const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                  ),
+                );
               } else {
-                return const CircularProgressIndicator();
+                return Column(
+                  children: [
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    Text(
+                      'Search your commander.',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 20,
+                      ),
+                    )
+                  ],
+                );
               }
             },
           ),

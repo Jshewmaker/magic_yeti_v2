@@ -33,17 +33,25 @@ class CommanderDamageTracker extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.all(Radius.circular(10)),
-                    child: Image.network(
-                      imageUrl,
-                      width: width,
-                      height: height,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: color,
-                        width: width,
-                        height: height,
-                      ),
-                      fit: BoxFit.cover,
-                    ),
+                    child: imageUrl.isEmpty
+                        ? Container(
+                            color: color,
+                            width: width,
+                            height: height,
+                          )
+                        : Image.network(
+                            imageUrl,
+                            width: width,
+                            height: height,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: color,
+                                width: width,
+                                height: height,
+                              );
+                            },
+                            fit: BoxFit.cover,
+                          ),
                   ),
                   StrokeText(
                     text: state.counter.toString(),

@@ -20,7 +20,9 @@ class CustomizePlayerPage extends StatelessWidget {
 
     return BlocConsumer<PlayerBloc, PlayerState>(
       listener: (context, state) {
-        context.read<GameBloc>().add(UpdatePlayerEvent(player: state.player!));
+        if (state is PlayerUpdated) {
+          context.read<GameBloc>().add(UpdatePlayerEvent(player: state.player));
+        }
       },
       builder: (context, state) {
         return Scaffold(
@@ -35,9 +37,7 @@ class CustomizePlayerPage extends StatelessWidget {
                     return Expanded(
                       child: Column(
                         children: [
-                          if (state.status == PlayerStatus.updating)
-                            const CircularProgressIndicator()
-                          else
+                          if (state is PlayerUpdated)
                             Container(
                               decoration: const BoxDecoration(
                                 borderRadius: BorderRadius.all(
@@ -47,18 +47,20 @@ class CustomizePlayerPage extends StatelessWidget {
                               height: height,
                               width: width,
                               child: Image.network(
-                                state.player?.picture ?? player.picture,
+                                state.player.picture,
                                 fit: BoxFit.fill,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(20),
-                                    ),
-                                    color: Color(player.color).withOpacity(1),
-                                  ),
+                              ),
+                            )
+                          else
+                            Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(20),
                                 ),
                               ),
+                              height: height,
+                              width: width,
                             ),
                           const SizedBox(height: AppSpacing.md),
                           SizedBox(
@@ -81,23 +83,27 @@ class CustomizePlayerPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: AppSpacing.md),
-                          SizedBox(
-                            width: width / 2,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                context.read<PlayerBloc>().add(
-                                      UpdatePlayerInfoEvent(
-                                        player: player.copyWith(
-                                          name: textController.text,
-                                          picture: state.player?.picture ?? '',
+                          if (state is PlayerUpdated)
+                            SizedBox(
+                              width: width / 2,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  context.read<PlayerBloc>().add(
+                                        UpdatePlayerInfoEvent(
+                                          player: player.copyWith(
+                                            name: textController.text,
+                                            picture: state.player.picture,
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                Navigator.pop(context);
-                              },
-                              child: const Text('Save'),
+                                      );
+                                  context
+                                      .read<PlayerBloc>()
+                                      .add(PlayerEventReset());
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Save'),
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     );
