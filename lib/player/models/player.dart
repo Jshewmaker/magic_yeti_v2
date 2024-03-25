@@ -13,6 +13,7 @@ class Player extends Equatable {
     required this.playerNumber,
     required this.lifePoints,
     required this.color,
+    this.commanderDamageList = const [0, 0, 0, 0],
     this.placement = 99,
   });
   final int id;
@@ -22,6 +23,7 @@ class Player extends Equatable {
   final int lifePoints;
   final int placement;
   final int color;
+  final List<int> commanderDamageList;
 
   /// Connect the generated [_$PlayerToJson] function to the `toJson` method.
   Map<String, dynamic> toJson() => _$PlayerToJson(this);
@@ -33,6 +35,7 @@ class Player extends Equatable {
     int? lifePoints,
     int? color,
     int? placement,
+    List<int>? commanderDamageList,
   }) {
     return Player(
       id: id ?? this.id,
@@ -42,6 +45,7 @@ class Player extends Equatable {
       playerNumber: playerNumber ?? this.playerNumber,
       lifePoints: lifePoints ?? this.lifePoints,
       placement: placement ?? this.placement,
+      commanderDamageList: commanderDamageList ?? this.commanderDamageList,
     );
   }
 

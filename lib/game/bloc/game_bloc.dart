@@ -72,7 +72,20 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   Future<void> _onGameReset(
-      GameResetEvent event, Emitter<GameState> emit) async {
+    GameResetEvent event,
+    Emitter<GameState> emit,
+  ) async {
     emit(state.copyWith(status: GameStatus.loading));
+
+    final updatedList = <Player>[];
+    for (final player in state.playerList) {
+      updatedList.add(player.copyWith(
+        lifePoints: 40,
+      ));
+    }
+    emit(state.copyWith(status: GameStatus.idle, playerList: updatedList));
+    // final numberOfPlayer = state.playerList.length;
+    // emit(state.copyWith(status: GameStatus.loading, playerList: []));
+    // add(CreateGameEvent(numberOfPlayers: numberOfPlayer));
   }
 }

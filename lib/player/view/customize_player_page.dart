@@ -26,9 +26,8 @@ class CustomizePlayerPage extends StatelessWidget {
       },
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(),
           body: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxlg),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
