@@ -13,7 +13,7 @@ dependencies:
     path: packages/app_ui
   bloc: ^8.1.2
   cached_network_image: ^3.3.1
-  cloud_firestore: ^4.15.3
+  cloud_firestore: ^4.16.1
   equatable: ^2.0.5
   firebase_core: ^2.25.3
   firebase_database: ^10.4.4
