@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
-import 'package:magic_yeti/player_settings.dart';
+import 'package:magic_yeti/player/widgets/select_commander_widget.dart';
 
 class CustomizePlayerPage extends StatelessWidget {
   const CustomizePlayerPage({
