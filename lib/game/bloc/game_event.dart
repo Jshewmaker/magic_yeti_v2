@@ -19,10 +19,7 @@ final class UpdatePlayerEvent extends GameEvent {
 }
 
 final class GameOverEvent extends GameEvent {
-  const GameOverEvent({required this.player, required this.time});
-
-  final List<Player> player;
-  final String? time;
+  const GameOverEvent();
 }
 
 final class GamePlayerUpdatedEvent extends GameEvent {

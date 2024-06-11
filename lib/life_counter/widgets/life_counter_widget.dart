@@ -8,15 +8,17 @@ import 'package:magic_yeti/player/player.dart';
 
 class LifeCounterWidget extends StatelessWidget {
   LifeCounterWidget({
-    required this.player,
+    required this.playerIndex,
     super.key,
   });
-  final Player player;
+  final int playerIndex;
   final textController = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    final player = context.select(
+      (GameBloc bloc) => bloc.state.playerList[playerIndex],
+    );
     textController.text = player.name;
-    final dead = player.lifePoints < 1;
     return BlocConsumer<PlayerBloc, PlayerState>(
       listener: (context, state) {
         if (state is PlayerUpdated) {
@@ -32,13 +34,18 @@ class LifeCounterWidget extends StatelessWidget {
                 borderRadius: const BorderRadius.all(Radius.circular(20)),
                 child: Image.network(
                   player.picture,
-                  opacity: AlwaysStoppedAnimation(dead ? .2 : 1),
+                  opacity: AlwaysStoppedAnimation(
+                    player.lifePoints <= 0 ? .2 : 1,
+                  ),
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       decoration: BoxDecoration(
-                        color: Color(player.color).withOpacity(dead ? 0 : 1),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(20)),
+                        color: Color(player.color).withOpacity(
+                          player.lifePoints <= 0 ? .3 : 1,
+                        ),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(20),
+                        ),
                       ),
                     );
                   },
@@ -48,7 +55,7 @@ class LifeCounterWidget extends StatelessWidget {
                 child: StrokeText(
                   text: '${player.lifePoints}',
                   fontSize: 96,
-                  color: dead ? AppColors.black : AppColors.white,
+                  color: player.lifePoints <= 0 ? AppColors.black : AppColors.white,
                 ),
               ),
               Row(
@@ -64,15 +71,17 @@ class LifeCounterWidget extends StatelessWidget {
                               decrement: true,
                             ),
                           ),
-                      onLongPress: () => context
-                          .read<PlayerBloc>()
-                          .add(UpdatePlayerLifeByXEvent(
-                            player: player,
-                            decrement: true,
-                          )),
-                      onLongPressUp: () => context
-                          .read<PlayerBloc>()
-                          .add(PlayerStopDecrement(player: player)),
+                      onLongPress: () => context.read<PlayerBloc>().add(
+                            UpdatePlayerLifeByXEvent(
+                              player: player,
+                              decrement: true,
+                            ),
+                          ),
+                      onLongPressUp: () => context.read<PlayerBloc>().add(
+                            PlayerStopDecrement(
+                              player: player,
+                            ),
+                          ),
                     ),
                   ),
                   Expanded(
@@ -86,15 +95,17 @@ class LifeCounterWidget extends StatelessWidget {
                               decrement: false,
                             ),
                           ),
-                      onLongPress: () => context
-                          .read<PlayerBloc>()
-                          .add(UpdatePlayerLifeByXEvent(
-                            player: player,
-                            decrement: false,
-                          )),
-                      onLongPressUp: () => context
-                          .read<PlayerBloc>()
-                          .add(PlayerStopDecrement(player: player)),
+                      onLongPress: () => context.read<PlayerBloc>().add(
+                            UpdatePlayerLifeByXEvent(
+                              player: player,
+                              decrement: false,
+                            ),
+                          ),
+                      onLongPressUp: () => context.read<PlayerBloc>().add(
+                            PlayerStopDecrement(
+                              player: player,
+                            ),
+                          ),
                     ),
                   ),
                 ],
@@ -127,8 +138,7 @@ class _PlayerNameWidget extends StatelessWidget {
       children: [
         ElevatedButton(
           style: ButtonStyle(
-            backgroundColor:
-                MaterialStateProperty.all(Colors.white.withOpacity(.8)),
+            backgroundColor: MaterialStateProperty.all(Colors.white.withOpacity(.8)),
             shape: MaterialStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

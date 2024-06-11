@@ -51,9 +51,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         ? event.player.copyWith(lifePoints: event.player.lifePoints - 1)
         : event.player.copyWith(lifePoints: event.player.lifePoints + 1);
 
-    if (player.lifePoints < 1) {
-      emit(PlayerDied(player: player));
-    }
     emit(PlayerUpdated(player: player));
   }
 

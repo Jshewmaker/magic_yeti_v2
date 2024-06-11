@@ -20,7 +20,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<GameResetEvent>(_onGameReset);
   }
   final FirebaseDatabaseRepository _firebase;
-
+  final deadPlayerList = <Player>{};
   Future<void> _onCreateGame(
     CreateGameEvent event,
     Emitter<GameState> emit,
@@ -32,7 +32,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         Player(
           id: UniqueKey().hashCode,
           color: (math.Random().nextDouble() * 0xFFFFFF).toInt(),
-          name: 'Player ${playerList.length}',
+          name: 'Player ${playerList.length + 1}',
           picture: '',
           playerNumber: playerList.length,
           lifePoints: 40,
@@ -52,20 +52,38 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       (element) => element.id == event.player.id,
     );
     final updatedPlayer = event.player;
-    state.playerList.add(updatedPlayer);
-    emit(state.copyWith(status: GameStatus.idle, playerList: state.playerList));
+    if (updatedPlayer.lifePoints < 1) {
+      updatedPlayer.copyWith(
+        timeOfDeath: DateTime.now().toString(),
+      );
+    }
+    if (_didPlayerDie(updatedPlayer)) {
+      deadPlayerList.add(updatedPlayer);
+    }
+    if (deadPlayerList.length == state.playerList.length) {
+      state.playerList.add(updatedPlayer);
+      add(const GameOverEvent());
+    } else {
+      state.playerList.add(updatedPlayer);
+      emit(
+        state.copyWith(status: GameStatus.idle, playerList: state.playerList),
+      );
+    }
   }
 
   Future<void> _onGameOver(
     GameOverEvent event,
     Emitter<GameState> emit,
   ) async {
-    emit(state.copyWith(status: GameStatus.loading));
     try {
-      final list = event.player.map((e) => e.toJson()).toList();
+      final list = state.playerList.map((e) => e.toJson()).toList();
       await _firebase.saveGameStats(list);
 
-      emit(state.copyWith(status: GameStatus.idle, playerList: const []));
+      emit(
+        state.copyWith(
+          status: GameStatus.gameOver,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(status: GameStatus.failure));
     }
@@ -79,13 +97,22 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     final updatedList = <Player>[];
     for (final player in state.playerList) {
-      updatedList.add(player.copyWith(
-        lifePoints: 40,
-      ));
+      updatedList.add(
+        player.copyWith(
+          lifePoints: 40,
+        ),
+      );
     }
     emit(state.copyWith(status: GameStatus.idle, playerList: updatedList));
-    // final numberOfPlayer = state.playerList.length;
-    // emit(state.copyWith(status: GameStatus.loading, playerList: []));
-    // add(CreateGameEvent(numberOfPlayers: numberOfPlayer));
+  }
+
+  bool _didPlayerDie(Player player) {
+    if (player.lifePoints < 1) {
+      return true;
+    }
+    if (player.commanderDamageList.any((element) => element > 20)) {
+      return true;
+    }
+    return false;
   }
 }

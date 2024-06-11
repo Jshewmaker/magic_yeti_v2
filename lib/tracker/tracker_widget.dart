@@ -80,7 +80,6 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
 
   Future<IconData?> _dialogBuilder(BuildContext context) {
     return showDialog<IconData>(
-      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(

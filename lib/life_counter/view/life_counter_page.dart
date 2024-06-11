@@ -11,107 +11,131 @@ class LifeCounterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<GameBloc, GameState>(
-      listener: (context, state) {
-        // if (state.status == PlayerStatus.died &&
-        //     state.playerList.any((player) => player.lifePoints < 1)) {
-        //   final player =
-        //       state.playerList.where((p) => p.lifePoints < 1).toList();
-        //   if (player.length == 3) {
-        //     context
-        //         .read<GameBloc>()
-        //         .add(GameOverEvent(time: '60', player: state.playerList));
-        //   }
-        // }
-      },
+      listener: (context, state) {},
       builder: (context, state) {
-        state.playerList
-            .sort((a, b) => a.playerNumber.compareTo(b.playerNumber));
-        return Scaffold(
-          body: Row(
+        state.playerList.sort(
+          (a, b) => a.playerNumber.compareTo(b.playerNumber),
+        );
+        return Stack(
+          children: [
+            const GameView(),
+            if (state.status == GameStatus.gameOver) const GameOverWidget(),
+          ],
+        );
+      },
+    );
+  }
+}
+
+@visibleForTesting
+class GameView extends StatelessWidget {
+  const GameView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final playerList = context.watch<GameBloc>().state.playerList;
+    return Scaffold(
+      body: Row(
+        children: [
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Stack(
+                    children: [
+                      LifeCounterWidget(playerIndex: 3),
+                      TrackerWidgets(
+                        rotate: false,
+                        player: playerList[3].playerNumber,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      LifeCounterWidget(playerIndex: 1),
+                      TrackerWidgets(
+                        rotate: true,
+                        player: playerList[1].playerNumber,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          LifeCounterWidget(player: state.playerList[3]),
-                          TrackerWidgets(
-                            rotate: false,
-                            player: state.playerList[3].playerNumber,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          LifeCounterWidget(player: state.playerList[1]),
-                          TrackerWidgets(
-                            rotate: true,
-                            player: state.playerList[1].playerNumber,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+              IconButton(
+                icon: const Icon(
+                  Icons.refresh,
+                  color: Colors.white,
+                  size: 50,
                 ),
+                onPressed: () {
+                  context.read<GameBloc>().add(const GameResetEvent());
+                },
               ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.refresh,
-                      size: 50,
-                    ),
-                    onPressed: () {
-                      context.read<GameBloc>().add(const GameResetEvent());
-                    },
-                  ),
-                  const TimerWidget(),
-                  const Icon(
-                    FontAwesomeIcons.diceOne,
-                    size: 30,
-                  ),
-                ],
-              ),
-              Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Stack(
-                        alignment: Alignment.centerRight,
-                        children: [
-                          LifeCounterWidget(player: state.playerList[2]),
-                          TrackerWidgets(
-                            rotate: false,
-                            player: state.playerList[2].playerNumber,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Expanded(
-                      child: Stack(
-                        alignment: Alignment.centerRight,
-                        children: [
-                          LifeCounterWidget(player: state.playerList[0]),
-                          TrackerWidgets(
-                            rotate: true,
-                            player: state.playerList[0].playerNumber,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+              const TimerWidget(),
+              const Icon(
+                FontAwesomeIcons.diceOne,
+                size: 30,
               ),
             ],
           ),
-        );
-      },
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Stack(
+                    alignment: Alignment.centerRight,
+                    children: [
+                      LifeCounterWidget(playerIndex: 2),
+                      TrackerWidgets(
+                        rotate: false,
+                        player: playerList[2].playerNumber,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Expanded(
+                  child: Stack(
+                    alignment: Alignment.centerRight,
+                    children: [
+                      LifeCounterWidget(playerIndex: 0),
+                      TrackerWidgets(
+                        rotate: true,
+                        player: playerList[0].playerNumber,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GameOverWidget extends StatelessWidget {
+  const GameOverWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.blue.withOpacity(.5),
+      child: Center(
+        child: ElevatedButton(
+          onPressed: () => context.read<GameBloc>().add(const GameResetEvent()),
+          child: const Text('Play Again'),
+        ),
+      ),
     );
   }
 }

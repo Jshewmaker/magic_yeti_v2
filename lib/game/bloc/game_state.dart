@@ -4,6 +4,7 @@ enum GameStatus {
   initial,
   loading,
   idle,
+  gameOver,
   failure,
 }
 

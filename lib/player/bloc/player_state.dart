@@ -51,12 +51,3 @@ final class PlayerUpdated extends PlayerState {
   @override
   List<Object?> get props => [];
 }
-
-final class PlayerDied extends PlayerState {
-  const PlayerDied({required this.player});
-
-  final Player player;
-
-  @override
-  List<Object?> get props => [];
-}

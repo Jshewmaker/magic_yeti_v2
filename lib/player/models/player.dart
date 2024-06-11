@@ -13,6 +13,7 @@ class Player extends Equatable {
     required this.playerNumber,
     required this.lifePoints,
     required this.color,
+    this.timeOfDeath = '',
     this.commanderDamageList = const [0, 0, 0, 0],
     this.placement = 99,
   });
@@ -23,6 +24,7 @@ class Player extends Equatable {
   final int lifePoints;
   final int placement;
   final int color;
+  final String timeOfDeath;
   final List<int> commanderDamageList;
 
   /// Connect the generated [_$PlayerToJson] function to the `toJson` method.
@@ -31,6 +33,7 @@ class Player extends Equatable {
     int? id,
     String? name,
     String? picture,
+    String? timeOfDeath,
     int? playerNumber,
     int? lifePoints,
     int? color,
@@ -45,6 +48,7 @@ class Player extends Equatable {
       playerNumber: playerNumber ?? this.playerNumber,
       lifePoints: lifePoints ?? this.lifePoints,
       placement: placement ?? this.placement,
+      timeOfDeath: timeOfDeath ?? this.timeOfDeath,
       commanderDamageList: commanderDamageList ?? this.commanderDamageList,
     );
   }
