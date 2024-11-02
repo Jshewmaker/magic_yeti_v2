@@ -13,9 +13,13 @@ final class CreateGameEvent extends GameEvent {
 }
 
 final class UpdatePlayerEvent extends GameEvent {
-  const UpdatePlayerEvent({required this.player});
+  const UpdatePlayerEvent({
+    required this.player,
+    required this.action,
+  });
 
   final Player player;
+  final PlayerAction action;
 }
 
 final class GameOverEvent extends GameEvent {
@@ -30,4 +34,11 @@ final class GamePlayerUpdatedEvent extends GameEvent {
 
 final class GameResetEvent extends GameEvent {
   const GameResetEvent();
+}
+
+enum PlayerAction {
+  increment,
+  decrement,
+  updateName,
+  updatePfP,
 }

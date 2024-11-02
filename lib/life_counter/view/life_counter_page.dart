@@ -43,7 +43,7 @@ class GameView extends StatelessWidget {
                 Expanded(
                   child: Stack(
                     children: [
-                      LifeCounterWidget(playerIndex: 3),
+                      LifeCounterWidget(playerIndex: 3, rotate: true),
                       TrackerWidgets(
                         rotate: false,
                         player: playerList[3].playerNumber,
@@ -93,7 +93,7 @@ class GameView extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.centerRight,
                     children: [
-                      LifeCounterWidget(playerIndex: 2),
+                      LifeCounterWidget(playerIndex: 2, rotate: true),
                       TrackerWidgets(
                         rotate: false,
                         player: playerList[2].playerNumber,
@@ -128,8 +128,8 @@ class GameOverWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.blue.withOpacity(.5),
+    return ColoredBox(
+      color: Colors.black.withOpacity(.5),
       child: Center(
         child: ElevatedButton(
           onPressed: () => context.read<GameBloc>().add(const GameResetEvent()),

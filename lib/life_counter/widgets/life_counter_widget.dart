@@ -9,8 +9,10 @@ import 'package:magic_yeti/player/player.dart';
 class LifeCounterWidget extends StatelessWidget {
   LifeCounterWidget({
     required this.playerIndex,
+    this.rotate = false,
     super.key,
   });
+  final bool rotate;
   final int playerIndex;
   final textController = TextEditingController();
   @override
@@ -20,14 +22,10 @@ class LifeCounterWidget extends StatelessWidget {
     );
     textController.text = player.name;
     return BlocConsumer<PlayerBloc, PlayerState>(
-      listener: (context, state) {
-        if (state is PlayerUpdated) {
-          context.read<GameBloc>().add(UpdatePlayerEvent(player: state.player));
-        }
-      },
+      listener: (context, state) {},
       builder: (context, state) {
         return RotatedBox(
-          quarterTurns: player.playerNumber < 2 ? 0 : 2,
+          quarterTurns: rotate ? 2 : 0,
           child: Stack(
             children: [
               ClipRRect(
@@ -65,10 +63,10 @@ class LifeCounterWidget extends StatelessWidget {
                       'life_counter_widget_decrement',
                     ),
                     child: GestureDetector(
-                      onTap: () => context.read<PlayerBloc>().add(
-                            UpdatePlayerLifeEvent(
+                      onTap: () => context.read<GameBloc>().add(
+                            UpdatePlayerEvent(
                               player: player,
-                              decrement: true,
+                              action: PlayerAction.decrement,
                             ),
                           ),
                       onLongPress: () => context.read<PlayerBloc>().add(

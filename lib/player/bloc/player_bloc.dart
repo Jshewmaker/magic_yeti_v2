@@ -2,14 +2,13 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:magic_yeti/player/player.dart';
 
 part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  PlayerBloc() : super(const PlayerLoading()) {
+  PlayerBloc() : super(const PlayerState()) {
     on<UpdatePlayerInfoEvent>(_onPlayerInfoUpdate);
     on<UpdatePlayerLifeEvent>(_updatePlayerLifeTotal);
     on<UpdatePlayerLifeByXEvent>(_updatePlayerLifeTotalByX);
@@ -29,42 +28,47 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     PlayerEventReset event,
     Emitter<PlayerState> emit,
   ) {
-    emit(const PlayerLoading());
+    emit(state.copyWith(status: PlayerStatus.idle));
   }
 
   void _onPlayerInfoUpdate(
     UpdatePlayerInfoEvent event,
     Emitter<PlayerState> emit,
   ) {
-    emit(const PlayerLoading());
-
-    emit(PlayerUpdated(player: event.player));
+    emit(state.copyWith(status: PlayerStatus.idle, player: event.player));
   }
 
   void _updatePlayerLifeTotal(
     UpdatePlayerLifeEvent event,
     Emitter<PlayerState> emit,
   ) {
-    emit(const PlayerLoading());
+    emit(state.copyWith(status: PlayerStatus.updating));
 
     final player = event.decrement
         ? event.player.copyWith(lifePoints: event.player.lifePoints - 1)
         : event.player.copyWith(lifePoints: event.player.lifePoints + 1);
-
-    emit(PlayerUpdated(player: player));
+    if (player.lifePoints < 1) {
+      emit(
+        state.copyWith(
+          player: player.copyWith(
+            timeOfDeath: DateTime.now().toString(),
+          ),
+        ),
+      );
+    } else {
+      emit(state.copyWith(status: PlayerStatus.idle, player: player));
+    }
   }
 
   void _updatePlayerLifeTotalByX(
     UpdatePlayerLifeByXEvent event,
     Emitter<PlayerState> emit,
   ) {
-    emit(const PlayerLoading());
-
     final player = event.decrement
         ? event.player.copyWith(lifePoints: event.player.lifePoints - 10)
         : event.player.copyWith(lifePoints: event.player.lifePoints + 10);
 
-    emit(PlayerUpdated(player: player));
+    emit(state.copyWith(status: PlayerStatus.idle, player: player));
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       add(
@@ -81,6 +85,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) {
     _timer?.cancel();
-    emit(PlayerUpdated(player: event.player));
+    emit(state.copyWith(status: PlayerStatus.idle, player: event.player));
   }
 }
