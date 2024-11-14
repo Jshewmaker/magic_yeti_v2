@@ -9,14 +9,21 @@ environment:
 dependencies:
   api_client:
     path: packages/api_client
+  app_config_repository:
+    path: packages/app_config_repository/app_config_repository
   app_ui:
     path: packages/app_ui
+  authentication_client:
+    path: packages/authentication_client/authentication_client
   bloc: ^8.1.2
   cached_network_image: ^3.3.1
-  cloud_firestore: ^4.15.3
+  cloud_firestore: ^5.5.0
   equatable: ^2.0.5
-  firebase_core: ^2.25.3
-  firebase_database: ^10.4.4
+  fake_app_config_repository:
+    path: packages/app_config_repository/fake_app_config_repository
+  firebase_authentication_client:
+    path: packages/authentication_client/firebase_authentication_client
+  firebase_core: ^3.1.0
   firebase_database_repository:
     path: packages/firebase_database_repository
   flutter:
@@ -31,6 +38,9 @@ dependencies:
   provider: ^6.1.1
   scryfall_repository:
     path: packages/scryfall_repository
+  uuid: ^4.5.1
+  user_repository:
+    path: packages/user_repository
 
 dev_dependencies:
   bloc_test: ^9.1.4

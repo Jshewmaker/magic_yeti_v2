@@ -1,10 +1,9 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:magic_yeti/app_router/routes.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
+import 'package:magic_yeti/player/view/customize_player_page.dart';
 
 class LifeCounterWidget extends StatelessWidget {
   LifeCounterWidget({
@@ -22,7 +21,17 @@ class LifeCounterWidget extends StatelessWidget {
     );
     textController.text = player.name;
     return BlocConsumer<PlayerBloc, PlayerState>(
-      listener: (context, state) {},
+      listenWhen: (previous, current) => previous.status != current.status,
+      listener: (context, state) {
+        if (state.status == PlayerStatus.died) {
+          context.read<GameBloc>().add(
+                UpdatePlayerEvent(
+                  player: state.player,
+                  action: PlayerAction.died,
+                ),
+              );
+        }
+      },
       builder: (context, state) {
         return RotatedBox(
           quarterTurns: rotate ? 2 : 0,
@@ -53,7 +62,9 @@ class LifeCounterWidget extends StatelessWidget {
                 child: StrokeText(
                   text: '${player.lifePoints}',
                   fontSize: 96,
-                  color: player.lifePoints <= 0 ? AppColors.black : AppColors.white,
+                  color: player.lifePoints <= 0
+                      ? AppColors.black
+                      : AppColors.white,
                 ),
               ),
               Row(
@@ -63,10 +74,10 @@ class LifeCounterWidget extends StatelessWidget {
                       'life_counter_widget_decrement',
                     ),
                     child: GestureDetector(
-                      onTap: () => context.read<GameBloc>().add(
-                            UpdatePlayerEvent(
+                      onTap: () => context.read<PlayerBloc>().add(
+                            UpdatePlayerLifeEvent(
                               player: player,
-                              action: PlayerAction.decrement,
+                              decrement: true,
                             ),
                           ),
                       onLongPress: () => context.read<PlayerBloc>().add(
@@ -111,9 +122,10 @@ class LifeCounterWidget extends StatelessWidget {
               _PlayerNameWidget(
                 name: textController.text,
                 onPressed: () {
-                  context.pushNamed(
-                    const CustomizePlayerRoute().name,
-                    extra: player,
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (context) => CustomizePlayerPage(player: player),
+                    ),
                   );
                 },
               ),
@@ -136,7 +148,8 @@ class _PlayerNameWidget extends StatelessWidget {
       children: [
         ElevatedButton(
           style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(Colors.white.withOpacity(.8)),
+            backgroundColor:
+                MaterialStateProperty.all(Colors.white.withOpacity(.8)),
             shape: MaterialStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

@@ -8,6 +8,15 @@ import 'package:magic_yeti/tracker/tracker.dart';
 
 class LifeCounterPage extends StatelessWidget {
   const LifeCounterPage({super.key});
+
+  factory LifeCounterPage.pageBuilder(_, __) {
+    return const LifeCounterPage(
+      key: Key('life_counter_page'),
+    );
+  }
+
+  static const routeName = '/life_counter_page';
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<GameBloc, GameState>(

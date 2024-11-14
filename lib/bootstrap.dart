@@ -1,39 +1,28 @@
-import 'dart:async';
-import 'dart:developer';
+// Copyright (c) 2024, Very Good Ventures
+// https://verygood.ventures
 
-import 'package:bloc/bloc.dart';
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:magic_yeti/firebase_options.dart';
 
-class AppBlocObserver extends BlocObserver {
-  const AppBlocObserver();
-
-  @override
-  void onChange(BlocBase<dynamic> bloc, Change<dynamic> change) {
-    super.onChange(bloc, change);
-    log('onChange(${bloc.runtimeType}, $change)');
-  }
-
-  @override
-  void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
-    log('onError(${bloc.runtimeType}, $error, $stackTrace)');
-    super.onError(bloc, error, stackTrace);
-  }
-}
-
-Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
+Future<void> bootstrap(
+  Future<Widget> Function(
+    FirebaseFirestore firestore,
+  ) builder,
+) async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  FlutterError.onError = (details) {
-    log(details.exceptionAsString(), stackTrace: details.stack);
-  };
 
-  Bloc.observer = const AppBlocObserver();
+  // Bloc.observer = AppBlocObserver(
+  //   analyticsRepository: analyticsRepository,
+  // );
 
-  // Add cross-flavor configuration here
-
-  runApp(await builder());
+  runApp(
+    await builder(FirebaseFirestore.instance),
+  );
 }

@@ -5,8 +5,9 @@ import 'package:api_client/api_client.dart';
 /// {@endtemplate}
 class ScryfallRepository {
   /// {@macro scryfall_repository}
-  const ScryfallRepository({required ApiClient apiClient})
-      : _apiClient = apiClient;
+  ScryfallRepository({ApiClient? apiClient})
+      : _apiClient =
+            apiClient ?? ApiClient(baseUrl: 'https://api.scryfall.com');
 
   final ApiClient _apiClient;
 

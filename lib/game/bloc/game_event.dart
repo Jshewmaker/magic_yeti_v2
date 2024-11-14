@@ -41,4 +41,5 @@ enum PlayerAction {
   decrement,
   updateName,
   updatePfP,
+  died,
 }

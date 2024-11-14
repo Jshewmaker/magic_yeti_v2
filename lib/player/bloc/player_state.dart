@@ -8,12 +8,12 @@ enum PlayerStatus {
 
 final class PlayerState extends Equatable {
   const PlayerState({
-    this.player,
+    required this.player,
     this.status = PlayerStatus.idle,
   });
 
   final PlayerStatus status;
-  final Player? player;
+  final Player player;
 
   PlayerState copyWith({
     PlayerStatus? status,

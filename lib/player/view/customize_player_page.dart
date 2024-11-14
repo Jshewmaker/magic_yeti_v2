@@ -10,6 +10,7 @@ class CustomizePlayerPage extends StatelessWidget {
     required this.player,
     super.key,
   });
+
   final Player player;
 
   @override
@@ -39,7 +40,7 @@ class CustomizePlayerPage extends StatelessWidget {
                           height: height,
                           width: width,
                           child: Image.network(
-                            state.player!.picture,
+                            state.player.picture,
                             fit: BoxFit.fill,
                           ),
                         )
@@ -84,11 +85,13 @@ class CustomizePlayerPage extends StatelessWidget {
                                     UpdatePlayerInfoEvent(
                                       player: player.copyWith(
                                         name: textController.text,
-                                        picture: state.player!.picture,
+                                        picture: state.player.picture,
                                       ),
                                     ),
                                   );
-                              context.read<PlayerBloc>().add(PlayerEventReset());
+                              context
+                                  .read<PlayerBloc>()
+                                  .add(PlayerEventReset());
                               Navigator.pop(context);
                             },
                             child: const Text('Save'),

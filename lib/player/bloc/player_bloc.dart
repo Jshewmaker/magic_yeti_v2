@@ -8,7 +8,7 @@ part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  PlayerBloc() : super(const PlayerState()) {
+  PlayerBloc({required Player player}) : super(PlayerState(player: player)) {
     on<UpdatePlayerInfoEvent>(_onPlayerInfoUpdate);
     on<UpdatePlayerLifeEvent>(_updatePlayerLifeTotal);
     on<UpdatePlayerLifeByXEvent>(_updatePlayerLifeTotalByX);

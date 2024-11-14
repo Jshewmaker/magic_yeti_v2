@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:magic_yeti/app_router/routes.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
+import 'package:magic_yeti/life_counter/view/life_counter_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
+  factory HomePage.pageBuilder(_, __) {
+    return const HomePage(
+      key: Key('home_page'),
+    );
+  }
 
+  static const routeName = '/';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,7 +27,7 @@ class HomePage extends StatelessWidget {
                     .read<GameBloc>()
                     .add(const CreateGameEvent(numberOfPlayers: 4));
                 context.go(
-                  const LifeCounterRoute().path,
+                  LifeCounterPage.routeName,
                 );
               },
               child: const Text('4 Player'),
