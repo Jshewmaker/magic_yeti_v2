@@ -35,6 +35,6 @@ class AppRoute extends GoRoute {
   @override
   GoRouterRedirect get redirect => (context, state) {
         final currentStatus = context.read<AppBloc>().state.status;
-        return currentStatus == appStatus ? null : currentStatus.route;
+        //  return currentStatus == appStatus ? null : currentStatus.route;
       };
 }

@@ -20,119 +20,123 @@ class LifeCounterWidget extends StatelessWidget {
       (GameBloc bloc) => bloc.state.playerList[playerIndex],
     );
     textController.text = player.name;
-    return BlocConsumer<PlayerBloc, PlayerState>(
-      listenWhen: (previous, current) => previous.status != current.status,
-      listener: (context, state) {
-        if (state.status == PlayerStatus.died) {
-          context.read<GameBloc>().add(
-                UpdatePlayerEvent(
-                  player: state.player,
-                  action: PlayerAction.died,
-                ),
-              );
-        }
-      },
-      builder: (context, state) {
-        return RotatedBox(
-          quarterTurns: rotate ? 2 : 0,
-          child: Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(20)),
-                child: Image.network(
-                  player.picture,
-                  opacity: AlwaysStoppedAnimation(
-                    player.lifePoints <= 0 ? .2 : 1,
+    return BlocProvider(
+      create: (context) => PlayerBloc(player: player),
+      child: BlocConsumer<PlayerBloc, PlayerState>(
+        listenWhen: (previous, current) => previous.status != current.status,
+        listener: (context, state) {
+          if (state.status == PlayerStatus.died) {
+            context.read<GameBloc>().add(
+                  UpdatePlayerEvent(
+                    player: state.player,
+                    action: PlayerAction.died,
                   ),
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Color(player.color).withOpacity(
-                          player.lifePoints <= 0 ? .3 : 1,
+                );
+          }
+        },
+        builder: (context, state) {
+          return RotatedBox(
+            quarterTurns: rotate ? 2 : 0,
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.all(Radius.circular(20)),
+                  child: Image.network(
+                    player.picture,
+                    opacity: AlwaysStoppedAnimation(
+                      player.lifePoints <= 0 ? .2 : 1,
+                    ),
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Color(player.color).withOpacity(
+                            player.lifePoints <= 0 ? .3 : 1,
+                          ),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(20),
+                          ),
                         ),
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(20),
-                        ),
+                      );
+                    },
+                  ),
+                ),
+                Center(
+                  child: StrokeText(
+                    text: '${player.lifePoints}',
+                    fontSize: 96,
+                    color: player.lifePoints <= 0
+                        ? AppColors.black
+                        : AppColors.white,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      key: const ValueKey(
+                        'life_counter_widget_decrement',
+                      ),
+                      child: GestureDetector(
+                        onTap: () => context.read<PlayerBloc>().add(
+                              UpdatePlayerLifeEvent(
+                                player: player,
+                                decrement: true,
+                              ),
+                            ),
+                        onLongPress: () => context.read<PlayerBloc>().add(
+                              UpdatePlayerLifeByXEvent(
+                                player: player,
+                                decrement: true,
+                              ),
+                            ),
+                        onLongPressUp: () => context.read<PlayerBloc>().add(
+                              PlayerStopDecrement(
+                                player: player,
+                              ),
+                            ),
+                      ),
+                    ),
+                    Expanded(
+                      key: const ValueKey(
+                        'life_counter_widget_increment',
+                      ),
+                      child: GestureDetector(
+                        onTap: () => context.read<PlayerBloc>().add(
+                              UpdatePlayerLifeEvent(
+                                player: player,
+                                decrement: false,
+                              ),
+                            ),
+                        onLongPress: () => context.read<PlayerBloc>().add(
+                              UpdatePlayerLifeByXEvent(
+                                player: player,
+                                decrement: false,
+                              ),
+                            ),
+                        onLongPressUp: () => context.read<PlayerBloc>().add(
+                              PlayerStopDecrement(
+                                player: player,
+                              ),
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                _PlayerNameWidget(
+                  name: textController.text,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (context) =>
+                            CustomizePlayerPage(player: player),
                       ),
                     );
                   },
                 ),
-              ),
-              Center(
-                child: StrokeText(
-                  text: '${player.lifePoints}',
-                  fontSize: 96,
-                  color: player.lifePoints <= 0
-                      ? AppColors.black
-                      : AppColors.white,
-                ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    key: const ValueKey(
-                      'life_counter_widget_decrement',
-                    ),
-                    child: GestureDetector(
-                      onTap: () => context.read<PlayerBloc>().add(
-                            UpdatePlayerLifeEvent(
-                              player: player,
-                              decrement: true,
-                            ),
-                          ),
-                      onLongPress: () => context.read<PlayerBloc>().add(
-                            UpdatePlayerLifeByXEvent(
-                              player: player,
-                              decrement: true,
-                            ),
-                          ),
-                      onLongPressUp: () => context.read<PlayerBloc>().add(
-                            PlayerStopDecrement(
-                              player: player,
-                            ),
-                          ),
-                    ),
-                  ),
-                  Expanded(
-                    key: const ValueKey(
-                      'life_counter_widget_increment',
-                    ),
-                    child: GestureDetector(
-                      onTap: () => context.read<PlayerBloc>().add(
-                            UpdatePlayerLifeEvent(
-                              player: player,
-                              decrement: false,
-                            ),
-                          ),
-                      onLongPress: () => context.read<PlayerBloc>().add(
-                            UpdatePlayerLifeByXEvent(
-                              player: player,
-                              decrement: false,
-                            ),
-                          ),
-                      onLongPressUp: () => context.read<PlayerBloc>().add(
-                            PlayerStopDecrement(
-                              player: player,
-                            ),
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-              _PlayerNameWidget(
-                name: textController.text,
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (context) => CustomizePlayerPage(player: player),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        );
-      },
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

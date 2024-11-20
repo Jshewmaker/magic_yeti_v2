@@ -15,7 +15,8 @@ class LifeCounterPage extends StatelessWidget {
     );
   }
 
-  static const routeName = '/life_counter_page';
+  static const routeName = 'life_counter_page';
+  static String get routePath => '/life_counter_page';
 
   @override
   Widget build(BuildContext context) {

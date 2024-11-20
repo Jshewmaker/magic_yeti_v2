@@ -52,24 +52,14 @@ class AppRouter {
           ),
         ),
         AppRoute(
-          name: LifeCounterPage.routeName,
-          path: LifeCounterPage.routeName,
+          name: LifeCounterPage.routePath,
+          path: LifeCounterPage.routePath,
           pageBuilder: (context, state) => NoTransitionPage(
-            name: LifeCounterPage.routeName,
+            name: LifeCounterPage.routePath,
             child: LifeCounterPage.pageBuilder(context, state),
           ),
         ),
       ],
-      redirect: (context, state) {
-        final status = appBloc.state.status;
-
-        if (status != _currentStatus) {
-          _currentStatus = status;
-          return _currentStatus.route;
-        } else {
-          return null;
-        }
-      },
     );
   }
 }

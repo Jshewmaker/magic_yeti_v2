@@ -1,3 +1,4 @@
+import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import 'package:magic_yeti/life_counter/view/life_counter_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
+
   factory HomePage.pageBuilder(_, __) {
     return const HomePage(
       key: Key('home_page'),
@@ -13,6 +15,16 @@ class HomePage extends StatelessWidget {
   }
 
   static const routeName = '/';
+
+  @override
+  Widget build(BuildContext context) {
+    return const HomeView();
+  }
+}
+
+class HomeView extends StatelessWidget {
+  const HomeView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,9 +38,7 @@ class HomePage extends StatelessWidget {
                 context
                     .read<GameBloc>()
                     .add(const CreateGameEvent(numberOfPlayers: 4));
-                context.go(
-                  LifeCounterPage.routeName,
-                );
+                context.go(LifeCounterPage.routePath);
               },
               child: const Text('4 Player'),
             ),

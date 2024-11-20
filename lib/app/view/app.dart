@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/app_router/app_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 import 'package:user_repository/user_repository.dart';
@@ -47,6 +48,9 @@ class App extends StatelessWidget {
               userRepository: _userRepository,
               user: _user,
             ),
+          ),
+          BlocProvider(
+            create: (_) => GameBloc(firebase: _firebaseDatabaseRepository),
           ),
         ],
         child: const AppView(),
