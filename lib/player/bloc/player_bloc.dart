@@ -2,13 +2,36 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:magic_yeti/player/player.dart';
-import 'package:magic_yeti/player/repository/player_repository.dart';
+import 'package:player_repository/player_repository.dart';
 
 part 'player_event.dart';
 part 'player_state.dart';
 
+/// {@template player_repository}
+/// A repository that manages a list of players for a game.
+///
+/// This repository serves as the single source of truth for player data,
+/// providing methods to create, read, update, and delete players, as well as
+/// stream updates to player state.
+///
+/// Example:
+/// ```dart
+/// final repository = PlayerRepository();
+///
+/// // Add a new player
+/// repository.updatePlayer(player);
+///
+/// // Get all players
+/// final players = repository.getPlayers();
+///
+/// // Listen to player updates
+/// repository.players.listen((players) {
+///   // Handle player updates
+/// });
+/// ```
+/// {@endtemplate}
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
+  /// {@macro player_repository}
   PlayerBloc({
     required PlayerRepository playerRepository,
   })  : _playerRepository = playerRepository,
@@ -22,7 +45,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   final PlayerRepository _playerRepository;
   Timer? _timer;
-  int? _currentDecrementingPlayerId;
 
   @override
   Future<void> close() {
@@ -98,7 +120,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       ),
     );
 
-    _currentDecrementingPlayerId = event.playerId;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       add(
@@ -115,6 +136,5 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) {
     _timer?.cancel();
-    _currentDecrementingPlayerId = null;
   }
 }

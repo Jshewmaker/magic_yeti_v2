@@ -4,9 +4,8 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:magic_yeti/game/bloc/game_bloc.dart';
-import 'package:magic_yeti/player/repository/player_repository.dart';
 import 'package:magic_yeti/tracker/tracker.dart';
+import 'package:player_repository/player_repository.dart';
 
 class TrackerWidgets extends StatefulWidget {
   const TrackerWidgets({

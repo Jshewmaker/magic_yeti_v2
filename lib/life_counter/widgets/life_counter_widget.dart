@@ -2,8 +2,8 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
-import 'package:magic_yeti/player/repository/player_repository.dart';
 import 'package:magic_yeti/player/view/customize_player_page.dart';
+import 'package:player_repository/player_repository.dart';
 
 class LifeCounterWidget extends StatelessWidget {
   LifeCounterWidget({

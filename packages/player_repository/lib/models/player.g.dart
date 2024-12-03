@@ -7,13 +7,18 @@ part of 'player.dart';
 // **************************************************************************
 
 Player _$PlayerFromJson(Map<String, dynamic> json) => Player(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       name: json['name'] as String,
       picture: json['picture'] as String,
-      playerNumber: json['playerNumber'] as int,
-      lifePoints: json['lifePoints'] as int,
-      color: json['color'] as int,
-      placement: json['placement'] as int? ?? 99,
+      playerNumber: (json['playerNumber'] as num).toInt(),
+      lifePoints: (json['lifePoints'] as num).toInt(),
+      color: (json['color'] as num).toInt(),
+      timeOfDeath: json['timeOfDeath'] as String? ?? '',
+      commanderDamageList: (json['commanderDamageList'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
+              .toList() ??
+          const [0, 0, 0, 0],
+      placement: (json['placement'] as num?)?.toInt() ?? 99,
     );
 
 Map<String, dynamic> _$PlayerToJson(Player instance) => <String, dynamic>{
@@ -24,4 +29,6 @@ Map<String, dynamic> _$PlayerToJson(Player instance) => <String, dynamic>{
       'lifePoints': instance.lifePoints,
       'placement': instance.placement,
       'color': instance.color,
+      'timeOfDeath': instance.timeOfDeath,
+      'commanderDamageList': instance.commanderDamageList,
     };

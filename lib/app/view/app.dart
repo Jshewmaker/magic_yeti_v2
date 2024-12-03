@@ -7,7 +7,7 @@ import 'package:magic_yeti/app/app_router/app_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
-import 'package:magic_yeti/player/repository/player_repository.dart';
+import 'package:player_repository/player_repository.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 import 'package:user_repository/user_repository.dart';
 

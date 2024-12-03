@@ -5,8 +5,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/foundation.dart';
-import 'package:magic_yeti/player/player.dart';
-import 'package:magic_yeti/player/repository/player_repository.dart';
+import 'package:player_repository/player_repository.dart';
 
 part 'game_event.dart';
 part 'game_state.dart';

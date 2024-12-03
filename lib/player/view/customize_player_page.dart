@@ -2,8 +2,8 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
-import 'package:magic_yeti/player/repository/player_repository.dart';
 import 'package:magic_yeti/player/widgets/select_commander_widget.dart';
+import 'package:player_repository/player_repository.dart';
 
 class CustomizePlayerPage extends StatelessWidget {
   const CustomizePlayerPage({
@@ -14,7 +14,7 @@ class CustomizePlayerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final player = context.read<PlayerRepository>().getPlayerById(playerId);
-    final textController = TextEditingController(text: player?.name);
+    final textController = TextEditingController(text: player.name);
     const width = 400.0;
     const height = 300.0;
 
