@@ -11,35 +11,38 @@ class PlayerEventReset extends PlayerEvent {}
 
 class UpdatePlayerInfoEvent extends PlayerEvent {
   const UpdatePlayerInfoEvent({
-    required this.player,
+    required this.playerId,
+    this.playerName,
+    this.pictureUrl,
   });
 
-  final Player player;
+  final String? pictureUrl;
+  final String? playerName;
+  final int playerId;
 }
 
 class UpdatePlayerLifeEvent extends PlayerEvent {
   const UpdatePlayerLifeEvent({
-    required this.player,
     required this.decrement,
+    required this.playerId,
   });
-  final Player player;
 
   final bool decrement;
+  final int playerId;
 }
 
 class UpdatePlayerLifeByXEvent extends PlayerEvent {
   const UpdatePlayerLifeByXEvent({
-    required this.player,
     required this.decrement,
+    required this.playerId,
   });
-  final Player player;
+
   final bool decrement;
+  final int playerId;
 }
 
 class PlayerStopDecrement extends PlayerEvent {
-  const PlayerStopDecrement({required this.player});
-
-  final Player player;
+  const PlayerStopDecrement();
 }
 
 class PlayerDiesEvent extends PlayerEvent {

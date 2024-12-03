@@ -7,6 +7,15 @@ sealed class GameEvent extends Equatable {
   List<Object> get props => [];
 }
 
+final class PlayersUpdatedEvent extends GameEvent {
+  const PlayersUpdatedEvent({required this.players});
+
+  final List<Player> players;
+
+  @override
+  List<Object> get props => [players];
+}
+
 final class CreateGameEvent extends GameEvent {
   const CreateGameEvent({required this.numberOfPlayers});
   final int numberOfPlayers;
@@ -34,6 +43,15 @@ final class GamePlayerUpdatedEvent extends GameEvent {
 
 final class GameResetEvent extends GameEvent {
   const GameResetEvent();
+}
+
+final class PlayerDeathEvent extends GameEvent {
+  const PlayerDeathEvent({required this.player});
+
+  final Player player;
+
+  @override
+  List<Object> get props => [player];
 }
 
 enum PlayerAction {

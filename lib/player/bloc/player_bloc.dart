@@ -3,12 +3,16 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:magic_yeti/player/player.dart';
+import 'package:magic_yeti/player/repository/player_repository.dart';
 
 part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  PlayerBloc({required Player player}) : super(PlayerState(player: player)) {
+  PlayerBloc({
+    required PlayerRepository playerRepository,
+  })  : _playerRepository = playerRepository,
+        super(const PlayerInitial()) {
     on<UpdatePlayerInfoEvent>(_onPlayerInfoUpdate);
     on<UpdatePlayerLifeEvent>(_updatePlayerLifeTotal);
     on<UpdatePlayerLifeByXEvent>(_updatePlayerLifeTotalByX);
@@ -16,7 +20,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<PlayerEventReset>(_onReset);
   }
 
+  final PlayerRepository _playerRepository;
   Timer? _timer;
+  int? _currentDecrementingPlayerId;
 
   @override
   Future<void> close() {
@@ -28,52 +34,76 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     PlayerEventReset event,
     Emitter<PlayerState> emit,
   ) {
-    emit(state.copyWith(status: PlayerStatus.idle));
+    emit(const PlayerInitial());
   }
 
   void _onPlayerInfoUpdate(
     UpdatePlayerInfoEvent event,
     Emitter<PlayerState> emit,
   ) {
-    emit(state.copyWith(status: PlayerStatus.idle, player: event.player));
+    final player = _playerRepository.getPlayerById(event.playerId);
+
+    if (event.pictureUrl != null) {
+      final updatedPlayer = player.copyWith(picture: event.pictureUrl);
+      _playerRepository.updatePlayer(updatedPlayer);
+      emit(const PlayerUpdatePicture());
+    }
+
+    if (event.playerName != null) {
+      final updatedPlayer = player.copyWith(name: event.playerName);
+      _playerRepository.updatePlayer(updatedPlayer);
+      emit(const PlayerUpdateName());
+    }
   }
 
   void _updatePlayerLifeTotal(
     UpdatePlayerLifeEvent event,
     Emitter<PlayerState> emit,
   ) {
-    emit(state.copyWith(status: PlayerStatus.updating));
+    final player = _playerRepository.getPlayerById(event.playerId);
+    final newLifePoints =
+        event.decrement ? player.lifePoints - 1 : player.lifePoints + 1;
 
-    final player = event.decrement
-        ? event.player.copyWith(lifePoints: event.player.lifePoints - 1)
-        : event.player.copyWith(lifePoints: event.player.lifePoints + 1);
-    if (player.lifePoints < 1) {
-      emit(
-        state.copyWith(
-          player: player.copyWith(
-            timeOfDeath: DateTime.now().toString(),
-          ),
-        ),
-      );
-    } else {
-      emit(state.copyWith(status: PlayerStatus.idle, player: player));
+    var updatedPlayer = player.copyWith(lifePoints: newLifePoints);
+
+    if (newLifePoints < 1) {
+      updatedPlayer =
+          updatedPlayer.copyWith(timeOfDeath: DateTime.now().toString());
     }
+
+    _playerRepository.updatePlayer(updatedPlayer);
+    emit(
+      PlayerLifePointsUpdate(
+        player: updatedPlayer,
+        lifePoints: newLifePoints,
+      ),
+    );
   }
 
   void _updatePlayerLifeTotalByX(
     UpdatePlayerLifeByXEvent event,
     Emitter<PlayerState> emit,
   ) {
-    final player = event.decrement
-        ? event.player.copyWith(lifePoints: event.player.lifePoints - 10)
-        : event.player.copyWith(lifePoints: event.player.lifePoints + 10);
+    final player = _playerRepository.getPlayerById(event.playerId);
+    final newLifePoints =
+        event.decrement ? player.lifePoints - 10 : player.lifePoints + 10;
 
-    emit(state.copyWith(status: PlayerStatus.idle, player: player));
+    final updatedPlayer = player.copyWith(lifePoints: newLifePoints);
+    _playerRepository.updatePlayer(updatedPlayer);
+
+    emit(
+      PlayerLifePointsUpdate(
+        player: updatedPlayer,
+        lifePoints: newLifePoints,
+      ),
+    );
+
+    _currentDecrementingPlayerId = event.playerId;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       add(
-        UpdatePlayerLifeByXEvent(
-          player: player,
+        UpdatePlayerLifeEvent(
+          playerId: event.playerId,
           decrement: event.decrement,
         ),
       );
@@ -85,6 +115,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) {
     _timer?.cancel();
-    emit(state.copyWith(status: PlayerStatus.idle, player: event.player));
+    _currentDecrementingPlayerId = null;
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
+import 'package:magic_yeti/player/repository/player_repository.dart';
 import 'package:magic_yeti/tracker/tracker.dart';
 
 class TrackerWidgets extends StatefulWidget {
@@ -26,7 +27,7 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
 
   @override
   Widget build(BuildContext context) {
-    final players = context.watch<GameBloc>().state.playerList;
+    final players = context.watch<PlayerRepository>().getPlayers();
     return RotatedBox(
       quarterTurns: widget.rotate ? 0 : 2,
       child: Container(

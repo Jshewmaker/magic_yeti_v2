@@ -7,14 +7,15 @@ import 'package:magic_yeti/app/app_router/app_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
+import 'package:magic_yeti/player/repository/player_repository.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 import 'package:user_repository/user_repository.dart';
 
 class App extends StatelessWidget {
   const App({
+    required FirebaseDatabaseRepository firebaseDatabaseRepository,
     required AppConfigRepository appConfigRepository,
     required UserRepository userRepository,
-    required FirebaseDatabaseRepository firebaseDatabaseRepository,
     required ScryfallRepository scryfallRepository,
     required User user,
     super.key,
@@ -33,12 +34,15 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final playerRepository = PlayerRepository();
+
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: _appConfigRepository),
         RepositoryProvider.value(value: _scryfallRepository),
         RepositoryProvider.value(value: _firebaseDatabaseRepository),
         RepositoryProvider.value(value: _userRepository),
+        RepositoryProvider.value(value: playerRepository),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -50,7 +54,10 @@ class App extends StatelessWidget {
             ),
           ),
           BlocProvider(
-            create: (_) => GameBloc(firebase: _firebaseDatabaseRepository),
+            create: (context) => GameBloc(
+              firebase: _firebaseDatabaseRepository,
+              playerRepository: playerRepository,
+            ),
           ),
         ],
         child: const AppView(),

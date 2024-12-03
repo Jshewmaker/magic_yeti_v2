@@ -1,7 +1,6 @@
 // Copyright (c) 2024, Very Good Ventures
 // https://verygood.ventures
 
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/home/home_page.dart';
@@ -32,9 +31,10 @@ class AppRoute extends GoRoute {
 
   final AppStatus appStatus;
 
-  @override
-  GoRouterRedirect get redirect => (context, state) {
-        final currentStatus = context.read<AppBloc>().state.status;
-        //  return currentStatus == appStatus ? null : currentStatus.route;
-      };
+  // TODO(joshua): Implement redirect
+  // @override
+  // GoRouterRedirect get redirect => (context, state) {
+  //       // final currentStatus = context.read<AppBloc>().state.status;
+  //       //  return currentStatus == appStatus ? null : currentStatus.route;
+  //     };
 }

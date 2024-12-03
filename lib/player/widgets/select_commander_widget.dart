@@ -76,10 +76,9 @@ class _PlayerSettingsViewState extends State<PlayerSettingsView> {
                       return GestureDetector(
                         onTap: () => context.read<PlayerBloc>().add(
                               UpdatePlayerInfoEvent(
-                                player: widget.player.copyWith(
-                                  picture: state
-                                      .cardList.data[index].imageUris!.artCrop,
-                                ),
+                                playerId: widget.player.id,
+                                pictureUrl: state
+                                    .cardList.data[index].imageUris!.artCrop,
                               ),
                             ),
                         child: Card(

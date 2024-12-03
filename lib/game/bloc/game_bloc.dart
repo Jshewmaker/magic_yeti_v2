@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
@@ -5,6 +6,7 @@ import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:magic_yeti/player/player.dart';
+import 'package:magic_yeti/player/repository/player_repository.dart';
 
 part 'game_event.dart';
 part 'game_state.dart';
@@ -12,119 +14,94 @@ part 'game_state.dart';
 class GameBloc extends Bloc<GameEvent, GameState> {
   GameBloc({
     required FirebaseDatabaseRepository firebase,
+    required PlayerRepository playerRepository,
   })  : _firebase = firebase,
-        super(const GameState()) {
+        _playerRepository = playerRepository,
+        super(const GameInitial()) {
     on<CreateGameEvent>(_onCreateGame);
-    on<UpdatePlayerEvent>(_onUpdatePlayer);
-    // on<UpdatePlayerEvent>(_onUpdatePlayerLifeTotal);
     on<GameOverEvent>(_onGameOver);
     on<GameResetEvent>(_onGameReset);
+    on<PlayersUpdatedEvent>(_onPlayersUpdated);
+
+    // Subscribe to player repository updates
+    _playerSubscription = _playerRepository.players.listen((players) {
+      add(PlayersUpdatedEvent(players: players));
+    });
   }
+
   final FirebaseDatabaseRepository _firebase;
-  final deadPlayerList = <Player>[];
+  final PlayerRepository _playerRepository;
+  late final StreamSubscription<List<Player>> _playerSubscription;
+  List<Player> _players = [];
+
+  @override
+  Future<void> close() {
+    _playerSubscription.cancel();
+    return super.close();
+  }
+
+  void _onPlayersUpdated(
+    PlayersUpdatedEvent event,
+    Emitter<GameState> emit,
+  ) {
+    final players = event.players;
+    _players = players;
+
+    if (players.isEmpty) {
+      emit(const GameInitial());
+      return;
+    }
+
+    final alivePlayers = players.where((p) => p.timeOfDeath.isEmpty).toList();
+
+    if (alivePlayers.length == 1 && players.length > 1) {
+      emit(
+        GameFinished(
+          playerList: players,
+          winner: alivePlayers.first,
+        ),
+      );
+    } else {
+      emit(GameRunning(playerList: players));
+    }
+  }
+
   Future<void> _onCreateGame(
     CreateGameEvent event,
     Emitter<GameState> emit,
   ) async {
-    emit(state.copyWith(status: GameStatus.loading));
-    final playerList = <Player>[];
-    for (var i = 0; i < event.numberOfPlayers; ++i) {
-      playerList.add(
-        Player(
+    emit(const GameLoading());
+
+    try {
+      for (var i = 0; i < event.numberOfPlayers; ++i) {
+        final player = Player(
           id: UniqueKey().hashCode,
           color: (math.Random().nextDouble() * 0xFFFFFF).toInt(),
-          name: 'Player ${playerList.length + 1}',
+          name: 'Player ${i + 1}',
           picture: '',
-          playerNumber: playerList.length,
+          playerNumber: i,
           lifePoints: 40,
-        ),
-      );
-    }
-    emit(state.copyWith(status: GameStatus.idle, playerList: playerList));
-  }
-
-  Future<void> _onUpdatePlayer(
-    UpdatePlayerEvent event,
-    Emitter<GameState> emit,
-  ) async {
-    emit(state.copyWith(status: GameStatus.loading));
-
-    state.playerList.removeWhere(
-      (element) => element.id == event.player.id,
-    );
-    final updatedPlayer = event.player;
-    if (updatedPlayer.lifePoints < 1) {
-      updatedPlayer.copyWith(
-        timeOfDeath: DateTime.now().toString(),
-      );
-    }
-    if (_didPlayerDie(updatedPlayer)) {
-      deadPlayerList.add(updatedPlayer);
-    }
-
-    if (deadPlayerList.length == state.playerList.length) {
-      add(const GameOverEvent());
-    } else {
-      state.playerList.add(updatedPlayer);
-      emit(
-        state.copyWith(status: GameStatus.idle, playerList: state.playerList),
-      );
+        );
+        _playerRepository.updatePlayer(player);
+      }
+    } catch (e) {
+      emit(GameError(error: e.toString()));
     }
   }
-
-  // void _onUpdatePlayerLifeTotal(
-  //   UpdatePlayerEvent event,
-  //   Emitter<GameState> emit,
-  // ) {
-  //   emit(state.copyWith(status: GameStatus.loading));
-  //   var player = event.player;
-
-  //   state.playerList.removeWhere((player) {
-  //     return player.id == event.player.id;
-  //   });
-  //   switch (event.action) {
-  //     case PlayerAction.increment:
-  //       player.copyWith(lifePoints: player.lifePoints + 1);
-
-  //     case PlayerAction.decrement:
-  //       player = player.copyWith(lifePoints: player.lifePoints - 1);
-  //     case PlayerAction.updateName:
-  //       player = player.copyWith(name: event.player.name);
-  //     case PlayerAction.updatePfP:
-  //       player = player.copyWith(picture: event.player.picture);
-  //   }
-
-  //   if (player.lifePoints < 1) {
-  //     player.copyWith(
-  //       timeOfDeath: DateTime.now().toString(),
-  //     );
-  //   }
-  //   emit(
-  //     state.copyWith(
-  //       status: GameStatus.idle,
-  //       playerList: [
-  //         ...state.playerList,
-  //         player,
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Future<void> _onGameOver(
     GameOverEvent event,
     Emitter<GameState> emit,
   ) async {
-    try {
-      final list = state.playerList.map((e) => e.toJson()).toList();
-      await _firebase.saveGameStats(list);
+    final alivePlayers = _players.where((p) => p.timeOfDeath.isEmpty).toList();
 
+    if (alivePlayers.length == 1) {
       emit(
-        state.copyWith(
-          status: GameStatus.gameOver,
+        GameFinished(
+          playerList: _players,
+          winner: alivePlayers.first,
         ),
       );
-    } catch (e) {
-      emit(state.copyWith(status: GameStatus.failure));
     }
   }
 
@@ -132,26 +109,15 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameResetEvent event,
     Emitter<GameState> emit,
   ) async {
-    emit(state.copyWith(status: GameStatus.loading));
-
-    final updatedList = <Player>[];
-    for (final player in state.playerList) {
-      updatedList.add(
+    emit(const GameInitial());
+    // Clear the repository
+    for (final player in _players) {
+      _playerRepository.updatePlayer(
         player.copyWith(
           lifePoints: 40,
+          timeOfDeath: '',
         ),
       );
     }
-    emit(state.copyWith(status: GameStatus.idle, playerList: updatedList));
-  }
-
-  bool _didPlayerDie(Player player) {
-    if (player.lifePoints < 1) {
-      return true;
-    }
-    if (player.commanderDamageList.any((element) => element > 20)) {
-      return true;
-    }
-    return false;
   }
 }

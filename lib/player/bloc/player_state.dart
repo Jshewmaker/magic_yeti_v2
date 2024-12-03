@@ -1,30 +1,39 @@
 part of 'player_bloc.dart';
 
-enum PlayerStatus {
-  idle,
-  updating,
-  died,
+sealed class PlayerState extends Equatable {
+  const PlayerState();
 }
 
-final class PlayerState extends Equatable {
-  const PlayerState({
-    required this.player,
-    this.status = PlayerStatus.idle,
-  });
-
-  final PlayerStatus status;
-  final Player player;
-
-  PlayerState copyWith({
-    PlayerStatus? status,
-    Player? player,
-  }) {
-    return PlayerState(
-      status: status ?? this.status,
-      player: player ?? this.player,
-    );
-  }
+final class PlayerInitial extends PlayerState {
+  const PlayerInitial();
 
   @override
-  List<Object?> get props => [status];
+  List<Object?> get props => [];
+}
+
+final class PlayerLifePointsUpdate extends PlayerState {
+  const PlayerLifePointsUpdate({
+    required this.player,
+    required this.lifePoints,
+  });
+
+  final Player player;
+  final int lifePoints;
+
+  @override
+  List<Object?> get props => [player, lifePoints];
+}
+
+final class PlayerUpdateName extends PlayerState {
+  const PlayerUpdateName();
+
+  @override
+  List<Object?> get props => [];
+}
+
+final class PlayerUpdatePicture extends PlayerState {
+  const PlayerUpdatePicture();
+
+  @override
+  List<Object?> get props => [];
 }

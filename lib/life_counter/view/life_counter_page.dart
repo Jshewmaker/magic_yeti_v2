@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/life_counter/widgets/widgets.dart';
+import 'package:magic_yeti/player/repository/player_repository.dart';
 import 'package:magic_yeti/tracker/tracker.dart';
 
 class LifeCounterPage extends StatelessWidget {
@@ -23,13 +24,10 @@ class LifeCounterPage extends StatelessWidget {
     return BlocConsumer<GameBloc, GameState>(
       listener: (context, state) {},
       builder: (context, state) {
-        state.playerList.sort(
-          (a, b) => a.playerNumber.compareTo(b.playerNumber),
-        );
         return Stack(
           children: [
             const GameView(),
-            if (state.status == GameStatus.gameOver) const GameOverWidget(),
+            if (state is GameFinished) const GameOverWidget(),
           ],
         );
       },
@@ -43,7 +41,7 @@ class GameView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final playerList = context.watch<GameBloc>().state.playerList;
+    final playerList = context.read<PlayerRepository>().getPlayers();
     return Scaffold(
       body: Row(
         children: [
