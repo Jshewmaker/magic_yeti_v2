@@ -9,8 +9,14 @@ class StrokeText extends StatelessWidget {
     required this.color,
     super.key,
   });
+
+  /// Text displayed
   final String text;
+
+  /// Font Size
   final double fontSize;
+
+  /// Font Color
   final Color color;
   @override
   Widget build(BuildContext context) {
@@ -20,17 +26,21 @@ class StrokeText extends StatelessWidget {
         fontSize: fontSize,
         shadows: const [
           Shadow(
-              // bottomLeft
-              offset: Offset(-1.5, -1.5),),
+            // bottomLeft
+            offset: Offset(-1.5, -1.5),
+          ),
           Shadow(
-              // bottomRight
-              offset: Offset(1.5, -1.5),),
+            // bottomRight
+            offset: Offset(1.5, -1.5),
+          ),
           Shadow(
-              // topRight
-              offset: Offset(1.5, 1.5),),
+            // topRight
+            offset: Offset(1.5, 1.5),
+          ),
           Shadow(
-              // topLeft
-              offset: Offset(-1.5, 1.5),),
+            // topLeft
+            offset: Offset(-1.5, 1.5),
+          ),
         ],
       ).copyWith(color: color),
     );

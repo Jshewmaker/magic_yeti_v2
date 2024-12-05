@@ -11,6 +11,13 @@ final class PlayerInitial extends PlayerState {
   List<Object?> get props => [];
 }
 
+final class PlayerUpdating extends PlayerState {
+  const PlayerUpdating();
+
+  @override
+  List<Object?> get props => [];
+}
+
 final class PlayerLifePointsUpdate extends PlayerState {
   const PlayerLifePointsUpdate({
     required this.player,

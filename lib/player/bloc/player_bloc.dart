@@ -63,19 +63,19 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     UpdatePlayerInfoEvent event,
     Emitter<PlayerState> emit,
   ) {
+    emit(const PlayerUpdating());
     final player = _playerRepository.getPlayerById(event.playerId);
 
-    if (event.pictureUrl != null) {
-      final updatedPlayer = player.copyWith(picture: event.pictureUrl);
-      _playerRepository.updatePlayer(updatedPlayer);
-      emit(const PlayerUpdatePicture());
-    }
+    final updatedPlayer =
+        player.copyWith(picture: event.pictureUrl, name: event.playerName);
+    _playerRepository.updatePlayer(updatedPlayer);
+    emit(const PlayerUpdatePicture());
 
-    if (event.playerName != null) {
-      final updatedPlayer = player.copyWith(name: event.playerName);
-      _playerRepository.updatePlayer(updatedPlayer);
-      emit(const PlayerUpdateName());
-    }
+    // if (event.playerName != null) {
+    //   final updatedPlayer = player.copyWith(name: event.playerName);
+    //   _playerRepository.updatePlayer(updatedPlayer);
+    //   emit(const PlayerUpdateName());
+    // }
   }
 
   void _updatePlayerLifeTotal(

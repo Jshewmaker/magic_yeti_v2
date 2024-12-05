@@ -2,35 +2,17 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
-import 'package:magic_yeti/player/player.dart';
-import 'package:magic_yeti/player_settings/bloc/player_settings_bloc.dart';
+import 'package:magic_yeti/player/view/bloc/player_customization_bloc.dart';
 import 'package:player_repository/player_repository.dart';
-import 'package:scryfall_repository/scryfall_repository.dart';
 
-class SelectCommanderWidget extends StatelessWidget {
+class SelectCommanderWidget extends StatefulWidget {
   const SelectCommanderWidget({required this.player, super.key});
   final Player player;
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider<ScryfallBloc>(
-      create: (_) => ScryfallBloc(
-        scryfallRepository: context.read<ScryfallRepository>(),
-      ),
-      child: PlayerSettingsView(
-        player: player,
-      ),
-    );
-  }
+  State<SelectCommanderWidget> createState() => _SelectCommanderWidgetState();
 }
 
-class PlayerSettingsView extends StatefulWidget {
-  const PlayerSettingsView({required this.player, super.key});
-  final Player player;
-  @override
-  State<PlayerSettingsView> createState() => _PlayerSettingsViewState();
-}
-
-class _PlayerSettingsViewState extends State<PlayerSettingsView> {
+class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
   final textController = TextEditingController();
 
   @override
@@ -57,9 +39,9 @@ class _PlayerSettingsViewState extends State<PlayerSettingsView> {
                     ),
                   ),
                   child: Text(l10n.searchButtonText),
-                  onPressed: () => context.read<ScryfallBloc>().add(
-                        PlayerSettingsCardRequested(
-                          textController.text,
+                  onPressed: () => context.read<PlayerCustomizationBloc>().add(
+                        CardListRequested(
+                          cardName: textController.text,
                         ),
                       ),
                 ),
@@ -67,30 +49,32 @@ class _PlayerSettingsViewState extends State<PlayerSettingsView> {
             ),
             controller: textController,
           ),
-          BlocBuilder<ScryfallBloc, PlayerSettingsState>(
+          BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
             builder: (context, state) {
-              if (state is PlayerSettingsLoadSuccess) {
+              if (state.status == PlayerCustomizationStatus.success) {
                 return Expanded(
                   child: ListView.builder(
-                    itemCount: state.cardList.data.length,
+                    itemCount: state.cardList?.data.length,
                     itemBuilder: (context, index) {
                       return GestureDetector(
-                        onTap: () => context.read<PlayerBloc>().add(
-                              UpdatePlayerInfoEvent(
-                                playerId: widget.player.id,
-                                pictureUrl: state
-                                    .cardList.data[index].imageUris!.artCrop,
-                              ),
-                            ),
+                        onTap: () =>
+                            context.read<PlayerCustomizationBloc>().add(
+                                  UpdatePlayerPicture(
+                                    imageUrl: state.cardList?.data[index]
+                                            .imageUris?.artCrop ??
+                                        '',
+                                  ),
+                                ),
                         child: Card(
                           color: Colors.black.withOpacity(0.9),
                           child: Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.all(8),
                             child: Row(
                               children: [
                                 Image.network(
-                                  state.cardList.data[index].imageUris!
-                                      .borderCrop,
+                                  state.cardList?.data[index].imageUris
+                                          ?.borderCrop ??
+                                      '',
                                   scale: 4,
                                   errorBuilder: (context, error, stackTrace) =>
                                       Container(),
@@ -102,17 +86,17 @@ class _PlayerSettingsViewState extends State<PlayerSettingsView> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      state.cardList.data[index].name,
+                                      state.cardList?.data[index].name ?? '',
                                       style: const TextStyle(fontSize: 36)
                                           .copyWith(color: AppColors.white),
                                     ),
                                     Text(
-                                      state.cardList.data[index].setName,
+                                      state.cardList?.data[index].setName ?? '',
                                       style: const TextStyle(fontSize: 24)
                                           .copyWith(color: AppColors.white),
                                     ),
                                     Text(
-                                      state.cardList.data[index].artist ?? '',
+                                      state.cardList?.data[index].artist ?? '',
                                       style: const TextStyle(fontSize: 24)
                                           .copyWith(color: AppColors.white),
                                     ),
@@ -127,7 +111,7 @@ class _PlayerSettingsViewState extends State<PlayerSettingsView> {
                   ),
                 );
               }
-              if (state is PlayerSettingsLoading) {
+              if (state.status == PlayerCustomizationStatus.loading) {
                 return const Expanded(
                   child: Center(
                     child: CircularProgressIndicator(
@@ -147,7 +131,7 @@ class _PlayerSettingsViewState extends State<PlayerSettingsView> {
                         color: Colors.white.withOpacity(0.5),
                         fontSize: 20,
                       ),
-                    )
+                    ),
                   ],
                 );
               }

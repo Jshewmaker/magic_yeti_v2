@@ -50,3 +50,13 @@ class PlayerDiesEvent extends PlayerEvent {
 
   final int playerNumber;
 }
+
+/// Event when the repository updates a player
+final class PlayerRepositoryUpdateEvent extends PlayerEvent {
+  const PlayerRepositoryUpdateEvent({required this.player});
+
+  final Player player;
+
+  @override
+  List<Object> get props => [player];
+}

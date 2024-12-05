@@ -194,8 +194,8 @@ class _PlayerNameWidget extends StatelessWidget {
         ElevatedButton(
           style: ButtonStyle(
             backgroundColor:
-                MaterialStateProperty.all(Colors.white.withOpacity(.8)),
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                WidgetStateProperty.all(Colors.white.withOpacity(.8)),
+            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

@@ -108,15 +108,21 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameResetEvent event,
     Emitter<GameState> emit,
   ) async {
-    emit(const GameInitial());
-    // Clear the repository
+    emit(const GameLoading());
+
+    // Clear the repository and notify PlayerBloc
     for (final player in _players) {
-      _playerRepository.updatePlayer(
-        player.copyWith(
-          lifePoints: 40,
-          timeOfDeath: '',
-        ),
+      final resetPlayer = player.copyWith(
+        lifePoints: 40,
+        timeOfDeath: '',
+        placement: 99,
+        commanderDamageList: [0, 0, 0, 0],
       );
+      _playerRepository.updatePlayer(resetPlayer);
     }
+
+    // Give time for the repository to update
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    emit(const GameInitial());
   }
 }

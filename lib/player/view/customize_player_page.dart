@@ -2,11 +2,30 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
+import 'package:magic_yeti/player/view/bloc/player_customization_bloc.dart';
 import 'package:magic_yeti/player/widgets/select_commander_widget.dart';
 import 'package:player_repository/player_repository.dart';
+import 'package:scryfall_repository/scryfall_repository.dart';
 
 class CustomizePlayerPage extends StatelessWidget {
   const CustomizePlayerPage({
+    required this.playerId,
+    super.key,
+  });
+  final int playerId;
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => PlayerCustomizationBloc(
+        scryfallRepository: context.read<ScryfallRepository>(),
+      ),
+      child: CustomizePlayerView(playerId: playerId),
+    );
+  }
+}
+
+class CustomizePlayerView extends StatelessWidget {
+  const CustomizePlayerView({
     required this.playerId,
     super.key,
   });
@@ -24,7 +43,7 @@ class CustomizePlayerPage extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            BlocBuilder<PlayerBloc, PlayerState>(
+            BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
               builder: (context, state) {
                 return Expanded(
                   child: Column(
@@ -38,7 +57,9 @@ class CustomizePlayerPage extends StatelessWidget {
                         height: height,
                         width: width,
                         child: Image.network(
-                          player.picture,
+                          state.imageURL.isNotEmpty
+                              ? state.imageURL
+                              : player.picture,
                           fit: BoxFit.fill,
                           errorBuilder: (context, error, stackTrace) =>
                               Container(
@@ -58,10 +79,9 @@ class CustomizePlayerPage extends StatelessWidget {
                         width: width,
                         child: TextField(
                           onEditingComplete: () =>
-                              context.read<PlayerBloc>().add(
-                                    UpdatePlayerInfoEvent(
-                                      playerName: textController.text,
-                                      playerId: playerId,
+                              context.read<PlayerCustomizationBloc>().add(
+                                    UpdatePlayerName(
+                                      name: textController.text,
                                     ),
                                   ),
                           decoration: InputDecoration(
@@ -80,10 +100,11 @@ class CustomizePlayerPage extends StatelessWidget {
                             context.read<PlayerBloc>().add(
                                   UpdatePlayerInfoEvent(
                                     playerName: textController.text,
+                                    pictureUrl: state.imageURL,
                                     playerId: playerId,
                                   ),
                                 );
-                            context.read<PlayerBloc>().add(PlayerEventReset());
+
                             Navigator.pop(context);
                           },
                           child: const Text('Save'),

@@ -33,7 +33,6 @@ class AppTheme {
 
   ColorScheme get _colorScheme {
     return ColorScheme.dark(
-      background: _backgroundColor,
       primary: _backgroundColor,
       onPrimary: _backgroundColor,
       secondary: AppColors.secondary,
@@ -97,7 +96,7 @@ class AppTheme {
   TabBarTheme get _tabBarTheme {
     return TabBarTheme(
       dividerColor: Colors.transparent,
-      overlayColor: MaterialStateProperty.all<Color>(AppColors.background),
+      overlayColor: WidgetStateProperty.all<Color>(AppColors.background),
     );
   }
 
@@ -113,10 +112,10 @@ class AppTheme {
 }
 
 /// Material State Extension.
-extension MaterialStateSet on Set<MaterialState> {
+extension MaterialStateSet on Set<WidgetState> {
   /// Check if is focused.
-  bool get isFocused => contains(MaterialState.focused);
+  bool get isFocused => contains(WidgetState.focused);
 
   /// Check if is disabled.
-  bool get isDisabled => contains(MaterialState.disabled);
+  bool get isDisabled => contains(WidgetState.disabled);
 }
