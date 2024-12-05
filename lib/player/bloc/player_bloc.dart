@@ -37,10 +37,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     required int playerId,
   })  : _playerRepository = playerRepository,
         _playerId = playerId,
-        super(PlayerState(
-          status: PlayerStatus.initial,
-          player: playerRepository.getPlayerById(playerId),
-        )) {
+        super(
+          PlayerState(
+            status: PlayerStatus.updated,
+            player: playerRepository.getPlayerById(playerId),
+          ),
+        ) {
     on<UpdatePlayerInfoEvent>(_onPlayerInfoUpdate);
     on<UpdatePlayerLifeEvent>(_updatePlayerLifeTotal);
     on<UpdatePlayerLifeByXEvent>(_updatePlayerLifeTotalByX);
@@ -50,7 +52,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     _playerSubscription = _playerRepository.players
         .map(
-            (players) => players.firstWhere((player) => player.id == _playerId))
+      (players) => players.firstWhere((player) => player.id == _playerId),
+    )
         .listen((player) {
       if (player.id == _playerId) {
         add(PlayerRepositoryUpdateEvent(player: player));
@@ -73,10 +76,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     PlayerEventReset event,
     Emitter<PlayerState> emit,
   ) {
-    emit(PlayerState(
-      status: PlayerStatus.initial,
-      player: _playerRepository.getPlayerById(_playerId),
-    ));
+    emit(
+      PlayerState(
+        status: PlayerStatus.initial,
+        player: _playerRepository.getPlayerById(_playerId),
+      ),
+    );
   }
 
   void _onPlayerInfoUpdate(
@@ -92,10 +97,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
 
     _playerRepository.updatePlayer(updatedPlayer);
-    emit(state.copyWith(
-      status: PlayerStatus.updated,
-      player: updatedPlayer,
-    ));
+    emit(
+      state.copyWith(
+        status: PlayerStatus.updated,
+        player: updatedPlayer,
+      ),
+    );
   }
 
   void _updatePlayerLifeTotal(
@@ -115,22 +122,26 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     }
 
     _playerRepository.updatePlayer(updatedPlayer);
-    emit(state.copyWith(
-      status: PlayerStatus.updated,
-      player: updatedPlayer,
-      lifePoints: newLifePoints,
-    ));
+    emit(
+      state.copyWith(
+        status: PlayerStatus.updated,
+        player: updatedPlayer,
+        lifePoints: newLifePoints,
+      ),
+    );
   }
 
   void _playerUpdatedByRepository(
     PlayerRepositoryUpdateEvent event,
     Emitter<PlayerState> emit,
   ) {
-    emit(state.copyWith(
-      status: PlayerStatus.updated,
-      player: event.player,
-      lifePoints: event.player.lifePoints,
-    ));
+    emit(
+      state.copyWith(
+        status: PlayerStatus.updated,
+        player: event.player,
+        lifePoints: event.player.lifePoints,
+      ),
+    );
   }
 
   void _updatePlayerLifeTotalByX(
@@ -144,18 +155,22 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     final updatedPlayer = player.copyWith(lifePoints: newLifePoints);
     _playerRepository.updatePlayer(updatedPlayer);
 
-    emit(state.copyWith(
-      status: PlayerStatus.updated,
-      player: updatedPlayer,
-      lifePoints: newLifePoints,
-    ));
+    emit(
+      state.copyWith(
+        status: PlayerStatus.updated,
+        player: updatedPlayer,
+        lifePoints: newLifePoints,
+      ),
+    );
 
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
-      add(UpdatePlayerLifeEvent(
-        playerId: event.playerId,
-        decrement: event.decrement,
-      ));
+      add(
+        UpdatePlayerLifeEvent(
+          playerId: event.playerId,
+          decrement: event.decrement,
+        ),
+      );
     });
   }
 

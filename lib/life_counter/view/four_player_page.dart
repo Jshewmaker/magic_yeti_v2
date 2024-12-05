@@ -51,7 +51,9 @@ class FourPlayerView extends StatelessWidget {
                   child: Stack(
                     children: [
                       LifeCounterWidget(
-                          playerId: playerList[3].id, rotate: true),
+                        playerId: playerList[3].id,
+                        rotate: true,
+                      ),
                       const TrackerWidgets(
                         rotate: false,
                       ),
@@ -100,7 +102,9 @@ class FourPlayerView extends StatelessWidget {
                     alignment: Alignment.centerRight,
                     children: [
                       LifeCounterWidget(
-                          playerId: playerList[2].id, rotate: true),
+                        playerId: playerList[2].id,
+                        rotate: true,
+                      ),
                       const TrackerWidgets(
                         rotate: false,
                       ),

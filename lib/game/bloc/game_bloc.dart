@@ -97,9 +97,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameFinishEvent event,
     Emitter<GameState> emit,
   ) {
-    emit(state.copyWith(
-      status: GameStatus.finished,
-      winner: event.winner,
-    ));
+    emit(
+      state.copyWith(
+        status: GameStatus.finished,
+        winner: event.winner,
+      ),
+    );
   }
 }

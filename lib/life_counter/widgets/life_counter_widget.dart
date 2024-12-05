@@ -60,7 +60,7 @@ class LifeCounterWidget extends StatelessWidget {
             );
           }
 
-          return const LinearProgressIndicator();
+          return const CircularProgressIndicator();
         },
       ),
     );
