@@ -1,19 +1,10 @@
 part of 'game_bloc.dart';
 
-sealed class GameEvent extends Equatable {
+abstract class GameEvent extends Equatable {
   const GameEvent();
 
   @override
-  List<Object> get props => [];
-}
-
-final class PlayersUpdatedEvent extends GameEvent {
-  const PlayersUpdatedEvent({required this.players});
-
-  final List<Player> players;
-
-  @override
-  List<Object> get props => [players];
+  List<Object?> get props => [];
 }
 
 final class CreateGameEvent extends GameEvent {
@@ -21,37 +12,21 @@ final class CreateGameEvent extends GameEvent {
   final int numberOfPlayers;
 }
 
-final class UpdatePlayerEvent extends GameEvent {
-  const UpdatePlayerEvent({
-    required this.player,
-    required this.action,
-  });
-
-  final Player player;
-  final PlayerAction action;
+class GameStartEvent extends GameEvent {
+  const GameStartEvent();
 }
 
-final class GameOverEvent extends GameEvent {
-  const GameOverEvent();
-}
-
-final class GamePlayerUpdatedEvent extends GameEvent {
-  const GamePlayerUpdatedEvent({required this.player});
-
-  final Player player;
-}
-
-final class GameResetEvent extends GameEvent {
+class GameResetEvent extends GameEvent {
   const GameResetEvent();
 }
 
-final class PlayerDeathEvent extends GameEvent {
-  const PlayerDeathEvent({required this.player});
+class GameFinishEvent extends GameEvent {
+  const GameFinishEvent({required this.winner});
 
-  final Player player;
+  final Player winner;
 
   @override
-  List<Object> get props => [player];
+  List<Object?> get props => [winner];
 }
 
 enum PlayerAction {

@@ -55,7 +55,6 @@ class App extends StatelessWidget {
           ),
           BlocProvider(
             create: (context) => GameBloc(
-              firebase: _firebaseDatabaseRepository,
               playerRepository: playerRepository,
             ),
           ),

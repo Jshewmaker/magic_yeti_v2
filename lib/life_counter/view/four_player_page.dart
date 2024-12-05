@@ -5,13 +5,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/life_counter/widgets/widgets.dart';
 import 'package:magic_yeti/tracker/tracker.dart';
-import 'package:player_repository/player_repository.dart';
 
-class LifeCounterPage extends StatelessWidget {
-  const LifeCounterPage({super.key});
+class FourPlayerPage extends StatelessWidget {
+  const FourPlayerPage({super.key});
 
-  factory LifeCounterPage.pageBuilder(_, __) {
-    return const LifeCounterPage(
+  factory FourPlayerPage.pageBuilder(_, __) {
+    return const FourPlayerPage(
       key: Key('life_counter_page'),
     );
   }
@@ -26,8 +25,8 @@ class LifeCounterPage extends StatelessWidget {
       builder: (context, state) {
         return Stack(
           children: [
-            const GameView(),
-            if (state is GameFinished) const GameOverWidget(),
+            const FourPlayerView(),
+            if (state.status == GameStatus.finished) const GameOverWidget(),
           ],
         );
       },
@@ -36,12 +35,12 @@ class LifeCounterPage extends StatelessWidget {
 }
 
 @visibleForTesting
-class GameView extends StatelessWidget {
-  const GameView({super.key});
+class FourPlayerView extends StatelessWidget {
+  const FourPlayerView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final playerList = context.read<PlayerRepository>().getPlayers();
+    final playerList = context.read<GameBloc>().state.playerList;
     return Scaffold(
       body: Row(
         children: [
@@ -51,10 +50,10 @@ class GameView extends StatelessWidget {
                 Expanded(
                   child: Stack(
                     children: [
-                      LifeCounterWidget(playerIndex: 3, rotate: true),
-                      TrackerWidgets(
+                      LifeCounterWidget(
+                          playerId: playerList[3].id, rotate: true),
+                      const TrackerWidgets(
                         rotate: false,
-                        player: playerList[3].playerNumber,
                       ),
                     ],
                   ),
@@ -63,10 +62,9 @@ class GameView extends StatelessWidget {
                 Expanded(
                   child: Stack(
                     children: [
-                      LifeCounterWidget(playerIndex: 1),
-                      TrackerWidgets(
+                      LifeCounterWidget(playerId: playerList[1].id),
+                      const TrackerWidgets(
                         rotate: true,
-                        player: playerList[1].playerNumber,
                       ),
                     ],
                   ),
@@ -101,10 +99,10 @@ class GameView extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.centerRight,
                     children: [
-                      LifeCounterWidget(playerIndex: 2, rotate: true),
-                      TrackerWidgets(
+                      LifeCounterWidget(
+                          playerId: playerList[2].id, rotate: true),
+                      const TrackerWidgets(
                         rotate: false,
-                        player: playerList[2].playerNumber,
                       ),
                     ],
                   ),
@@ -114,10 +112,9 @@ class GameView extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.centerRight,
                     children: [
-                      LifeCounterWidget(playerIndex: 0),
-                      TrackerWidgets(
+                      LifeCounterWidget(playerId: playerList[0].id),
+                      const TrackerWidgets(
                         rotate: true,
-                        player: playerList[0].playerNumber,
                       ),
                     ],
                   ),

@@ -52,11 +52,11 @@ class AppRouter {
           ),
         ),
         AppRoute(
-          name: LifeCounterPage.routePath,
-          path: LifeCounterPage.routePath,
+          name: FourPlayerPage.routePath,
+          path: FourPlayerPage.routePath,
           pageBuilder: (context, state) => NoTransitionPage(
-            name: LifeCounterPage.routePath,
-            child: LifeCounterPage.pageBuilder(context, state),
+            name: FourPlayerPage.routePath,
+            child: FourPlayerPage.pageBuilder(context, state),
           ),
         ),
       ],

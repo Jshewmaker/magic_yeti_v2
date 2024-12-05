@@ -1,1 +1,1 @@
-export 'life_counter_page.dart';
+export 'four_player_page.dart';

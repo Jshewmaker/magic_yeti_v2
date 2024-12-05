@@ -1,49 +1,34 @@
 part of 'game_bloc.dart';
 
-sealed class GameState extends Equatable {
-  const GameState();
+enum GameStatus { initial, loading, running, finished, error }
 
-  @override
-  List<Object> get props => [];
-}
-
-final class GameInitial extends GameState {
-  const GameInitial();
-}
-
-final class GameLoading extends GameState {
-  const GameLoading();
-}
-
-final class GameRunning extends GameState {
-  const GameRunning({
-    required this.playerList,
+class GameState extends Equatable {
+  const GameState({
+    this.status = GameStatus.initial,
+    this.playerList = const [],
+    this.winner,
+    this.error,
   });
 
+  final GameStatus status;
   final List<Player> playerList;
+  final Player? winner;
+  final String? error;
+
+  GameState copyWith({
+    GameStatus? status,
+    List<Player>? playerList,
+    Player? winner,
+    String? error,
+  }) {
+    return GameState(
+      status: status ?? this.status,
+      playerList: playerList ?? this.playerList,
+      winner: winner ?? this.winner,
+      error: error ?? this.error,
+    );
+  }
 
   @override
-  List<Object> get props => [playerList];
-}
-
-final class GameFinished extends GameState {
-  const GameFinished({
-    required this.playerList,
-    required this.winner,
-  });
-
-  final List<Player> playerList;
-  final Player winner;
-
-  @override
-  List<Object> get props => [playerList, winner];
-}
-
-final class GameError extends GameState {
-  const GameError({required this.error});
-
-  final String error;
-
-  @override
-  List<Object> get props => [error];
+  List<Object?> get props => [status, playerList, winner, error];
 }

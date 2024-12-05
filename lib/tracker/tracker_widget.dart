@@ -10,12 +10,10 @@ import 'package:player_repository/player_repository.dart';
 class TrackerWidgets extends StatefulWidget {
   const TrackerWidgets({
     required this.rotate,
-    required this.player,
     super.key,
   });
 
   final bool rotate;
-  final int player;
 
   @override
   State<TrackerWidgets> createState() => _TrackerWidgetsState();
