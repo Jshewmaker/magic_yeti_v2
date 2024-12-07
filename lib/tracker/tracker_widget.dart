@@ -92,20 +92,10 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
             style: TextStyle(color: AppColors.white),
           ),
           actions: <Widget>[
-            IconButton(
-              onPressed: () {
-                Navigator.pop(context, FontAwesomeIcons.droplet);
-              },
-              icon: const Icon(
-                FontAwesomeIcons.droplet,
-              ),
-            ),
-            IconButton(
-              onPressed: () {
-                Navigator.pop(context, FontAwesomeIcons.skullCrossbones);
-              },
-              icon: const Icon(
-                FontAwesomeIcons.skullCrossbones,
+            ...counterList.map(
+              (icon) => IconButton(
+                icon: Icon(icon),
+                onPressed: () => Navigator.pop(context, icon),
               ),
             ),
           ],
@@ -114,3 +104,14 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
     );
   }
 }
+
+List<IconData> counterList = [
+  FontAwesomeIcons.droplet,
+  FontAwesomeIcons.skull,
+  FontAwesomeIcons.fire,
+  FontAwesomeIcons.sun,
+  FontAwesomeIcons.tree,
+  FontAwesomeIcons.diamond,
+  FontAwesomeIcons.dungeon,
+  FontAwesomeIcons.skullCrossbones,
+];

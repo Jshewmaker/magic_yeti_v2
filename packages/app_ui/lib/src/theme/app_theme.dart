@@ -16,19 +16,21 @@ class AppTheme {
       canvasColor: _backgroundColor,
       textButtonTheme: _textButtonTheme,
       textTheme: uiTextTheme.apply(
-        bodyColor: AppColors.black,
-        displayColor: AppColors.black,
-        decorationColor: AppColors.black,
+        bodyColor: AppColors.white,
+        displayColor: AppColors.white,
+        decorationColor: AppColors.white,
       ),
+      buttonTheme: _buttonTheme,
       tabBarTheme: _tabBarTheme,
       appBarTheme: _appBarTheme,
       inputDecorationTheme: _inputDecorationTheme,
       checkboxTheme: _checkBoxTheme,
       colorScheme: _colorScheme,
+      elevatedButtonTheme: _elevatedButtonTheme,
     );
   }
 
-  Color get _primaryColor => AppColors.background;
+  Color get _primaryColor => AppColors.primary;
   Color get _backgroundColor => AppColors.background;
 
   ColorScheme get _colorScheme {
@@ -37,7 +39,7 @@ class AppTheme {
       onPrimary: _backgroundColor,
       secondary: AppColors.secondary,
       tertiary: AppColors.tertiary,
-      surface: AppColors.primary,
+      surface: AppColors.background,
       error: AppColors.error,
       onSurfaceVariant: AppColors.onSurfaceVariant,
     );
@@ -63,6 +65,30 @@ class AppTheme {
     bodyMedium: UITextStyle.bodyMedium,
     bodySmall: UITextStyle.bodySmall,
   );
+
+  ButtonThemeData get _buttonTheme {
+    return const ButtonThemeData(
+      textTheme: ButtonTextTheme.primary,
+      buttonColor: AppColors.white,
+      colorScheme: ColorScheme.dark(
+        primary: AppColors.white,
+        onPrimary: AppColors.background,
+      ),
+      shape: OutlineInputBorder(
+        borderSide: BorderSide(color: AppColors.white, width: 2),
+      ),
+    );
+  }
+
+  ElevatedButtonThemeData get _elevatedButtonTheme {
+    return ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        foregroundColor: AppColors.background,
+        backgroundColor: AppColors.white,
+        side: const BorderSide(color: AppColors.white, width: 2),
+      ),
+    );
+  }
 
   /// InputDecoration Theme.
   InputDecorationTheme get _inputDecorationTheme {
@@ -108,6 +134,55 @@ class AppTheme {
         textStyle: _textTheme.labelLarge,
       ),
     );
+  }
+
+  ThemeData copyWith({
+    Brightness? brightness,
+    Color? primaryColor,
+    Color? primaryColorLight,
+    Color? primaryColorDark,
+    Color? accentColor,
+    Color? canvasColor,
+    Color? scaffoldBackgroundColor,
+    Color? bottomAppBarColor,
+    Color? cardColor,
+    Color? dividerColor,
+    Color? highlightColor,
+    Color? splashColor,
+    Color? selectedRowColor,
+    Color? unselectedWidgetColor,
+    Color? disabledColor,
+    Color? buttonColor,
+    Color? secondaryHeaderColor,
+    Color? textSelectionColor,
+    Color? backgroundColor,
+    Color? dialogBackgroundColor,
+    Color? indicatorColor,
+    Color? hintColor,
+    Color? errorColor,
+    Color? toggleableActiveColor,
+  }) {
+    final ThemeData theme = ThemeData(
+      brightness: brightness ?? Brightness.dark,
+      primaryColor: primaryColor ?? AppColors.primary,
+      primaryColorLight: primaryColorLight,
+      primaryColorDark: primaryColorDark,
+      canvasColor: canvasColor ?? _backgroundColor,
+      scaffoldBackgroundColor: scaffoldBackgroundColor,
+      cardColor: cardColor,
+      dividerColor: dividerColor,
+      highlightColor: highlightColor,
+      splashColor: splashColor,
+      unselectedWidgetColor: unselectedWidgetColor,
+      disabledColor: disabledColor,
+      secondaryHeaderColor: secondaryHeaderColor,
+      dialogBackgroundColor: dialogBackgroundColor,
+      indicatorColor: indicatorColor,
+      hintColor: hintColor,
+      buttonTheme: _buttonTheme,
+      elevatedButtonTheme: _elevatedButtonTheme,
+    );
+    return theme;
   }
 }
 
