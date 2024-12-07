@@ -4,16 +4,20 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/tracker/tracker.dart';
-import 'package:player_repository/player_repository.dart';
 
 class TrackerWidgets extends StatefulWidget {
   const TrackerWidgets({
     required this.rotate,
+    required this.playerId,
     super.key,
   });
 
   final bool rotate;
+
+  /// Player who owns the tracker.
+  final String playerId;
 
   @override
   State<TrackerWidgets> createState() => _TrackerWidgetsState();
@@ -24,7 +28,7 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
 
   @override
   Widget build(BuildContext context) {
-    final players = context.watch<PlayerRepository>().getPlayers();
+    final players = context.watch<GameBloc>().state.playerList;
     return RotatedBox(
       quarterTurns: widget.rotate ? 0 : 2,
       child: Container(
@@ -40,8 +44,10 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
               (player) => Column(
                 children: [
                   CommanderDamageTracker(
+                    color: player.color,
                     imageUrl: player.picture,
-                    color: Color(player.color).withOpacity(1),
+                    playerId: widget.playerId,
+                    commanderPlayerId: player.id,
                   ),
                   const SizedBox(height: AppSpacing.lg),
                 ],
@@ -49,7 +55,7 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
             ),
             ...counterList.map(
               (icon) => Dismissible(
-                onDismissed: (detials) => setState(() {
+                onDismissed: (_) => setState(() {
                   counterList.remove(icon);
                 }),
                 key: Key('$icon'),

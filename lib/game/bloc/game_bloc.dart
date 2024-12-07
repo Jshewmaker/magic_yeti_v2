@@ -3,8 +3,8 @@ import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:player_repository/player_repository.dart';
+import 'package:uuid/uuid.dart';
 
 part 'game_event.dart';
 part 'game_state.dart';
@@ -18,9 +18,15 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<GameStartEvent>(_onGameStart);
     on<GameResetEvent>(_onGameReset);
     on<GameFinishEvent>(_onGameFinish);
+    on<PlayerRepositoryUpdateEvent>(_repositoryUpdated);
+
+    _playersSubscription = _playerRepository.players.listen((players) {
+      add(PlayerRepositoryUpdateEvent(players: players));
+    });
   }
 
   final PlayerRepository _playerRepository;
+  StreamSubscription<List<Player>>? _playersSubscription;
 
   List<Player> get _players => _playerRepository.getPlayers();
   Future<void> _onCreateGame(
@@ -28,16 +34,20 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     Emitter<GameState> emit,
   ) async {
     emit(const GameState(status: GameStatus.loading));
+    final uuid = const Uuid();
 
     try {
+      final uuidList =
+          List.generate(event.numberOfPlayers, (index) => uuid.v4());
       for (var i = 0; i < event.numberOfPlayers; ++i) {
         final player = Player(
-          id: UniqueKey().hashCode,
+          id: uuidList[i],
           color: (math.Random().nextDouble() * 0xFFFFFF).toInt(),
           name: 'Player ${i + 1}',
           picture: '',
           playerNumber: i,
           lifePoints: 40,
+          commanderDamageList: {for (final e in uuidList) e: 0},
         );
         _playerRepository.updatePlayer(player);
       }
@@ -77,7 +87,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         lifePoints: 40,
         timeOfDeath: '',
         placement: 99,
-        commanderDamageList: [0, 0, 0, 0],
+        commanderDamageList:
+            Map.fromEntries(state.playerList.map((p) => MapEntry(p.id, 0))),
       );
       _playerRepository.updatePlayer(resetPlayer);
     }
@@ -103,5 +114,23 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         winner: event.winner,
       ),
     );
+  }
+
+  Future<void> _repositoryUpdated(
+    PlayerRepositoryUpdateEvent event,
+    Emitter<GameState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        status: GameStatus.running,
+        playerList: _players,
+      ),
+    );
+  }
+
+  @override
+  Future<void> close() {
+    _playersSubscription?.cancel();
+    return super.close();
   }
 }

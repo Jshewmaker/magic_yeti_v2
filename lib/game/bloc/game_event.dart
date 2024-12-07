@@ -29,6 +29,11 @@ class GameFinishEvent extends GameEvent {
   List<Object?> get props => [winner];
 }
 
+class PlayerRepositoryUpdateEvent extends GameEvent {
+  const PlayerRepositoryUpdateEvent({required this.players});
+  final List<Player> players;
+}
+
 enum PlayerAction {
   increment,
   decrement,

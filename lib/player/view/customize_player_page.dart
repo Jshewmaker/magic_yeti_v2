@@ -12,7 +12,7 @@ class CustomizePlayerPage extends StatelessWidget {
     required this.playerId,
     super.key,
   });
-  final int playerId;
+  final String playerId;
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -29,7 +29,7 @@ class CustomizePlayerView extends StatelessWidget {
     required this.playerId,
     super.key,
   });
-  final int playerId;
+  final String playerId;
   @override
   Widget build(BuildContext context) {
     final player = context.read<PlayerRepository>().getPlayerById(playerId);

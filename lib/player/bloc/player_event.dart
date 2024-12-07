@@ -18,7 +18,7 @@ class UpdatePlayerInfoEvent extends PlayerEvent {
 
   final String? pictureUrl;
   final String? playerName;
-  final int playerId;
+  final String playerId;
 }
 
 class UpdatePlayerLifeEvent extends PlayerEvent {
@@ -28,7 +28,25 @@ class UpdatePlayerLifeEvent extends PlayerEvent {
   });
 
   final bool decrement;
-  final int playerId;
+  final String playerId;
+}
+
+class PlayerCommanderDamageIncremented extends PlayerEvent {
+  const PlayerCommanderDamageIncremented({required this.commanderId});
+
+  final String commanderId;
+
+  @override
+  List<Object> get props => [commanderId];
+}
+
+class PlayerCommanderDamageDecremented extends PlayerEvent {
+  const PlayerCommanderDamageDecremented({required this.commanderId});
+
+  final String commanderId;
+
+  @override
+  List<Object> get props => [commanderId];
 }
 
 class UpdatePlayerLifeByXEvent extends PlayerEvent {
@@ -38,7 +56,7 @@ class UpdatePlayerLifeByXEvent extends PlayerEvent {
   });
 
   final bool decrement;
-  final int playerId;
+  final String playerId;
 }
 
 class PlayerStopDecrement extends PlayerEvent {

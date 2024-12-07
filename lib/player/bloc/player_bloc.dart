@@ -34,7 +34,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   /// {@macro player_repository}
   PlayerBloc({
     required PlayerRepository playerRepository,
-    required int playerId,
+    required String playerId,
   })  : _playerRepository = playerRepository,
         _playerId = playerId,
         super(
@@ -47,6 +47,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<UpdatePlayerLifeEvent>(_updatePlayerLifeTotal);
     on<UpdatePlayerLifeByXEvent>(_updatePlayerLifeTotalByX);
     on<PlayerStopDecrement>(_onStopDecrementing);
+    on<PlayerCommanderDamageIncremented>(_onTrackerIncremented);
+    on<PlayerCommanderDamageDecremented>(_onTrackerDecremented);
     on<PlayerRepositoryUpdateEvent>(_playerUpdatedByRepository);
     on<PlayerEventReset>(_onReset);
 
@@ -62,13 +64,14 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   final PlayerRepository _playerRepository;
-  final int _playerId;
+  final String _playerId;
   StreamSubscription<Player>? _playerSubscription;
   Timer? _timer;
 
   @override
   Future<void> close() {
     _timer?.cancel();
+    _playerSubscription?.cancel();
     return super.close();
   }
 
@@ -109,6 +112,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     UpdatePlayerLifeEvent event,
     Emitter<PlayerState> emit,
   ) {
+    emit(state.copyWith(status: PlayerStatus.updating));
     final player = _playerRepository.getPlayerById(event.playerId);
     final newLifePoints =
         event.decrement ? player.lifePoints - 1 : player.lifePoints + 1;
@@ -135,6 +139,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     PlayerRepositoryUpdateEvent event,
     Emitter<PlayerState> emit,
   ) {
+    emit(state.copyWith(status: PlayerStatus.updating));
     emit(
       state.copyWith(
         status: PlayerStatus.updated,
@@ -148,6 +153,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     UpdatePlayerLifeByXEvent event,
     Emitter<PlayerState> emit,
   ) {
+    emit(state.copyWith(status: PlayerStatus.updating));
     final player = _playerRepository.getPlayerById(event.playerId);
     final newLifePoints =
         event.decrement ? player.lifePoints - 10 : player.lifePoints + 10;
@@ -172,6 +178,42 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         ),
       );
     });
+  }
+
+  void _onTrackerIncremented(
+    PlayerCommanderDamageIncremented event,
+    Emitter<PlayerState> emit,
+  ) {
+    emit(state.copyWith(status: PlayerStatus.updating));
+    final player = _playerRepository.getPlayerById(_playerId);
+    player.commanderDamageList[event.commanderId] =
+        player.commanderDamageList[event.commanderId]! + 1;
+    _playerRepository.updatePlayer(player);
+
+    emit(
+      state.copyWith(
+        status: PlayerStatus.updated,
+        player: player,
+      ),
+    );
+  }
+
+  void _onTrackerDecremented(
+    PlayerCommanderDamageDecremented event,
+    Emitter<PlayerState> emit,
+  ) {
+    emit(state.copyWith(status: PlayerStatus.updating));
+    final player = _playerRepository.getPlayerById(_playerId);
+    player.commanderDamageList[event.commanderId] =
+        player.commanderDamageList[event.commanderId]! - 1;
+    _playerRepository.updatePlayer(player);
+
+    emit(
+      state.copyWith(
+        status: PlayerStatus.updated,
+        player: player,
+      ),
+    );
   }
 
   void _onStopDecrementing(

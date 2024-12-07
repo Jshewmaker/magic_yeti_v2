@@ -4,9 +4,6 @@ enum PlayerStatus {
   initial,
   updating,
   updated,
-  lifePointsUpdate,
-  updateName,
-  updatePicture
 }
 
 class PlayerState extends Equatable {

@@ -16,13 +16,13 @@ class Player extends Equatable {
     required this.playerNumber,
     required this.lifePoints,
     required this.color,
+    required this.commanderDamageList,
     this.timeOfDeath = '',
-    this.commanderDamageList = const [0, 0, 0, 0],
     this.placement = 99,
   });
 
   /// Unique identifier for the player.
-  final int id;
+  final String id;
 
   /// Name of the player.
   final String name;
@@ -47,15 +47,15 @@ class Player extends Equatable {
   final String timeOfDeath;
 
   /// A list representing the damage dealt to the player by each commander,
-  /// defaults to [0, 0, 0, 0].
-  final List<int> commanderDamageList;
+  /// defaults to an empty map.
+  final Map<String, int> commanderDamageList;
 
   /// Connect the generated [_$PlayerToJson] function to the `toJson` method.
   Map<String, dynamic> toJson() => _$PlayerToJson(this);
 
   /// Creates a new player object with the same values as the current player,
   Player copyWith({
-    int? id,
+    String? id,
     String? name,
     String? picture,
     String? timeOfDeath,
@@ -63,7 +63,7 @@ class Player extends Equatable {
     int? lifePoints,
     int? color,
     int? placement,
-    List<int>? commanderDamageList,
+    Map<String, int>? commanderDamageList,
   }) {
     return Player(
       id: id ?? this.id,

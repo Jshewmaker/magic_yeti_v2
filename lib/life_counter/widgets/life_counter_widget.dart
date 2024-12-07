@@ -7,62 +7,55 @@ import 'package:player_repository/player_repository.dart';
 
 class LifeCounterWidget extends StatelessWidget {
   LifeCounterWidget({
-    required this.playerId,
     this.rotate = false,
     super.key,
   });
   final bool rotate;
-  final int playerId;
+
   final textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => PlayerBloc(
-        playerRepository: context.read<PlayerRepository>(),
-        playerId: playerId,
-      ),
-      child: BlocBuilder<PlayerBloc, PlayerState>(
-        builder: (context, state) {
-          if (state.status == PlayerStatus.updated) {
-            final player = state.player;
-            textController.text = state.player.name;
-            return RotatedBox(
-              quarterTurns: rotate ? 2 : 0,
-              child: Stack(
-                children: [
-                  BackgroundWidget(player: state.player),
-                  LifePointsWidget(lifePoints: state.player.lifePoints),
-                  Column(
-                    children: [
-                      IncrementLifeWidget(player: player),
-                      DecrementLifeWidget(player: player),
-                    ],
-                  ),
-                  _PlayerNameWidget(
-                    name: textController.text,
-                    onPressed: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (_) => BlocProvider.value(
-                            value: context.read<PlayerBloc>(),
-                            child: CustomizePlayerPage(
-                              playerId: player.id,
-                            ),
+    return BlocBuilder<PlayerBloc, PlayerState>(
+      builder: (context, state) {
+        if (state.status == PlayerStatus.updated) {
+          final player = state.player;
+          textController.text = state.player.name;
+          return RotatedBox(
+            quarterTurns: rotate ? 2 : 0,
+            child: Stack(
+              children: [
+                BackgroundWidget(player: state.player),
+                LifePointsWidget(lifePoints: state.player.lifePoints),
+                Column(
+                  children: [
+                    IncrementLifeWidget(player: player),
+                    DecrementLifeWidget(player: player),
+                  ],
+                ),
+                _PlayerNameWidget(
+                  name: textController.text,
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => BlocProvider.value(
+                          value: context.read<PlayerBloc>(),
+                          child: CustomizePlayerPage(
+                            playerId: player.id,
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            );
-          }
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          );
+        }
 
-          return const CircularProgressIndicator();
-        },
-      ),
+        return const CircularProgressIndicator();
+      },
     );
   }
 }

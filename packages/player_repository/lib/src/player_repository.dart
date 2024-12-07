@@ -60,7 +60,7 @@ class PlayerRepository {
   /// Returns the player with the matching ID.
   ///
   /// Throws [StateError] if no player is found with the given ID.
-  Player getPlayerById(int id) {
+  Player getPlayerById(String id) {
     return _players.firstWhere((player) => player.id == id);
   }
 
