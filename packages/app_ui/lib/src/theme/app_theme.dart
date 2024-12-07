@@ -28,7 +28,7 @@ class AppTheme {
     );
   }
 
-  Color get _primaryColor => AppColors.primary;
+  Color get _primaryColor => AppColors.background;
   Color get _backgroundColor => AppColors.background;
 
   ColorScheme get _colorScheme {
@@ -37,7 +37,7 @@ class AppTheme {
       onPrimary: _backgroundColor,
       secondary: AppColors.secondary,
       tertiary: AppColors.tertiary,
-      surface: AppColors.surface,
+      surface: AppColors.primary,
       error: AppColors.error,
       onSurfaceVariant: AppColors.onSurfaceVariant,
     );

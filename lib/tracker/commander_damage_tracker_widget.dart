@@ -19,8 +19,8 @@ class CommanderDamageTracker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const width = 60.0;
-    const height = 50.0;
+    const width = 70.0;
+    const height = 70.0;
 
     final commanderDamage = context.select<PlayerBloc, int>(
       (bloc) => bloc.state.player.commanderDamageList[commanderPlayerId] ?? 0,
@@ -41,9 +41,9 @@ class CommanderDamageTracker extends StatelessWidget {
             const PlayerStopDecrement(),
           ),
       child: Container(
-        padding: const EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.only(top: 5),
         child: Stack(
-          alignment: Alignment.topCenter,
+          alignment: Alignment.center,
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.all(Radius.circular(10)),

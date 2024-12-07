@@ -32,10 +32,10 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
     return RotatedBox(
       quarterTurns: widget.rotate ? 0 : 2,
       child: Container(
-        width: 70,
+        width: 80,
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
         decoration: BoxDecoration(
-          color: Colors.transparent.withOpacity(.4),
+          color: Colors.transparent.withOpacity(.8),
           borderRadius: const BorderRadius.all(Radius.circular(20)),
         ),
         child: ListView(
@@ -49,7 +49,7 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
                     playerId: widget.playerId,
                     commanderPlayerId: player.id,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  // const SizedBox(height: AppSpacing.sm),
                 ],
               ),
             ),
