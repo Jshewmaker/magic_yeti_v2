@@ -92,7 +92,7 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
             style: TextStyle(color: AppColors.white),
           ),
           actions: <Widget>[
-            ...counterList.map(
+            ...iconList.map(
               (icon) => IconButton(
                 icon: Icon(icon),
                 onPressed: () => Navigator.pop(context, icon),
@@ -105,7 +105,7 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
   }
 }
 
-List<IconData> counterList = [
+List<IconData> iconList = [
   FontAwesomeIcons.droplet,
   FontAwesomeIcons.skull,
   FontAwesomeIcons.fire,
