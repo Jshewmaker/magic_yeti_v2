@@ -1,4 +1,4 @@
-package com.crossout.org.magic_yeti
+package com.yetiproductioins.magicyeti
 
 import io.flutter.embedding.android.FlutterActivity
 

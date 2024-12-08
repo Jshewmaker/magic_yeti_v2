@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.crossout.org.magic_yeti">
+    package="com.yetiproductioins.magicyeti">
    <application
         android:label="${appName}"
         android:name="${applicationName}"
