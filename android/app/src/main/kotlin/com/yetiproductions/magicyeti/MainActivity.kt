@@ -1,4 +1,4 @@
-package com.yetiproductioins.magicyeti
+package com.yetiproductions.magicyeti
 
 import io.flutter.embedding.android.FlutterActivity
 
