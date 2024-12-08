@@ -23,7 +23,7 @@ class PlayerCustomizationBloc
     Emitter<PlayerCustomizationState> emit,
   ) async {
     emit(
-      const PlayerCustomizationState(
+      state.copyWith(
         status: PlayerCustomizationStatus.loading,
       ),
     );
@@ -32,14 +32,14 @@ class PlayerCustomizationBloc
         cardName: event.cardName,
       );
       emit(
-        PlayerCustomizationState(
+        state.copyWith(
           status: PlayerCustomizationStatus.success,
           cardList: cardList,
         ),
       );
     } catch (e) {
       emit(
-        const PlayerCustomizationState(
+        state.copyWith(
           status: PlayerCustomizationStatus.failure,
         ),
       );
@@ -69,13 +69,13 @@ class PlayerCustomizationBloc
     Emitter<PlayerCustomizationState> emit,
   ) async {
     emit(
-      const PlayerCustomizationState(
+      state.copyWith(
         status: PlayerCustomizationStatus.loading,
       ),
     );
 
     emit(
-      PlayerCustomizationState(
+      state.copyWith(
         status: PlayerCustomizationStatus.success,
         imageURL: event.imageUrl,
       ),
