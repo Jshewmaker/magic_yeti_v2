@@ -86,19 +86,32 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
     return showDialog<IconData>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'Please Select A Counter.',
-            style: TextStyle(color: AppColors.white),
-          ),
-          actions: <Widget>[
-            ...iconList.map(
-              (icon) => IconButton(
-                icon: Icon(icon),
-                onPressed: () => Navigator.pop(context, icon),
-              ),
+        return Dialog(
+          child: SizedBox(
+            height: 300,
+            width: 300,
+            child: Column(
+              children: [
+                const Text(
+                  'Tap an icon to add it to the tracker.',
+                  style: TextStyle(color: AppColors.white),
+                ),
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 5,
+                    children: [
+                      ...iconList.map(
+                        (icon) => IconButton(
+                          icon: Icon(icon),
+                          onPressed: () => Navigator.pop(context, icon),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
