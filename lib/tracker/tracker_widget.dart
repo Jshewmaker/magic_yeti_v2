@@ -102,7 +102,7 @@ class _TrackerWidgetsState extends State<TrackerWidgets> {
                     children: [
                       ...iconList.map(
                         (icon) => IconButton(
-                          icon: Icon(icon),
+                          icon: FaIcon(icon),
                           onPressed: () => Navigator.pop(context, icon),
                         ),
                       ),
