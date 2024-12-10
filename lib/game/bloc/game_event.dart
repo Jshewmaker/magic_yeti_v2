@@ -32,6 +32,24 @@ class GameFinishEvent extends GameEvent {
 class PlayerRepositoryUpdateEvent extends GameEvent {
   const PlayerRepositoryUpdateEvent({required this.players});
   final List<Player> players;
+
+  @override
+  List<Object> get props => [players];
+}
+
+class GameTimerTickEvent extends GameEvent {
+  const GameTimerTickEvent({required this.elapsedSeconds});
+  final int elapsedSeconds;
+  @override
+  List<Object> get props => [];
+}
+
+class GamePauseEvent extends GameEvent {
+  const GamePauseEvent();
+}
+
+class GameResumeEvent extends GameEvent {
+  const GameResumeEvent();
 }
 
 enum PlayerAction {

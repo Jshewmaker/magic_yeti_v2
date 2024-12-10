@@ -16,9 +16,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         super(const GameState()) {
     on<CreateGameEvent>(_onCreateGame);
     on<GameStartEvent>(_onGameStart);
+    on<GamePauseEvent>(_onGamePause);
+    on<GameResumeEvent>(_onGameResume);
     on<GameResetEvent>(_onGameReset);
     on<GameFinishEvent>(_onGameFinish);
     on<PlayerRepositoryUpdateEvent>(_repositoryUpdated);
+    on<GameTimerTickEvent>(_onTimerTick);
 
     _playersSubscription = _playerRepository.players.listen((players) {
       add(PlayerRepositoryUpdateEvent(players: players));
@@ -27,6 +30,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   final PlayerRepository _playerRepository;
   StreamSubscription<List<Player>>? _playersSubscription;
+  Timer? _gameTimer;
 
   List<Player> get _players => _playerRepository.getPlayers();
   Future<void> _onCreateGame(
@@ -34,7 +38,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     Emitter<GameState> emit,
   ) async {
     emit(const GameState(status: GameStatus.loading));
-    final uuid = const Uuid();
+    const uuid = Uuid();
 
     try {
       final uuidList =
@@ -51,13 +55,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         );
         _playerRepository.updatePlayer(player);
       }
-
-      emit(
-        state.copyWith(
-          status: GameStatus.running,
-          playerList: _players,
-        ),
-      );
+      add(const GameStartEvent());
     } catch (e) {
       emit(GameState(status: GameStatus.error, error: e.toString()));
     }
@@ -67,10 +65,47 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameStartEvent event,
     Emitter<GameState> emit,
   ) {
+    _startTimer();
     emit(
       state.copyWith(
         status: GameStatus.running,
         playerList: _players,
+        elapsedSeconds: 0,
+      ),
+    );
+  }
+
+  void _onGamePause(
+    GamePauseEvent event,
+    Emitter<GameState> emit,
+  ) {
+    _gameTimer?.cancel();
+    emit(state.copyWith(status: GameStatus.paused));
+  }
+
+  void _onGameResume(
+    GameResumeEvent event,
+    Emitter<GameState> emit,
+  ) {
+    _startTimer();
+    emit(state.copyWith(status: GameStatus.running));
+  }
+
+  void _startTimer() {
+    _gameTimer?.cancel();
+    _gameTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => add(GameTimerTickEvent(elapsedSeconds: state.elapsedSeconds + 1)),
+    );
+  }
+
+  void _onTimerTick(
+    GameTimerTickEvent event,
+    Emitter<GameState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        elapsedSeconds: event.elapsedSeconds,
       ),
     );
   }
@@ -80,6 +115,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     Emitter<GameState> emit,
   ) async {
     emit(state.copyWith(status: GameStatus.loading));
+    _gameTimer?.cancel();
 
     // Reset players
     for (final player in _players) {
@@ -95,19 +131,14 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     // Give time for the repository to update
     await Future<void>.delayed(const Duration(milliseconds: 100));
-
-    emit(
-      state.copyWith(
-        status: GameStatus.initial,
-        playerList: _players,
-      ),
-    );
+    add(const GameStartEvent());
   }
 
   void _onGameFinish(
     GameFinishEvent event,
     Emitter<GameState> emit,
   ) {
+    _gameTimer?.cancel();
     emit(
       state.copyWith(
         status: GameStatus.finished,
@@ -131,6 +162,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   @override
   Future<void> close() {
     _playersSubscription?.cancel();
+    _gameTimer?.cancel();
     return super.close();
   }
 }
