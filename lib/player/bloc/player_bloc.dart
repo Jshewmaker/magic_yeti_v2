@@ -172,7 +172,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       add(
-        UpdatePlayerLifeEvent(
+        UpdatePlayerLifeByXEvent(
           playerId: event.playerId,
           decrement: event.decrement,
         ),

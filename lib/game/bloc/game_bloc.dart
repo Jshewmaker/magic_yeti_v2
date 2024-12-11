@@ -151,12 +151,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     PlayerRepositoryUpdateEvent event,
     Emitter<GameState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        status: GameStatus.running,
-        playerList: _players,
-      ),
-    );
+    final alivePlayers = event.players.where((p) => p.lifePoints > 0).toList();
+    if (alivePlayers.length == 1 && state.status == GameStatus.running) {
+      add(GameFinishEvent(winner: alivePlayers.first));
+    }
+    emit(state.copyWith(playerList: event.players));
   }
 
   @override
