@@ -34,12 +34,13 @@ class CustomizePlayerView extends StatelessWidget {
   Widget build(BuildContext context) {
     final player = context.read<PlayerRepository>().getPlayerById(playerId);
     final textController = TextEditingController(text: player.name);
-    const width = 400.0;
+    const width = 600.0;
     const height = 300.0;
 
     return Scaffold(
+      appBar: AppBar(),
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxlg),
+        padding: const EdgeInsets.all(AppSpacing.xxlg),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -49,80 +50,86 @@ class CustomizePlayerView extends StatelessWidget {
                   child: Column(
                     children: [
                       Container(
+                        width: width,
+                        height: height,
                         decoration: const BoxDecoration(
                           borderRadius: BorderRadius.all(
                             Radius.circular(20),
                           ),
                         ),
-                        height: height,
-                        width: width,
-                        child: Image.network(
-                          state.imageURL.isNotEmpty
-                              ? state.imageURL
-                              : player.picture,
-                          fit: BoxFit.fill,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.blue,
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(20),
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(20),
+                          ),
+                          child: Image.network(
+                            state.imageURL.isNotEmpty
+                                ? state.imageURL
+                                : player.picture,
+                            fit: BoxFit.fill,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                              decoration: BoxDecoration(
+                                color: Color(player.color).withOpacity(1),
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(20),
+                                ),
                               ),
                             ),
-                            height: height,
-                            width: width,
                           ),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      SizedBox(
-                        width: width,
-                        child: TextField(
-                          onEditingComplete: () =>
-                              context.read<PlayerCustomizationBloc>().add(
-                                    UpdatePlayerName(
-                                      name: textController.text,
-                                    ),
-                                  ),
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              onEditingComplete: () =>
+                                  context.read<PlayerCustomizationBloc>().add(
+                                        UpdatePlayerName(
+                                          name: textController.text,
+                                        ),
+                                      ),
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              controller: textController,
                             ),
                           ),
-                          controller: textController,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      SizedBox(
-                        width: width / 2,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            context.read<PlayerBloc>().add(
-                                  UpdatePlayerInfoEvent(
-                                    playerName: textController.text,
-                                    pictureUrl: state.imageURL,
-                                    playerId: playerId,
-                                  ),
-                                );
+                          const SizedBox(width: AppSpacing.sm),
+                          ElevatedButton(
+                            onPressed: () {
+                              context.read<PlayerBloc>().add(
+                                    UpdatePlayerInfoEvent(
+                                      playerName: textController.text,
+                                      pictureUrl: state.imageURL,
+                                      playerId: playerId,
+                                    ),
+                                  );
 
-                            Navigator.pop(context);
-                          },
-                          child: const Text('Save'),
-                        ),
+                              Navigator.pop(context);
+                            },
+                            style: ButtonStyle(
+                              shape: WidgetStateProperty.all<
+                                  RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                            child: const Text('Save'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 );
               },
             ),
-            Expanded(
-              child: Column(
-                children: [
-                  SelectCommanderWidget(
-                    player: player,
-                  ),
-                ],
-              ),
+            const SizedBox(width: AppSpacing.xxlg),
+            SelectCommanderWidget(
+              player: player,
             ),
           ],
         ),

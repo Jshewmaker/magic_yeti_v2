@@ -22,32 +22,37 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
     return Expanded(
       child: Column(
         children: [
-          TextField(
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              suffixIcon: Container(
-                margin: const EdgeInsets.all(8),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(100, 50),
-                    backgroundColor: Colors.red,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search for your commander',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                    prefixIcon: const Icon(Icons.search),
                   ),
-                  child: Text(l10n.searchButtonText),
-                  onPressed: () => context.read<PlayerCustomizationBloc>().add(
-                        CardListRequested(
-                          cardName: textController.text,
-                        ),
-                      ),
+                  controller: textController,
                 ),
               ),
-            ),
-            controller: textController,
+              const SizedBox(width: AppSpacing.sm),
+              ElevatedButton(
+                style: ButtonStyle(
+                  shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                child: Text(l10n.searchButtonText),
+                onPressed: () => context.read<PlayerCustomizationBloc>().add(
+                      CardListRequested(
+                        cardName: textController.text,
+                      ),
+                    ),
+              )
+            ],
           ),
           BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
             builder: (context, state) {
@@ -66,7 +71,7 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                                   ),
                                 ),
                         child: Card(
-                          color: Colors.black.withOpacity(0.9),
+                          elevation: 0,
                           child: Padding(
                             padding: const EdgeInsets.all(8),
                             child: Row(
@@ -120,20 +125,7 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                   ),
                 );
               } else {
-                return Column(
-                  children: [
-                    const SizedBox(
-                      height: 40,
-                    ),
-                    Text(
-                      'Search your commander.',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
-                        fontSize: 20,
-                      ),
-                    ),
-                  ],
-                );
+                return const SizedBox.shrink();
               }
             },
           ),

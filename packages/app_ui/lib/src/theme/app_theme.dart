@@ -95,6 +95,9 @@ class AppTheme {
     return InputDecorationTheme(
       disabledBorder: _textFieldBorder,
       border: const OutlineInputBorder(),
+      focusedBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: AppColors.neutral60, width: 1.5),
+      ),
       filled: true,
       isDense: true,
       errorStyle: UITextStyle.bodySmall,
