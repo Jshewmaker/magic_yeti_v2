@@ -1,6 +1,6 @@
 part of 'game_bloc.dart';
 
-enum GameStatus { initial, loading, running, finished, paused, error }
+enum GameStatus { initial, loading, running, finished, paused, error, reset }
 
 class GameState extends Equatable {
   const GameState({

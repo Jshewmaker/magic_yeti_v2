@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
+import 'package:magic_yeti/tracker/bloc/tracker_bloc.dart';
 import 'package:magic_yeti/tracker/tracker.dart';
 
-class TrackerWidgets extends StatefulWidget {
+class TrackerWidgets extends StatelessWidget {
   const TrackerWidgets({
     required this.rotate,
     required this.playerId,
@@ -20,64 +21,67 @@ class TrackerWidgets extends StatefulWidget {
   final String playerId;
 
   @override
-  State<TrackerWidgets> createState() => _TrackerWidgetsState();
-}
-
-class _TrackerWidgetsState extends State<TrackerWidgets> {
-  final counterList = <IconData>[];
-
-  @override
   Widget build(BuildContext context) {
-    final players = context.watch<GameBloc>().state.playerList;
-    return RotatedBox(
-      quarterTurns: widget.rotate ? 0 : 2,
-      child: Container(
-        width: 80,
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-        decoration: BoxDecoration(
-          color: Colors.transparent.withOpacity(.8),
-          borderRadius: const BorderRadius.all(Radius.circular(20)),
-        ),
-        child: ListView(
-          children: [
-            ...players.map(
-              (player) => Column(
+    final gameState = context.watch<GameBloc>().state;
+    final players = gameState.playerList;
+
+    return BlocProvider(
+      create: (context) => TrackerBloc(),
+      child: BlocBuilder<TrackerBloc, TrackerState>(
+        builder: (context, state) {
+          if (gameState.status == GameStatus.loading) {
+            context.read<TrackerBloc>().add(const ResetTrackerIcons());
+          }
+
+          return RotatedBox(
+            quarterTurns: rotate ? 0 : 2,
+            child: Container(
+              width: 80,
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+              decoration: BoxDecoration(
+                color: Colors.transparent.withOpacity(.8),
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
+              ),
+              child: ListView(
                 children: [
-                  CommanderDamageTracker(
-                    color: player.color,
-                    imageUrl: player.picture,
-                    playerId: widget.playerId,
-                    commanderPlayerId: player.id,
+                  ...players.map(
+                    (player) => Column(
+                      children: [
+                        CommanderDamageTracker(
+                          color: player.color,
+                          imageUrl: player.picture,
+                          playerId: playerId,
+                          commanderPlayerId: player.id,
+                        ),
+                      ],
+                    ),
                   ),
-                  // const SizedBox(height: AppSpacing.sm),
+                  ...state.icons.map(
+                    (icon) => Dismissible(
+                      onDismissed: (_) => context
+                          .read<TrackerBloc>()
+                          .add(RemoveTrackerIcon(icon)),
+                      key: Key('$icon'),
+                      child: CounterTrackerWidget(icon: Icon(icon)),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      FontAwesomeIcons.plus,
+                      color: AppColors.white,
+                    ),
+                    onPressed: () async {
+                      final icon = await _dialogBuilder(context);
+                      if (icon != null) {
+                        context.read<TrackerBloc>().add(AddTrackerIcon(icon));
+                      }
+                    },
+                  ),
                 ],
               ),
             ),
-            ...counterList.map(
-              (icon) => Dismissible(
-                onDismissed: (_) => setState(() {
-                  counterList.remove(icon);
-                }),
-                key: Key('$icon'),
-                child: CounterTrackerWidget(icon: Icon(icon)),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(
-                FontAwesomeIcons.plus,
-                color: AppColors.white,
-              ),
-              onPressed: () async {
-                final icon = await _dialogBuilder(context);
-                if (!counterList.contains(icon)) {
-                  setState(() {
-                    counterList.add(icon!);
-                  });
-                }
-              },
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

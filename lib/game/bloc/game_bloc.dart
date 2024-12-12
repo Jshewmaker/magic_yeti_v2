@@ -131,6 +131,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     // Give time for the repository to update
     await Future<void>.delayed(const Duration(milliseconds: 100));
+
     add(const GameStartEvent());
   }
 
