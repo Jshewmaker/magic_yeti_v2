@@ -40,7 +40,7 @@ class TwoPlayerView extends StatelessWidget {
               rotate: true,
             ),
           ),
-          RotatedBox(quarterTurns: 3, child: const _CenterControlColumn()),
+          const RotatedBox(quarterTurns: 3, child: _CenterControlColumn()),
           Expanded(
             child: _PlayerSection(
               playerId: playerList[0].id,
