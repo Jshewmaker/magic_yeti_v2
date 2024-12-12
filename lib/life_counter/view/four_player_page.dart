@@ -2,7 +2,9 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
+import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/life_counter/widgets/widgets.dart';
 import 'package:magic_yeti/player/player.dart';
 import 'package:magic_yeti/tracker/tracker.dart';
@@ -161,16 +163,31 @@ class _CenterControlColumn extends StatelessWidget {
         IconButton(
           icon: const Icon(
             Icons.refresh,
-            color: Colors.white,
-            size: 50,
+            color: AppColors.neutral60,
+            size: 40,
           ),
           onPressed: () => context.read<GameBloc>().add(const GameResetEvent()),
         ),
+        IconButton(
+            onPressed: () => GoRouter.of(context).go(HomePage.routeName),
+            icon: const Icon(
+              Icons.home_filled,
+              size: 40,
+              color: AppColors.neutral60,
+            )),
         const TimerWidget(),
         const Icon(
           FontAwesomeIcons.diceOne,
           size: 30,
+          color: AppColors.neutral60,
         ),
+        IconButton(
+            onPressed: () => GoRouter.of(context).go(HomePage.routeName),
+            icon: const Icon(
+              Icons.home_filled,
+              size: 40,
+              color: AppColors.neutral60,
+            ))
       ],
     );
   }
