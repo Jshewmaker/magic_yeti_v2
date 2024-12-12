@@ -156,23 +156,26 @@ class BackgroundWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: const BorderRadius.all(Radius.circular(20)),
-      child: Image.network(
-        player.picture,
-        opacity: AlwaysStoppedAnimation(
-          player.lifePoints <= 0 ? .2 : 1,
+      child: SizedBox.expand(
+        child: Image.network(
+          player.picture,
+          fit: BoxFit.fill,
+          opacity: AlwaysStoppedAnimation(
+            player.lifePoints <= 0 ? .2 : 1,
+          ),
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Color(player.color).withOpacity(
+                  player.lifePoints <= 0 ? .3 : 1,
+                ),
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(20),
+                ),
+              ),
+            );
+          },
         ),
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            decoration: BoxDecoration(
-              color: Color(player.color).withOpacity(
-                player.lifePoints <= 0 ? .3 : 1,
-              ),
-              borderRadius: const BorderRadius.all(
-                Radius.circular(20),
-              ),
-            ),
-          );
-        },
       ),
     );
   }

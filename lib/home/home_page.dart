@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/life_counter/view/four_player_page.dart';
+import 'package:magic_yeti/life_counter/view/two_player_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -34,9 +35,25 @@ class HomeView extends StatelessWidget {
           children: [
             ElevatedButton(
               onPressed: () {
-                context
-                    .read<GameBloc>()
-                    .add(const CreateGameEvent(numberOfPlayers: 4));
+                context.read<GameBloc>().add(
+                      const CreateGameEvent(
+                        numberOfPlayers: 2,
+                        startingLifePoints: 20,
+                      ),
+                    );
+                context.go(TwoPlayerPage.routePath);
+              },
+              child: const Text('2 Player'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                context.read<GameBloc>().add(
+                      const CreateGameEvent(
+                        numberOfPlayers: 4,
+                        startingLifePoints: 40,
+                      ),
+                    );
                 context.go(FourPlayerPage.routePath);
               },
               child: const Text('4 Player'),

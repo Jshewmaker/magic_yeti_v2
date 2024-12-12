@@ -59,6 +59,14 @@ class AppRouter {
             child: FourPlayerPage.pageBuilder(context, state),
           ),
         ),
+        AppRoute(
+          name: TwoPlayerPage.routePath,
+          path: TwoPlayerPage.routePath,
+          pageBuilder: (context, state) => NoTransitionPage(
+            name: TwoPlayerPage.routePath,
+            child: TwoPlayerPage.pageBuilder(context, state),
+          ),
+        ),
       ],
     );
   }

@@ -50,7 +50,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
           name: 'Player ${i + 1}',
           picture: '',
           playerNumber: i,
-          lifePoints: 40,
+          lifePoints: event.startingLifePoints,
           commanderDamageList: {for (final e in uuidList) e: 0},
         );
         _playerRepository.updatePlayer(player);
@@ -120,7 +120,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     // Reset players
     for (final player in _players) {
       final resetPlayer = player.copyWith(
-        lifePoints: 40,
+        lifePoints: _players.length == 4 ? 40 : 20,
         timeOfDeath: '',
         placement: 99,
         commanderDamageList:

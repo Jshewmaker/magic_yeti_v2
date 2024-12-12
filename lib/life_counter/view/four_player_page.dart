@@ -45,26 +45,52 @@ class FourPlayerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final playerList = context.read<GameBloc>().state.playerList;
-    return Scaffold(
-      body: Row(
+    final gameState = context.watch<GameBloc>().state;
+    
+    if (gameState.playerList.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // For 2 player game
+    if (gameState.playerList.length == 2) {
+      return Row(
         children: [
           Expanded(
-            child: _PlayerColumn(
-              topPlayerId: playerList[3].id,
-              bottomPlayerId: playerList[1].id,
+            child: Column(
+              children: [
+                Expanded(
+                  child: _PlayerColumn(
+                    topPlayerId: gameState.playerList[0].id,
+                    bottomPlayerId: gameState.playerList[1].id,
+                    alignment: Alignment.centerLeft,
+                  ),
+                ),
+              ],
             ),
           ),
           const _CenterControlColumn(),
-          Expanded(
-            child: _PlayerColumn(
-              topPlayerId: playerList[2].id,
-              bottomPlayerId: playerList[0].id,
-              alignment: Alignment.centerRight,
-            ),
-          ),
         ],
-      ),
+      );
+    }
+
+    // For 4 player game
+    return Row(
+      children: [
+        Expanded(
+          child: _PlayerColumn(
+            topPlayerId: gameState.playerList[3].id,
+            bottomPlayerId: gameState.playerList[1].id,
+          ),
+        ),
+        const _CenterControlColumn(),
+        Expanded(
+          child: _PlayerColumn(
+            topPlayerId: gameState.playerList[2].id,
+            bottomPlayerId: gameState.playerList[0].id,
+            alignment: Alignment.centerRight,
+          ),
+        ),
+      ],
     );
   }
 }

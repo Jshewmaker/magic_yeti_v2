@@ -8,8 +8,12 @@ abstract class GameEvent extends Equatable {
 }
 
 final class CreateGameEvent extends GameEvent {
-  const CreateGameEvent({required this.numberOfPlayers});
+  const CreateGameEvent({
+    required this.numberOfPlayers,
+    required this.startingLifePoints,
+  });
   final int numberOfPlayers;
+  final int startingLifePoints;
 }
 
 class GameStartEvent extends GameEvent {
