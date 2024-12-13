@@ -1,7 +1,7 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:magic_yeti/tracker/bloc/tracker_bloc_bloc.dart';
+import 'package:magic_yeti/tracker/counter_bloc/counter_bloc.dart';
 
 class CounterTrackerWidget extends StatelessWidget {
   const CounterTrackerWidget({
@@ -12,19 +12,23 @@ class CounterTrackerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => TrackerBloc(),
-      child: BlocBuilder<TrackerBloc, TrackerBlocState>(
+      create: (context) => CounterBloc(),
+      child: BlocBuilder<CounterBloc, CounterState>(
         builder: (context, state) {
           return GestureDetector(
             onTap: () =>
-                context.read<TrackerBloc>().add(TrackerBlocIncremented()),
+                context.read<CounterBloc>().add(CounterIncrementPressed()),
             onLongPress: () =>
-                context.read<TrackerBloc>().add(TrackerBlocDecremented()),
+                context.read<CounterBloc>().add(CounterDecrementPressed()),
             onLongPressUp: () =>
-                context.read<TrackerBloc>().add(TrackerBlocStopDecrement()),
+                context.read<CounterBloc>().add(CounterStopDecrementing()),
             child: Container(
+              height: 70,
+              width: 70,
               padding: const EdgeInsets.only(top: 10),
-              child: Column(
+              color: AppColors.neutral60.withOpacity(.2),
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
                   icon,
                   StrokeText(

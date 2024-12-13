@@ -7,8 +7,8 @@ import 'package:json_annotation/json_annotation.dart';
 part 'card.g.dart';
 
 @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
-class Card extends Equatable {
-  const Card({
+class MagicCard extends Equatable {
+  const MagicCard({
     required this.colorIndicator,
     required this.contentWarning,
     required this.flavorName,
@@ -87,9 +87,10 @@ class Card extends Equatable {
     required this.purchaseUris,
   });
 
-  factory Card.fromJson(Map<String, dynamic> json) => _$CardFromJson(json);
+  factory MagicCard.fromJson(Map<String, dynamic> json) =>
+      _$MagicCardFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CardToJson(this);
+  Map<String, dynamic> toJson() => _$MagicCardToJson(this);
 
   final String object;
   final String id;

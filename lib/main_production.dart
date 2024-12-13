@@ -1,22 +1,36 @@
-import 'package:api_client/api_client.dart';
+// Copyright (c) 2024, Very Good Ventures
+// https://verygood.ventures
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fake_app_config_repository/fake_app_config_repository.dart';
+import 'package:firebase_authentication_client/firebase_authentication_client.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:magic_yeti/app/app.dart';
 import 'package:magic_yeti/bootstrap.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
+import 'package:user_repository/user_repository.dart';
 
-void main() async {
-  await bootstrap(() async {
-    final apiClient = ApiClient(
-      baseUrl: 'https://api.scryfall.com',
-    );
-    final firebaseDatabase =
-        FirebaseDatabaseRepository(firebase: FirebaseFirestore.instance);
-    final scryfallRepository = ScryfallRepository(apiClient: apiClient);
-    return App(
-      apiClient: apiClient,
-      firebaseDatabaseRepository: firebaseDatabase,
-      scryfallRepository: scryfallRepository,
-    );
-  });
+void main() {
+  bootstrap(
+    (FirebaseFirestore firebaseFirestore) async {
+      final authenticationClient = FirebaseAuthenticationClient();
+
+      final userRepository =
+          UserRepository(authenticationClient: authenticationClient);
+      final firebaseDatabaseRepository = FirebaseDatabaseRepository(
+        firebase: FirebaseFirestore.instance,
+      );
+
+      final scryfallRepository = ScryfallRepository();
+      final user = await userRepository.user.first;
+      final appConfigRepository = FakeAppConfigRepository();
+      return App(
+        userRepository: userRepository,
+        user: user,
+        firebaseDatabaseRepository: firebaseDatabaseRepository,
+        scryfallRepository: scryfallRepository,
+        appConfigRepository: appConfigRepository,
+      );
+    },
+  );
 }
