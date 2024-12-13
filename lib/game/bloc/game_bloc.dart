@@ -1,74 +1,113 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:firebase_database_repository/firebase_database_repository.dart';
-import 'package:flutter/foundation.dart';
-import 'package:magic_yeti/player/player.dart';
+import 'package:player_repository/player_repository.dart';
+import 'package:uuid/uuid.dart';
 
 part 'game_event.dart';
 part 'game_state.dart';
 
 class GameBloc extends Bloc<GameEvent, GameState> {
   GameBloc({
-    required FirebaseDatabaseRepository firebase,
-  })  : _firebase = firebase,
+    required PlayerRepository playerRepository,
+  })  : _playerRepository = playerRepository,
         super(const GameState()) {
     on<CreateGameEvent>(_onCreateGame);
-    on<UpdatePlayerEvent>(_onUpdatePlayer);
-    on<GameOverEvent>(_onGameOver);
+    on<GameStartEvent>(_onGameStart);
+    on<GamePauseEvent>(_onGamePause);
+    on<GameResumeEvent>(_onGameResume);
     on<GameResetEvent>(_onGameReset);
-  }
-  final FirebaseDatabaseRepository _firebase;
+    on<GameFinishEvent>(_onGameFinish);
+    on<PlayerRepositoryUpdateEvent>(_repositoryUpdated);
+    on<GameTimerTickEvent>(_onTimerTick);
 
+    _playersSubscription = _playerRepository.players.listen((players) {
+      add(PlayerRepositoryUpdateEvent(players: players));
+    });
+  }
+
+  final PlayerRepository _playerRepository;
+  StreamSubscription<List<Player>>? _playersSubscription;
+  Timer? _gameTimer;
+
+  List<Player> get _players => _playerRepository.getPlayers();
   Future<void> _onCreateGame(
     CreateGameEvent event,
     Emitter<GameState> emit,
   ) async {
-    emit(state.copyWith(status: GameStatus.loading));
-    final playerList = <Player>[];
-    for (var i = 0; i < event.numberOfPlayers; ++i) {
-      playerList.add(
-        Player(
-          id: UniqueKey().hashCode,
-          color: (math.Random().nextDouble() * 0xFFFFFF).toInt(),
-          name: 'Player ${playerList.length}',
-          picture: '',
-          playerNumber: playerList.length,
-          lifePoints: 40,
-        ),
-      );
-    }
-    emit(state.copyWith(status: GameStatus.idle, playerList: playerList));
-  }
-
-  Future<void> _onUpdatePlayer(
-    UpdatePlayerEvent event,
-    Emitter<GameState> emit,
-  ) async {
-    emit(state.copyWith(status: GameStatus.loading));
-
-    state.playerList.removeWhere(
-      (element) => element.id == event.player.id,
-    );
-    final updatedPlayer = event.player;
-    state.playerList.add(updatedPlayer);
-    emit(state.copyWith(status: GameStatus.idle, playerList: state.playerList));
-  }
-
-  Future<void> _onGameOver(
-    GameOverEvent event,
-    Emitter<GameState> emit,
-  ) async {
-    emit(state.copyWith(status: GameStatus.loading));
+    emit(const GameState(status: GameStatus.loading));
+    const uuid = Uuid();
+    _playerRepository.clearPlayers();
     try {
-      final list = event.player.map((e) => e.toJson()).toList();
-      await _firebase.saveGameStats(list);
-
-      emit(state.copyWith(status: GameStatus.idle, playerList: const []));
+      final uuidList =
+          List.generate(event.numberOfPlayers, (index) => uuid.v4());
+      for (var i = 0; i < event.numberOfPlayers; ++i) {
+        final player = Player(
+          id: uuidList[i],
+          color: (math.Random().nextDouble() * 0xFFFFFF).toInt(),
+          name: 'Player ${i + 1}',
+          picture: '',
+          playerNumber: i,
+          lifePoints: event.startingLifePoints,
+          commanderDamageList: {for (final e in uuidList) e: 0},
+        );
+        _playerRepository.updatePlayer(player);
+      }
+      add(const GameStartEvent());
     } catch (e) {
-      emit(state.copyWith(status: GameStatus.failure));
+      emit(GameState(status: GameStatus.error, error: e.toString()));
     }
+  }
+
+  void _onGameStart(
+    GameStartEvent event,
+    Emitter<GameState> emit,
+  ) {
+    _startTimer();
+    emit(
+      state.copyWith(
+        status: GameStatus.running,
+        playerList: _players,
+        elapsedSeconds: 0,
+      ),
+    );
+  }
+
+  void _onGamePause(
+    GamePauseEvent event,
+    Emitter<GameState> emit,
+  ) {
+    _gameTimer?.cancel();
+    emit(state.copyWith(status: GameStatus.paused));
+  }
+
+  void _onGameResume(
+    GameResumeEvent event,
+    Emitter<GameState> emit,
+  ) {
+    _startTimer();
+    emit(state.copyWith(status: GameStatus.running));
+  }
+
+  void _startTimer() {
+    _gameTimer?.cancel();
+    _gameTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => add(GameTimerTickEvent(elapsedSeconds: state.elapsedSeconds + 1)),
+    );
+  }
+
+  void _onTimerTick(
+    GameTimerTickEvent event,
+    Emitter<GameState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        elapsedSeconds: event.elapsedSeconds,
+      ),
+    );
   }
 
   Future<void> _onGameReset(
@@ -76,16 +115,54 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     Emitter<GameState> emit,
   ) async {
     emit(state.copyWith(status: GameStatus.loading));
+    _gameTimer?.cancel();
 
-    final updatedList = <Player>[];
-    for (final player in state.playerList) {
-      updatedList.add(player.copyWith(
-        lifePoints: 40,
-      ));
+    // Reset players
+    for (final player in _players) {
+      final resetPlayer = player.copyWith(
+        lifePoints: _players.length == 4 ? 40 : 20,
+        timeOfDeath: '',
+        placement: 99,
+        commanderDamageList:
+            Map.fromEntries(state.playerList.map((p) => MapEntry(p.id, 0))),
+      );
+      _playerRepository.updatePlayer(resetPlayer);
     }
-    emit(state.copyWith(status: GameStatus.idle, playerList: updatedList));
-    // final numberOfPlayer = state.playerList.length;
-    // emit(state.copyWith(status: GameStatus.loading, playerList: []));
-    // add(CreateGameEvent(numberOfPlayers: numberOfPlayer));
+
+    // Give time for the repository to update
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    add(const GameStartEvent());
+  }
+
+  void _onGameFinish(
+    GameFinishEvent event,
+    Emitter<GameState> emit,
+  ) {
+    _gameTimer?.cancel();
+    emit(
+      state.copyWith(
+        status: GameStatus.finished,
+        winner: event.winner,
+      ),
+    );
+  }
+
+  Future<void> _repositoryUpdated(
+    PlayerRepositoryUpdateEvent event,
+    Emitter<GameState> emit,
+  ) async {
+    final alivePlayers = event.players.where((p) => p.lifePoints > 0).toList();
+    if (alivePlayers.length == 1 && state.status == GameStatus.running) {
+      add(GameFinishEvent(winner: alivePlayers.first));
+    }
+    emit(state.copyWith(playerList: event.players));
+  }
+
+  @override
+  Future<void> close() {
+    _playersSubscription?.cancel();
+    _gameTimer?.cancel();
+    return super.close();
   }
 }
