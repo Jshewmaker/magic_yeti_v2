@@ -30,7 +30,7 @@ class AppTheme {
     );
   }
 
-  Color get _primaryColor => AppColors.primary;
+  Color get _primaryColor => AppColors.neutral60;
   Color get _backgroundColor => AppColors.background;
 
   ColorScheme get _colorScheme {

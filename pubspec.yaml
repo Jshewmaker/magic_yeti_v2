@@ -13,18 +13,18 @@ dependencies:
     path: packages/app_config_repository/app_config_repository
   app_ui:
     path: packages/app_ui
-  bloc: ^8.1.4
   authentication_client:
     path: packages/authentication_client/authentication_client
+  bloc: ^8.1.4
   cached_network_image: ^3.3.1
   cloud_firestore: ^5.5.0
   equatable: ^2.0.5
-  firebase_database: ^10.5.4
+  firebase_database: ^11.2.0
   fake_app_config_repository:
     path: packages/app_config_repository/fake_app_config_repository
   firebase_authentication_client:
     path: packages/authentication_client/firebase_authentication_client
-  firebase_core: ^3.1.0
+  firebase_core: ^3.8.1
   firebase_database_repository:
     path: packages/firebase_database_repository
   flutter:

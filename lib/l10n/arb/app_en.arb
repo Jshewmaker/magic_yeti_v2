@@ -124,6 +124,32 @@
     "@resultsTabTimeline": {
       "description": "Tab tile for timeline view"
   },
+  "navigationDialogText": "Are you sure you want to go to the home page? The current game progress will be lost.",
+    "@navigationDialogText": {
+      "description": "Text shown in the navigation dialog"
+  },
+  "exitGameDialogText": "Exit Game?",
+    "@exitGameDialogText": {
+      "description": "Text shown in the navigation dialog"
+  },
+  "confirmTextButton": "Confirm",
+    "@confirmTextButton": {
+      "description": "Confirmation button text",
+      "type": "text",
+      "placeholders": {}
+  },
+  "cancelTextButton": "Cancel",
+  "@cancelTextButton": {
+    "description": "Cancel button text",
+    "type": "text",
+    "placeholders": {}
+  },
+  "resetGameDialogText": "Reset Game?",
+  "@resetGameDialogText": {
+    "description": "Text shown in the navigation dialog",
+    "type": "text",
+    "placeholders": {}
+  },
   "numberOfPlayers": "{numberOfPlayers} Player Game",
   "@numberOfPlayers": {
     "placeholders": {
@@ -131,5 +157,5 @@
             "type": "int"
         }
     }
-}
+  }
 }
