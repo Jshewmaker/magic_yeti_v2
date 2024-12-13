@@ -10,6 +10,7 @@ dev_dependencies:
   mocktail: ^1.0.0
   test: ^1.19.2
   very_good_analysis: ^5.1.0
+
 dependencies:
-  cloud_firestore: ^4.15.3
-  firebase_database: ^10.4.4
+  cloud_firestore: ^5.5.0
+

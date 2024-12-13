@@ -1,76 +1,92 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
-import 'package:magic_yeti/player_settings.dart';
+import 'package:magic_yeti/player/view/bloc/player_customization_bloc.dart';
+import 'package:magic_yeti/player/widgets/select_commander_widget.dart';
+import 'package:player_repository/player_repository.dart';
+import 'package:scryfall_repository/scryfall_repository.dart';
 
 class CustomizePlayerPage extends StatelessWidget {
   const CustomizePlayerPage({
-    required this.player,
+    required this.playerId,
     super.key,
   });
-  final Player player;
-
+  final String playerId;
   @override
   Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => PlayerCustomizationBloc(
+        scryfallRepository: context.read<ScryfallRepository>(),
+      ),
+      child: CustomizePlayerView(playerId: playerId),
+    );
+  }
+}
+
+class CustomizePlayerView extends StatelessWidget {
+  const CustomizePlayerView({
+    required this.playerId,
+    super.key,
+  });
+  final String playerId;
+  @override
+  Widget build(BuildContext context) {
+    final player = context.read<PlayerRepository>().getPlayerById(playerId);
     final textController = TextEditingController(text: player.name);
-    const width = 400.0;
+    const width = 600.0;
     const height = 300.0;
 
-    return BlocConsumer<PlayerBloc, PlayerState>(
-      listener: (context, state) {
-        if (state is PlayerUpdated) {
-          context.read<GameBloc>().add(UpdatePlayerEvent(player: state.player));
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          body: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxlg),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                BlocBuilder<PlayerBloc, PlayerState>(
-                  builder: (context, state) {
-                    return Expanded(
-                      child: Column(
-                        children: [
-                          if (state is PlayerUpdated)
-                            Container(
-                              decoration: const BoxDecoration(
-                                borderRadius: BorderRadius.all(
+    return Scaffold(
+      appBar: AppBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xxlg),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
+              builder: (context, state) {
+                return Expanded(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: width,
+                        height: height,
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(20),
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(20),
+                          ),
+                          child: Image.network(
+                            state.imageURL.isNotEmpty
+                                ? state.imageURL
+                                : player.picture,
+                            fit: BoxFit.fill,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                              decoration: BoxDecoration(
+                                color: Color(player.color).withOpacity(1),
+                                borderRadius: const BorderRadius.all(
                                   Radius.circular(20),
                                 ),
                               ),
-                              height: height,
-                              width: width,
-                              child: Image.network(
-                                state.player.picture,
-                                fit: BoxFit.fill,
-                              ),
-                            )
-                          else
-                            Container(
-                              decoration: const BoxDecoration(
-                                color: Colors.blue,
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(20),
-                                ),
-                              ),
-                              height: height,
-                              width: width,
                             ),
-                          const SizedBox(height: AppSpacing.md),
-                          SizedBox(
-                            width: width,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Row(
+                        children: [
+                          Expanded(
                             child: TextField(
                               onEditingComplete: () =>
-                                  context.read<PlayerBloc>().add(
-                                        UpdatePlayerInfoEvent(
-                                          player: player.copyWith(
-                                            name: textController.text,
-                                          ),
+                                  context.read<PlayerCustomizationBloc>().add(
+                                        UpdatePlayerName(
+                                          name: textController.text,
                                         ),
                                       ),
                               decoration: InputDecoration(
@@ -81,47 +97,43 @@ class CustomizePlayerPage extends StatelessWidget {
                               controller: textController,
                             ),
                           ),
-                          const SizedBox(width: AppSpacing.md),
-                          if (state is PlayerUpdated)
-                            SizedBox(
-                              width: width / 2,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  context.read<PlayerBloc>().add(
-                                        UpdatePlayerInfoEvent(
-                                          player: player.copyWith(
-                                            name: textController.text,
-                                            picture: state.player.picture,
-                                          ),
-                                        ),
-                                      );
-                                  context
-                                      .read<PlayerBloc>()
-                                      .add(PlayerEventReset());
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('Save'),
+                          const SizedBox(width: AppSpacing.sm),
+                          ElevatedButton(
+                            onPressed: () {
+                              context.read<PlayerBloc>().add(
+                                    UpdatePlayerInfoEvent(
+                                      playerName: textController.text,
+                                      pictureUrl: state.imageURL,
+                                      playerId: playerId,
+                                    ),
+                                  );
+
+                              Navigator.pop(context);
+                            },
+                            style: ButtonStyle(
+                              shape: WidgetStateProperty.all<
+                                  RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
+                            child: const Text('Save'),
+                          ),
                         ],
-                      ),
-                    );
-                  },
-                ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      SelectCommanderWidget(
-                        player: player,
                       ),
                     ],
                   ),
-                ),
-              ],
+                );
+              },
             ),
-          ),
-        );
-      },
+            const SizedBox(width: AppSpacing.xxlg),
+            SelectCommanderWidget(
+              player: player,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

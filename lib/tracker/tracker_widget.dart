@@ -5,109 +5,166 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
+import 'package:magic_yeti/tracker/bloc/tracker_bloc.dart';
 import 'package:magic_yeti/tracker/tracker.dart';
 
-class TrackerWidgets extends StatefulWidget {
+class TrackerWidgets extends StatelessWidget {
   const TrackerWidgets({
     required this.rotate,
-    required this.player,
+    required this.playerId,
     super.key,
   });
 
   final bool rotate;
-  final int player;
 
-  @override
-  State<TrackerWidgets> createState() => _TrackerWidgetsState();
-}
-
-class _TrackerWidgetsState extends State<TrackerWidgets> {
-  final counterList = <IconData>[];
+  /// Player who owns the tracker.
+  final String playerId;
 
   @override
   Widget build(BuildContext context) {
-    final players = context.watch<GameBloc>().state.playerList;
-    return RotatedBox(
-      quarterTurns: widget.rotate ? 0 : 2,
-      child: Container(
-        width: 70,
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-        decoration: BoxDecoration(
-          color: Colors.transparent.withOpacity(.4),
-          borderRadius: const BorderRadius.all(Radius.circular(20)),
-        ),
-        child: ListView(
-          children: [
-            ...players.map(
-              (player) => Column(
+    final gameState = context.watch<GameBloc>().state;
+    final players = gameState.playerList;
+
+    return BlocProvider(
+      create: (context) => TrackerBloc(),
+      child: BlocBuilder<TrackerBloc, TrackerState>(
+        builder: (context, state) {
+          if (gameState.status == GameStatus.loading) {
+            context.read<TrackerBloc>().add(const ResetTrackerIcons());
+          }
+
+          return RotatedBox(
+            quarterTurns: rotate ? 0 : 2,
+            child: Container(
+              width: 80,
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+              decoration: BoxDecoration(
+                color: Colors.transparent.withOpacity(.8),
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
+              ),
+              child: ListView(
                 children: [
-                  CommanderDamageTracker(
-                    imageUrl: player.picture,
-                    color: Color(player.color).withOpacity(1),
+                  if (players.length > 2)
+                    ...players.map(
+                      (player) => Column(
+                        children: [
+                          CommanderDamageTracker(
+                            color: player.color,
+                            imageUrl: player.picture,
+                            playerId: playerId,
+                            commanderPlayerId: player.id,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ...state.icons.map(
+                    (icon) => Column(
+                      children: [
+                        const SizedBox(
+                          height: AppSpacing.xs,
+                        ),
+                        Dismissible(
+                          onDismissed: (_) => context
+                              .read<TrackerBloc>()
+                              .add(RemoveTrackerIcon(icon)),
+                          key: Key('$icon'),
+                          child: ClipRRect(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(10)),
+                            child: CounterTrackerWidget(
+                              icon: Icon(
+                                icon,
+                                size: 40,
+                                color: AppColors.white.withOpacity(.5),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  Column(
+                    children: [
+                      const SizedBox(
+                        height: AppSpacing.xs,
+                      ),
+                      ClipRRect(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(10)),
+                        child: Container(
+                          width: 70,
+                          height: 70,
+                          color: AppColors.white.withOpacity(.5),
+                          child: IconButton(
+                            icon: const Icon(
+                              FontAwesomeIcons.plus,
+                              color: AppColors.white,
+                            ),
+                            onPressed: () async {
+                              final icon = await _dialogBuilder(context);
+                              if (icon != null) {
+                                context
+                                    .read<TrackerBloc>()
+                                    .add(AddTrackerIcon(icon));
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
-            ...counterList.map(
-              (icon) => Dismissible(
-                onDismissed: (detials) => setState(() {
-                  counterList.remove(icon);
-                }),
-                key: Key('$icon'),
-                child: CounterTrackerWidget(icon: Icon(icon)),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(
-                FontAwesomeIcons.plus,
-                color: AppColors.white,
-              ),
-              onPressed: () async {
-                final icon = await _dialogBuilder(context);
-                if (!counterList.contains(icon)) {
-                  setState(() {
-                    counterList.add(icon!);
-                  });
-                }
-              },
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
   Future<IconData?> _dialogBuilder(BuildContext context) {
     return showDialog<IconData>(
-      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'Please Select A Counter.',
-            style: TextStyle(color: AppColors.white),
+        return Dialog(
+          child: SizedBox(
+            height: 300,
+            width: 300,
+            child: Column(
+              children: [
+                const Text(
+                  'Tap an icon to add it to the tracker.',
+                  style: TextStyle(color: AppColors.white),
+                ),
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 5,
+                    children: [
+                      ...iconList.map(
+                        (icon) => IconButton(
+                          icon: FaIcon(icon),
+                          onPressed: () => Navigator.pop(context, icon),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          actions: <Widget>[
-            IconButton(
-              onPressed: () {
-                Navigator.pop(context, FontAwesomeIcons.droplet);
-              },
-              icon: const Icon(
-                FontAwesomeIcons.droplet,
-              ),
-            ),
-            IconButton(
-              onPressed: () {
-                Navigator.pop(context, FontAwesomeIcons.skullCrossbones);
-              },
-              icon: const Icon(
-                FontAwesomeIcons.skullCrossbones,
-              ),
-            ),
-          ],
         );
       },
     );
   }
 }
+
+List<IconData> iconList = [
+  FontAwesomeIcons.droplet,
+  FontAwesomeIcons.skull,
+  FontAwesomeIcons.fire,
+  FontAwesomeIcons.sun,
+  FontAwesomeIcons.tree,
+  FontAwesomeIcons.diamond,
+  FontAwesomeIcons.dungeon,
+  FontAwesomeIcons.skullCrossbones,
+];

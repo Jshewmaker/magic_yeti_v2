@@ -123,5 +123,13 @@
   "resultsTabTimeline": "Timeline",
     "@resultsTabTimeline": {
       "description": "Tab tile for timeline view"
-  }
+  },
+  "numberOfPlayers": "{numberOfPlayers} Player Game",
+  "@numberOfPlayers": {
+    "placeholders": {
+        "numberOfPlayers": {
+            "type": "int"
+        }
+    }
+}
 }
