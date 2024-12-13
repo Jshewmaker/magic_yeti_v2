@@ -1,62 +1,37 @@
-import 'dart:async';
-
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:magic_yeti/game/bloc/game_bloc.dart';
 
-class TimerWidget extends StatefulWidget {
+class TimerWidget extends StatelessWidget {
   const TimerWidget({super.key});
-
-  @override
-  State<TimerWidget> createState() => _TimerWidgetState();
-}
-
-class _TimerWidgetState extends State<TimerWidget> {
-  late Stopwatch stopwatch;
-  late Timer t;
-
-  @override
-  void initState() {
-    super.initState();
-    stopwatch = Stopwatch();
-    stopwatch.start();
-    t = Timer.periodic(const Duration(milliseconds: 30), (timer) {
-      setState(() {});
-    });
-  }
-
-  String returnFormattedText() {
-    final milli = stopwatch.elapsed.inMilliseconds;
-
-    final seconds = ((milli ~/ 1000) % 60)
-        .toString()
-        .padLeft(2, '0'); // this is for the second
-    final minutes = ((milli ~/ 1000) ~/ 60)
-        .toString()
-        .padLeft(2, '0'); // this is for the minute
-
-    return '$minutes:$seconds';
-  }
 
   @override
   Widget build(BuildContext context) {
     return RotatedBox(
       quarterTurns: 1,
-      child: GestureDetector(
-        onTap: () {
-          if (stopwatch.isRunning) {
-            stopwatch.stop();
-          } else {
-            stopwatch.start();
-          }
+      child: BlocSelector<GameBloc, GameState, int>(
+        selector: (state) => state.elapsedSeconds,
+        builder: (context, elapsedSeconds) {
+          return GestureDetector(
+            onTap: () =>
+                context.read<GameBloc>().state.status == GameStatus.paused
+                    ? context.read<GameBloc>().add(const GameResumeEvent())
+                    : context.read<GameBloc>().add(const GamePauseEvent()),
+            child: Row(
+              children: [
+                Text(
+                  '${(elapsedSeconds ~/ 60).toString().padLeft(2, '0')}:${(elapsedSeconds % 60).toString().padLeft(2, '0')}',
+                  style: const TextStyle(
+                    color: AppColors.neutral60,
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          );
         },
-        child: Text(
-          returnFormattedText(),
-          style: const TextStyle(
-            color: AppColors.neutral60,
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
       ),
     );
   }

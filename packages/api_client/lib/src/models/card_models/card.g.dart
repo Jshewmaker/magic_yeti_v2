@@ -6,7 +6,7 @@ part of 'card.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Card _$CardFromJson(Map<String, dynamic> json) => Card(
+MagicCard _$MagicCardFromJson(Map<String, dynamic> json) => MagicCard(
       colorIndicator: (json['color_indicator'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -15,12 +15,12 @@ Card _$CardFromJson(Map<String, dynamic> json) => Card(
       flavorText: json['flavor_text'] as String?,
       lifeModifier: json['life_modifier'] as String?,
       loyalty: json['loyalty'] as String?,
-      mtgoFoilId: json['mtgo_foil_id'] as int?,
+      mtgoFoilId: (json['mtgo_foil_id'] as num?)?.toInt(),
       power: json['power'] as String?,
       producedMana: (json['produced_mana'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-      tcgplayerEtchedId: json['tcgplayer_etched_id'] as int?,
+      tcgplayerEtchedId: (json['tcgplayer_etched_id'] as num?)?.toInt(),
       toughness: json['toughness'] as String?,
       handModifier: json['hand_modifier'] as String?,
       object: json['object'] as String,
@@ -28,12 +28,12 @@ Card _$CardFromJson(Map<String, dynamic> json) => Card(
       set: json['set'] as String,
       oracleId: json['oracle_id'] as String?,
       multiverseIds: (json['multiverse_ids'] as List<dynamic>?)
-          ?.map((e) => e as int)
+          ?.map((e) => (e as num).toInt())
           .toList(),
-      mtgoId: json['mtgo_id'] as int?,
-      arenaId: json['arena_id'] as int?,
-      tcgplayerId: json['tcgplayer_id'] as int?,
-      cardmarketId: json['cardmarket_id'] as int?,
+      mtgoId: (json['mtgo_id'] as num?)?.toInt(),
+      arenaId: (json['arena_id'] as num?)?.toInt(),
+      tcgplayerId: (json['tcgplayer_id'] as num?)?.toInt(),
+      cardmarketId: (json['cardmarket_id'] as num?)?.toInt(),
       allParts: (json['all_parts'] as List<dynamic>?)
           ?.map((e) => RelatedCards.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -98,8 +98,8 @@ Card _$CardFromJson(Map<String, dynamic> json) => Card(
       fullArt: json['full_art'] as bool,
       textless: json['textless'] as bool,
       storySpotlight: json['story_spotlight'] as bool,
-      edhrecRank: json['edhrec_rank'] as int?,
-      pennyRank: json['penny_rank'] as int?,
+      edhrecRank: (json['edhrec_rank'] as num?)?.toInt(),
+      pennyRank: (json['penny_rank'] as num?)?.toInt(),
       prices: Prices.fromJson(json['prices'] as Map<String, dynamic>),
       relatedUris:
           RelatedURIs.fromJson(json['related_uris'] as Map<String, dynamic>),
@@ -109,7 +109,7 @@ Card _$CardFromJson(Map<String, dynamic> json) => Card(
               json['purchase_uris'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$CardToJson(Card instance) => <String, dynamic>{
+Map<String, dynamic> _$MagicCardToJson(MagicCard instance) => <String, dynamic>{
       'object': instance.object,
       'id': instance.id,
       'oracle_id': instance.oracleId,

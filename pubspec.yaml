@@ -9,35 +9,51 @@ environment:
 dependencies:
   api_client:
     path: packages/api_client
+  app_config_repository:
+    path: packages/app_config_repository/app_config_repository
   app_ui:
     path: packages/app_ui
   bloc: ^8.1.4
+  authentication_client:
+    path: packages/authentication_client/authentication_client
   cached_network_image: ^3.3.1
-  cloud_firestore: ^4.15.3
+  cloud_firestore: ^5.5.0
   equatable: ^2.0.5
-  firebase_core: ^2.25.3
-  firebase_database: ^10.4.4
+  firebase_database: ^10.5.4
+  fake_app_config_repository:
+    path: packages/app_config_repository/fake_app_config_repository
+  firebase_authentication_client:
+    path: packages/authentication_client/firebase_authentication_client
+  firebase_core: ^3.1.0
   firebase_database_repository:
     path: packages/firebase_database_repository
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.3
+  flutter_launcher_icons: ^0.14.2
   flutter_localizations:
     sdk: flutter
   font_awesome_flutter: ^10.7.0
-  go_router: ^13.1.0
-  intl: ^0.18.0
+  go_router: ^14.0.2
+  intl: ^0.19.0
   json_annotation: ^4.8.0
+  player_repository:
+    path: packages/player_repository
   provider: ^6.1.1
   scryfall_repository:
     path: packages/scryfall_repository
+  user_repository:
+    path: packages/user_repository
+  uuid: ^4.5.1
+
 
 dev_dependencies:
   bloc_test: ^9.1.4
   build_runner: ^2.3.3
-  json_serializable: ^6.6.0
+  change_app_package_name: ^1.4.0
   flutter_test:
     sdk: flutter
+  json_serializable: ^6.6.0
   mocktail: ^1.0.0
   very_good_analysis: ^5.1.0
 

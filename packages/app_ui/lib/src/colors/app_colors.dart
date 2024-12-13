@@ -9,7 +9,7 @@ abstract class AppColors {
   static const Color white = Colors.white;
 
   /// Primary
-  static const Color primary = Color(0xFFD3D9E3);
+  static const Color primary = Color(0xFF1B1B1F);
 
   /// Secondary
   static const Color secondary = Color(0xFF3C5BA9);
