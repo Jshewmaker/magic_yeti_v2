@@ -24,7 +24,7 @@ class SearchCards extends Equatable {
   final int totalCards;
   final bool hasMore;
   final String? nextPage;
-  final List<Card> data;
+  final List<MagicCard> data;
 
   @override
   List<Object?> get props => [

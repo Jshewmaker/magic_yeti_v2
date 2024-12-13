@@ -1,117 +1,182 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:magic_yeti/app_router/routes.dart';
-import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
+import 'package:magic_yeti/player/view/customize_player_page.dart';
+import 'package:player_repository/player_repository.dart';
 
 class LifeCounterWidget extends StatelessWidget {
   LifeCounterWidget({
-    required this.player,
+    this.rotate = false,
     super.key,
   });
-  final Player player;
+  final bool rotate;
+
   final textController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
-    textController.text = player.name;
-    final dead = player.lifePoints < 1;
-    return BlocConsumer<PlayerBloc, PlayerState>(
-      listener: (context, state) {
-        if (state is PlayerUpdated) {
-          context.read<GameBloc>().add(UpdatePlayerEvent(player: state.player));
-        }
-      },
+    return BlocBuilder<PlayerBloc, PlayerState>(
       builder: (context, state) {
-        return RotatedBox(
-          quarterTurns: player.playerNumber < 2 ? 0 : 2,
-          child: Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(20)),
-                child: Image.network(
-                  player.picture,
-                  opacity: AlwaysStoppedAnimation(dead ? .2 : 1),
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Color(player.color).withOpacity(dead ? 0 : 1),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(20)),
+        if (state.status == PlayerStatus.updated) {
+          final player = state.player;
+          textController.text = state.player.name;
+          return RotatedBox(
+            quarterTurns: rotate ? 2 : 0,
+            child: Stack(
+              children: [
+                BackgroundWidget(player: state.player),
+                LifePointsWidget(lifePoints: state.player.lifePoints),
+                Column(
+                  children: [
+                    IncrementLifeWidget(player: player),
+                    DecrementLifeWidget(player: player),
+                  ],
+                ),
+                _PlayerNameWidget(
+                  name: textController.text,
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => BlocProvider.value(
+                          value: context.read<PlayerBloc>(),
+                          child: CustomizePlayerPage(
+                            playerId: player.id,
+                          ),
+                        ),
                       ),
                     );
                   },
                 ),
+              ],
+            ),
+          );
+        }
+
+        return const CircularProgressIndicator();
+      },
+    );
+  }
+}
+
+class IncrementLifeWidget extends StatelessWidget {
+  const IncrementLifeWidget({
+    required this.player,
+    super.key,
+  });
+
+  final Player player;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      key: const ValueKey(
+        'life_counter_widget_increment',
+      ),
+      child: GestureDetector(
+        onTap: () => context.read<PlayerBloc>().add(
+              UpdatePlayerLifeEvent(decrement: false, playerId: player.id),
+            ),
+        onLongPress: () => context.read<PlayerBloc>().add(
+              UpdatePlayerLifeByXEvent(decrement: false, playerId: player.id),
+            ),
+        onLongPressUp: () => context.read<PlayerBloc>().add(
+              const PlayerStopDecrement(),
+            ),
+      ),
+    );
+  }
+}
+
+class DecrementLifeWidget extends StatelessWidget {
+  const DecrementLifeWidget({
+    required this.player,
+    super.key,
+  });
+
+  final Player player;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      key: const ValueKey(
+        'life_counter_widget_decrement',
+      ),
+      child: GestureDetector(
+        onTap: () => context.read<PlayerBloc>().add(
+              UpdatePlayerLifeEvent(
+                decrement: true,
+                playerId: player.id,
               ),
-              Center(
-                child: StrokeText(
-                  text: '${player.lifePoints}',
-                  fontSize: 96,
-                  color: dead ? AppColors.black : AppColors.white,
+            ),
+        onLongPress: () => context.read<PlayerBloc>().add(
+              UpdatePlayerLifeByXEvent(
+                decrement: true,
+                playerId: player.id,
+              ),
+            ),
+        onLongPressUp: () => context.read<PlayerBloc>().add(
+              const PlayerStopDecrement(),
+            ),
+      ),
+    );
+  }
+}
+
+class LifePointsWidget extends StatelessWidget {
+  const LifePointsWidget({
+    required this.lifePoints,
+    super.key,
+  });
+
+  final int lifePoints;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: StrokeText(
+        text: '$lifePoints',
+        fontSize: 96,
+        color: lifePoints <= 0 ? AppColors.black : AppColors.white,
+      ),
+    );
+  }
+}
+
+class BackgroundWidget extends StatelessWidget {
+  const BackgroundWidget({
+    required this.player,
+    super.key,
+  });
+
+  final Player player;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.all(Radius.circular(20)),
+      child: SizedBox.expand(
+        child: Image.network(
+          player.picture,
+          fit: BoxFit.fill,
+          opacity: AlwaysStoppedAnimation(
+            player.lifePoints <= 0 ? .2 : 1,
+          ),
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Color(player.color).withOpacity(
+                  player.lifePoints <= 0 ? .3 : 1,
+                ),
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(20),
                 ),
               ),
-              Row(
-                children: [
-                  Expanded(
-                    key: const ValueKey(
-                      'life_counter_widget_decrement',
-                    ),
-                    child: GestureDetector(
-                      onTap: () => context.read<PlayerBloc>().add(
-                            UpdatePlayerLifeEvent(
-                              player: player,
-                              decrement: true,
-                            ),
-                          ),
-                      onLongPress: () => context
-                          .read<PlayerBloc>()
-                          .add(UpdatePlayerLifeByXEvent(
-                            player: player,
-                            decrement: true,
-                          )),
-                      onLongPressUp: () => context
-                          .read<PlayerBloc>()
-                          .add(PlayerStopDecrement(player: player)),
-                    ),
-                  ),
-                  Expanded(
-                    key: const ValueKey(
-                      'life_counter_widget_increment',
-                    ),
-                    child: GestureDetector(
-                      onTap: () => context.read<PlayerBloc>().add(
-                            UpdatePlayerLifeEvent(
-                              player: player,
-                              decrement: false,
-                            ),
-                          ),
-                      onLongPress: () => context
-                          .read<PlayerBloc>()
-                          .add(UpdatePlayerLifeByXEvent(
-                            player: player,
-                            decrement: false,
-                          )),
-                      onLongPressUp: () => context
-                          .read<PlayerBloc>()
-                          .add(PlayerStopDecrement(player: player)),
-                    ),
-                  ),
-                ],
-              ),
-              _PlayerNameWidget(
-                name: textController.text,
-                onPressed: () {
-                  context.pushNamed(
-                    const CustomizePlayerRoute().name,
-                    extra: player,
-                  );
-                },
-              ),
-            ],
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 }
@@ -128,8 +193,8 @@ class _PlayerNameWidget extends StatelessWidget {
         ElevatedButton(
           style: ButtonStyle(
             backgroundColor:
-                MaterialStateProperty.all(Colors.white.withOpacity(.8)),
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                WidgetStateProperty.all(Colors.white.withOpacity(.8)),
+            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

@@ -8,10 +8,10 @@ environment:
   flutter: 3.7.0
 
 dependencies:
+  dotted_decoration: ^2.0.0
   flag: ^7.0.0
   flutter:
     sdk: flutter
-  dotted_decoration: ^2.0.0
   linked_scroll_controller: ^0.2.0
 
 dev_dependencies:

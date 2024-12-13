@@ -16,15 +16,17 @@ class AppTheme {
       canvasColor: _backgroundColor,
       textButtonTheme: _textButtonTheme,
       textTheme: uiTextTheme.apply(
-        bodyColor: AppColors.black,
-        displayColor: AppColors.black,
-        decorationColor: AppColors.black,
+        bodyColor: AppColors.white,
+        displayColor: AppColors.white,
+        decorationColor: AppColors.white,
       ),
+      buttonTheme: _buttonTheme,
       tabBarTheme: _tabBarTheme,
       appBarTheme: _appBarTheme,
       inputDecorationTheme: _inputDecorationTheme,
       checkboxTheme: _checkBoxTheme,
       colorScheme: _colorScheme,
+      elevatedButtonTheme: _elevatedButtonTheme,
     );
   }
 
@@ -33,12 +35,11 @@ class AppTheme {
 
   ColorScheme get _colorScheme {
     return ColorScheme.dark(
-      background: _backgroundColor,
       primary: _backgroundColor,
       onPrimary: _backgroundColor,
       secondary: AppColors.secondary,
       tertiary: AppColors.tertiary,
-      surface: AppColors.surface,
+      surface: AppColors.background,
       error: AppColors.error,
       onSurfaceVariant: AppColors.onSurfaceVariant,
     );
@@ -65,11 +66,38 @@ class AppTheme {
     bodySmall: UITextStyle.bodySmall,
   );
 
+  ButtonThemeData get _buttonTheme {
+    return const ButtonThemeData(
+      textTheme: ButtonTextTheme.primary,
+      buttonColor: AppColors.white,
+      colorScheme: ColorScheme.dark(
+        primary: AppColors.white,
+        onPrimary: AppColors.background,
+      ),
+      shape: OutlineInputBorder(
+        borderSide: BorderSide(color: AppColors.white, width: 2),
+      ),
+    );
+  }
+
+  ElevatedButtonThemeData get _elevatedButtonTheme {
+    return ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        foregroundColor: AppColors.background,
+        backgroundColor: AppColors.white,
+        side: const BorderSide(color: AppColors.white, width: 2),
+      ),
+    );
+  }
+
   /// InputDecoration Theme.
   InputDecorationTheme get _inputDecorationTheme {
     return InputDecorationTheme(
       disabledBorder: _textFieldBorder,
       border: const OutlineInputBorder(),
+      focusedBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: AppColors.neutral60, width: 1.5),
+      ),
       filled: true,
       isDense: true,
       errorStyle: UITextStyle.bodySmall,
@@ -97,7 +125,7 @@ class AppTheme {
   TabBarTheme get _tabBarTheme {
     return TabBarTheme(
       dividerColor: Colors.transparent,
-      overlayColor: MaterialStateProperty.all<Color>(AppColors.background),
+      overlayColor: WidgetStateProperty.all<Color>(AppColors.background),
     );
   }
 
@@ -110,13 +138,62 @@ class AppTheme {
       ),
     );
   }
+
+  ThemeData copyWith({
+    Brightness? brightness,
+    Color? primaryColor,
+    Color? primaryColorLight,
+    Color? primaryColorDark,
+    Color? accentColor,
+    Color? canvasColor,
+    Color? scaffoldBackgroundColor,
+    Color? bottomAppBarColor,
+    Color? cardColor,
+    Color? dividerColor,
+    Color? highlightColor,
+    Color? splashColor,
+    Color? selectedRowColor,
+    Color? unselectedWidgetColor,
+    Color? disabledColor,
+    Color? buttonColor,
+    Color? secondaryHeaderColor,
+    Color? textSelectionColor,
+    Color? backgroundColor,
+    Color? dialogBackgroundColor,
+    Color? indicatorColor,
+    Color? hintColor,
+    Color? errorColor,
+    Color? toggleableActiveColor,
+  }) {
+    final ThemeData theme = ThemeData(
+      brightness: brightness ?? Brightness.dark,
+      primaryColor: primaryColor ?? AppColors.primary,
+      primaryColorLight: primaryColorLight,
+      primaryColorDark: primaryColorDark,
+      canvasColor: canvasColor ?? _backgroundColor,
+      scaffoldBackgroundColor: scaffoldBackgroundColor,
+      cardColor: cardColor,
+      dividerColor: dividerColor,
+      highlightColor: highlightColor,
+      splashColor: splashColor,
+      unselectedWidgetColor: unselectedWidgetColor,
+      disabledColor: disabledColor,
+      secondaryHeaderColor: secondaryHeaderColor,
+      dialogBackgroundColor: dialogBackgroundColor,
+      indicatorColor: indicatorColor,
+      hintColor: hintColor,
+      buttonTheme: _buttonTheme,
+      elevatedButtonTheme: _elevatedButtonTheme,
+    );
+    return theme;
+  }
 }
 
 /// Material State Extension.
-extension MaterialStateSet on Set<MaterialState> {
+extension MaterialStateSet on Set<WidgetState> {
   /// Check if is focused.
-  bool get isFocused => contains(MaterialState.focused);
+  bool get isFocused => contains(WidgetState.focused);
 
   /// Check if is disabled.
-  bool get isDisabled => contains(MaterialState.disabled);
+  bool get isDisabled => contains(WidgetState.disabled);
 }

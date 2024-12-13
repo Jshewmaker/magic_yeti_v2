@@ -1,36 +1,65 @@
 part of 'game_bloc.dart';
 
-sealed class GameEvent extends Equatable {
+abstract class GameEvent extends Equatable {
   const GameEvent();
 
+  @override
+  List<Object?> get props => [];
+}
+
+final class CreateGameEvent extends GameEvent {
+  const CreateGameEvent({
+    required this.numberOfPlayers,
+    required this.startingLifePoints,
+  });
+  final int numberOfPlayers;
+  final int startingLifePoints;
+}
+
+class GameStartEvent extends GameEvent {
+  const GameStartEvent();
+}
+
+class GameResetEvent extends GameEvent {
+  const GameResetEvent();
+}
+
+class GameFinishEvent extends GameEvent {
+  const GameFinishEvent({required this.winner});
+
+  final Player winner;
+
+  @override
+  List<Object?> get props => [winner];
+}
+
+class PlayerRepositoryUpdateEvent extends GameEvent {
+  const PlayerRepositoryUpdateEvent({required this.players});
+  final List<Player> players;
+
+  @override
+  List<Object> get props => [players];
+}
+
+class GameTimerTickEvent extends GameEvent {
+  const GameTimerTickEvent({required this.elapsedSeconds});
+  final int elapsedSeconds;
   @override
   List<Object> get props => [];
 }
 
-final class CreateGameEvent extends GameEvent {
-  const CreateGameEvent({required this.numberOfPlayers});
-  final int numberOfPlayers;
+class GamePauseEvent extends GameEvent {
+  const GamePauseEvent();
 }
 
-final class UpdatePlayerEvent extends GameEvent {
-  const UpdatePlayerEvent({required this.player});
-
-  final Player player;
+class GameResumeEvent extends GameEvent {
+  const GameResumeEvent();
 }
 
-final class GameOverEvent extends GameEvent {
-  const GameOverEvent({required this.player, required this.time});
-
-  final List<Player> player;
-  final String? time;
-}
-
-final class GamePlayerUpdatedEvent extends GameEvent {
-  const GamePlayerUpdatedEvent({required this.player});
-
-  final Player player;
-}
-
-final class GameResetEvent extends GameEvent {
-  const GameResetEvent();
+enum PlayerAction {
+  increment,
+  decrement,
+  updateName,
+  updatePfP,
+  died,
 }
