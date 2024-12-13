@@ -13,9 +13,9 @@ dependencies:
     path: packages/app_config_repository/app_config_repository
   app_ui:
     path: packages/app_ui
+  bloc: ^8.1.4
   authentication_client:
     path: packages/authentication_client/authentication_client
-  bloc: ^8.1.2
   cached_network_image: ^3.3.1
   cloud_firestore: ^5.5.0
   equatable: ^2.0.5
