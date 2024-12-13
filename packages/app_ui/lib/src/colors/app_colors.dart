@@ -29,6 +29,12 @@ abstract class AppColors {
   /// neutral60
   static const Color neutral60 = Color(0xFF919094);
 
+  /// green
+  static const Color green = Color(0xFF048000);
+
+  /// red
+  static const Color red = Color(0xFFD00000);
+
   /// On Surface Variant
   static const Color onSurfaceVariant = Color(0xFF43474E);
 }

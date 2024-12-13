@@ -39,7 +39,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         _playerId = playerId,
         super(
           PlayerState(
-            status: PlayerStatus.updated,
             player: playerRepository.getPlayerById(playerId),
           ),
         ) {
@@ -128,7 +127,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     _playerRepository.updatePlayer(updatedPlayer);
     emit(
       state.copyWith(
-        status: PlayerStatus.updated,
+        status: PlayerStatus.lifeTotalUpdated,
         player: updatedPlayer,
         lifePoints: newLifePoints,
       ),
@@ -163,7 +162,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     emit(
       state.copyWith(
-        status: PlayerStatus.updated,
+        status: PlayerStatus.lifeTotalUpdated,
         player: updatedPlayer,
         lifePoints: newLifePoints,
       ),

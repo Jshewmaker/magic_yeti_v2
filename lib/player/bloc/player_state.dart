@@ -4,12 +4,13 @@ enum PlayerStatus {
   initial,
   updating,
   updated,
+  lifeTotalUpdated,
 }
 
 class PlayerState extends Equatable {
   const PlayerState({
-    required this.status,
     required this.player,
+    this.status = PlayerStatus.initial,
     this.lifePoints,
   });
 
