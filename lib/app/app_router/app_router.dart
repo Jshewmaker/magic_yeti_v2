@@ -52,11 +52,11 @@ class AppRouter {
           ),
         ),
         AppRoute(
-          name: FourPlayerPage.routePath,
-          path: FourPlayerPage.routePath,
+          name: GamePage.routePath,
+          path: GamePage.routePath,
           pageBuilder: (context, state) => NoTransitionPage(
-            name: FourPlayerPage.routePath,
-            child: FourPlayerPage.pageBuilder(context, state),
+            name: GamePage.routePath,
+            child: GamePage.pageBuilder(context, state),
           ),
         ),
       ],

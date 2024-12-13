@@ -20,21 +20,14 @@ class TimerWidget extends StatelessWidget {
                     : context.read<GameBloc>().add(const GamePauseEvent()),
             child: Row(
               children: [
-                if (context.watch<GameBloc>().state.status == GameStatus.paused)
-                  const Icon(
-                    Icons.pause,
+                Text(
+                  '${(elapsedSeconds ~/ 60).toString().padLeft(2, '0')}:${(elapsedSeconds % 60).toString().padLeft(2, '0')}',
+                  style: const TextStyle(
                     color: AppColors.neutral60,
-                    size: 40,
-                  )
-                else
-                  Text(
-                    '${(elapsedSeconds ~/ 60).toString().padLeft(2, '0')}:${(elapsedSeconds % 60).toString().padLeft(2, '0')}',
-                    style: const TextStyle(
-                      color: AppColors.neutral60,
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
               ],
             ),
           );

@@ -1,49 +1,18 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
-import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/life_counter/widgets/widgets.dart';
 import 'package:magic_yeti/player/player.dart';
 import 'package:magic_yeti/tracker/tracker.dart';
 import 'package:player_repository/player_repository.dart';
 
-class FourPlayerPage extends StatelessWidget {
-  const FourPlayerPage({super.key});
-
-  factory FourPlayerPage.pageBuilder(_, __) {
-    return const FourPlayerPage(
-      key: Key('life_counter_page'),
-    );
-  }
-
-  static const routeName = 'life_counter_page';
-  static String get routePath => '/life_counter_page';
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<GameBloc, GameState>(
-      listener: (context, state) {},
-      builder: (context, state) {
-        return Stack(
-          children: [
-            const FourPlayerView(),
-            if (state.status == GameStatus.finished) const GameOverWidget(),
-          ],
-        );
-      },
-    );
-  }
-}
-
 /// Main view widget for the four-player game layout.
 /// Arranges players in a 2x2 grid with central controls.
 /// Uses BLoC pattern for state management and game logic.
 @visibleForTesting
-class FourPlayerView extends StatelessWidget {
-  const FourPlayerView({super.key});
+class FourPlayerGame extends StatelessWidget {
+  const FourPlayerGame({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +26,7 @@ class FourPlayerView extends StatelessWidget {
               bottomPlayerId: playerList[1].id,
             ),
           ),
-          const _CenterControlColumn(),
+          const CenterControlColumn(),
           Expanded(
             child: _PlayerColumn(
               topPlayerId: playerList[2].id,
@@ -145,50 +114,6 @@ class _PlayerSection extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Central control column containing game controls and utilities.
-/// Displays reset button, timer widget, and dice icon.
-/// Positioned between the two player columns for easy access.
-class _CenterControlColumn extends StatelessWidget {
-  const _CenterControlColumn();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        IconButton(
-          icon: const Icon(
-            Icons.refresh,
-            color: AppColors.neutral60,
-            size: 40,
-          ),
-          onPressed: () => context.read<GameBloc>().add(const GameResetEvent()),
-        ),
-        IconButton(
-            onPressed: () => GoRouter.of(context).go(HomePage.routeName),
-            icon: const Icon(
-              Icons.home_filled,
-              size: 40,
-              color: AppColors.neutral60,
-            )),
-        const TimerWidget(),
-        const Icon(
-          FontAwesomeIcons.diceOne,
-          size: 30,
-          color: AppColors.neutral60,
-        ),
-        IconButton(
-            onPressed: () => GoRouter.of(context).go(HomePage.routeName),
-            icon: const Icon(
-              Icons.home_filled,
-              size: 40,
-              color: AppColors.neutral60,
-            ))
-      ],
     );
   }
 }

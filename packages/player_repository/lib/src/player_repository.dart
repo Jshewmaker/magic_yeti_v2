@@ -64,6 +64,15 @@ class PlayerRepository {
     return _players.firstWhere((player) => player.id == id);
   }
 
+  /// Removes all players from the repository and notifies listeners.
+  ///
+  /// This will clear the internal player list and emit an empty list
+  /// through the stream.
+  void clearPlayers() {
+    _players.clear();
+    _playerController.add(_players);
+  }
+
   /// Closes the stream controller and releases resources.
   ///
   /// Should be called when the repository is no longer needed to prevent memory
