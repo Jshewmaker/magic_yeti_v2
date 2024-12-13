@@ -19,6 +19,7 @@ dependencies:
   cached_network_image: ^3.3.1
   cloud_firestore: ^5.5.0
   equatable: ^2.0.5
+  firebase_database: ^10.5.4
   fake_app_config_repository:
     path: packages/app_config_repository/fake_app_config_repository
   firebase_authentication_client:

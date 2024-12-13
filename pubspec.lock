@@ -431,6 +431,14 @@ packages:
       relative: true
     source: path
     version: "0.1.0+1"
+  firebase_database_web:
+    dependency: transitive
+    description:
+      name: firebase_database_web
+      sha256: "587caa3d12ea197f91e05470c074a5d12203cdecd8431dd1b711effee072f6f7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.5+4"
   fixnum:
     dependency: transitive
     description:
