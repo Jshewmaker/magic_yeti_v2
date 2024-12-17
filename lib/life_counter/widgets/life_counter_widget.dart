@@ -25,10 +25,10 @@ class LifeCounterWidget extends StatelessWidget {
         children: [
           BackgroundWidget(player: player),
           _LifeTrackerWidget(lifePoints: player.lifePoints),
-          Column(
+          Row(
             children: [
-              IncrementLifeWidget(player: player),
               DecrementLifeWidget(player: player),
+              IncrementLifeWidget(player: player),
             ],
           ),
           _PlayerNameWidget(
