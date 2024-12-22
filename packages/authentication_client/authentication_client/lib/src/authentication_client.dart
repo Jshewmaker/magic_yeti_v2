@@ -89,6 +89,13 @@ class LogInWithEmailAndPasswordFailure extends AuthenticationException {
   const LogInWithEmailAndPasswordFailure(super.error);
 }
 
+/// {@template anonymous_sign_in_failure}
+/// Thrown during the anonymous sign in process if a failure occurs.
+/// {@endtemplate}
+class AnonymousSignInFailure extends AuthenticationException {
+  const AnonymousSignInFailure(super.error);
+}
+
 /// {@template log_in_with_apple_failure}
 /// Thrown during the sign in with apple process if a failure occurs.
 /// {@endtemplate}

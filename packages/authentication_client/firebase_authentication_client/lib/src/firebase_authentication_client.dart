@@ -43,9 +43,12 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
   /// Emits [User.unauthenticated] if the user is not authenticated.
   @override
   BehaviorSubject<User> get user {
-    _firebaseUserSubscription ??=
-        _firebaseAuth.authStateChanges().listen((firebaseUser) {
+    _firebaseUserSubscription ??= _firebaseAuth
+        .authStateChanges()
+        .asyncMap<firebase_auth.User?>(anonymouslySignIn)
+        .listen((firebaseUser) {
       if (_lock.isLocked) return;
+
       _userController.add(
         firebaseUser == null ? User.unauthenticated : firebaseUser.toUser(),
       );
@@ -177,10 +180,13 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
       final userCredential = await _lock.run(
         () => _firebaseAuth.signInWithCredential(credential),
       );
+
+      await _firebaseAuth.currentUser?.linkWithCredential(credential);
       _userController.add(userCredential.toUser);
     } on LogInWithGoogleCanceled {
       rethrow;
     } catch (error, stackTrace) {
+      print(error);
       Error.throwWithStackTrace(LogInWithGoogleFailure(error), stackTrace);
     }
   }
@@ -200,10 +206,41 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
           password: password,
         ),
       );
+      final credential = firebase_auth.EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      final link =
+          await _firebaseAuth.currentUser?.linkWithCredential(credential);
+      print(link);
       _userController.add(userCredential.toUser);
     } catch (error, stackTrace) {
       Error.throwWithStackTrace(
         LogInWithEmailAndPasswordFailure(error),
+        stackTrace,
+      );
+    }
+  }
+
+  /// Signs in anonymously.
+  ///
+  /// Throws a [AnonymousSignInFailure] if an exception occurs.
+  Future<firebase_auth.User> anonymouslySignIn(
+    firebase_auth.User? firebaseUser,
+  ) async {
+    try {
+      if (firebaseUser == null) {
+        final userCredential = await _lock.run(
+          _firebaseAuth.signInAnonymously,
+        );
+
+        return userCredential.user!;
+      } else {
+        return firebaseUser;
+      }
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(
+        AnonymousSignInFailure(error),
         stackTrace,
       );
     }
@@ -252,6 +289,7 @@ extension on firebase_auth.User {
       name: displayName,
       photo: photoURL,
       isNewUser: isNewUser,
+      isAnonymous: email == null || email == '',
     );
   }
 }

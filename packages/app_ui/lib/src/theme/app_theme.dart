@@ -85,7 +85,8 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         foregroundColor: AppColors.background,
         backgroundColor: AppColors.white,
-        side: const BorderSide(color: AppColors.white, width: 2),
+        disabledBackgroundColor: AppColors.white,
+        disabledForegroundColor: AppColors.neutral60,
       ),
     );
   }

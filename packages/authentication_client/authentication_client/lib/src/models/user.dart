@@ -16,6 +16,7 @@ class User extends Equatable {
     this.name,
     this.photo,
     this.isNewUser = false,
+    this.isAnonymous = false,
   });
 
   /// The current user's email address.
@@ -33,9 +34,12 @@ class User extends Equatable {
   /// Whether the current user is a first time user.
   final bool isNewUser;
 
+  /// Whether the current user is anonymous.
+  final bool isAnonymous;
+
   /// An unauthenticated user.
   static const unauthenticated = User(id: '');
 
   @override
-  List<Object?> get props => [email, id, name, photo, isNewUser];
+  List<Object?> get props => [email, id, name, photo, isNewUser, isAnonymous];
 }

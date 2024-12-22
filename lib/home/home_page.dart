@@ -4,9 +4,12 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
+import 'package:magic_yeti/login/login.dart';
+import 'package:magic_yeti/sign_up/sign_up.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -83,10 +86,31 @@ class LeftSidePanel extends StatelessWidget {
         Expanded(
           child: GameModeButtons(l10n: l10n),
         ),
-        const Expanded(
+        Expanded(
           child: Column(
             children: [
-              SectionHeader(title: 'Player Stats'),
+              const SectionHeader(title: 'Your Stats'),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => context.push(LoginPage.routeName),
+                      child: const Text('Login'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => context.push(SignUpPage.routeName),
+                      child: const Text('Sign Up'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => context
+                          .read<AppBloc>()
+                          .add(const AppLogoutRequested()),
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -183,78 +207,67 @@ class CustomListItem extends StatelessWidget {
         child: Row(
           children: <Widget>[
             // Left section - Large thumbnail
-            Container(
-              width: 120,
-              height: 120,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(4),
-                  bottomLeft: Radius.circular(4),
-                ),
-                child: thumbnail,
-              ),
-            ),
-            const SizedBox(
-              width: 5,
-            ),
+            WinnerWidget(thumbnail: thumbnail),
+            const SizedBox(width: 5),
             // Middle section - Three stacked thumbnails
-            SizedBox(
-              width: 40,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Image.network(
-                      fit: BoxFit.cover,
-                      commanderList[Random().nextInt(commanderList.length)],
-                    ),
-                  ),
-                  Expanded(
-                    child: Image.network(
-                      fit: BoxFit.cover,
-                      commanderList[Random().nextInt(commanderList.length)],
-                    ),
-                  ),
-                  Expanded(
-                    child: Image.network(
-                      fit: BoxFit.cover,
-                      commanderList[Random().nextInt(commanderList.length)],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const LosersWidget(),
 
             // Right section - Text information
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: textStyle.headlineMedium?.fontSize,
-                      ),
-                    ),
-                    Text(
-                      user,
-                      style: const TextStyle(
-                        fontSize: 14.0,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    Text(
-                      '$viewCount views',
-                      style: const TextStyle(
-                        fontSize: 14.0,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
+            DetailsWidget(
+              title: title,
+              textStyle: textStyle,
+              user: user,
+              viewCount: viewCount,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DetailsWidget extends StatelessWidget {
+  const DetailsWidget({
+    required this.title,
+    required this.textStyle,
+    required this.user,
+    required this.viewCount,
+    super.key,
+  });
+
+  final String title;
+  final TextTheme textStyle;
+  final String user;
+  final int viewCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: textStyle.headlineMedium?.fontSize,
+              ),
+            ),
+            Text(
+              user,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+            Text(
+              '$viewCount views',
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
               ),
             ),
           ],
@@ -264,42 +277,60 @@ class CustomListItem extends StatelessWidget {
   }
 }
 
-class _VideoDescription extends StatelessWidget {
-  const _VideoDescription({
-    required this.title,
-    required this.user,
-    required this.viewCount,
+class LosersWidget extends StatelessWidget {
+  const LosersWidget({
+    super.key,
   });
-
-  final String title;
-  final String user;
-  final int viewCount;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 0.0),
+    return SizedBox(
+      width: 40,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 14.0,
+        children: [
+          Expanded(
+            child: Image.network(
+              fit: BoxFit.cover,
+              commanderList[Random().nextInt(commanderList.length)],
             ),
           ),
-          const Padding(padding: EdgeInsets.symmetric(vertical: 2.0)),
-          Text(
-            user,
-            style: const TextStyle(fontSize: 10.0),
+          Expanded(
+            child: Image.network(
+              fit: BoxFit.cover,
+              commanderList[Random().nextInt(commanderList.length)],
+            ),
           ),
-          const Padding(padding: EdgeInsets.symmetric(vertical: 1.0)),
-          Text(
-            '$viewCount views',
-            style: const TextStyle(fontSize: 10.0),
+          Expanded(
+            child: Image.network(
+              fit: BoxFit.cover,
+              commanderList[Random().nextInt(commanderList.length)],
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class WinnerWidget extends StatelessWidget {
+  const WinnerWidget({
+    required this.thumbnail,
+    super.key,
+  });
+
+  final Widget thumbnail;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 120,
+      height: 120,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(4),
+          bottomLeft: Radius.circular(4),
+        ),
+        child: thumbnail,
       ),
     );
   }
@@ -327,5 +358,5 @@ final List<String> players = [
   'Nick',
   'Luke',
   'Scotty',
-  'Brendan'
+  'Brendan',
 ];

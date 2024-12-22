@@ -5,6 +5,9 @@ import 'package:magic_yeti/app/app_router/go_router_refresh_stream.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/life_counter/view/view.dart';
+import 'package:magic_yeti/login/login.dart';
+import 'package:magic_yeti/reset_password/reset_password.dart';
+import 'package:magic_yeti/sign_up/sign_up.dart';
 
 class AppRouter {
   AppRouter({
@@ -58,6 +61,29 @@ class AppRouter {
             name: GamePage.routePath,
             child: GamePage.pageBuilder(context, state),
           ),
+        ),
+        AppRoute(
+          name: LoginPage.routeName,
+          path: LoginPage.routeName,
+          appStatus: AppStatus.unauthenticated,
+          pageBuilder: (context, state) => NoTransitionPage(
+            name: LoginPage.routeName,
+            child: LoginPage.pageBuilder(context, state),
+          ),
+          routes: [
+            AppRoute(
+              name: ResetPasswordPage.routeName,
+              path: ResetPasswordPage.routeName,
+              appStatus: AppStatus.unauthenticated,
+              builder: ResetPasswordPage.pageBuilder,
+            ),
+          ],
+        ),
+        AppRoute(
+          name: SignUpPage.routeName,
+          path: SignUpPage.routeName,
+          appStatus: AppStatus.unauthenticated,
+          builder: SignUpPage.pageBuilder,
         ),
       ],
     );

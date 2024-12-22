@@ -7,6 +7,8 @@ environment:
   sdk: ">=3.1.0 <4.0.0"
 
 dependencies:
+  analytics_repository:
+    path: packages/analytics_repository/analytics_repository
   api_client:
     path: packages/api_client
   app_config_repository:
@@ -34,6 +36,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   font_awesome_flutter: ^10.7.0
+  form_inputs:
+    path: packages/form_inputs
   go_router: ^14.0.2
   intl: ^0.19.0
   json_annotation: ^4.8.0
