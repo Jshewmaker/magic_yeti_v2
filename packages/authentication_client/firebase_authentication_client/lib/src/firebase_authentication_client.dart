@@ -177,12 +177,16 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
         idToken: googleAuth.idToken,
       );
 
-      final userCredential = await _lock.run(
-        () => _firebaseAuth.signInWithCredential(credential),
-      );
-
-      await _firebaseAuth.currentUser?.linkWithCredential(credential);
-      _userController.add(userCredential.toUser);
+      final userCredential =
+          await _firebaseAuth.currentUser?.linkWithCredential(credential);
+      if (userCredential != null) {
+        _userController.add(userCredential.toUser);
+      } else {
+        final userCredential = await _lock.run(
+          () => _firebaseAuth.signInWithCredential(credential),
+        );
+        _userController.add(userCredential.toUser);
+      }
     } on LogInWithGoogleCanceled {
       rethrow;
     } catch (error, stackTrace) {

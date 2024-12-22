@@ -60,20 +60,22 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCyfZ5e-cbnu6YYfzIhs_E4K6LwhmUN84s',
-    appId: '1:370172089725:android:26131762052d9ba0ad6814',
+    appId: '1:370172089725:android:8e686daa66153c82ad6814',
     messagingSenderId: '370172089725',
     projectId: 'magic-yeti',
     databaseURL: 'https://magic-yeti-default-rtdb.firebaseio.com',
-    storageBucket: 'magic-yeti.appspot.com',
+    storageBucket: 'magic-yeti.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBUONDMUnjBNKlxCu6DzG0VHtWbwyUuCro',
-    appId: '1:370172089725:ios:e5f69a3843833908ad6814',
+    appId: '1:370172089725:ios:bf69e58694170008ad6814',
     messagingSenderId: '370172089725',
     projectId: 'magic-yeti',
     databaseURL: 'https://magic-yeti-default-rtdb.firebaseio.com',
-    storageBucket: 'magic-yeti.appspot.com',
-    iosBundleId: 'com.crossout.org.magicyeti',
+    storageBucket: 'magic-yeti.firebasestorage.app',
+    iosClientId: '370172089725-1rs7sgkqr75d7vpgktilhquv3fkol1k5.apps.googleusercontent.com',
+    iosBundleId: 'com.yetiproductions.magicyeti',
   );
+
 }

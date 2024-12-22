@@ -3,7 +3,7 @@
     "project_number": "370172089725",
     "firebase_url": "https://magic-yeti-default-rtdb.firebaseio.com",
     "project_id": "magic-yeti",
-    "storage_bucket": "magic-yeti.appspot.com"
+    "storage_bucket": "magic-yeti.firebasestorage.app"
   },
   "client": [
     {
@@ -13,7 +13,12 @@
           "package_name": "com.crossout.org.magic_yeti"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "370172089725-4iirn3oq3hdso7o85sus2185r3spehom.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCyfZ5e-cbnu6YYfzIhs_E4K6LwhmUN84s"
@@ -21,7 +26,55 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "370172089725-4iirn3oq3hdso7o85sus2185r3spehom.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "370172089725-g4s3iiind6m2pd6lpg8r1b4totaumnie.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.crossout.org.magicyeti"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:370172089725:android:8e686daa66153c82ad6814",
+        "android_client_info": {
+          "package_name": "com.yetiproductions.magicyeti"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "370172089725-4iirn3oq3hdso7o85sus2185r3spehom.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyfZ5e-cbnu6YYfzIhs_E4K6LwhmUN84s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "370172089725-4iirn3oq3hdso7o85sus2185r3spehom.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "370172089725-g4s3iiind6m2pd6lpg8r1b4totaumnie.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.crossout.org.magicyeti"
+              }
+            }
+          ]
         }
       }
     }
