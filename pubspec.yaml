@@ -35,7 +35,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.2
   flutter_localizations:
     sdk: flutter
-  font_awesome_flutter: ^10.7.0
+  font_awesome_flutter: ^10.8.0
   form_inputs:
     path: packages/form_inputs
   go_router: ^14.0.2
