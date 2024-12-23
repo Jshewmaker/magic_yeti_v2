@@ -144,15 +144,24 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
           AppleIDAuthorizationScopes.fullName,
         ],
       );
+
       final oAuthProvider = firebase_auth.OAuthProvider('apple.com');
       final credential = oAuthProvider.credential(
         idToken: appleIdCredential.identityToken,
         accessToken: appleIdCredential.authorizationCode,
       );
-      final userCredential = await _lock.run(
-        () => _firebaseAuth.signInWithCredential(credential),
-      );
-      _userController.add(userCredential.toUser);
+
+      final link =
+          await _firebaseAuth.currentUser?.linkWithCredential(credential);
+
+      if (link != null) {
+        _userController.add(link.toUser);
+      } else {
+        final userCredential = await _lock.run(
+          () => _firebaseAuth.signInWithCredential(credential),
+        );
+        _userController.add(userCredential.toUser);
+      }
     } catch (error, stackTrace) {
       Error.throwWithStackTrace(LogInWithAppleFailure(error), stackTrace);
     }
