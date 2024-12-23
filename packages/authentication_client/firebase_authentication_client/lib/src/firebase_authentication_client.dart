@@ -204,20 +204,20 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
     required String password,
   }) async {
     try {
-      final userCredential = await _lock.run(
-        () => _firebaseAuth.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        ),
-      );
       final credential = firebase_auth.EmailAuthProvider.credential(
         email: email,
         password: password,
       );
       final link =
           await _firebaseAuth.currentUser?.linkWithCredential(credential);
-      print(link);
-      _userController.add(userCredential.toUser);
+      if (link != null) {
+        _userController.add(link.toUser);
+      } else {
+        final userCredential = await _lock.run(
+          () => _firebaseAuth.signInWithCredential(credential),
+        );
+        _userController.add(userCredential.toUser);
+      }
     } catch (error, stackTrace) {
       Error.throwWithStackTrace(
         LogInWithEmailAndPasswordFailure(error),
