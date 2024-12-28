@@ -151,11 +151,11 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
         accessToken: appleIdCredential.authorizationCode,
       );
 
-      final link =
+      final user =
           await _firebaseAuth.currentUser?.linkWithCredential(credential);
 
-      if (link != null) {
-        _userController.add(link.toUser);
+      if (user != null) {
+        _userController.add(user.toUser);
       } else {
         final userCredential = await _lock.run(
           () => _firebaseAuth.signInWithCredential(credential),
@@ -217,10 +217,10 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
         email: email,
         password: password,
       );
-      final link =
+      final user =
           await _firebaseAuth.currentUser?.linkWithCredential(credential);
-      if (link != null) {
-        _userController.add(link.toUser);
+      if (user != null) {
+        _userController.add(user.toUser);
       } else {
         final userCredential = await _lock.run(
           () => _firebaseAuth.signInWithCredential(credential),
