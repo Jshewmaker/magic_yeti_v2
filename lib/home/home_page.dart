@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:app_ui/app_ui.dart';
@@ -10,6 +11,7 @@ import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
 import 'package:magic_yeti/login/login.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -145,6 +147,8 @@ class GameModeButtons extends StatelessWidget {
   }
 
   void _createGame(BuildContext context, int players, int lifePoints) {
+    unawaited(WakelockPlus.enable());
+
     context.read<GameBloc>().add(
           CreateGameEvent(
             numberOfPlayers: players,

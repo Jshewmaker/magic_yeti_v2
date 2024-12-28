@@ -50,6 +50,7 @@ dependencies:
     path: packages/user_repository
   uuid: ^4.5.1
   bloc_concurrency: ^0.2.5
+  wakelock_plus: ^1.2.10
 
 
 dev_dependencies:
