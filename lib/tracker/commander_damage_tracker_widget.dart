@@ -27,16 +27,26 @@ class CommanderDamageTracker extends StatelessWidget {
     );
 
     return GestureDetector(
-      onTap: () => context.read<PlayerBloc>().add(
-            PlayerCommanderDamageIncremented(
-              commanderId: commanderPlayerId,
-            ),
-          ),
-      onLongPress: () => context.read<PlayerBloc>().add(
-            PlayerCommanderDamageDecremented(
-              commanderId: commanderPlayerId,
-            ),
-          ),
+      onTap: () {
+        context.read<PlayerBloc>().add(
+              UpdatePlayerLifeEvent(decrement: true, playerId: playerId),
+            );
+        context.read<PlayerBloc>().add(
+              PlayerCommanderDamageIncremented(
+                commanderId: commanderPlayerId,
+              ),
+            );
+      },
+      onLongPress: () {
+        context.read<PlayerBloc>().add(
+              UpdatePlayerLifeEvent(decrement: false, playerId: playerId),
+            );
+        context.read<PlayerBloc>().add(
+              PlayerCommanderDamageDecremented(
+                commanderId: commanderPlayerId,
+              ),
+            );
+      },
       onLongPressUp: () => context.read<PlayerBloc>().add(
             const PlayerStopDecrement(),
           ),
