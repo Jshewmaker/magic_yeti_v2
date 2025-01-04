@@ -34,6 +34,7 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                     prefixIcon: const Icon(Icons.search),
                   ),
                   controller: textController,
+                  autocorrect: false,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
