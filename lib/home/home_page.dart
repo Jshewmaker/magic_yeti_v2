@@ -88,35 +88,51 @@ class LeftSidePanel extends StatelessWidget {
         Expanded(
           child: GameModeButtons(l10n: l10n),
         ),
-        Expanded(
+        const Expanded(
           child: Column(
             children: [
-              const SectionHeader(title: 'Your Stats'),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => context.push(LoginPage.routeName),
-                      child: const Text('Login'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => context.push(SignUpPage.routeName),
-                      child: const Text('Sign Up'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => context
-                          .read<AppBloc>()
-                          .add(const AppLogoutRequested()),
-                      child: const Text('Logout'),
-                    ),
-                  ],
-                ),
-              ),
+              SectionHeader(title: 'Your Stats'),
+              AccountWidget(),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class AccountWidget extends StatelessWidget {
+  const AccountWidget({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final userIsLoggedIn =
+        context.select((AppBloc bloc) => bloc.state.user.isAnonymous);
+    final l10n = context.l10n;
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (!userIsLoggedIn)
+            ElevatedButton(
+              onPressed: () =>
+                  context.read<AppBloc>().add(const AppLogoutRequested()),
+              child: Text(l10n.logOutButtonText),
+            )
+          else ...[
+            ElevatedButton(
+              onPressed: () => context.push(LoginPage.routeName),
+              child: Text(l10n.loginButtonText),
+            ),
+            ElevatedButton(
+              onPressed: () => context.push(SignUpPage.routeName),
+              child: Text(l10n.signUpAppBarTitle),
+            ),
+          ]
+        ],
+      ),
     );
   }
 }

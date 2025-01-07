@@ -34,9 +34,15 @@
     "type": "text",
     "placeholders": {}
   },
-  "loginButtonText": "LOGIN",
+  "loginButtonText": "Login",
   "@loginButtonText": {
     "description": "Login Button Text",
+    "type": "text",
+    "placeholders": {}
+  },
+  "logOutButtonText": "Logout",
+  "@logOutButtonText": {
+    "description": "Logout Button Text",
     "type": "text",
     "placeholders": {}
   },
