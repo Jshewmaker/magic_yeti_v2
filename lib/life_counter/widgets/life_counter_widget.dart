@@ -71,10 +71,10 @@ class IncrementLifeWidget extends StatelessWidget {
         onTap: () => context.read<PlayerBloc>().add(
               UpdatePlayerLifeEvent(decrement: false, playerId: player.id),
             ),
-        onLongPress: () => context.read<PlayerBloc>().add(
+        onLongPressStart: (_) => context.read<PlayerBloc>().add(
               UpdatePlayerLifeByXEvent(decrement: false, playerId: player.id),
             ),
-        onLongPressUp: () => context.read<PlayerBloc>().add(
+        onLongPressEnd: (_) => context.read<PlayerBloc>().add(
               const PlayerStopDecrement(),
             ),
       ),
@@ -103,13 +103,16 @@ class DecrementLifeWidget extends StatelessWidget {
                 playerId: player.id,
               ),
             ),
-        onLongPress: () => context.read<PlayerBloc>().add(
+        onLongPressStart: (_) => context.read<PlayerBloc>().add(
               UpdatePlayerLifeByXEvent(
                 decrement: true,
                 playerId: player.id,
               ),
             ),
-        onLongPressUp: () => context.read<PlayerBloc>().add(
+        onLongPressCancel: () => context.read<PlayerBloc>().add(
+              const PlayerStopDecrement(),
+            ),
+        onLongPressEnd: (_) => context.read<PlayerBloc>().add(
               const PlayerStopDecrement(),
             ),
       ),
