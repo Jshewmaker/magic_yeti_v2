@@ -23,10 +23,59 @@ class GamePage extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Stack(
-      children: [
-        if (playerCount == 2) const TwoPlayerGame() else const FourPlayerGame(),
-        if (gameState.status == GameStatus.finished) const GameOverWidget(),
+    return BlocListener<GameBloc, GameState>(
+      listener: (context, state) {
+        if (state.status == GameStatus.finished) {
+          showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => _GameOverDialog(),
+          );
+        }
+      },
+      child: playerCount == 2 ? const TwoPlayerGame() : const FourPlayerGame(),
+    );
+  }
+}
+
+class _GameOverDialog extends StatefulWidget {
+  @override
+  State<_GameOverDialog> createState() => _GameOverDialogState();
+}
+
+class _GameOverDialogState extends State<_GameOverDialog> {
+  bool turnOneSolRing = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Game Over'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SwitchListTile(
+            title: const Text('Turn 1 Sol Ring'),
+            value: turnOneSolRing,
+            onChanged: (bool value) {
+              setState(() {
+                turnOneSolRing = value;
+              });
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            context.read<GameBloc>().add(const GameResetEvent());
+            Navigator.of(context).pop();
+          },
+          child: const Text('Play Again'),
+        ),
       ],
     );
   }

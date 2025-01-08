@@ -117,22 +117,3 @@ class _PlayerSection extends StatelessWidget {
     );
   }
 }
-
-/// Game over widget displayed when the game is finished.
-/// Provides a "Play Again" button to reset the game.
-class GameOverWidget extends StatelessWidget {
-  const GameOverWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.black.withOpacity(.5),
-      child: Center(
-        child: ElevatedButton(
-          onPressed: () => context.read<GameBloc>().add(const GameResetEvent()),
-          child: const Text('Play Again'),
-        ),
-      ),
-    );
-  }
-}
