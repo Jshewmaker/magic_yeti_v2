@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/game_model.dart';
 
 /// {@template firebase_database_repository}
 /// Firebase database package
@@ -11,12 +12,7 @@ class FirebaseDatabaseRepository {
   final FirebaseFirestore _firebase;
 
   /// Save game stats at end of game.
-  Future<void> saveGameStats(List<Map<String, dynamic>> json) async {
-    final date = DateTime.now();
-
-    await _firebase
-        .collection('game')
-        .doc(date.toString())
-        .set({'players': json});
+  Future<void> saveGameStats(GameModel game) async {
+    await _firebase.collection('games').doc().set(game.toJson());
   }
 }

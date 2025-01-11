@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:player_repository/player_repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -12,7 +13,9 @@ part 'game_state.dart';
 class GameBloc extends Bloc<GameEvent, GameState> {
   GameBloc({
     required PlayerRepository playerRepository,
+    required FirebaseDatabaseRepository database,
   })  : _playerRepository = playerRepository,
+        _database = database,
         super(const GameState()) {
     on<CreateGameEvent>(_onCreateGame);
     on<GameStartEvent>(_onGameStart);
@@ -29,6 +32,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   final PlayerRepository _playerRepository;
+  final FirebaseDatabaseRepository _database;
   StreamSubscription<List<Player>>? _playersSubscription;
   Timer? _gameTimer;
 
@@ -53,11 +57,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
           lifePoints: event.startingLifePoints,
           commanderDamageList: {for (final e in uuidList) e: 0},
         );
-        _playerRepository.updatePlayer(player);
+        _playerRepository.createPlayer(player);
       }
       add(const GameStartEvent());
     } catch (e) {
-      emit(GameState(status: GameStatus.error, error: e.toString()));
+      emit(const GameState(status: GameStatus.error));
     }
   }
 
@@ -71,6 +75,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         status: GameStatus.running,
         playerList: _players,
         elapsedSeconds: 0,
+        startTime: DateTime.now(),
       ),
     );
   }
@@ -121,7 +126,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     for (final player in _players) {
       final resetPlayer = player.copyWith(
         lifePoints: _players.length == 4 ? 40 : 20,
-        timeOfDeath: '',
+        timeOfDeath: 0,
         placement: 99,
         commanderDamageList:
             Map.fromEntries(state.playerList.map((p) => MapEntry(p.id, 0))),
@@ -140,6 +145,20 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     Emitter<GameState> emit,
   ) {
     _gameTimer?.cancel();
+
+    final updateWinner = event.winner.copyWith(
+      timeOfDeath: DateTime.now().millisecondsSinceEpoch,
+      placement: 1,
+    );
+    _playerRepository.updatePlayer(updateWinner);
+    _database.saveGameStats(GameModel(
+      id: const Uuid().v4(),
+      winner: updateWinner,
+      players: _players,
+      startTime: state.startTime ?? DateTime.now(),
+      endTime: DateTime.now(),
+      durationInSeconds: state.elapsedSeconds,
+    ));
     emit(
       state.copyWith(
         status: GameStatus.finished,

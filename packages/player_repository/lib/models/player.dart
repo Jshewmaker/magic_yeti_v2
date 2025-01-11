@@ -17,9 +17,12 @@ class Player extends Equatable {
     required this.lifePoints,
     required this.color,
     required this.commanderDamageList,
-    this.timeOfDeath = '',
+    this.timeOfDeath = -1,
     this.placement = 99,
   });
+
+  /// Creates a Player object from a JSON map
+  factory Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
 
   /// Unique identifier for the player.
   final String id;
@@ -44,7 +47,7 @@ class Player extends Equatable {
 
   /// The time when the player was eliminated from the game,
   /// defaults to an empty string.
-  final String timeOfDeath;
+  final int timeOfDeath;
 
   /// A list representing the damage dealt to the player by each commander,
   /// defaults to an empty map.
@@ -58,7 +61,7 @@ class Player extends Equatable {
     String? id,
     String? name,
     String? picture,
-    String? timeOfDeath,
+    int? timeOfDeath,
     int? playerNumber,
     int? lifePoints,
     int? color,

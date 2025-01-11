@@ -15,7 +15,7 @@ Player _$PlayerFromJson(Map<String, dynamic> json) => Player(
       color: (json['color'] as num).toInt(),
       commanderDamageList:
           Map<String, int>.from(json['commanderDamageList'] as Map),
-      timeOfDeath: json['timeOfDeath'] as String? ?? '',
+      timeOfDeath: (json['timeOfDeath'] as num?)?.toInt() ?? -1,
       placement: (json['placement'] as num?)?.toInt() ?? 99,
     );
 

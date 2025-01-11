@@ -38,12 +38,55 @@ class PlayerRepository {
   /// [player] The player to update or add.
   void updatePlayer(Player player) {
     final index = _players.indexWhere((p) => p.id == player.id);
-    if (index != -1) {
-      _players[index] = player;
-    } else {
-      _players.add(player);
+    if (index == -1) {
+      throw StateError(
+          'Cannot update non-existent player with ID: ${player.id}');
     }
+    final updatedPlayer = _checkPlayerDeath(player);
+    _players[index] = updatedPlayer;
     _playerController.add(_players);
+  }
+
+  /// Adds a new player to the repository.
+  ///
+  /// If a player with the same ID already exists, a [StateError] is thrown.
+  ///
+  /// [player] The player to add.
+  void createPlayer(Player player) {
+    final exists = _players.any((p) => p.id == player.id);
+    if (exists) {
+      throw StateError('Player with ID ${player.id} already exists');
+    }
+    _players.add(player);
+    _playerController.add(_players);
+  }
+
+  /// Checks if a player's life points have reached 0 or less and records their time of death.
+  ///
+  /// Returns the player with updated death time if applicable.
+  Player _checkPlayerDeath(Player player) {
+    if (player.lifePoints <= 0) {
+      // Only set death time and placement if they haven't died yet
+      if (player.timeOfDeath == -1) {
+        // Count how many players are already dead to determine placement
+        final totalPlayers = _players.length;
+        final deadPlayers = _players.where((p) => p.timeOfDeath != -1).length;
+        // Placement is total players minus number of already dead players
+        // For example: in a 4 player game, first death = 4, second = 3, etc.
+        final placement = totalPlayers - deadPlayers;
+
+        return player.copyWith(
+          timeOfDeath: DateTime.now().millisecondsSinceEpoch,
+          placement: placement,
+        );
+      }
+      return player;
+    }
+
+    if (player.lifePoints > 0) {
+      return player.copyWith(timeOfDeath: -1, placement: 99);
+    }
+    return player;
   }
 
   /// Returns an unmodifiable list of all players.

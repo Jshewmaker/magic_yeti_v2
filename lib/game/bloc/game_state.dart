@@ -7,33 +7,40 @@ class GameState extends Equatable {
     this.status = GameStatus.initial,
     this.playerList = const [],
     this.winner,
-    this.error,
     this.elapsedSeconds = 0,
+    this.startTime,
   });
 
   final GameStatus status;
   final List<Player> playerList;
   final Player? winner;
-  final String? error;
   final int elapsedSeconds;
+  final DateTime? startTime;
 
   GameState copyWith({
     GameStatus? status,
+    int? gameId,
     List<Player>? playerList,
     Player? winner,
     String? error,
     int? elapsedSeconds,
+    DateTime? startTime,
   }) {
     return GameState(
       status: status ?? this.status,
       playerList: playerList ?? this.playerList,
       winner: winner ?? this.winner,
-      error: error ?? this.error,
       elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
+      startTime: startTime ?? this.startTime,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [status, playerList, winner, error, elapsedSeconds];
+  List<Object?> get props => [
+        status,
+        playerList,
+        winner,
+        elapsedSeconds,
+        startTime,
+      ];
 }
