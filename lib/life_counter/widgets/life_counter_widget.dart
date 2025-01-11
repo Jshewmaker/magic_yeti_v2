@@ -277,7 +277,7 @@ class _LifePointChangeAnimationState extends State<_LifePointChangeAnimation>
         style: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
-          color: AppColors.white.withOpacity(0.3),
+          color: AppColors.white.withValues(alpha: .3),
         ),
       ),
     );
@@ -298,7 +298,7 @@ class BackgroundWidget extends StatelessWidget {
       borderRadius: const BorderRadius.all(Radius.circular(20)),
       child: SizedBox.expand(
         child: Image.network(
-          player.picture,
+          player.commander.imageUrl,
           fit: BoxFit.fill,
           opacity: AlwaysStoppedAnimation(
             player.lifePoints <= 0 ? .2 : 1,
@@ -306,8 +306,8 @@ class BackgroundWidget extends StatelessWidget {
           errorBuilder: (context, error, stackTrace) {
             return Container(
               decoration: BoxDecoration(
-                color: Color(player.color).withOpacity(
-                  player.lifePoints <= 0 ? .3 : 1,
+                color: Color(player.color).withValues(
+                  alpha: player.lifePoints <= 0 ? .3 : 1,
                 ),
                 borderRadius: const BorderRadius.all(
                   Radius.circular(20),
@@ -333,7 +333,7 @@ class _PlayerNameWidget extends StatelessWidget {
         ElevatedButton(
           style: ButtonStyle(
             backgroundColor:
-                WidgetStateProperty.all(Colors.white.withOpacity(.8)),
+                WidgetStateProperty.all(Colors.white.withValues(alpha: .8)),
             shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

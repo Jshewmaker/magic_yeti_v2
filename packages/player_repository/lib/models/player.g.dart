@@ -9,7 +9,7 @@ part of 'player.dart';
 Player _$PlayerFromJson(Map<String, dynamic> json) => Player(
       id: json['id'] as String,
       name: json['name'] as String,
-      picture: json['picture'] as String,
+      commander: Commander.fromJson(json['commander'] as Map<String, dynamic>),
       playerNumber: (json['playerNumber'] as num).toInt(),
       lifePoints: (json['lifePoints'] as num).toInt(),
       color: (json['color'] as num).toInt(),
@@ -22,7 +22,7 @@ Player _$PlayerFromJson(Map<String, dynamic> json) => Player(
 Map<String, dynamic> _$PlayerToJson(Player instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'picture': instance.picture,
+      'commander': instance.commander.toJson(),
       'playerNumber': instance.playerNumber,
       'lifePoints': instance.lifePoints,
       'color': instance.color,

@@ -62,14 +62,15 @@ class CustomizePlayerView extends StatelessWidget {
                             Radius.circular(20),
                           ),
                           child: Image.network(
-                            state.imageURL.isNotEmpty
-                                ? state.imageURL
-                                : player.picture,
+                            state.commander?.imageUrl.isNotEmpty ?? false
+                                ? state.commander!.imageUrl
+                                : player.commander.imageUrl,
                             fit: BoxFit.fill,
                             errorBuilder: (context, error, stackTrace) =>
                                 Container(
                               decoration: BoxDecoration(
-                                color: Color(player.color).withOpacity(1),
+                                color:
+                                    Color(player.color).withValues(alpha: .8),
                                 borderRadius: const BorderRadius.all(
                                   Radius.circular(20),
                                 ),
@@ -100,10 +101,27 @@ class CustomizePlayerView extends StatelessWidget {
                           const SizedBox(width: AppSpacing.sm),
                           ElevatedButton(
                             onPressed: () {
+                              final card = state.cardList!.data.first;
+                              context.read<PlayerCustomizationBloc>().add(
+                                    UpdatePlayerCommander(
+                                      commander: Commander(
+                                        name: card.name,
+                                        artist: card.artist,
+                                        colors: card.colors ?? [],
+                                        cardType: card.typeLine,
+                                        imageUrl: card.imageUris?.normal ?? '',
+                                        manaCost: card.manaCost ?? '',
+                                        oracleText: card.oracleText ?? '',
+                                        power: card.power,
+                                        toughness: card.toughness,
+                                      ),
+                                    ),
+                                  );
+
                               context.read<PlayerBloc>().add(
                                     UpdatePlayerInfoEvent(
                                       playerName: textController.text,
-                                      pictureUrl: state.imageURL,
+                                      commander: state.commander,
                                       playerId: playerId,
                                     ),
                                   );

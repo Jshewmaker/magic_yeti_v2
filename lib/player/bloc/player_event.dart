@@ -13,10 +13,10 @@ class UpdatePlayerInfoEvent extends PlayerEvent {
   const UpdatePlayerInfoEvent({
     required this.playerId,
     this.playerName,
-    this.pictureUrl,
+    this.commander,
   });
 
-  final String? pictureUrl;
+  final Commander? commander;
   final String? playerName;
   final String playerId;
 }

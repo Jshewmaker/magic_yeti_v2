@@ -10,30 +10,30 @@ enum PlayerCustomizationStatus {
 class PlayerCustomizationState extends Equatable {
   const PlayerCustomizationState({
     this.status = PlayerCustomizationStatus.initial,
-    this.cardList,
     this.name = '',
-    this.imageURL = '',
+    this.commander,
+    this.cardList,
   });
 
   final PlayerCustomizationStatus status;
-  final SearchCards? cardList;
   final String name;
-  final String imageURL;
+  final Commander? commander;
+  final SearchCards? cardList;
 
   @override
-  List<Object?> get props => [status, cardList, name, imageURL];
+  List<Object?> get props => [status, name, commander, cardList];
 
   PlayerCustomizationState copyWith({
     PlayerCustomizationStatus? status,
-    SearchCards? cardList,
     String? name,
-    String? imageURL,
+    Commander? commander,
+    SearchCards? cardList,
   }) {
     return PlayerCustomizationState(
       status: status ?? this.status,
-      cardList: cardList ?? this.cardList,
       name: name ?? this.name,
-      imageURL: imageURL ?? this.imageURL,
+      commander: commander ?? this.commander,
+      cardList: cardList ?? this.cardList,
     );
   }
 }

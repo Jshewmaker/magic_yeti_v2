@@ -19,13 +19,17 @@ class TrackerBloc extends Bloc<TrackerEvent, TrackerState> {
   }
 
   void _onRemoveTrackerIcon(
-      RemoveTrackerIcon event, Emitter<TrackerState> emit) {
+    RemoveTrackerIcon event,
+    Emitter<TrackerState> emit,
+  ) {
     final updatedIcons = List<IconData>.from(state.icons)..remove(event.icon);
     emit(state.copyWith(icons: updatedIcons));
   }
 
   void _onResetTrackerIcons(
-      ResetTrackerIcons event, Emitter<TrackerState> emit) {
+    ResetTrackerIcons event,
+    Emitter<TrackerState> emit,
+  ) {
     emit(const TrackerState());
   }
 }

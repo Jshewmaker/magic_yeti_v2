@@ -52,7 +52,7 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                         cardName: textController.text,
                       ),
                     ),
-              )
+              ),
             ],
           ),
           BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
@@ -63,14 +63,34 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                     itemCount: state.cardList?.data.length,
                     itemBuilder: (context, index) {
                       return GestureDetector(
-                        onTap: () =>
-                            context.read<PlayerCustomizationBloc>().add(
-                                  UpdatePlayerPicture(
-                                    imageUrl: state.cardList?.data[index]
-                                            .imageUris?.artCrop ??
-                                        '',
-                                  ),
+                        onTap: () => context
+                            .read<PlayerCustomizationBloc>()
+                            .add(
+                              UpdatePlayerCommander(
+                                commander: Commander(
+                                  name: state.cardList?.data[index].name ?? '',
+                                  artist:
+                                      state.cardList?.data[index].artist ?? '',
+                                  colors:
+                                      state.cardList?.data[index].colors ?? [],
+                                  cardType:
+                                      state.cardList?.data[index].typeLine ??
+                                          '',
+                                  imageUrl: state.cardList?.data[index]
+                                          .imageUris?.artCrop ??
+                                      '',
+                                  manaCost:
+                                      state.cardList?.data[index].manaCost ??
+                                          '',
+                                  oracleText:
+                                      state.cardList?.data[index].oracleText ??
+                                          '',
+                                  power: state.cardList?.data[index].power,
+                                  toughness:
+                                      state.cardList?.data[index].toughness,
                                 ),
+                              ),
+                            ),
                         child: Card(
                           elevation: 0,
                           child: Padding(

@@ -130,7 +130,7 @@ class AccountWidget extends StatelessWidget {
               onPressed: () => context.push(SignUpPage.routeName),
               child: Text(l10n.signUpAppBarTitle),
             ),
-          ]
+          ],
         ],
       ),
     );
@@ -193,8 +193,9 @@ class MatchHistoryPanel extends StatelessWidget {
                   commanderList[Random().nextInt(commanderList.length)],
                 ),
                 playerName: players[Random().nextInt(players.length)],
-                commanderName: 'Rin & Seri, Inseparable',  // Using the example commander
-                gameLength: const Duration(minutes: 92),  // 1:32:00 in minutes
+                commanderName:
+                    'Rin & Seri, Inseparable', // Using the example commander
+                gameLength: const Duration(minutes: 92), // 1:32:00 in minutes
                 gameDatePlayed: DateTime.now(),
                 viewCount: index + 1,
                 textStyle: Theme.of(context).textTheme,

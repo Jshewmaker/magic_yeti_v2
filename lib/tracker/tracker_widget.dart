@@ -39,7 +39,7 @@ class TrackerWidgets extends StatelessWidget {
               width: 80,
               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
               decoration: BoxDecoration(
-                color: Colors.transparent.withOpacity(.8),
+                color: Colors.transparent.withValues(alpha: .8),
                 borderRadius: const BorderRadius.all(Radius.circular(20)),
               ),
               child: ListView(
@@ -50,7 +50,7 @@ class TrackerWidgets extends StatelessWidget {
                         children: [
                           CommanderDamageTracker(
                             color: player.color,
-                            imageUrl: player.picture,
+                            imageUrl: player.commander.imageUrl,
                             playerId: playerId,
                             commanderPlayerId: player.id,
                           ),
@@ -75,7 +75,7 @@ class TrackerWidgets extends StatelessWidget {
                               icon: Icon(
                                 icon,
                                 size: 40,
-                                color: AppColors.white.withOpacity(.5),
+                                color: AppColors.white.withValues(alpha: .5),
                               ),
                             ),
                           ),
@@ -94,7 +94,7 @@ class TrackerWidgets extends StatelessWidget {
                         child: Container(
                           width: 70,
                           height: 70,
-                          color: AppColors.white.withOpacity(.5),
+                          color: AppColors.white.withValues(alpha: .5),
                           child: IconButton(
                             icon: const Icon(
                               FontAwesomeIcons.plus,

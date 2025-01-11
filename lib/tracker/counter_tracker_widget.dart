@@ -26,7 +26,7 @@ class CounterTrackerWidget extends StatelessWidget {
               height: 70,
               width: 70,
               padding: const EdgeInsets.only(top: 10),
-              color: AppColors.neutral60.withOpacity(.2),
+              color: AppColors.neutral60.withValues(alpha: .2),
               child: Stack(
                 alignment: Alignment.center,
                 children: [

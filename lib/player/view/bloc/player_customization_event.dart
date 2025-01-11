@@ -25,11 +25,11 @@ final class UpdatePlayerName extends PlayerCustomizationEvent {
   List<Object> get props => [name];
 }
 
-final class UpdatePlayerPicture extends PlayerCustomizationEvent {
-  const UpdatePlayerPicture({required this.imageUrl});
+final class UpdatePlayerCommander extends PlayerCustomizationEvent {
+  const UpdatePlayerCommander({required this.commander});
 
-  final String imageUrl;
+  final Commander commander;
 
   @override
-  List<Object> get props => [imageUrl];
+  List<Object> get props => [commander];
 }

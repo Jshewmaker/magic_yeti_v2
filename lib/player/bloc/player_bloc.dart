@@ -80,7 +80,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) {
     emit(
       PlayerState(
-        status: PlayerStatus.initial,
         player: _playerRepository.getPlayerById(_playerId),
       ),
     );
@@ -94,7 +93,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     final player = _playerRepository.getPlayerById(event.playerId);
     final updatedPlayer = player.copyWith(
-      picture: event.pictureUrl,
+      commander: event.commander,
       name: event.playerName,
     );
 

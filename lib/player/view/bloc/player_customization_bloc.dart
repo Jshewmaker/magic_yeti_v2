@@ -1,6 +1,7 @@
 import 'package:api_client/api_client.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:player_repository/player_repository.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 
 part 'player_customization_event.dart';
@@ -13,7 +14,7 @@ class PlayerCustomizationBloc
         super(const PlayerCustomizationState()) {
     on<CardListRequested>(_cardListRequested);
     on<UpdatePlayerName>(updatePlayerName);
-    on<UpdatePlayerPicture>(updatePlayerPicture);
+    on<UpdatePlayerCommander>(updatePlayerCommander);
   }
 
   final ScryfallRepository _scryfallRepository;
@@ -64,8 +65,8 @@ class PlayerCustomizationBloc
     );
   }
 
-  Future<void> updatePlayerPicture(
-    UpdatePlayerPicture event,
+  Future<void> updatePlayerCommander(
+    UpdatePlayerCommander event,
     Emitter<PlayerCustomizationState> emit,
   ) async {
     emit(
@@ -77,7 +78,7 @@ class PlayerCustomizationBloc
     emit(
       state.copyWith(
         status: PlayerCustomizationStatus.success,
-        imageURL: event.imageUrl,
+        commander: event.commander,
       ),
     );
   }

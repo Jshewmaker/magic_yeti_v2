@@ -59,7 +59,7 @@ class CommanderDamageTracker extends StatelessWidget {
               borderRadius: const BorderRadius.all(Radius.circular(10)),
               child: imageUrl.isEmpty
                   ? Container(
-                      color: Color(color).withOpacity(1),
+                      color: Color(color).withValues(alpha: .8),
                       width: width,
                       height: height,
                     )
@@ -69,7 +69,7 @@ class CommanderDamageTracker extends StatelessWidget {
                       height: height,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          color: Color(color).withOpacity(1),
+                          color: Color(color).withValues(alpha: .8),
                           width: width,
                           height: height,
                         );

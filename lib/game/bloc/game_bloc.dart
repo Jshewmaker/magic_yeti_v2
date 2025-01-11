@@ -52,7 +52,15 @@ class GameBloc extends Bloc<GameEvent, GameState> {
           id: uuidList[i],
           color: (math.Random().nextDouble() * 0xFFFFFF).toInt(),
           name: 'Player ${i + 1}',
-          picture: '',
+          commander: const Commander(
+            name: '',
+            colors: [],
+            cardType: '',
+            imageUrl: '',
+            manaCost: '',
+            oracleText: '',
+            artist: '',
+          ),
           playerNumber: i,
           lifePoints: event.startingLifePoints,
           commanderDamageList: {for (final e in uuidList) e: 0},
@@ -151,14 +159,16 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       placement: 1,
     );
     _playerRepository.updatePlayer(updateWinner);
-    _database.saveGameStats(GameModel(
-      id: const Uuid().v4(),
-      winner: updateWinner,
-      players: _players,
-      startTime: state.startTime ?? DateTime.now(),
-      endTime: DateTime.now(),
-      durationInSeconds: state.elapsedSeconds,
-    ));
+    _database.saveGameStats(
+      GameModel(
+        id: const Uuid().v4(),
+        winner: updateWinner,
+        players: _players,
+        startTime: state.startTime ?? DateTime.now(),
+        endTime: DateTime.now(),
+        durationInSeconds: state.elapsedSeconds,
+      ),
+    );
     emit(
       state.copyWith(
         status: GameStatus.finished,

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'commander.dart';
 
 part 'player.g.dart';
 
@@ -12,7 +13,7 @@ class Player extends Equatable {
   const Player({
     required this.id,
     required this.name,
-    required this.picture,
+    required this.commander,
     required this.playerNumber,
     required this.lifePoints,
     required this.color,
@@ -30,8 +31,8 @@ class Player extends Equatable {
   /// Name of the player.
   final String name;
 
-  /// URL or path to the player's picture.
-  final String picture;
+  /// The player's commander card.
+  final Commander commander;
 
   /// The player's assigned number in the game.
   final int playerNumber;
@@ -60,7 +61,7 @@ class Player extends Equatable {
   Player copyWith({
     String? id,
     String? name,
-    String? picture,
+    Commander? commander,
     int? timeOfDeath,
     int? playerNumber,
     int? lifePoints,
@@ -72,7 +73,7 @@ class Player extends Equatable {
       id: id ?? this.id,
       name: name ?? this.name,
       color: color ?? this.color,
-      picture: picture ?? this.picture,
+      commander: commander ?? this.commander,
       playerNumber: playerNumber ?? this.playerNumber,
       lifePoints: lifePoints ?? this.lifePoints,
       placement: placement ?? this.placement,
@@ -86,7 +87,7 @@ class Player extends Equatable {
         id,
         name,
         color,
-        picture,
+        commander,
         playerNumber,
         lifePoints,
         placement,
