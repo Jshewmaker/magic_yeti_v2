@@ -53,9 +53,12 @@ class FirebaseDatabaseRepository {
     await _firebase.collection('games').doc().set(gameWithShortId.toJson());
   }
 
-  /// Get a list of games
-  Future<List<GameModel>> getGames() async {
-    final snapshot = await _firebase.collection('games').get();
-    return snapshot.docs.map((doc) => GameModel.fromJson(doc.data())).toList();
+  /// Get a stream of games that updates in real time
+  Stream<List<GameModel>> getGames() {
+    return _firebase.collection('games').snapshots().map(
+          (snapshot) => snapshot.docs
+              .map((doc) => GameModel.fromJson(doc.data()))
+              .toList(),
+        );
   }
 }
