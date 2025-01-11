@@ -192,9 +192,12 @@ class MatchHistoryPanel extends StatelessWidget {
                   fit: BoxFit.cover,
                   commanderList[Random().nextInt(commanderList.length)],
                 ),
-                title: 'Winner ${players[Random().nextInt(players.length)]}',
-                user: 'Game Time: 1:32:00',
+                playerName: players[Random().nextInt(players.length)],
+                commanderName: 'Rin & Seri, Inseparable',  // Using the example commander
+                gameLength: const Duration(minutes: 92),  // 1:32:00 in minutes
+                gameDatePlayed: DateTime.now(),
                 viewCount: index + 1,
+                textStyle: Theme.of(context).textTheme,
               );
             },
           ),
@@ -207,20 +210,25 @@ class MatchHistoryPanel extends StatelessWidget {
 class CustomListItem extends StatelessWidget {
   const CustomListItem({
     required this.thumbnail,
-    required this.title,
-    required this.user,
+    required this.playerName,
+    required this.commanderName,
+    required this.gameLength,
+    required this.gameDatePlayed,
     required this.viewCount,
+    required this.textStyle,
     super.key,
   });
 
   final Widget thumbnail;
-  final String title;
-  final String user;
+  final String playerName;
+  final String commanderName;
+  final Duration gameLength;
+  final DateTime gameDatePlayed;
   final int viewCount;
+  final TextTheme textStyle;
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = Theme.of(context).textTheme;
     return Card(
       child: SizedBox(
         height: 120,
@@ -234,10 +242,11 @@ class CustomListItem extends StatelessWidget {
 
             // Right section - Text information
             DetailsWidget(
-              title: title,
+              playerName: playerName,
+              commanderName: commanderName,
+              gameLength: gameLength,
+              gameDatePlayed: gameDatePlayed,
               textStyle: textStyle,
-              user: user,
-              viewCount: viewCount,
             ),
           ],
         ),
@@ -248,17 +257,32 @@ class CustomListItem extends StatelessWidget {
 
 class DetailsWidget extends StatelessWidget {
   const DetailsWidget({
-    required this.title,
+    required this.playerName,
+    required this.commanderName,
+    required this.gameLength,
+    required this.gameDatePlayed,
     required this.textStyle,
-    required this.user,
-    required this.viewCount,
     super.key,
   });
 
-  final String title;
+  final String playerName;
+  final String commanderName;
+  final Duration gameLength;
+  final DateTime gameDatePlayed;
   final TextTheme textStyle;
-  final String user;
-  final int viewCount;
+
+  String _formatGameLength() {
+    final hours = gameLength.inHours;
+    final minutes = gameLength.inMinutes.remainder(60);
+    if (hours > 0) {
+      return '$hours hr ${minutes} min';
+    }
+    return '$minutes min';
+  }
+
+  String _formatDate() {
+    return '${gameDatePlayed.month}/${gameDatePlayed.day}/${gameDatePlayed.year}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -269,26 +293,54 @@ class DetailsWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: textStyle.headlineMedium?.fontSize,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  playerName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: textStyle.headlineMedium?.fontSize,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  commanderName,
+                  style: TextStyle(
+                    fontSize: textStyle.titleMedium?.fontSize,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              user,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
+            Row(
+              children: [
+                Icon(Icons.timer_outlined, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 4),
+                Text(
+                  _formatGameLength(),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              '$viewCount views',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
+            Row(
+              children: [
+                Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 4),
+                Text(
+                  _formatDate(),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
