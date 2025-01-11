@@ -34,6 +34,12 @@
     "type": "text",
     "placeholders": {}
   },
+  "gameId": "Game ID",
+  "@gameId": {
+    "description": "Game ID",
+    "type": "text",
+    "placeholders": {}
+  },
   "loginButtonText": "Login",
   "@loginButtonText": {
     "description": "Login Button Text",

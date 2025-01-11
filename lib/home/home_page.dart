@@ -271,7 +271,7 @@ class CustomListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: SizedBox(
-        height: 120,
+        height: 140,
         child: Row(
           children: <Widget>[
             // Left section - Large thumbnail
@@ -287,6 +287,7 @@ class CustomListItem extends StatelessWidget {
               gameLength: gameLength,
               gameDatePlayed: gameDatePlayed,
               textStyle: textStyle,
+              roomId: game.roomId,
             ),
           ],
         ),
@@ -302,6 +303,7 @@ class DetailsWidget extends StatelessWidget {
     required this.gameLength,
     required this.gameDatePlayed,
     required this.textStyle,
+    required this.roomId,
     super.key,
   });
 
@@ -310,6 +312,7 @@ class DetailsWidget extends StatelessWidget {
   final Duration gameLength;
   final DateTime gameDatePlayed;
   final TextTheme textStyle;
+  final String roomId;
 
   String _formatGameLength() {
     final hours = gameLength.inHours;
@@ -326,12 +329,12 @@ class DetailsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,7 +346,6 @@ class DetailsWidget extends StatelessWidget {
                     fontSize: textStyle.headlineMedium?.fontSize,
                   ),
                 ),
-                const SizedBox(height: 4),
                 Text(
                   commanderName,
                   style: TextStyle(
@@ -353,6 +355,13 @@ class DetailsWidget extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 4),
+            SelectableText(
+              ' ${l10n.gameId}: $roomId',
+              style: textStyle.bodySmall?.copyWith(
+                color: AppColors.neutral60,
+              ),
             ),
             Row(
               children: [
@@ -440,8 +449,8 @@ class WinnerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 120,
-      height: 120,
+      width: 140,
+      height: 140,
       child: ClipRRect(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(4),
