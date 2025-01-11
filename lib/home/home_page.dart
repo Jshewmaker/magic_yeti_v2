@@ -1,12 +1,13 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:app_ui/app_ui.dart';
+import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
+import 'package:magic_yeti/home/bloc/home_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
 import 'package:magic_yeti/login/login.dart';
@@ -180,30 +181,66 @@ class MatchHistoryPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const SectionHeader(title: 'Match History'),
-        Expanded(
-          child: ListView.builder(
-            itemCount: 20,
-            itemBuilder: (context, index) {
-              return CustomListItem(
-                thumbnail: Image.network(
-                  fit: BoxFit.cover,
-                  commanderList[Random().nextInt(commanderList.length)],
-                ),
-                playerName: players[Random().nextInt(players.length)],
-                commanderName:
-                    'Rin & Seri, Inseparable', // Using the example commander
-                gameLength: const Duration(minutes: 92), // 1:32:00 in minutes
-                gameDatePlayed: DateTime.now(),
-                viewCount: index + 1,
-                textStyle: Theme.of(context).textTheme,
-              );
-            },
+    return BlocProvider(
+      create: (context) => HomeBloc(
+        databaseRepository: context.read<FirebaseDatabaseRepository>(),
+      )..add(const LoadMatchHistory()),
+      child: Column(
+        children: [
+          const SectionHeader(title: 'Match History'),
+          Expanded(
+            child: BlocBuilder<HomeBloc, HomeState>(
+              builder: (context, state) {
+                switch (state.status) {
+                  case HomeStatus.initial:
+                  case HomeStatus.loading:
+                    return const Center(child: CircularProgressIndicator());
+                  case HomeStatus.failure:
+                    return Center(
+                      child:
+                          Text(state.error ?? 'Failed to load match history'),
+                    );
+                  case HomeStatus.success:
+                    if (state.games.isEmpty) {
+                      return const Center(
+                        child: Text('No match history available'),
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: state.games.length,
+                      itemBuilder: (context, index) {
+                        final game = state.games[index];
+                        return CustomListItem(
+                          thumbnail: game.winner.commander.imageUrl.isEmpty
+                              ? Container(
+                                  color: Color(game.winner.color)
+                                      .withValues(alpha: .8),
+                                )
+                              : Image.network(
+                                  fit: BoxFit.cover,
+                                  game.winner.commander.imageUrl,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
+                                    color: Color(game.winner.color)
+                                        .withValues(alpha: .8),
+                                  ),
+                                ),
+                          playerName: game.winner.name,
+                          commanderName: game.winner.commander.name,
+                          gameLength: Duration(seconds: game.durationInSeconds),
+                          gameDatePlayed: game.endTime,
+                          viewCount: index + 1,
+                          textStyle: Theme.of(context).textTheme,
+                          game: game,
+                        );
+                      },
+                    );
+                }
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -217,6 +254,7 @@ class CustomListItem extends StatelessWidget {
     required this.gameDatePlayed,
     required this.viewCount,
     required this.textStyle,
+    required this.game,
     super.key,
   });
 
@@ -227,6 +265,7 @@ class CustomListItem extends StatelessWidget {
   final DateTime gameDatePlayed;
   final int viewCount;
   final TextTheme textStyle;
+  final GameModel game;
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +278,7 @@ class CustomListItem extends StatelessWidget {
             WinnerWidget(thumbnail: thumbnail),
             const SizedBox(width: 5),
             // Middle section - Three stacked thumbnails
-            const LosersWidget(),
+            LosersWidget(game: game),
 
             // Right section - Text information
             DetailsWidget(
@@ -352,33 +391,38 @@ class DetailsWidget extends StatelessWidget {
 
 class LosersWidget extends StatelessWidget {
   const LosersWidget({
+    required this.game,
     super.key,
   });
 
+  final GameModel game;
+
   @override
   Widget build(BuildContext context) {
+    // Sort players by placement, excluding the winner (placement 1)
+    final runnerUps = game.players
+        .where((player) => player.placement > 1 && player.placement <= 4)
+        .toList()
+      ..sort((a, b) => a.placement.compareTo(b.placement));
+
     return SizedBox(
       width: 40,
       child: Column(
         children: [
-          Expanded(
-            child: Image.network(
-              fit: BoxFit.cover,
-              commanderList[Random().nextInt(commanderList.length)],
+          for (final player in runnerUps)
+            Expanded(
+              child: player.commander.imageUrl.isEmpty
+                  ? Container(
+                      color: Color(player.color).withValues(alpha: .8),
+                    )
+                  : Image.network(
+                      fit: BoxFit.cover,
+                      player.commander.imageUrl,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Color(player.color).withValues(alpha: .8),
+                      ),
+                    ),
             ),
-          ),
-          Expanded(
-            child: Image.network(
-              fit: BoxFit.cover,
-              commanderList[Random().nextInt(commanderList.length)],
-            ),
-          ),
-          Expanded(
-            child: Image.network(
-              fit: BoxFit.cover,
-              commanderList[Random().nextInt(commanderList.length)],
-            ),
-          ),
         ],
       ),
     );
@@ -408,28 +452,3 @@ class WinnerWidget extends StatelessWidget {
     );
   }
 }
-
-final List<String> commanderList = [
-  'https://cards.scryfall.io/art_crop/front/d/6/d67be074-cdd4-41d9-ac89-0a0456c4e4b2.jpg?1674057568',
-  'https://cards.scryfall.io/art_crop/front/0/6/066c8f63-52e6-475e-8d27-6ee37e92fc05.jpg?1591234280',
-  'https://cards.scryfall.io/art_crop/front/2/1/213e530e-33a9-4358-b43b-4a276a7e7190.jpg?1674140675',
-  'https://cards.scryfall.io/art_crop/front/e/a/ea476ee1-67d9-4dd8-a5ac-f68a155eb18b.jpg?1624740590',
-  'https://cards.scryfall.io/art_crop/front/a/e/ae9231fd-053d-4b84-a7a8-86063465bc49.jpg?1692939339',
-  'https://cards.scryfall.io/art_crop/front/d/6/d605c780-a42a-4816-8fb9-63e3114a8246.jpg?1677724018',
-  'https://cards.scryfall.io/art_crop/front/0/1/01f40e07-f565-4b9e-87a5-5b28b4e9fb0b.jpg?1696636767',
-  'https://cards.scryfall.io/art_crop/front/4/2/42bbedc1-6b83-46b4-8b3b-a4e05ce77d87.jpg?1721428140',
-  'https://cards.scryfall.io/art_crop/front/3/d/3d6d6944-a364-41c2-b824-7a1bf6ad0d1e.jpg?1710673435',
-  'https://cards.scryfall.io/art_crop/front/1/0/10d42b35-844f-4a64-9981-c6118d45e826.jpg?1689999317',
-  'https://cards.scryfall.io/art_crop/front/8/d/8d7c1f6c-af45-4449-8cf8-e13830b3df8a.jpg?1726596807',
-  'https://cards.scryfall.io/art_crop/front/a/5/a577ba08-0aa8-45be-aa83-d5078770127c.jpg?1729893416',
-  'https://cards.scryfall.io/art_crop/front/f/6/f683d5a1-b8bf-446f-9fe3-88a4398bf3cf.jpg?1726286645',
-];
-
-final List<String> players = [
-  'Joshua',
-  'Wilson',
-  'Nick',
-  'Luke',
-  'Scotty',
-  'Brendan',
-];

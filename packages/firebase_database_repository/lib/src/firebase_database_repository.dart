@@ -52,4 +52,10 @@ class FirebaseDatabaseRepository {
     final gameWithShortId = game.copyWith(roomId: shortId);
     await _firebase.collection('games').doc().set(gameWithShortId.toJson());
   }
+
+  /// Get a list of games
+  Future<List<GameModel>> getGames() async {
+    final snapshot = await _firebase.collection('games').get();
+    return snapshot.docs.map((doc) => GameModel.fromJson(doc.data())).toList();
+  }
 }
