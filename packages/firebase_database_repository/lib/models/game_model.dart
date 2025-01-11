@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:player_repository/player_repository.dart';
-import 'package:uuid/uuid.dart';
 
 part 'game_model.g.dart';
 
@@ -11,21 +10,25 @@ part 'game_model.g.dart';
 @JsonSerializable(explicitToJson: true)
 class GameModel extends Equatable {
   /// {@macro game_model}
-  GameModel({
+  const GameModel({
     required this.players,
     required this.startTime,
     required this.endTime,
     required this.winner,
     required this.durationInSeconds,
-    String? id,
-  }) : id = id ?? const Uuid().v4();
+    this.roomId = '',
+    this.id,
+  });
 
   /// Creates a GameModel from a JSON map
   factory GameModel.fromJson(Map<String, dynamic> json) =>
       _$GameModelFromJson(json);
 
-  /// Unique identifier for the game
-  final String id;
+  /// Firebase document ID
+  final String? id;
+
+  /// Unique identifier for the room
+  final String roomId;
 
   /// List of players and their final stats
   final List<Player> players;
@@ -48,10 +51,32 @@ class GameModel extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        roomId,
         players,
         startTime,
         endTime,
         winner,
         durationInSeconds,
       ];
+
+  /// Creates a copy of this GameModel with the given fields replaced with the new values.
+  GameModel copyWith({
+    String? id,
+    String? roomId,
+    List<Player>? players,
+    DateTime? startTime,
+    DateTime? endTime,
+    Player? winner,
+    int? durationInSeconds,
+  }) {
+    return GameModel(
+      id: id ?? this.id,
+      roomId: roomId ?? this.roomId,
+      players: players ?? this.players,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      winner: winner ?? this.winner,
+      durationInSeconds: durationInSeconds ?? this.durationInSeconds,
+    );
+  }
 }
