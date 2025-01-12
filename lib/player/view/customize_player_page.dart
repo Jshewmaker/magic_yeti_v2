@@ -34,6 +34,11 @@ class CustomizePlayerView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final player = context.read<PlayerRepository>().getPlayerById(playerId);
+    context.read<PlayerCustomizationBloc>().add(
+          UpdateAccountOwnership(
+              isOwner:
+                  context.read<PlayerBloc>().state.player.firebaseId != null),
+        );
     final textController = TextEditingController(text: player.name);
     const width = 600.0;
     const height = 300.0;
@@ -113,7 +118,7 @@ class CustomizePlayerView extends StatelessWidget {
                                               .state
                                               .user
                                               .id
-                                          : '',
+                                          : null,
                                     ),
                                   );
 
