@@ -27,6 +27,7 @@ class AppTheme {
       checkboxTheme: _checkBoxTheme,
       colorScheme: _colorScheme,
       elevatedButtonTheme: _elevatedButtonTheme,
+      switchTheme: _switchTheme,
     );
   }
 
@@ -137,6 +138,20 @@ class AppTheme {
         foregroundColor: _primaryColor,
         textStyle: _textTheme.labelLarge,
       ),
+    );
+  }
+
+  /// Switch Theme
+  SwitchThemeData get _switchTheme {
+    return SwitchThemeData(
+      thumbColor: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.selected)) {
+          return AppColors.green;
+        }
+        return AppColors.white;
+      }),
+      trackColor: MaterialStateProperty.all(AppColors.neutral60),
+      trackOutlineColor: MaterialStateProperty.all(AppColors.neutral60),
     );
   }
 
