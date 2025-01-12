@@ -34,7 +34,9 @@ class GameFinishEvent extends GameEvent {
 }
 
 class PlayerRepositoryUpdateEvent extends GameEvent {
-  const PlayerRepositoryUpdateEvent({required this.players});
+  const PlayerRepositoryUpdateEvent({
+    required this.players,
+  });
   final List<Player> players;
 
   @override

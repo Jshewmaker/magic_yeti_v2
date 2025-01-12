@@ -33,3 +33,12 @@ final class UpdatePlayerCommander extends PlayerCustomizationEvent {
   @override
   List<Object> get props => [commander];
 }
+
+final class UpdateAccountOwnership extends PlayerCustomizationEvent {
+  const UpdateAccountOwnership({required this.isOwner});
+
+  final bool isOwner;
+
+  @override
+  List<Object> get props => [isOwner];
+}

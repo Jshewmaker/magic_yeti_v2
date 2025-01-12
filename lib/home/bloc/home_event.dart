@@ -9,5 +9,12 @@ sealed class HomeEvent extends Equatable {
 
 /// Event to load match history
 final class LoadMatchHistory extends HomeEvent {
-  const LoadMatchHistory();
+  const LoadMatchHistory({
+    required this.userId,
+  });
+
+  final String userId;
+
+  @override
+  List<Object> get props => [userId];
 }

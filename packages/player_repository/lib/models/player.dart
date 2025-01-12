@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'commander.dart';
+import 'package:player_repository/player_repository.dart';
 
 part 'player.g.dart';
 
@@ -18,12 +18,16 @@ class Player extends Equatable {
     required this.lifePoints,
     required this.color,
     required this.commanderDamageList,
+    this.firebaseId,
     this.timeOfDeath = -1,
     this.placement = 99,
   });
 
   /// Creates a Player object from a JSON map
   factory Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
+
+  /// The document ID of the player in Firebase
+  final String? firebaseId;
 
   /// Unique identifier for the player.
   final String id;
@@ -67,9 +71,11 @@ class Player extends Equatable {
     int? lifePoints,
     int? color,
     int? placement,
+    String? firebaseId,
     Map<String, int>? commanderDamageList,
   }) {
     return Player(
+      firebaseId: firebaseId ?? this.firebaseId,
       id: id ?? this.id,
       name: name ?? this.name,
       color: color ?? this.color,
@@ -91,5 +97,7 @@ class Player extends Equatable {
         playerNumber,
         lifePoints,
         placement,
+        firebaseId,
+        commanderDamageList,
       ];
 }

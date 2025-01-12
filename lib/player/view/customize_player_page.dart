@@ -1,6 +1,7 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
 import 'package:magic_yeti/player/view/bloc/player_customization_bloc.dart';
 import 'package:magic_yeti/player/widgets/select_commander_widget.dart';
@@ -101,28 +102,18 @@ class CustomizePlayerView extends StatelessWidget {
                           const SizedBox(width: AppSpacing.sm),
                           ElevatedButton(
                             onPressed: () {
-                              final card = state.cardList!.data.first;
-                              context.read<PlayerCustomizationBloc>().add(
-                                    UpdatePlayerCommander(
-                                      commander: Commander(
-                                        name: card.name,
-                                        artist: card.artist,
-                                        colors: card.colors ?? [],
-                                        cardType: card.typeLine,
-                                        imageUrl: card.imageUris?.normal ?? '',
-                                        manaCost: card.manaCost ?? '',
-                                        oracleText: card.oracleText ?? '',
-                                        power: card.power,
-                                        toughness: card.toughness,
-                                      ),
-                                    ),
-                                  );
-
                               context.read<PlayerBloc>().add(
                                     UpdatePlayerInfoEvent(
                                       playerName: textController.text,
                                       commander: state.commander,
                                       playerId: playerId,
+                                      firebaseId: state.isAccountOwner
+                                          ? context
+                                              .read<AppBloc>()
+                                              .state
+                                              .user
+                                              .id
+                                          : '',
                                     ),
                                   );
 
@@ -139,6 +130,43 @@ class CustomizePlayerView extends StatelessWidget {
                             child: const Text('Save'),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Theme.of(context).colorScheme.surfaceVariant,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'This is my account',
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  Text(
+                                    'Link this player to your account to track stats and history',
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: state.isAccountOwner,
+                              onChanged: (value) {
+                                context.read<PlayerCustomizationBloc>().add(
+                                      UpdateAccountOwnership(isOwner: value),
+                                    );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

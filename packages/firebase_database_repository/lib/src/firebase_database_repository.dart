@@ -54,10 +54,15 @@ class FirebaseDatabaseRepository {
   }
 
   /// Get a stream of games that updates in real time
-  Stream<List<GameModel>> getGames() {
+  Stream<List<GameModel>> getGames(String userId) {
     return _firebase.collection('games').snapshots().map(
           (snapshot) => snapshot.docs
               .map((doc) => GameModel.fromJson(doc.data()))
+              .where(
+                (game) => game.players.any(
+                  (player) => player.firebaseId == userId,
+                ) || game.hostId == userId,
+              )
               .toList(),
         );
   }

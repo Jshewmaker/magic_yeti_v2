@@ -11,6 +11,7 @@ part 'game_model.g.dart';
 class GameModel extends Equatable {
   /// {@macro game_model}
   const GameModel({
+    required this.hostId,
     required this.players,
     required this.startTime,
     required this.endTime,
@@ -23,6 +24,9 @@ class GameModel extends Equatable {
   /// Creates a GameModel from a JSON map
   factory GameModel.fromJson(Map<String, dynamic> json) =>
       _$GameModelFromJson(json);
+
+  /// ID of the host player that created the game
+  final String hostId;
 
   /// Firebase document ID
   final String? id;
@@ -51,6 +55,7 @@ class GameModel extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        hostId,
         roomId,
         players,
         startTime,
@@ -62,6 +67,7 @@ class GameModel extends Equatable {
   /// Creates a copy of this GameModel with the given fields replaced with the new values.
   GameModel copyWith({
     String? id,
+    String? hostId,
     String? roomId,
     List<Player>? players,
     DateTime? startTime,
@@ -71,6 +77,7 @@ class GameModel extends Equatable {
   }) {
     return GameModel(
       id: id ?? this.id,
+      hostId: hostId ?? this.hostId,
       roomId: roomId ?? this.roomId,
       players: players ?? this.players,
       startTime: startTime ?? this.startTime,

@@ -14,9 +14,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   GameBloc({
     required PlayerRepository playerRepository,
     required FirebaseDatabaseRepository database,
+    required String hostId,
   })  : _playerRepository = playerRepository,
         _database = database,
-        super(const GameState()) {
+        super(GameState(hostId: hostId)) {
     on<CreateGameEvent>(_onCreateGame);
     on<GameStartEvent>(_onGameStart);
     on<GamePauseEvent>(_onGamePause);
@@ -41,7 +42,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     CreateGameEvent event,
     Emitter<GameState> emit,
   ) async {
-    emit(const GameState(status: GameStatus.loading));
+    emit(state.copyWith(status: GameStatus.loading));
     const uuid = Uuid();
     _playerRepository.clearPlayers();
     try {
@@ -161,6 +162,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     _playerRepository.updatePlayer(updateWinner);
     _database.saveGameStats(
       GameModel(
+        hostId: state.hostId,
         id: const Uuid().v4(),
         winner: updateWinner,
         players: _players,

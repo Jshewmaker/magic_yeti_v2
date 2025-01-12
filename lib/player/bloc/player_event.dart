@@ -14,11 +14,13 @@ class UpdatePlayerInfoEvent extends PlayerEvent {
     required this.playerId,
     this.playerName,
     this.commander,
+    this.firebaseId,
   });
 
   final Commander? commander;
   final String? playerName;
   final String playerId;
+  final String? firebaseId;
 }
 
 class UpdatePlayerLifeEvent extends PlayerEvent {

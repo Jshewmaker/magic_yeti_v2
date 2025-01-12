@@ -21,24 +21,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) async {
     emit(state.copyWith(status: HomeStatus.loading));
 
-    try {
-      final games = await _databaseRepository.getGames();
-      // Sort games by end time in descending order (most recent first)
-      games.sort((a, b) => b.endTime.compareTo(a.endTime));
-      
-      emit(
-        state.copyWith(
+    await emit.forEach(
+      _databaseRepository.getGames(event.userId),
+      onData: (List<GameModel> games) {
+        // Sort games by end time in descending order (most recent first)
+        final sortedGames = List<GameModel>.from(games)
+          ..sort((a, b) => b.endTime.compareTo(a.endTime));
+
+        return state.copyWith(
           status: HomeStatus.success,
-          games: games,
-        ),
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(
+          games: sortedGames,
+        );
+      },
+      onError: (error, stackTrace) {
+        return state.copyWith(
           status: HomeStatus.failure,
-          error: e.toString(),
-        ),
-      );
-    }
+          error: error.toString(),
+        );
+      },
+    );
   }
 }

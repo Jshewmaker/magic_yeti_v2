@@ -184,7 +184,9 @@ class MatchHistoryPanel extends StatelessWidget {
     return BlocProvider(
       create: (context) => HomeBloc(
         databaseRepository: context.read<FirebaseDatabaseRepository>(),
-      )..add(const LoadMatchHistory()),
+      )..add(
+          LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
+        ),
       child: Column(
         children: [
           const SectionHeader(title: 'Match History'),

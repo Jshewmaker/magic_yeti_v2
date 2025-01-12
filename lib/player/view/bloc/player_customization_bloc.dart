@@ -15,6 +15,7 @@ class PlayerCustomizationBloc
     on<CardListRequested>(_cardListRequested);
     on<UpdatePlayerName>(updatePlayerName);
     on<UpdatePlayerCommander>(updatePlayerCommander);
+    on<UpdateAccountOwnership>(_onUpdateAccountOwnership);
   }
 
   final ScryfallRepository _scryfallRepository;
@@ -81,5 +82,12 @@ class PlayerCustomizationBloc
         commander: event.commander,
       ),
     );
+  }
+
+  void _onUpdateAccountOwnership(
+    UpdateAccountOwnership event,
+    Emitter<PlayerCustomizationState> emit,
+  ) {
+    emit(state.copyWith(isAccountOwner: event.isOwner));
   }
 }
