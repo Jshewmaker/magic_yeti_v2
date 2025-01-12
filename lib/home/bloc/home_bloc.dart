@@ -11,6 +11,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   })  : _databaseRepository = databaseRepository,
         super(const HomeState()) {
     on<LoadMatchHistory>(_onLoadMatchHistory);
+    on<ClearMatchHistory>(_onClearMatchHistory);
   }
 
   final FirebaseDatabaseRepository _databaseRepository;
@@ -40,5 +41,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         );
       },
     );
+  }
+
+  void _onClearMatchHistory(
+    ClearMatchHistory event,
+    Emitter<HomeState> emit,
+  ) {
+    emit(state.copyWith(
+      status: HomeStatus.success,
+      games: const [],
+    ));
   }
 }

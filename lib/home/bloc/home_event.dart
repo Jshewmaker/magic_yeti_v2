@@ -18,3 +18,8 @@ final class LoadMatchHistory extends HomeEvent {
   @override
   List<Object> get props => [userId];
 }
+
+/// Event to clear match history
+final class ClearMatchHistory extends HomeEvent {
+  const ClearMatchHistory();
+}

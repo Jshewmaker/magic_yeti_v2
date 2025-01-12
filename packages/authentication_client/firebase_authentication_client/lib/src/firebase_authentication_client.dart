@@ -185,9 +185,14 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
+      firebase_auth.UserCredential? userCredential;
+      try {
+        userCredential =
+            await _firebaseAuth.currentUser?.linkWithCredential(credential);
+      } catch (e) {
+        userCredential = await _firebaseAuth.signInWithCredential(credential);
+      }
 
-      final userCredential =
-          await _firebaseAuth.currentUser?.linkWithCredential(credential);
       if (userCredential != null) {
         _userController.add(userCredential.toUser);
       } else {
@@ -199,7 +204,6 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
     } on LogInWithGoogleCanceled {
       rethrow;
     } catch (error, stackTrace) {
-      print(error);
       Error.throwWithStackTrace(LogInWithGoogleFailure(error), stackTrace);
     }
   }
@@ -217,8 +221,12 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
         email: email,
         password: password,
       );
-      final user =
-          await _firebaseAuth.currentUser?.linkWithCredential(credential);
+      firebase_auth.UserCredential? user;
+      try {
+        user = await _firebaseAuth.currentUser?.linkWithCredential(credential);
+      } catch (e) {
+        user = await _firebaseAuth.signInWithCredential(credential);
+      }
       if (user != null) {
         _userController.add(user.toUser);
       } else {

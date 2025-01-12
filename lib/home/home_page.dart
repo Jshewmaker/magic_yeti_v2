@@ -25,7 +25,23 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const HomeView();
+    return BlocProvider(
+      create: (context) => HomeBloc(
+        databaseRepository: context.read<FirebaseDatabaseRepository>(),
+      )..add(
+          LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
+        ),
+      child: BlocListener<AppBloc, AppState>(
+        listener: (context, state) {
+          // Reload match history when auth state changes
+          context.read<HomeBloc>().add(
+                LoadMatchHistory(userId: state.user.id),
+              );
+        },
+        listenWhen: (previous, current) => previous.user != current.user,
+        child: const HomeView(),
+      ),
+    );
   }
 }
 
@@ -118,8 +134,10 @@ class AccountWidget extends StatelessWidget {
         children: [
           if (!userIsLoggedIn)
             ElevatedButton(
-              onPressed: () =>
-                  context.read<AppBloc>().add(const AppLogoutRequested()),
+              onPressed: () {
+                context.read<AppBloc>().add(const AppLogoutRequested());
+                context.read<HomeBloc>().add(const ClearMatchHistory());
+              },
               child: Text(l10n.logOutButtonText),
             )
           else ...[
@@ -181,68 +199,60 @@ class MatchHistoryPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => HomeBloc(
-        databaseRepository: context.read<FirebaseDatabaseRepository>(),
-      )..add(
-          LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
-        ),
-      child: Column(
-        children: [
-          const SectionHeader(title: 'Match History'),
-          Expanded(
-            child: BlocBuilder<HomeBloc, HomeState>(
-              builder: (context, state) {
-                switch (state.status) {
-                  case HomeStatus.initial:
-                  case HomeStatus.loading:
-                    return const Center(child: CircularProgressIndicator());
-                  case HomeStatus.failure:
-                    return Center(
-                      child:
-                          Text(state.error ?? 'Failed to load match history'),
+    return Column(
+      children: [
+        const SectionHeader(title: 'Match History'),
+        Expanded(
+          child: BlocBuilder<HomeBloc, HomeState>(
+            builder: (context, state) {
+              switch (state.status) {
+                case HomeStatus.initial:
+                case HomeStatus.loading:
+                  return const Center(child: CircularProgressIndicator());
+                case HomeStatus.failure:
+                  return Center(
+                    child: Text(state.error ?? 'Failed to load match history'),
+                  );
+                case HomeStatus.success:
+                  if (state.games.isEmpty) {
+                    return const Center(
+                      child: Text('No match history available'),
                     );
-                  case HomeStatus.success:
-                    if (state.games.isEmpty) {
-                      return const Center(
-                        child: Text('No match history available'),
-                      );
-                    }
-                    return ListView.builder(
-                      itemCount: state.games.length,
-                      itemBuilder: (context, index) {
-                        final game = state.games[index];
-                        return CustomListItem(
-                          thumbnail: game.winner.commander.imageUrl.isEmpty
-                              ? Container(
+                  }
+                  return ListView.builder(
+                    itemCount: state.games.length,
+                    itemBuilder: (context, index) {
+                      final game = state.games[index];
+                      return CustomListItem(
+                        thumbnail: game.winner.commander.imageUrl.isEmpty
+                            ? Container(
+                                color: Color(game.winner.color)
+                                    .withValues(alpha: .8),
+                              )
+                            : Image.network(
+                                fit: BoxFit.cover,
+                                game.winner.commander.imageUrl,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
                                   color: Color(game.winner.color)
                                       .withValues(alpha: .8),
-                                )
-                              : Image.network(
-                                  fit: BoxFit.cover,
-                                  game.winner.commander.imageUrl,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Container(
-                                    color: Color(game.winner.color)
-                                        .withValues(alpha: .8),
-                                  ),
                                 ),
-                          playerName: game.winner.name,
-                          commanderName: game.winner.commander.name,
-                          gameLength: Duration(seconds: game.durationInSeconds),
-                          gameDatePlayed: game.endTime,
-                          viewCount: index + 1,
-                          textStyle: Theme.of(context).textTheme,
-                          game: game,
-                        );
-                      },
-                    );
-                }
-              },
-            ),
+                              ),
+                        playerName: game.winner.name,
+                        commanderName: game.winner.commander.name,
+                        gameLength: Duration(seconds: game.durationInSeconds),
+                        gameDatePlayed: game.endTime,
+                        viewCount: index + 1,
+                        textStyle: Theme.of(context).textTheme,
+                        game: game,
+                      );
+                    },
+                  );
+              }
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

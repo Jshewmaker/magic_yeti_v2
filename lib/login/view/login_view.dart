@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:form_inputs/form_inputs.dart';
 import 'package:go_router/go_router.dart';
+import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/login/login.dart';
 import 'package:magic_yeti/reset_password/reset_password.dart';
@@ -22,6 +23,9 @@ class LoginView extends StatelessWidget {
       appBar: AppBar(title: const Text('Login')),
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
+          if (state.status.isSuccess) {
+            context.goNamed(HomePage.routeName);
+          }
           if (state.status.isFailure) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
