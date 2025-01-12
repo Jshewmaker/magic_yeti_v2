@@ -56,33 +56,53 @@ class CustomizePlayerView extends StatelessWidget {
           child: BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
             builder: (context, state) {
               return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  CommanderImageWidget(
-                    imageUrl: state.commander?.imageUrl.isNotEmpty ?? false
-                        ? state.commander!.imageUrl
-                        : player.commander.imageUrl,
-                    playerColor: player.color,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  PlayerNameInputWidget(
-                    textController: textController,
-                    onSavePressed: () {
-                      context.read<PlayerBloc>().add(
-                            UpdatePlayerInfoEvent(
-                              playerName: textController.text,
-                              commander: state.commander,
-                              playerId: playerId,
-                              firebaseId: state.isAccountOwner
-                                  ? context.read<AppBloc>().state.user.id
-                                  : null,
-                            ),
-                          );
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AccountOwnershipWidget(
-                    isAccountOwner: state.isAccountOwner,
+                  SizedBox(
+                    height: 200, // Adjust this height as needed
+                    child: Row(
+                      children: [
+                        CommanderImageWidget(
+                          imageUrl:
+                              state.commander?.imageUrl.isNotEmpty ?? false
+                                  ? state.commander!.imageUrl
+                                  : player.commander.imageUrl,
+                          playerColor: player.color,
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              PlayerNameInputWidget(
+                                textController: textController,
+                                onSavePressed: () {
+                                  context.read<PlayerBloc>().add(
+                                        UpdatePlayerInfoEvent(
+                                          playerName: textController.text,
+                                          commander: state.commander,
+                                          playerId: playerId,
+                                          firebaseId: state.isAccountOwner
+                                              ? context
+                                                  .read<AppBloc>()
+                                                  .state
+                                                  .user
+                                                  .id
+                                              : null,
+                                        ),
+                                      );
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              AccountOwnershipWidget(
+                                isAccountOwner: state.isAccountOwner,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   SelectCommanderWidget(

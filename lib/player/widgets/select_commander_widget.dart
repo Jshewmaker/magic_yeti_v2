@@ -72,91 +72,83 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
         BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
           builder: (context, state) {
             if (state.status == PlayerCustomizationStatus.loading) {
-              return const SizedBox(
-                height: 400,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                  ),
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
                 ),
               );
             }
             if (state.status == PlayerCustomizationStatus.success) {
-              return SizedBox(
-                height: 400,
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 5,
-                    childAspectRatio: 0.9,
-                    crossAxisSpacing: AppSpacing.xs,
-                    mainAxisSpacing: AppSpacing.xs,
-                  ),
-                  itemCount: state.cardList?.data.length,
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () => context.read<PlayerCustomizationBloc>().add(
-                            UpdatePlayerCommander(
-                              commander: Commander(
-                                name: state.cardList?.data[index].name ?? '',
-                                artist:
-                                    state.cardList?.data[index].artist ?? '',
-                                colors:
-                                    state.cardList?.data[index].colors ?? [],
-                                cardType:
-                                    state.cardList?.data[index].typeLine ?? '',
-                                imageUrl: state.cardList?.data[index].imageUris
-                                        ?.artCrop ??
-                                    '',
-                                manaCost:
-                                    state.cardList?.data[index].manaCost ?? '',
-                                oracleText:
-                                    state.cardList?.data[index].oracleText ??
-                                        '',
-                                power: state.cardList?.data[index].power,
-                                toughness:
-                                    state.cardList?.data[index].toughness,
-                              ),
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 5,
+                  childAspectRatio: 0.9,
+                  crossAxisSpacing: AppSpacing.xs,
+                  mainAxisSpacing: AppSpacing.xs,
+                ),
+                itemCount: state.cardList?.data.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () => context.read<PlayerCustomizationBloc>().add(
+                          UpdatePlayerCommander(
+                            commander: Commander(
+                              name: state.cardList?.data[index].name ?? '',
+                              artist: state.cardList?.data[index].artist ?? '',
+                              colors: state.cardList?.data[index].colors ?? [],
+                              cardType:
+                                  state.cardList?.data[index].typeLine ?? '',
+                              imageUrl: state.cardList?.data[index].imageUris
+                                      ?.artCrop ??
+                                  '',
+                              manaCost:
+                                  state.cardList?.data[index].manaCost ?? '',
+                              oracleText:
+                                  state.cardList?.data[index].oracleText ?? '',
+                              power: state.cardList?.data[index].power,
+                              toughness: state.cardList?.data[index].toughness,
                             ),
                           ),
-                      child: Card(
-                        elevation: 4,
-                        child: Column(
-                          children: [
-                            Expanded(
-                              child: Image.network(
-                                state.cardList?.data[index].imageUris?.normal ??
-                                    '',
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const ColoredBox(
-                                  color: AppColors.neutral60,
-                                  child: Center(
-                                    child: Icon(Icons.broken_image),
-                                  ),
+                        ),
+                    child: Card(
+                      elevation: 0,
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Image.network(
+                              state.cardList?.data[index].imageUris?.normal ??
+                                  '',
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const ColoredBox(
+                                color: AppColors.neutral60,
+                                child: Center(
+                                  child: Icon(Icons.broken_image),
                                 ),
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(AppSpacing.xs),
-                              child: Text(
-                                state.cardList?.data[index].artist ?? '',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: AppColors.white,
-                                    ),
-                                textAlign: TextAlign.center,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(AppSpacing.xs),
+                            child: Text(
+                              state.cardList?.data[index].artist ?? '',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: AppColors.white,
+                                  ),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               );
             }
             return const SizedBox(

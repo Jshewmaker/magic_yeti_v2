@@ -12,12 +12,11 @@ class CommanderImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const width = 200.0;
-    const height = 200.0;
+    const size = 300.0;
 
     return Container(
-      width: width,
-      height: height,
+      width: size,
+      height: size,
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(
           Radius.circular(20),
