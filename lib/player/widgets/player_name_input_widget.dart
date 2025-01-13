@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
 
 class PlayerNameInputWidget extends StatelessWidget {
   const PlayerNameInputWidget({
@@ -39,7 +40,7 @@ class PlayerNameInputWidget extends StatelessWidget {
               ),
             ),
           ),
-          child: const Text('Save'),
+          child: Text(context.l10n.saveButtonText),
         ),
       ],
     );

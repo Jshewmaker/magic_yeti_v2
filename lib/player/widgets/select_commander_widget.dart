@@ -33,7 +33,7 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
             Expanded(
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search for your commander',
+                  hintText: l10n.searchCommanderHintText,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),

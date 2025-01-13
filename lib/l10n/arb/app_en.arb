@@ -169,5 +169,17 @@
             "type": "int"
         }
     }
+  },
+  "searchCommanderHintText": "Search for your commander",
+  "@searchCommanderHintText": {
+    "description": "Hint text shown in commander search input field",
+    "type": "text",
+    "placeholders": {}
+  },
+  "saveButtonText": "Save",
+  "@saveButtonText": {
+    "description": "Text shown on save buttons throughout the app",
+    "type": "text",
+    "placeholders": {}
   }
 }
