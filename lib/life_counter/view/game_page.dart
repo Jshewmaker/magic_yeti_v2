@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
+import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
 
 class GamePage extends StatelessWidget {
@@ -68,32 +70,43 @@ class _GameOverDialogState extends State<_GameOverDialog> {
           ),
           if (players.isNotEmpty) ...[
             const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Please select account owner',
-                border: OutlineInputBorder(),
-              ),
-              value: selectedPlayerId,
-              items: players.map((player) {
-                return DropdownMenuItem(
-                  value: player.id,
-                  child: Text(player.name),
-                );
-              }).toList(),
-              onChanged: (String? value) {
-                setState(() {
-                  selectedPlayerId = value;
-                });
-              },
+            Row(
+              children: [
+                const Text('Please select account owner: '),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                    value: selectedPlayerId,
+                    items: players.map((player) {
+                      return DropdownMenuItem(
+                        value: player.id,
+                        child: Text(player.name),
+                      );
+                    }).toList(),
+                    onChanged: (String? value) {
+                      setState(() {
+                        selectedPlayerId = value;
+                      });
+                    },
+                  ),
+                ),
+              ],
             ),
           ],
         ],
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            context.read<GameBloc>().add(const GameResumeEvent());
+            Navigator.of(context).pop();
+          },
           child: const Text('Cancel'),
         ),
+        const Spacer(),
         ElevatedButton(
           onPressed: selectedPlayerId == null
               ? null
@@ -108,6 +121,22 @@ class _GameOverDialogState extends State<_GameOverDialog> {
                   Navigator.of(context).pop();
                 },
           child: const Text('Play Again'),
+        ),
+        const SizedBox(width: 8),
+        ElevatedButton(
+          onPressed: selectedPlayerId == null
+              ? null
+              : () {
+                  context.read<GameBloc>().add(
+                        GameUpdatePlayerOwnershipEvent(
+                          playerId: selectedPlayerId!,
+                          firebaseId: context.read<AppBloc>().state.user.id,
+                        ),
+                      );
+                  GoRouter.of(context).go(HomePage.routeName);
+                  Navigator.of(context).pop();
+                },
+          child: const Text('Return to Home'),
         ),
       ],
     );
