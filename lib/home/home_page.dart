@@ -283,7 +283,7 @@ class CustomListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: SizedBox(
-        height: 140,
+        height: 160,
         child: Row(
           children: <Widget>[
             // Left section - Large thumbnail
@@ -371,7 +371,7 @@ class DetailsWidget extends StatelessWidget {
             const SizedBox(height: 4),
             SelectableText(
               ' ${l10n.gameId}: $roomId',
-              style: textStyle.bodySmall?.copyWith(
+              style: textStyle.bodyLarge?.copyWith(
                 color: AppColors.neutral60,
               ),
             ),
@@ -427,7 +427,7 @@ class LosersWidget extends StatelessWidget {
       ..sort((a, b) => a.placement.compareTo(b.placement));
 
     return SizedBox(
-      width: 40,
+      width: 50,
       child: Column(
         children: [
           for (final player in runnerUps)
@@ -461,8 +461,8 @@ class WinnerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 140,
-      height: 140,
+      width: 160,
+      height: 160,
       child: ClipRRect(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(4),
