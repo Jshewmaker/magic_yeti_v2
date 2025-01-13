@@ -15,11 +15,13 @@ Player _$PlayerFromJson(Map<String, dynamic> json) => Player(
       color: (json['color'] as num).toInt(),
       commanderDamageList:
           Map<String, int>.from(json['commanderDamageList'] as Map),
+      firebaseId: json['firebaseId'] as String?,
       timeOfDeath: (json['timeOfDeath'] as num?)?.toInt() ?? -1,
       placement: (json['placement'] as num?)?.toInt() ?? 99,
     );
 
 Map<String, dynamic> _$PlayerToJson(Player instance) => <String, dynamic>{
+      'firebaseId': instance.firebaseId,
       'id': instance.id,
       'name': instance.name,
       'commander': instance.commander.toJson(),

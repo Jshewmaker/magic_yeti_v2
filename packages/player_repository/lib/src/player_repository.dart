@@ -83,9 +83,6 @@ class PlayerRepository {
       return player;
     }
 
-    if (player.lifePoints > 0) {
-      return player.copyWith(timeOfDeath: -1, placement: 99);
-    }
     return player;
   }
 

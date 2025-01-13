@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
 
@@ -45,9 +46,12 @@ class _GameOverDialog extends StatefulWidget {
 
 class _GameOverDialogState extends State<_GameOverDialog> {
   bool turnOneSolRing = false;
+  String? selectedPlayerId;
 
   @override
   Widget build(BuildContext context) {
+    final players = context.watch<GameBloc>().state.playerList;
+
     return AlertDialog(
       title: const Text('Game Over'),
       content: Column(
@@ -62,6 +66,27 @@ class _GameOverDialogState extends State<_GameOverDialog> {
               });
             },
           ),
+          if (players.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              decoration: const InputDecoration(
+                labelText: 'Please select account owner',
+                border: OutlineInputBorder(),
+              ),
+              value: selectedPlayerId,
+              items: players.map((player) {
+                return DropdownMenuItem(
+                  value: player.id,
+                  child: Text(player.name),
+                );
+              }).toList(),
+              onChanged: (String? value) {
+                setState(() {
+                  selectedPlayerId = value;
+                });
+              },
+            ),
+          ],
         ],
       ),
       actions: [
@@ -70,10 +95,18 @@ class _GameOverDialogState extends State<_GameOverDialog> {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: () {
-            context.read<GameBloc>().add(const GameResetEvent());
-            Navigator.of(context).pop();
-          },
+          onPressed: selectedPlayerId == null
+              ? null
+              : () {
+                  context.read<GameBloc>().add(
+                        GameUpdatePlayerOwnershipEvent(
+                          playerId: selectedPlayerId!,
+                          firebaseId: context.read<AppBloc>().state.user.id,
+                        ),
+                      );
+
+                  Navigator.of(context).pop();
+                },
           child: const Text('Play Again'),
         ),
       ],
