@@ -158,7 +158,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     _gameTimer?.cancel();
 
     final updateWinner = event.winner.copyWith(
-      timeOfDeath: DateTime.now().millisecondsSinceEpoch,
       placement: 1,
     );
     _playerRepository.updatePlayer(updateWinner);

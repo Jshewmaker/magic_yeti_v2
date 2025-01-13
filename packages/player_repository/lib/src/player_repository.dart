@@ -82,7 +82,9 @@ class PlayerRepository {
       }
       return player;
     }
-
+    if (player.lifePoints > 0 && player.timeOfDeath != -1) {
+      return player.copyWith(timeOfDeath: -1, placement: 99);
+    }
     return player;
   }
 
