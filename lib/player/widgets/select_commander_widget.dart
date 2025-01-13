@@ -43,7 +43,7 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                 autocorrect: false,
                 onTap: () {
                   widget.scrollController.animateTo(
-                    450,
+                    200,
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOut,
                   );

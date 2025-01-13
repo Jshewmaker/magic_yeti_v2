@@ -1,7 +1,5 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:magic_yeti/player/view/bloc/player_customization_bloc.dart';
 
 class PlayerNameInputWidget extends StatelessWidget {
   const PlayerNameInputWidget({
@@ -19,12 +17,10 @@ class PlayerNameInputWidget extends StatelessWidget {
       children: [
         Expanded(
           child: TextField(
-            onEditingComplete: () =>
-                context.read<PlayerCustomizationBloc>().add(
-                      UpdatePlayerName(
-                        name: textController.text,
-                      ),
-                    ),
+            onSubmitted: (value) {
+              FocusScope.of(context).unfocus();
+            },
+            textInputAction: TextInputAction.done,
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),

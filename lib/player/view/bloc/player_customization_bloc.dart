@@ -13,7 +13,6 @@ class PlayerCustomizationBloc
       : _scryfallRepository = scryfallRepository,
         super(const PlayerCustomizationState()) {
     on<CardListRequested>(_cardListRequested);
-    on<UpdatePlayerName>(updatePlayerName);
     on<UpdatePlayerCommander>(updatePlayerCommander);
     on<UpdateAccountOwnership>(_onUpdateAccountOwnership);
   }
@@ -46,24 +45,6 @@ class PlayerCustomizationBloc
         ),
       );
     }
-  }
-
-  Future<void> updatePlayerName(
-    UpdatePlayerName event,
-    Emitter<PlayerCustomizationState> emit,
-  ) async {
-    emit(
-      const PlayerCustomizationState(
-        status: PlayerCustomizationStatus.loading,
-      ),
-    );
-
-    emit(
-      PlayerCustomizationState(
-        status: PlayerCustomizationStatus.success,
-        name: event.name,
-      ),
-    );
   }
 
   Future<void> updatePlayerCommander(

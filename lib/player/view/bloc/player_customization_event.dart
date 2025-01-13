@@ -16,15 +16,6 @@ final class CardListRequested extends PlayerCustomizationEvent {
   List<Object> get props => [cardName];
 }
 
-final class UpdatePlayerName extends PlayerCustomizationEvent {
-  const UpdatePlayerName({required this.name});
-
-  final String name;
-
-  @override
-  List<Object> get props => [name];
-}
-
 final class UpdatePlayerCommander extends PlayerCustomizationEvent {
   const UpdatePlayerCommander({required this.commander});
 
