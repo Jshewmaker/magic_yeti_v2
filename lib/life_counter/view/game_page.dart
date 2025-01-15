@@ -49,6 +49,7 @@ class _GameOverDialog extends StatefulWidget {
 class _GameOverDialogState extends State<_GameOverDialog> {
   bool turnOneSolRing = false;
   String? selectedPlayerId;
+  String? firstPlayerId;
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +70,32 @@ class _GameOverDialogState extends State<_GameOverDialog> {
             },
           ),
           if (players.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Text('Who went first: '),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                    value: firstPlayerId,
+                    items: players.map((player) {
+                      return DropdownMenuItem(
+                        value: player.id,
+                        child: Text(player.name),
+                      );
+                    }).toList(),
+                    onChanged: (String? value) {
+                      setState(() {
+                        firstPlayerId = value;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -108,13 +135,14 @@ class _GameOverDialogState extends State<_GameOverDialog> {
         ),
         const Spacer(),
         ElevatedButton(
-          onPressed: selectedPlayerId == null
+          onPressed: selectedPlayerId == null && firstPlayerId == null
               ? null
               : () {
                   context.read<GameBloc>().add(
                         GameUpdatePlayerOwnershipEvent(
                           playerId: selectedPlayerId!,
                           firebaseId: context.read<AppBloc>().state.user.id,
+                          firstPlayerId: firstPlayerId ?? '',
                         ),
                       );
 
@@ -124,13 +152,14 @@ class _GameOverDialogState extends State<_GameOverDialog> {
         ),
         const SizedBox(width: 8),
         ElevatedButton(
-          onPressed: selectedPlayerId == null
+          onPressed: selectedPlayerId == null && firstPlayerId == null
               ? null
               : () {
                   context.read<GameBloc>().add(
                         GameUpdatePlayerOwnershipEvent(
                           playerId: selectedPlayerId!,
                           firebaseId: context.read<AppBloc>().state.user.id,
+                          firstPlayerId: firstPlayerId ?? '',
                         ),
                       );
                   GoRouter.of(context).go(HomePage.routeName);

@@ -10,6 +10,7 @@ class GameState extends Equatable {
     this.winner,
     this.elapsedSeconds = 0,
     this.startTime,
+    this.firstPlayerId,
   });
 
   final GameStatus status;
@@ -18,6 +19,7 @@ class GameState extends Equatable {
   final int elapsedSeconds;
   final DateTime? startTime;
   final String hostId;
+  final String? firstPlayerId;
 
   GameState copyWith({
     GameStatus? status,
@@ -28,6 +30,7 @@ class GameState extends Equatable {
     int? elapsedSeconds,
     DateTime? startTime,
     String? hostId,
+    String? firstPlayerId,
   }) {
     return GameState(
       status: status ?? this.status,
@@ -36,6 +39,7 @@ class GameState extends Equatable {
       elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
       startTime: startTime ?? this.startTime,
       hostId: hostId ?? this.hostId,
+      firstPlayerId: firstPlayerId ?? this.firstPlayerId,
     );
   }
 
@@ -47,5 +51,6 @@ class GameState extends Equatable {
         elapsedSeconds,
         startTime,
         hostId,
+        firstPlayerId,
       ];
 }

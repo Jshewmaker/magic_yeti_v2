@@ -289,14 +289,17 @@ class CustomListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       color: wonGame
-          ? AppColors.winner.withValues(alpha: .4)
+          ? AppColors.winner.withValues(alpha: .6)
           : AppColors.onSurfaceVariant,
       child: SizedBox(
         height: 160,
         child: Row(
           children: <Widget>[
             // Left section - Large thumbnail
-            WinnerWidget(thumbnail: thumbnail),
+            WinnerWidget(
+              thumbnail: thumbnail,
+              wentFirst: game.winner.id == game.startingPlayerId,
+            ),
             const SizedBox(width: 5),
             // Middle section - Three stacked thumbnails
             LosersWidget(game: game),
@@ -441,17 +444,43 @@ class LosersWidget extends StatelessWidget {
         children: [
           for (final player in runnerUps)
             Expanded(
-              child: player.commander.imageUrl.isEmpty
-                  ? Container(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (player.commander.imageUrl.isEmpty)
+                    Container(
                       color: Color(player.color).withValues(alpha: .8),
                     )
-                  : Image.network(
+                  else
+                    Image.network(
                       fit: BoxFit.cover,
                       player.commander.imageUrl,
                       errorBuilder: (context, error, stackTrace) => Container(
                         color: Color(player.color).withValues(alpha: .8),
                       ),
                     ),
+                  if (player.id == game.startingPlayerId)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: AppColors.black.withValues(alpha: 0.6),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.star,
+                            size: 8,
+                            color: AppColors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
         ],
       ),
@@ -462,22 +491,49 @@ class LosersWidget extends StatelessWidget {
 class WinnerWidget extends StatelessWidget {
   const WinnerWidget({
     required this.thumbnail,
+    required this.wentFirst,
     super.key,
   });
 
   final Widget thumbnail;
+  final bool wentFirst;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 160,
       height: 160,
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(4),
-          bottomLeft: Radius.circular(4),
-        ),
-        child: thumbnail,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(4),
+              bottomLeft: Radius.circular(4),
+            ),
+            child: thumbnail,
+          ),
+          if (wentFirst)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: AppColors.black.withValues(alpha: 0.6),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.star,
+                    size: 16,
+                    color: AppColors.white,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

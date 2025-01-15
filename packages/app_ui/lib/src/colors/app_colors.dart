@@ -33,7 +33,7 @@ abstract class AppColors {
   static const Color green = Color(0xFF048000);
 
   /// Color used to highlight the winner
-  static const Color winner = Color.fromARGB(255, 21, 123, 17);
+  static const Color winner = Color.fromARGB(255, 20, 117, 17);
 
   /// red
   static const Color red = Color(0xFFD00000);

@@ -17,6 +17,7 @@ class GameModel extends Equatable {
     required this.endTime,
     required this.winner,
     required this.durationInSeconds,
+    this.startingPlayerId = '',
     this.roomId = '',
     this.id,
   });
@@ -30,6 +31,9 @@ class GameModel extends Equatable {
 
   /// Firebase document ID
   final String? id;
+
+  /// ID of the player who went first in turn order.
+  final String startingPlayerId;
 
   /// Unique identifier for the room
   final String roomId;
@@ -73,10 +77,12 @@ class GameModel extends Equatable {
     DateTime? startTime,
     DateTime? endTime,
     Player? winner,
+    String? startingPlayerId,
     int? durationInSeconds,
   }) {
     return GameModel(
       id: id ?? this.id,
+      startingPlayerId: startingPlayerId ?? this.startingPlayerId,
       hostId: hostId ?? this.hostId,
       roomId: roomId ?? this.roomId,
       players: players ?? this.players,

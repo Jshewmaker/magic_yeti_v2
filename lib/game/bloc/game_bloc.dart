@@ -185,10 +185,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameUpdatePlayerOwnershipEvent event,
     Emitter<GameState> emit,
   ) async {
-    final updateWinner = state.playerList.firstWhere(
-      (player) => player.placement == 1,
-    );
-
     final player = state.playerList.firstWhere(
       (player) => player.id == event.playerId,
     );
@@ -200,9 +196,13 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     // Update in repository and database
     // await _database.updatePlayerData(updatedPlayer);
     _playerRepository.updatePlayer(updatedPlayer);
+    final updateWinner = state.playerList.firstWhere(
+      (player) => player.placement == 1,
+    );
     await _database.saveGameStats(
       GameModel(
         hostId: state.hostId,
+        startingPlayerId: event.firstPlayerId,
         id: const Uuid().v4(),
         winner: updateWinner,
         players: state.playerList,
