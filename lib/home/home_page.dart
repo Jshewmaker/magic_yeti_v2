@@ -66,8 +66,10 @@ class SectionHeader extends StatelessWidget {
   const SectionHeader({
     required this.title,
     super.key,
+    this.onMorePressed,
   });
   final String title;
+  final VoidCallback? onMorePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -80,13 +82,26 @@ class SectionHeader extends StatelessWidget {
           right: BorderSide(width: 3, color: AppColors.background),
         ),
       ),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          if (onMorePressed != null)
+            IconButton(
+              onPressed: onMorePressed,
+              icon: const Icon(
+                Icons.more_vert,
+                color: Colors.white,
+              ),
             ),
-        textAlign: TextAlign.center,
+        ],
       ),
     );
   }
@@ -108,7 +123,40 @@ class LeftSidePanel extends StatelessWidget {
         Expanded(
           child: Column(
             children: [
-              SectionHeader(title: l10n.statsTitle),
+              SectionHeader(
+                title: l10n.statsTitle,
+                onMorePressed: context.read<AppBloc>().state.status ==
+                        AppStatus.authenticated
+                    ? () {
+                        showDialog<void>(
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                            title: const Text('Logout'),
+                            content:
+                                const Text('Are you sure you want to logout?'),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  context
+                                      .read<AppBloc>()
+                                      .add(const AppLogoutRequested());
+                                  context
+                                      .read<MatchHistoryBloc>()
+                                      .add(const ClearMatchHistory());
+                                },
+                                child: const Text('Logout'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    : null,
+              ),
               const AccountWidget(),
             ],
           ),
@@ -133,12 +181,9 @@ class AccountWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (!userIsLoggedIn)
-            ElevatedButton(
-              onPressed: () {
-                context.read<AppBloc>().add(const AppLogoutRequested());
-                context.read<MatchHistoryBloc>().add(const ClearMatchHistory());
-              },
-              child: Text(l10n.logOutButtonText),
+            Text(
+              'More Stats coming soon!',
+              style: Theme.of(context).textTheme.headlineLarge,
             )
           else ...[
             ElevatedButton(
