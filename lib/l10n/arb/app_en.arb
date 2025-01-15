@@ -193,5 +193,35 @@
     "description": "Title shown in the account ownership widget",
     "type": "text",
     "placeholders": {}
+  },
+  "matchHistoryTitle": "Match History",
+  "@matchHistoryTitle": {
+    "description": "Title for the match history section",
+    "type": "text",
+    "placeholders": {}
+  },
+  "gameModeTitle": "Game Mode",
+  "@gameModeTitle": {
+    "description": "Title for the game mode section",
+    "type": "text",
+    "placeholders": {}
+  },
+  "statsTitle": "Your Stats",
+  "@statsTitle": {
+    "description": "Title for the stats section",
+    "type": "text",
+    "placeholders": {}
+  },
+  "matchHistoryLoadError": "Failed to load match history",
+  "@matchHistoryLoadError": {
+    "description": "Error message shown when match history fails to load",
+    "type": "text",
+    "placeholders": {}
+  },
+  "noMatchHistoryAvailable": "No match history available",
+  "@noMatchHistoryAvailable": {
+    "description": "Message shown when there is no match history to display",
+    "type": "text",
+    "placeholders": {}
   }
 }

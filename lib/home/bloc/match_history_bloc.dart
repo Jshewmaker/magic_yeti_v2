@@ -2,14 +2,14 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 
-part 'home_event.dart';
-part 'home_state.dart';
+part 'match_history_event.dart';
+part 'match_history_state.dart';
 
-class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  HomeBloc({
+class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
+  MatchHistoryBloc({
     required FirebaseDatabaseRepository databaseRepository,
   })  : _databaseRepository = databaseRepository,
-        super(const HomeState()) {
+        super(const MatchHistoryState()) {
     on<LoadMatchHistory>(_onLoadMatchHistory);
     on<ClearMatchHistory>(_onClearMatchHistory);
   }
@@ -18,7 +18,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> _onLoadMatchHistory(
     LoadMatchHistory event,
-    Emitter<HomeState> emit,
+    Emitter<MatchHistoryState> emit,
   ) async {
     emit(state.copyWith(status: HomeStatus.loading));
 
@@ -45,7 +45,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   void _onClearMatchHistory(
     ClearMatchHistory event,
-    Emitter<HomeState> emit,
+    Emitter<MatchHistoryState> emit,
   ) {
     emit(state.copyWith(
       status: HomeStatus.success,

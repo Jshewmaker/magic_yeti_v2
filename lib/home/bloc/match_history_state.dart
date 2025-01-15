@@ -1,9 +1,9 @@
-part of 'home_bloc.dart';
+part of 'match_history_bloc.dart';
 
 enum HomeStatus { initial, loading, success, failure }
 
-class HomeState extends Equatable {
-  const HomeState({
+class MatchHistoryState extends Equatable {
+  const MatchHistoryState({
     this.status = HomeStatus.initial,
     this.games = const [],
     this.error,
@@ -13,12 +13,12 @@ class HomeState extends Equatable {
   final List<GameModel> games;
   final String? error;
 
-  HomeState copyWith({
+  MatchHistoryState copyWith({
     HomeStatus? status,
     List<GameModel>? games,
     String? error,
   }) {
-    return HomeState(
+    return MatchHistoryState(
       status: status ?? this.status,
       games: games ?? this.games,
       error: error ?? this.error,

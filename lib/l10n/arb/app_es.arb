@@ -5,5 +5,10 @@
         "description": "Texto mostrado en la AppBar de la página del contador"
     },
     "accountOwnershipLinkText": "¡Vincula este jugador a tu cuenta para saber qué comandante eres!",
-    "accountOwnershipTitle": "Este es mi comandante"
+    "accountOwnershipTitle": "Este es mi comandante",
+    "matchHistoryTitle": "Historial de Partidas",
+    "gameModeTitle": "Modo de Juego",
+    "statsTitle": "Tus Estadísticas",
+    "matchHistoryLoadError": "Error al cargar el historial de partidas",
+    "noMatchHistoryAvailable": "No hay historial de partidas disponible"
 }

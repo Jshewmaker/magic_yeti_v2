@@ -1,14 +1,14 @@
-part of 'home_bloc.dart';
+part of 'match_history_bloc.dart';
 
-sealed class HomeEvent extends Equatable {
-  const HomeEvent();
+sealed class MatchHistoryEvent extends Equatable {
+  const MatchHistoryEvent();
 
   @override
   List<Object> get props => [];
 }
 
 /// Event to load match history
-final class LoadMatchHistory extends HomeEvent {
+final class LoadMatchHistory extends MatchHistoryEvent {
   const LoadMatchHistory({
     required this.userId,
   });
@@ -20,6 +20,6 @@ final class LoadMatchHistory extends HomeEvent {
 }
 
 /// Event to clear match history
-final class ClearMatchHistory extends HomeEvent {
+final class ClearMatchHistory extends MatchHistoryEvent {
   const ClearMatchHistory();
 }

@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
-import 'package:magic_yeti/home/bloc/home_bloc.dart';
+import 'package:magic_yeti/home/bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
 import 'package:magic_yeti/login/login.dart';
@@ -26,7 +26,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => HomeBloc(
+      create: (context) => MatchHistoryBloc(
         databaseRepository: context.read<FirebaseDatabaseRepository>(),
       )..add(
           LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
@@ -34,7 +34,7 @@ class HomePage extends StatelessWidget {
       child: BlocListener<AppBloc, AppState>(
         listener: (context, state) {
           // Reload match history when auth state changes
-          context.read<HomeBloc>().add(
+          context.read<MatchHistoryBloc>().add(
                 LoadMatchHistory(userId: state.user.id),
               );
         },
@@ -101,15 +101,15 @@ class LeftSidePanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader(title: 'Game Mode'),
+        SectionHeader(title: l10n.gameModeTitle),
         Expanded(
           child: GameModeButtons(l10n: l10n),
         ),
-        const Expanded(
+        Expanded(
           child: Column(
             children: [
-              SectionHeader(title: 'Your Stats'),
-              AccountWidget(),
+              SectionHeader(title: l10n.statsTitle),
+              const AccountWidget(),
             ],
           ),
         ),
@@ -136,7 +136,7 @@ class AccountWidget extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 context.read<AppBloc>().add(const AppLogoutRequested());
-                context.read<HomeBloc>().add(const ClearMatchHistory());
+                context.read<MatchHistoryBloc>().add(const ClearMatchHistory());
               },
               child: Text(l10n.logOutButtonText),
             )
@@ -199,11 +199,12 @@ class MatchHistoryPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       children: [
-        const SectionHeader(title: 'Match History'),
+        SectionHeader(title: l10n.matchHistoryTitle),
         Expanded(
-          child: BlocBuilder<HomeBloc, HomeState>(
+          child: BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
             builder: (context, state) {
               switch (state.status) {
                 case HomeStatus.initial:
@@ -211,12 +212,12 @@ class MatchHistoryPanel extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator());
                 case HomeStatus.failure:
                   return Center(
-                    child: Text(state.error ?? 'Failed to load match history'),
+                    child: Text(l10n.matchHistoryLoadError),
                   );
                 case HomeStatus.success:
                   if (state.games.isEmpty) {
-                    return const Center(
-                      child: Text('No match history available'),
+                    return Center(
+                      child: Text(l10n.noMatchHistoryAvailable),
                     );
                   }
                   return ListView.builder(
@@ -224,6 +225,8 @@ class MatchHistoryPanel extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final game = state.games[index];
                       return CustomListItem(
+                        wonGame: game.winner.firebaseId ==
+                            context.read<AppBloc>().state.user.id,
                         thumbnail: game.winner.commander.imageUrl.isEmpty
                             ? Container(
                                 color: Color(game.winner.color)
@@ -266,12 +269,15 @@ class CustomListItem extends StatelessWidget {
     required this.gameDatePlayed,
     required this.viewCount,
     required this.textStyle,
+    required this.wonGame,
     required this.game,
     super.key,
   });
 
   final Widget thumbnail;
+
   final String playerName;
+  final bool wonGame;
   final String commanderName;
   final Duration gameLength;
   final DateTime gameDatePlayed;
@@ -282,6 +288,9 @@ class CustomListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: wonGame
+          ? AppColors.winner.withValues(alpha: .4)
+          : AppColors.onSurfaceVariant,
       child: SizedBox(
         height: 160,
         child: Row(
