@@ -181,5 +181,17 @@
     "description": "Text shown on save buttons throughout the app",
     "type": "text",
     "placeholders": {}
+  },
+  "accountOwnershipLinkText": "Link this player to your account so we know which commander you are!",
+  "@accountOwnershipLinkText": {
+    "description": "Text shown in the account ownership widget prompting user to link their account",
+    "type": "text",
+    "placeholders": {}
+  },
+  "accountOwnershipTitle": "This is my commander",
+  "@accountOwnershipTitle": {
+    "description": "Title shown in the account ownership widget",
+    "type": "text",
+    "placeholders": {}
   }
 }

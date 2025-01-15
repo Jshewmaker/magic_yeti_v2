@@ -1,6 +1,7 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/player/view/bloc/player_customization_bloc.dart';
 
 class AccountOwnershipWidget extends StatelessWidget {
@@ -13,6 +14,7 @@ class AccountOwnershipWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
@@ -26,11 +28,11 @@ class AccountOwnershipWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'This is my account',
+                  l10n.accountOwnershipTitle,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text(
-                  'Link this player to your account to track stats and history',
+                  l10n.accountOwnershipLinkText,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],

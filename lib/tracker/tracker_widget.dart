@@ -167,4 +167,5 @@ List<IconData> iconList = [
   FontAwesomeIcons.diamond,
   FontAwesomeIcons.dungeon,
   FontAwesomeIcons.skullCrossbones,
+  FontAwesomeIcons.boltLightning,
 ];
