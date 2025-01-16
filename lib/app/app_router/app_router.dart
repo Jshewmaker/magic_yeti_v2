@@ -4,6 +4,7 @@ import 'package:magic_yeti/app/app_router/app_route.dart';
 import 'package:magic_yeti/app/app_router/go_router_refresh_stream.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/life_counter/view/game_over_page.dart';
 import 'package:magic_yeti/life_counter/view/view.dart';
 import 'package:magic_yeti/login/login.dart';
 import 'package:magic_yeti/reset_password/reset_password.dart';
@@ -55,12 +56,22 @@ class AppRouter {
           ),
         ),
         AppRoute(
-          name: GamePage.routePath,
+          name: GamePage.routeName,
           path: GamePage.routePath,
           pageBuilder: (context, state) => NoTransitionPage(
             name: GamePage.routePath,
             child: GamePage.pageBuilder(context, state),
           ),
+          routes: [
+            AppRoute(
+              name: GameOverPage.routeName,
+              path: GameOverPage.routePath,
+              pageBuilder: (context, state) => NoTransitionPage(
+                name: GameOverPage.routeName,
+                child: GameOverPage.pageBuilder(context, state),
+              ),
+            ),
+          ],
         ),
         AppRoute(
           name: LoginPage.routeName,

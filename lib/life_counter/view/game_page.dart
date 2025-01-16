@@ -5,6 +5,7 @@ import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
+import 'package:magic_yeti/life_counter/view/game_over_page.dart';
 
 class GamePage extends StatelessWidget {
   const GamePage({super.key});
@@ -29,11 +30,7 @@ class GamePage extends StatelessWidget {
     return BlocListener<GameBloc, GameState>(
       listener: (context, state) {
         if (state.status == GameStatus.finished) {
-          showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => _GameOverDialog(),
-          );
+          context.go('/game_page${GameOverPage.routePath}');
         }
       },
       child: playerCount == 2 ? const TwoPlayerGame() : const FourPlayerGame(),
