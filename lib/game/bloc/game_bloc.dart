@@ -40,6 +40,30 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   List<Player> get _players => _playerRepository.getPlayers();
 
+  // Predefined list of visually pleasing colors
+  final _playerColors = [
+    0xFF1ABC9C, // Turquoise
+    0xFF3498DB, // Blue
+    0xFF9B59B6, // Purple
+    0xFFE74C3C, // Red
+    0xFFF1C40F, // Yellow
+    0xFF2ECC71, // Green
+    0xFFE67E22, // Orange
+    0xFF34495E, // Navy Blue
+    0xFFD35400, // Burnt Orange
+    0xFF27AE60, // Emerald
+    0xFF8E44AD, // Violet
+    0xFFC0392B, // Dark Red
+    0xFF16A085, // Sea Green
+    0xFF2980B9, // Ocean Blue
+    0xFFD35400, // Pumpkin
+    0xFF7F8C8D, // Gray
+    0xFF8E44AD, // Wisteria
+    0xFFf39c12, // Carrot
+    0xFF2C3E50, // Midnight Blue
+    0xFF16A085, // Green Sea
+  ];
+
   Future<void> _onCreateGame(
     CreateGameEvent event,
     Emitter<GameState> emit,
@@ -50,10 +74,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     try {
       final uuidList =
           List.generate(event.numberOfPlayers, (index) => uuid.v4());
+      // Create a shuffled copy of the colors list
+      final shuffledColors = List<int>.from(_playerColors)..shuffle();
       for (var i = 0; i < event.numberOfPlayers; ++i) {
         final player = Player(
           id: uuidList[i],
-          color: (math.Random().nextDouble() * 0xFFFFFF).toInt(),
+          color: shuffledColors[i],
           name: 'Player ${i + 1}',
           commander: const Commander(
             name: '',

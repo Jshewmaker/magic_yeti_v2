@@ -1,6 +1,7 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:magic_yeti/life_counter/bloc/life_change_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
 import 'package:magic_yeti/player/view/customize_player_page.dart';
@@ -219,6 +220,14 @@ class _LifeTrackerWidget extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             _LifeText(player: state.player),
+            const Positioned(
+              left: 420,
+              child: FaIcon(FontAwesomeIcons.plus),
+            ),
+            const Positioned(
+              right: 420,
+              child: FaIcon(FontAwesomeIcons.minus),
+            ),
             const _LifeChangesWidget(),
           ],
         ),
@@ -259,8 +268,8 @@ class _LifeChangesWidget extends StatelessWidget {
         return Center(
           child: Transform.translate(
             offset: Offset(
-              change > 0 ? 75 : -75,
-              0,
+              change > 0 ? 175 : -120,
+              2,
             ),
             child: _LifePointChangeAnimation(change: change),
           ),
@@ -306,7 +315,7 @@ class _LifePointChangeAnimationState extends State<_LifePointChangeAnimation>
 
   void _initializeAnimation() {
     _controller = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 2),
       vsync: this,
     );
 
@@ -340,16 +349,14 @@ class _LifePointChangeAnimationState extends State<_LifePointChangeAnimation>
 
   @override
   Widget build(BuildContext context) {
-    final prefix = widget.change > 0 ? '+' : '';
-
     return FadeTransition(
       opacity: _opacityAnimation,
       child: Text(
-        '$prefix${widget.change}',
-        style: TextStyle(
+        '${widget.change.abs()}',
+        style: const TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
-          color: AppColors.white.withValues(alpha: .3),
+          color: AppColors.white,
         ),
       ),
     );
