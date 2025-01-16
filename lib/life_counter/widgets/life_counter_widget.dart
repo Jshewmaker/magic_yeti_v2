@@ -53,7 +53,7 @@ class LifeCounterWidget extends StatelessWidget {
   }
 }
 
-class IncrementLifeWidget extends StatelessWidget {
+class IncrementLifeWidget extends StatefulWidget {
   const IncrementLifeWidget({
     required this.player,
     super.key,
@@ -62,27 +62,55 @@ class IncrementLifeWidget extends StatelessWidget {
   final Player player;
 
   @override
+  State<IncrementLifeWidget> createState() => _IncrementLifeWidgetState();
+}
+
+class _IncrementLifeWidgetState extends State<IncrementLifeWidget> {
+  bool _isTapped = false;
+
+  void _handleTapDown(TapDownDetails details) {
+    setState(() {
+      _isTapped = true;
+    });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {
+          _isTapped = false;
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Expanded(
       key: const ValueKey(
         'life_counter_widget_increment',
       ),
       child: GestureDetector(
+        onTapDown: _handleTapDown,
         onTap: () => context.read<PlayerBloc>().add(
-              UpdatePlayerLifeEvent(decrement: false, playerId: player.id),
+              UpdatePlayerLifeEvent(
+                  decrement: false, playerId: widget.player.id),
             ),
         onLongPressStart: (_) => context.read<PlayerBloc>().add(
-              UpdatePlayerLifeByXEvent(decrement: false, playerId: player.id),
+              UpdatePlayerLifeByXEvent(
+                  decrement: false, playerId: widget.player.id),
             ),
         onLongPressEnd: (_) => context.read<PlayerBloc>().add(
               const PlayerStopDecrement(),
             ),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 50),
+          color: _isTapped ? Colors.white.withOpacity(0.2) : Colors.transparent,
+          child: const SizedBox.expand(),
+        ),
       ),
     );
   }
 }
 
-class DecrementLifeWidget extends StatelessWidget {
+class DecrementLifeWidget extends StatefulWidget {
   const DecrementLifeWidget({
     required this.player,
     super.key,
@@ -91,22 +119,43 @@ class DecrementLifeWidget extends StatelessWidget {
   final Player player;
 
   @override
+  State<DecrementLifeWidget> createState() => _DecrementLifeWidgetState();
+}
+
+class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
+  bool _isTapped = false;
+
+  void _handleTapDown(TapDownDetails details) {
+    setState(() {
+      _isTapped = true;
+    });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {
+          _isTapped = false;
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Expanded(
       key: const ValueKey(
         'life_counter_widget_decrement',
       ),
       child: GestureDetector(
+        onTapDown: _handleTapDown,
         onTap: () => context.read<PlayerBloc>().add(
               UpdatePlayerLifeEvent(
                 decrement: true,
-                playerId: player.id,
+                playerId: widget.player.id,
               ),
             ),
         onLongPressStart: (_) => context.read<PlayerBloc>().add(
               UpdatePlayerLifeByXEvent(
                 decrement: true,
-                playerId: player.id,
+                playerId: widget.player.id,
               ),
             ),
         onLongPressCancel: () => context.read<PlayerBloc>().add(
@@ -115,6 +164,11 @@ class DecrementLifeWidget extends StatelessWidget {
         onLongPressEnd: (_) => context.read<PlayerBloc>().add(
               const PlayerStopDecrement(),
             ),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 50),
+          color: _isTapped ? Colors.white.withOpacity(0.2) : Colors.transparent,
+          child: const SizedBox.expand(),
+        ),
       ),
     );
   }
