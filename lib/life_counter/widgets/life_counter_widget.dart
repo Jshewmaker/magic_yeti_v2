@@ -91,18 +91,29 @@ class _IncrementLifeWidgetState extends State<IncrementLifeWidget> {
         onTapDown: _handleTapDown,
         onTap: () => context.read<PlayerBloc>().add(
               UpdatePlayerLifeEvent(
-                  decrement: false, playerId: widget.player.id),
+                decrement: false,
+                playerId: widget.player.id,
+              ),
             ),
         onLongPressStart: (_) => context.read<PlayerBloc>().add(
               UpdatePlayerLifeByXEvent(
-                  decrement: false, playerId: widget.player.id),
+                decrement: false,
+                playerId: widget.player.id,
+              ),
             ),
         onLongPressEnd: (_) => context.read<PlayerBloc>().add(
               const PlayerStopDecrement(),
             ),
         child: AnimatedContainer(
+          decoration: BoxDecoration(
+            color: _isTapped
+                ? Colors.white.withValues(alpha: .2)
+                : Colors.transparent,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(20),
+            ),
+          ),
           duration: const Duration(milliseconds: 50),
-          color: _isTapped ? Colors.white.withOpacity(0.2) : Colors.transparent,
           child: const SizedBox.expand(),
         ),
       ),
@@ -165,8 +176,15 @@ class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
               const PlayerStopDecrement(),
             ),
         child: AnimatedContainer(
+          decoration: BoxDecoration(
+            color: _isTapped
+                ? Colors.white.withValues(alpha: .2)
+                : Colors.transparent,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(20),
+            ),
+          ),
           duration: const Duration(milliseconds: 50),
-          color: _isTapped ? Colors.white.withOpacity(0.2) : Colors.transparent,
           child: const SizedBox.expand(),
         ),
       ),
@@ -387,7 +405,7 @@ class _PlayerNameWidget extends StatelessWidget {
         ElevatedButton(
           style: ButtonStyle(
             backgroundColor:
-                WidgetStateProperty.all(Colors.white.withValues(alpha: .8)),
+                WidgetStateProperty.all(Colors.black.withValues(alpha: .4)),
             shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -395,7 +413,7 @@ class _PlayerNameWidget extends StatelessWidget {
             ),
           ),
           onPressed: onPressed,
-          child: Text(name),
+          child: Text(name, style: const TextStyle(color: Colors.white)),
         ),
       ],
     );
