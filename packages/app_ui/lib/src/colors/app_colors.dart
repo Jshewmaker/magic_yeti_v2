@@ -17,6 +17,9 @@ abstract class AppColors {
   /// Tertiary
   static const Color tertiary = Color(0xFFBA005B);
 
+  /// quaternary
+  static const Color quaternary = Color(0xFF2F4F4F);
+
   /// Error
   static const Color error = Color(0xFFBA1A1A);
 

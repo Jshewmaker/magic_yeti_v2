@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/life_counter/widgets/widgets.dart';
@@ -17,24 +18,35 @@ class FourPlayerGame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final playerList = context.read<GameBloc>().state.playerList;
-    return Scaffold(
-      body: Row(
-        children: [
-          Expanded(
-            child: _PlayerColumn(
-              topPlayerId: playerList[3].id,
-              bottomPlayerId: playerList[1].id,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeRight,
+            DeviceOrientation.landscapeLeft,
+          ]);
+          return Scaffold(
+            body: Row(
+              children: [
+                Expanded(
+                  child: _PlayerColumn(
+                    topPlayerId: playerList[3].id,
+                    bottomPlayerId: playerList[1].id,
+                  ),
+                ),
+                const CenterControlColumn(),
+                Expanded(
+                  child: _PlayerColumn(
+                    topPlayerId: playerList[2].id,
+                    bottomPlayerId: playerList[0].id,
+                    alignment: Alignment.centerRight,
+                  ),
+                ),
+              ],
             ),
-          ),
-          const CenterControlColumn(),
-          Expanded(
-            child: _PlayerColumn(
-              topPlayerId: playerList[2].id,
-              bottomPlayerId: playerList[0].id,
-              alignment: Alignment.centerRight,
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

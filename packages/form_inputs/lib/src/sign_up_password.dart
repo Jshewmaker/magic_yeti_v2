@@ -20,7 +20,7 @@ class SignUpPassword extends FormzInput<String, SignUpPasswordValidationError> {
   const SignUpPassword.dirty([super.value = '']) : super.dirty();
 
   static final _passwordRegExp =
-      RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$');
+      RegExp(r'^.{8,}$');
 
   @override
   SignUpPasswordValidationError? validator(String value) {

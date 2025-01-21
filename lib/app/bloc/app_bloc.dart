@@ -104,7 +104,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         return event.user == User.unauthenticated
             ? emit(const AppState.unauthenticated())
             : event.user.isNewUser
-                ? emit(AppState.onboardingRequired(event.user))
+                ? emit(AppState.authenticated(event.user))
                 : emit(AppState.authenticated(event.user));
     }
   }

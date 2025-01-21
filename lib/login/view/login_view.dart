@@ -24,7 +24,7 @@ class LoginView extends StatelessWidget {
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
           if (state.status.isSuccess) {
-            context.goNamed(HomePage.routeName);
+            context.go(HomePage.routeName);
           }
           if (state.status.isFailure) {
             ScaffoldMessenger.of(context)

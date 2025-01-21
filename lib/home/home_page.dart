@@ -31,16 +31,7 @@ class HomePage extends StatelessWidget {
       )..add(
           LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
         ),
-      child: BlocListener<AppBloc, AppState>(
-        listener: (context, state) {
-          // Reload match history when auth state changes
-          context.read<MatchHistoryBloc>().add(
-                LoadMatchHistory(userId: state.user.id),
-              );
-        },
-        listenWhen: (previous, current) => previous.user != current.user,
-        child: const HomeView(),
-      ),
+      child: const HomeView(),
     );
   }
 }
@@ -113,6 +104,8 @@ class LeftSidePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final onMore =
+        context.watch<AppBloc>().state.status == AppStatus.authenticated;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -125,12 +118,11 @@ class LeftSidePanel extends StatelessWidget {
             children: [
               SectionHeader(
                 title: l10n.statsTitle,
-                onMorePressed: context.read<AppBloc>().state.status ==
-                        AppStatus.authenticated
+                onMorePressed: onMore
                     ? () {
                         showDialog<void>(
                           context: context,
-                          builder: (BuildContext context) => AlertDialog(
+                          builder: (BuildContext _) => AlertDialog(
                             title: const Text('Logout'),
                             content:
                                 const Text('Are you sure you want to logout?'),
@@ -187,11 +179,11 @@ class AccountWidget extends StatelessWidget {
             )
           else ...[
             ElevatedButton(
-              onPressed: () => context.push(LoginPage.routeName),
+              onPressed: () => context.go(LoginPage.routeName),
               child: Text(l10n.loginButtonText),
             ),
             ElevatedButton(
-              onPressed: () => context.push(SignUpPage.routeName),
+              onPressed: () => context.go(SignUpPage.routeName),
               child: Text(l10n.signUpAppBarTitle),
             ),
           ],
@@ -210,19 +202,102 @@ class GameModeButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ElevatedButton(
-          onPressed: () => _createGame(context, 2, 20),
-          child: Text(l10n.numberOfPlayers(2)),
-        ),
-        const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: () => _createGame(context, 4, 40),
-          child: Text(l10n.numberOfPlayers(4)),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.yellow,
+                    Colors.black,
+                    Colors.yellow,
+                    Colors.black,
+                    Colors.yellow,
+                    Colors.yellow
+                  ],
+                  stops: [0.2, 0.4, 0.6, 0.8, 1, 1.2],
+                  tileMode: TileMode.repeated,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () => _createGame(context, 2, 20),
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          l10n.numberOfPlayers(2),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Under Construction',
+                          style: TextStyle(
+                            color: Colors.yellow,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Icon(
+                          Icons.construction,
+                          color: Colors.yellow,
+                          size: 32,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ElevatedButton(
+                onPressed: () => _createGame(context, 4, 40),
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                ),
+                child: Center(
+                  child: Text(
+                    l10n.numberOfPlayers(4),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                        ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -245,62 +320,71 @@ class MatchHistoryPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Column(
-      children: [
-        SectionHeader(title: l10n.matchHistoryTitle),
-        Expanded(
-          child: BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
-            builder: (context, state) {
-              switch (state.status) {
-                case HomeStatus.initial:
-                case HomeStatus.loading:
-                  return const Center(child: CircularProgressIndicator());
-                case HomeStatus.failure:
-                  return Center(
-                    child: Text(l10n.matchHistoryLoadError),
-                  );
-                case HomeStatus.success:
-                  if (state.games.isEmpty) {
+    return BlocListener<AppBloc, AppState>(
+      listener: (context, state) {
+        // Reload match history when auth state changes
+        context.read<MatchHistoryBloc>().add(
+              LoadMatchHistory(userId: state.user.id),
+            );
+      },
+      listenWhen: (previous, current) => previous.user != current.user,
+      child: Column(
+        children: [
+          SectionHeader(title: l10n.matchHistoryTitle),
+          Expanded(
+            child: BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
+              builder: (context, state) {
+                switch (state.status) {
+                  case HomeStatus.initial:
+                  case HomeStatus.loading:
+                    return const Center(child: CircularProgressIndicator());
+                  case HomeStatus.failure:
                     return Center(
-                      child: Text(l10n.noMatchHistoryAvailable),
+                      child: Text(l10n.matchHistoryLoadError),
                     );
-                  }
-                  return ListView.builder(
-                    itemCount: state.games.length,
-                    itemBuilder: (context, index) {
-                      final game = state.games[index];
-                      return CustomListItem(
-                        wonGame: game.winner.firebaseId ==
-                            context.read<AppBloc>().state.user.id,
-                        thumbnail: game.winner.commander.imageUrl.isEmpty
-                            ? Container(
-                                color: Color(game.winner.color)
-                                    .withValues(alpha: .8),
-                              )
-                            : Image.network(
-                                fit: BoxFit.cover,
-                                game.winner.commander.imageUrl,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Container(
+                  case HomeStatus.success:
+                    if (state.games.isEmpty) {
+                      return Center(
+                        child: Text(l10n.noMatchHistoryAvailable),
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: state.games.length,
+                      itemBuilder: (context, index) {
+                        final game = state.games[index];
+                        return CustomListItem(
+                          wonGame: game.winner.firebaseId ==
+                              context.read<AppBloc>().state.user.id,
+                          thumbnail: game.winner.commander.imageUrl.isEmpty
+                              ? Container(
                                   color: Color(game.winner.color)
                                       .withValues(alpha: .8),
+                                )
+                              : Image.network(
+                                  fit: BoxFit.cover,
+                                  game.winner.commander.imageUrl,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
+                                    color: Color(game.winner.color)
+                                        .withValues(alpha: .8),
+                                  ),
                                 ),
-                              ),
-                        playerName: game.winner.name,
-                        commanderName: game.winner.commander.name,
-                        gameLength: Duration(seconds: game.durationInSeconds),
-                        gameDatePlayed: game.endTime,
-                        viewCount: index + 1,
-                        textStyle: Theme.of(context).textTheme,
-                        game: game,
-                      );
-                    },
-                  );
-              }
-            },
+                          playerName: game.winner.name,
+                          commanderName: game.winner.commander.name,
+                          gameLength: Duration(seconds: game.durationInSeconds),
+                          gameDatePlayed: game.endTime,
+                          viewCount: index + 1,
+                          textStyle: Theme.of(context).textTheme,
+                          game: game,
+                        );
+                      },
+                    );
+                }
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
