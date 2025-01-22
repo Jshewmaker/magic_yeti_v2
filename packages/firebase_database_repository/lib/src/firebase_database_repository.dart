@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database_repository/models/game_model.dart';
 import 'package:player_repository/player_repository.dart';
-import '../models/game_model.dart';
-import 'dart:math';
 
 /// {@template save_game_stats_exception}
 /// Exception thrown when saving game stats fails.
@@ -64,46 +63,25 @@ class FirebaseDatabaseRepository {
 
   final FirebaseFirestore _firebase;
 
-  String _getRandomString(int length) {
-    // Excluding similar looking characters
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    final rnd = Random();
-    return String.fromCharCodes(
-      Iterable.generate(
-        length,
-        (_) => chars.codeUnitAt(rnd.nextInt(chars.length)),
-      ),
-    );
-  }
-
-  /// Generates a short, unique game ID
-  /// Format: XXXX-YYYY where X is random chars and Y is sequential
-  Future<String> generateShortGameId() async {
-    var attempts = 0;
-    const maxAttempts = 3;
-
-    while (attempts < maxAttempts) {
-      final gameId = _getRandomString(4);
-      final exists = await _firebase
+  Future<bool> checkIfGameIdExists(String gameId) async {
+    try {
+      return await _firebase
           .collection('games')
           .where('roomId', isEqualTo: gameId)
           .get()
           .then((snapshot) => snapshot.docs.isNotEmpty);
-
-      if (!exists) {
-        return gameId;
-      }
-      attempts++;
+    } on Exception catch (error, stackTrace) {
+      throw GetGamesException(
+        message: error.toString(),
+        stackTrace: stackTrace,
+      );
     }
-    throw Exception('Failed to generate unique game ID');
   }
 
   /// Save game stats at end of game.
   Future<void> saveGameStats(GameModel game) async {
     try {
-      final shortId = await generateShortGameId();
-      final gameWithShortId = game.copyWith(roomId: shortId);
-      await _firebase.collection('games').doc().set(gameWithShortId.toJson());
+      await _firebase.collection('games').doc().set(game.toJson());
     } on Exception catch (error, stackTrace) {
       throw SaveGameStatsException(
         message: error.toString(),

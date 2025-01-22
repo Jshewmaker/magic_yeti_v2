@@ -69,9 +69,9 @@ class SectionHeader extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        border: const Border(
+      decoration: const BoxDecoration(
+        color: AppColors.quaternary,
+        border: Border(
           right: BorderSide(width: 3, color: AppColors.background),
         ),
       ),
@@ -81,7 +81,7 @@ class SectionHeader extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.onSurfaceVariant,
                   fontWeight: FontWeight.bold,
                 ),
             textAlign: TextAlign.center,
@@ -91,7 +91,7 @@ class SectionHeader extends StatelessWidget {
               onPressed: onMorePressed,
               icon: const Icon(
                 Icons.more_vert,
-                color: Colors.white,
+                color: AppColors.onSurfaceVariant,
               ),
             ),
         ],
@@ -285,31 +285,35 @@ class GameModeButtons extends StatelessWidget {
             child: Container(
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.yellow,
-                    Colors.black,
-                    Colors.yellow,
-                    Colors.black,
-                    Colors.yellow,
-                    Colors.yellow
+                    AppColors.secondary.withOpacity(0.8),
+                    AppColors.tertiary.withOpacity(0.6),
+                    AppColors.secondary.withOpacity(0.8),
                   ],
-                  stops: [0.2, 0.4, 0.6, 0.8, 1, 1.2],
-                  tileMode: TileMode.repeated,
+                  stops: const [0.0, 0.5, 1.0],
                 ),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.secondary,
+                  width: 2,
+                ),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: Container(
                   decoration: BoxDecoration(
+                    color: AppColors.quaternary.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: ElevatedButton(
                     onPressed: () => _createGame(context, 2, 20),
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary.withValues(
+                        alpha: 0.1,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(6),
                       ),
@@ -324,20 +328,21 @@ class GameModeButtons extends StatelessWidget {
                               .textTheme
                               .headlineSmall
                               ?.copyWith(
-                                color: Colors.white,
+                                color: AppColors.secondary,
+                                fontWeight: FontWeight.bold,
                               ),
                         ),
                         const SizedBox(height: 8),
                         const Text(
                           'Under Construction',
                           style: TextStyle(
-                            color: Colors.yellow,
+                            color: AppColors.secondary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const Icon(
                           Icons.construction,
-                          color: Colors.yellow,
+                          color: AppColors.secondary,
                           size: 32,
                         ),
                       ],
@@ -354,6 +359,9 @@ class GameModeButtons extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => _createGame(context, 4, 40),
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary.withValues(
+                    alpha: 0.1,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -579,7 +587,7 @@ class DetailsWidget extends StatelessWidget {
                   commanderName,
                   style: TextStyle(
                     fontSize: textStyle.titleMedium?.fontSize,
-                    color: Colors.grey[600],
+                    color: Colors.black45,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -589,18 +597,22 @@ class DetailsWidget extends StatelessWidget {
             SelectableText(
               ' ${l10n.gameId}: $roomId',
               style: textStyle.bodyLarge?.copyWith(
-                color: AppColors.neutral60,
+                color: Colors.black45,
               ),
             ),
             Row(
               children: [
-                Icon(Icons.timer_outlined, size: 16, color: Colors.grey[600]),
+                const Icon(
+                  Icons.timer_outlined,
+                  size: 16,
+                  color: Colors.black45,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   _formatGameLength(),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: Colors.black45,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -608,13 +620,17 @@ class DetailsWidget extends StatelessWidget {
             ),
             Row(
               children: [
-                Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                const Icon(
+                  Icons.calendar_today,
+                  size: 16,
+                  color: Colors.black45,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   _formatDate(),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: Colors.black45,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -222,32 +223,55 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final updateWinner = state.playerList.firstWhere(
       (player) => player.placement == 1,
     );
+    final gameModel = GameModel(
+      roomId: await generateShortGameId(),
+      hostId: state.hostId,
+      startingPlayerId: event.firstPlayerId,
+      id: const Uuid().v4(),
+      winner: updateWinner,
+      players: state.playerList,
+      startTime: state.startTime ?? DateTime.now(),
+      endTime: DateTime.now(),
+      durationInSeconds: state.elapsedSeconds,
+    );
     await _database.saveGameStats(
-      GameModel(
-        hostId: state.hostId,
-        startingPlayerId: event.firstPlayerId,
-        id: const Uuid().v4(),
-        winner: updateWinner,
-        players: state.playerList,
-        startTime: state.startTime ?? DateTime.now(),
-        endTime: DateTime.now(),
-        durationInSeconds: state.elapsedSeconds,
-      ),
+      gameModel,
     );
     await _database.addMatchToPlayerHistory(
-      GameModel(
-        hostId: state.hostId,
-        startingPlayerId: event.firstPlayerId,
-        id: const Uuid().v4(),
-        winner: updateWinner,
-        players: state.playerList,
-        startTime: state.startTime ?? DateTime.now(),
-        endTime: DateTime.now(),
-        durationInSeconds: state.elapsedSeconds,
-      ),
+      gameModel,
       state.hostId,
     );
     add(const GameResetEvent());
+  }
+
+  String _getRandomString(int length) {
+    // Excluding similar looking characters
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final rnd = Random();
+    return String.fromCharCodes(
+      Iterable.generate(
+        length,
+        (_) => chars.codeUnitAt(rnd.nextInt(chars.length)),
+      ),
+    );
+  }
+
+  /// Generates a short, unique game ID
+  /// Format: XXXX-YYYY where X is random chars and Y is sequential
+  Future<String> generateShortGameId() async {
+    var attempts = 0;
+    const maxAttempts = 5;
+
+    while (attempts < maxAttempts) {
+      final gameId = _getRandomString(4);
+      final exists = await _database.checkIfGameIdExists(gameId);
+
+      if (!exists) {
+        return gameId;
+      }
+      attempts++;
+    }
+    throw Exception('Failed to generate unique game ID');
   }
 
   @override
