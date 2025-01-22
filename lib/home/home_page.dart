@@ -12,6 +12,7 @@ import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
 import 'package:magic_yeti/login/login.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
+import 'package:user_repository/user_repository.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class HomePage extends StatelessWidget {
@@ -28,6 +29,7 @@ class HomePage extends StatelessWidget {
     return BlocProvider(
       create: (context) => MatchHistoryBloc(
         databaseRepository: context.read<FirebaseDatabaseRepository>(),
+        user: context.read<User>(),
       )..add(
           LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
         ),
@@ -106,14 +108,16 @@ class LeftSidePanel extends StatelessWidget {
     final l10n = context.l10n;
     final onMore =
         context.watch<AppBloc>().state.status == AppStatus.authenticated;
-    return Column(
+    return ScrollableColumn(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(title: l10n.gameModeTitle),
         Expanded(
+          flex: 1,
           child: GameModeButtons(l10n: l10n),
         ),
         Expanded(
+          flex: 2,
           child: Column(
             children: [
               SectionHeader(
@@ -167,28 +171,98 @@ class AccountWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final userIsLoggedIn =
         context.select((AppBloc bloc) => bloc.state.user.isAnonymous);
+    if (context.select((MatchHistoryBloc bloc) => bloc.state.status) ==
+        HomeStatus.loadingHistorySuccess) {
+      context.read<MatchHistoryBloc>().add(
+            const CompileMatchHistoryData(),
+          );
+    }
+    final matchHistoryState = context.watch<MatchHistoryBloc>().state;
     final l10n = context.l10n;
     return Expanded(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (!userIsLoggedIn)
-            Text(
-              'More Stats coming soon!',
-              style: Theme.of(context).textTheme.headlineLarge,
-            )
-          else ...[
-            ElevatedButton(
-              onPressed: () => context.go(LoginPage.routeName),
-              child: Text(l10n.loginButtonText),
-            ),
-            ElevatedButton(
-              onPressed: () => context.go(SignUpPage.routeName),
-              child: Text(l10n.signUpAppBarTitle),
-            ),
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            if (!userIsLoggedIn) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  StatsWidget(
+                    title: 'Win Rate',
+                    stat: '${matchHistoryState.winPercentage}%',
+                  ),
+                  StatsWidget(
+                    title: 'Unique Commanders',
+                    stat: matchHistoryState.uniqueCommanderCount.toString(),
+                  ),
+                  StatsWidget(
+                    title: 'Total Wins',
+                    stat: matchHistoryState.totalWins.toString(),
+                  ),
+                  StatsWidget(
+                    title: 'Total Games',
+                    stat: matchHistoryState.games.length.toString(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 48),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  StatsWidget(
+                    title: 'Shortest Game',
+                    stat: matchHistoryState.shortestGameDuration,
+                  ),
+                  StatsWidget(
+                    title: 'Longest Game',
+                    stat: matchHistoryState.longestGameDuration,
+                  ),
+                  StatsWidget(
+                    title: 'Average Placement',
+                    stat: matchHistoryState.averagePlacement.toString(),
+                  ),
+                  StatsWidget(
+                    title: 'Times Went First',
+                    stat: matchHistoryState.timesWentFirst.toString(),
+                  ),
+                ],
+              ),
+            ] else ...[
+              ElevatedButton(
+                onPressed: () => context.go(LoginPage.routeName),
+                child: Text(l10n.loginButtonText),
+              ),
+              ElevatedButton(
+                onPressed: () => context.go(SignUpPage.routeName),
+                child: Text(l10n.signUpAppBarTitle),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
+    );
+  }
+}
+
+class StatsWidget extends StatelessWidget {
+  const StatsWidget({
+    super.key,
+    required this.title,
+    required this.stat,
+  });
+
+  final String title;
+  final String stat;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(stat, style: Theme.of(context).textTheme.headlineLarge),
+        Text(title, style: Theme.of(context).textTheme.titleMedium),
+      ],
     );
   }
 }
@@ -336,13 +410,15 @@ class MatchHistoryPanel extends StatelessWidget {
               builder: (context, state) {
                 switch (state.status) {
                   case HomeStatus.initial:
-                  case HomeStatus.loading:
+                  case HomeStatus.loadingHistory:
                     return const Center(child: CircularProgressIndicator());
                   case HomeStatus.failure:
                     return Center(
                       child: Text(l10n.matchHistoryLoadError),
                     );
-                  case HomeStatus.success:
+                  case HomeStatus.loadingHistorySuccess:
+                  case HomeStatus.loadingStats:
+                  case HomeStatus.loadingStatsSuccess:
                     if (state.games.isEmpty) {
                       return Center(
                         child: Text(l10n.noMatchHistoryAvailable),

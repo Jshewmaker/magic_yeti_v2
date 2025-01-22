@@ -23,3 +23,8 @@ final class LoadMatchHistory extends MatchHistoryEvent {
 final class ClearMatchHistory extends MatchHistoryEvent {
   const ClearMatchHistory();
 }
+
+/// Event to compile match history
+final class CompileMatchHistoryData extends MatchHistoryEvent {
+  const CompileMatchHistoryData();
+}

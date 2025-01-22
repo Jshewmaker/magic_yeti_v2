@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -219,8 +218,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       firebaseId: event.firebaseId,
     );
 
-    // Update in repository and database
-    // await _database.updatePlayerData(updatedPlayer);
     _playerRepository.updatePlayer(updatedPlayer);
     final updateWinner = state.playerList.firstWhere(
       (player) => player.placement == 1,
@@ -237,7 +234,19 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         durationInSeconds: state.elapsedSeconds,
       ),
     );
-
+    await _database.addMatchToPlayerHistory(
+      GameModel(
+        hostId: state.hostId,
+        startingPlayerId: event.firstPlayerId,
+        id: const Uuid().v4(),
+        winner: updateWinner,
+        players: state.playerList,
+        startTime: state.startTime ?? DateTime.now(),
+        endTime: DateTime.now(),
+        durationInSeconds: state.elapsedSeconds,
+      ),
+      state.hostId,
+    );
     add(const GameResetEvent());
   }
 

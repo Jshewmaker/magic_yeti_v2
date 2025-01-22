@@ -43,6 +43,7 @@ class App extends StatelessWidget {
         RepositoryProvider.value(value: _firebaseDatabaseRepository),
         RepositoryProvider.value(value: _userRepository),
         RepositoryProvider.value(value: playerRepository),
+        RepositoryProvider.value(value: _user),
       ],
       child: MultiBlocProvider(
         providers: [
