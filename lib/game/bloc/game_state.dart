@@ -4,13 +4,13 @@ enum GameStatus { initial, loading, running, finished, paused, error, reset }
 
 class GameState extends Equatable {
   const GameState({
-    this.hostId = '',
     this.status = GameStatus.initial,
     this.playerList = const [],
     this.winner,
     this.elapsedSeconds = 0,
     this.startTime,
     this.firstPlayerId,
+    this.error,
   });
 
   final GameStatus status;
@@ -18,8 +18,8 @@ class GameState extends Equatable {
   final Player? winner;
   final int elapsedSeconds;
   final DateTime? startTime;
-  final String hostId;
   final String? firstPlayerId;
+  final String? error;
 
   GameState copyWith({
     GameStatus? status,
@@ -38,7 +38,7 @@ class GameState extends Equatable {
       winner: winner ?? this.winner,
       elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
       startTime: startTime ?? this.startTime,
-      hostId: hostId ?? this.hostId,
+      error: error ?? this.error,
       firstPlayerId: firstPlayerId ?? this.firstPlayerId,
     );
   }
@@ -50,7 +50,7 @@ class GameState extends Equatable {
         winner,
         elapsedSeconds,
         startTime,
-        hostId,
         firstPlayerId,
+        error,
       ];
 }

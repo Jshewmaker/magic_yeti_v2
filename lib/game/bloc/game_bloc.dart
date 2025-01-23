@@ -14,10 +14,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   GameBloc({
     required PlayerRepository playerRepository,
     required FirebaseDatabaseRepository database,
-    required String hostId,
   })  : _playerRepository = playerRepository,
         _database = database,
-        super(GameState(hostId: hostId)) {
+        super(const GameState()) {
     on<CreateGameEvent>(_onCreateGame);
     on<GameStartEvent>(_onGameStart);
     on<GamePauseEvent>(_onGamePause);
@@ -98,7 +97,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       }
       add(const GameStartEvent());
     } catch (e) {
-      emit(const GameState(status: GameStatus.error));
+      emit(
+        state.copyWith(
+          status: GameStatus.error,
+          error: '[CreateGameEvent] $e',
+        ),
+      );
     }
   }
 
@@ -160,21 +164,30 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     _gameTimer?.cancel();
 
     // Reset players
-    for (final player in _players) {
-      final resetPlayer = player.copyWith(
-        lifePoints: _players.length == 4 ? 40 : 20,
-        timeOfDeath: -1,
-        placement: 99,
-        commanderDamageList:
-            Map.fromEntries(state.playerList.map((p) => MapEntry(p.id, 0))),
+    try {
+      for (final player in _players) {
+        final resetPlayer = player.copyWith(
+          lifePoints: _players.length == 4 ? 40 : 20,
+          timeOfDeath: -1,
+          placement: 99,
+          commanderDamageList:
+              Map.fromEntries(state.playerList.map((p) => MapEntry(p.id, 0))),
+        );
+        _playerRepository.updatePlayer(resetPlayer);
+      }
+
+      // Give time for the repository to update
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      add(const GameStartEvent());
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: GameStatus.error,
+          error: '[GameResetEvent] $e',
+        ),
       );
-      _playerRepository.updatePlayer(resetPlayer);
     }
-
-    // Give time for the repository to update
-    await Future<void>.delayed(const Duration(milliseconds: 100));
-
-    add(const GameStartEvent());
   }
 
   void _onGameFinish(
@@ -211,37 +224,42 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameUpdatePlayerOwnershipEvent event,
     Emitter<GameState> emit,
   ) async {
-    final player = state.playerList.firstWhere(
-      (player) => player.id == event.playerId,
-    );
+    try {
+      final player = state.playerList.firstWhere(
+        (player) => player.id == event.playerId,
+      );
 
-    final updatedPlayer = player.copyWith(
-      firebaseId: event.firebaseId,
-    );
+      final updatedPlayer = player.copyWith(
+        firebaseId: event.firebaseId,
+      );
 
-    _playerRepository.updatePlayer(updatedPlayer);
-    final updateWinner = state.playerList.firstWhere(
-      (player) => player.placement == 1,
-    );
-    final gameModel = GameModel(
-      roomId: await generateShortGameId(),
-      hostId: state.hostId,
-      startingPlayerId: event.firstPlayerId,
-      id: const Uuid().v4(),
-      winner: updateWinner,
-      players: state.playerList,
-      startTime: state.startTime ?? DateTime.now(),
-      endTime: DateTime.now(),
-      durationInSeconds: state.elapsedSeconds,
-    );
-    await _database.saveGameStats(
-      gameModel,
-    );
-    await _database.addMatchToPlayerHistory(
-      gameModel,
-      state.hostId,
-    );
-    add(const GameResetEvent());
+      _playerRepository.updatePlayer(updatedPlayer);
+      final updateWinner = state.playerList.firstWhere(
+        (player) => player.placement == 1,
+      );
+      final gameModel = GameModel(
+        roomId: await generateShortGameId(),
+        hostId: event.firebaseId,
+        startingPlayerId: event.firstPlayerId,
+        id: const Uuid().v4(),
+        winner: updateWinner,
+        players: state.playerList,
+        startTime: state.startTime ?? DateTime.now(),
+        endTime: DateTime.now(),
+        durationInSeconds: state.elapsedSeconds,
+      );
+      await _database.saveGameStats(
+        gameModel,
+      );
+
+      await _database.addMatchToPlayerHistory(
+        gameModel,
+        event.firebaseId,
+      );
+      add(const GameResetEvent());
+    } catch (e) {
+      emit(state.copyWith(status: GameStatus.error, error: e.toString()));
+    }
   }
 
   String _getRandomString(int length) {

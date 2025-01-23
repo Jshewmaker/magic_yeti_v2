@@ -53,6 +53,23 @@ class AddMatchToPlayerHistoryException implements Exception {
   final Object stackTrace;
 }
 
+/// {@template get_game_exception}
+/// Exception thrown when getting a game fails.
+/// {@endtemplate}
+class GameNotFoundException implements Exception {
+  /// {@macro get_game_exception}
+  const GameNotFoundException({
+    required this.message,
+    required this.stackTrace,
+  });
+
+  /// A description of the error.
+  final String message;
+
+  /// The stack trace for the exception.
+  final Object stackTrace;
+}
+
 /// {@template firebase_database_repository}
 /// Firebase database package
 /// {@endtemplate}
@@ -133,6 +150,30 @@ class FirebaseDatabaseRepository {
 
     final updatedGame = game.copyWith(players: updatedPlayers);
     await gameDoc.reference.update(updatedGame.toJson());
+  }
+
+  /// Get a specific game by its roomID
+  Future<GameModel> getGame(String gameId) async {
+    try {
+      final gameSnapshot = await _firebase
+          .collection('games')
+          .where('roomId', isEqualTo: gameId)
+          .limit(1)
+          .get();
+      if (gameSnapshot.docs.isNotEmpty) {
+        return GameModel.fromJson(gameSnapshot.docs.first.data());
+      } else {
+        throw GameNotFoundException(
+          message: 'Game with ID $gameId not found',
+          stackTrace: StackTrace.current,
+        );
+      }
+    } on Exception catch (error, stackTrace) {
+      throw GameNotFoundException(
+        message: error.toString(),
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   /// Add a match to the player's history

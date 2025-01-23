@@ -32,10 +32,10 @@
               "client_type": 3
             },
             {
-              "client_id": "370172089725-g4s3iiind6m2pd6lpg8r1b4totaumnie.apps.googleusercontent.com",
+              "client_id": "370172089725-1rs7sgkqr75d7vpgktilhquv3fkol1k5.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.crossout.org.magicyeti"
+                "bundle_id": "com.yetiproductions.magicyeti"
               }
             }
           ]
@@ -68,10 +68,10 @@
               "client_type": 3
             },
             {
-              "client_id": "370172089725-g4s3iiind6m2pd6lpg8r1b4totaumnie.apps.googleusercontent.com",
+              "client_id": "370172089725-1rs7sgkqr75d7vpgktilhquv3fkol1k5.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.crossout.org.magicyeti"
+                "bundle_id": "com.yetiproductions.magicyeti"
               }
             }
           ]

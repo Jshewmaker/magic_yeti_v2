@@ -111,13 +111,13 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
   /// Calculate the average placement of the player
   double _calculateAveragePlacement(List<GameModel> games) {
     if (games.isEmpty) return 0;
-    
+
     var totalPlacement = 0;
     for (final game in games) {
       final player = _findPlayerInGame(game);
       totalPlacement += player.placement;
     }
-    
+
     // Round to 1 decimal place
     return double.parse((totalPlacement / games.length).toStringAsFixed(1));
   }
@@ -125,7 +125,7 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
   /// Calculate how many times the player went first
   int _calculateTimesWentFirst(List<GameModel> games) {
     if (games.isEmpty) return 0;
-    
+
     var timesFirst = 0;
     for (final game in games) {
       final player = _findPlayerInGame(game);
