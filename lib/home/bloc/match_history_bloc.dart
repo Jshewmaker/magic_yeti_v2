@@ -17,6 +17,7 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
     on<LoadMatchHistory>(_onLoadMatchHistory);
     on<ClearMatchHistory>(_onClearMatchHistory);
     on<CompileMatchHistoryData>(_onCompileMatchHistoryData);
+    on<AddMatchToPlayerHistoryEvent>(_addMatchToPlayerHistory);
   }
 
   final FirebaseDatabaseRepository _databaseRepository;
@@ -47,6 +48,23 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
         );
       },
     );
+  }
+
+  Future<void> _addMatchToPlayerHistory(
+    AddMatchToPlayerHistoryEvent event,
+    Emitter<MatchHistoryState> emit,
+  ) async {
+    try {
+      final game = await _databaseRepository.getGame(event.roomId);
+      await _databaseRepository.addMatchToPlayerHistory(game, event.playerId);
+    } catch (error) {
+      emit(
+        state.copyWith(
+          status: HomeStatus.failure,
+          error: error.toString(),
+        ),
+      );
+    }
   }
 
   /// Calculate the number of unique commanders used by the player
@@ -94,8 +112,11 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
   int _findShortestGameDuration(List<GameModel> games) {
     if (games.isEmpty) return 0;
     return games
-        .reduce((current, next) =>
-            current.durationInSeconds < next.durationInSeconds ? current : next)
+        .reduce(
+          (current, next) => current.durationInSeconds < next.durationInSeconds
+              ? current
+              : next,
+        )
         .durationInSeconds;
   }
 
@@ -103,8 +124,11 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
   int _findLongestGameDuration(List<GameModel> games) {
     if (games.isEmpty) return 0;
     return games
-        .reduce((current, next) =>
-            current.durationInSeconds > next.durationInSeconds ? current : next)
+        .reduce(
+          (current, next) => current.durationInSeconds > next.durationInSeconds
+              ? current
+              : next,
+        )
         .durationInSeconds;
   }
 
@@ -153,26 +177,30 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
     final averagePlacement = _calculateAveragePlacement(games);
     final timesWentFirst = _calculateTimesWentFirst(games);
 
-    emit(state.copyWith(
-      status: HomeStatus.loadingStatsSuccess,
-      uniqueCommanderCount: uniqueCommanderCount,
-      totalWins: totalWins,
-      winPercentage: winPercentage,
-      shortestGameDuration: _formatDuration(shortestGameDuration),
-      longestGameDuration: _formatDuration(longestGameDuration),
-      averagePlacement: averagePlacement,
-      timesWentFirst: timesWentFirst,
-    ));
+    emit(
+      state.copyWith(
+        status: HomeStatus.loadingStatsSuccess,
+        uniqueCommanderCount: uniqueCommanderCount,
+        totalWins: totalWins,
+        winPercentage: winPercentage,
+        shortestGameDuration: _formatDuration(shortestGameDuration),
+        longestGameDuration: _formatDuration(longestGameDuration),
+        averagePlacement: averagePlacement,
+        timesWentFirst: timesWentFirst,
+      ),
+    );
   }
 
   void _onClearMatchHistory(
     ClearMatchHistory event,
     Emitter<MatchHistoryState> emit,
   ) {
-    emit(state.copyWith(
-      status: HomeStatus.loadingHistorySuccess,
-      games: const [],
-    ));
+    emit(
+      state.copyWith(
+        status: HomeStatus.loadingHistorySuccess,
+        games: const [],
+      ),
+    );
   }
 
   String _formatDuration(int seconds) {

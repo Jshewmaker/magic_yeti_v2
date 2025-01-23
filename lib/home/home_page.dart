@@ -43,7 +43,50 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        foregroundColor: AppColors.white,
+        onPressed: () {
+          showDialog<void>(
+            context: context,
+            builder: (BuildContext _) {
+              String roomId = '';
+              return AlertDialog(
+                title: const Text('Add Game to Match History'),
+                content: TextField(
+                  onChanged: (value) {
+                    roomId = value;
+                  },
+                  decoration: const InputDecoration(
+                    hintText: 'Enter room ID',
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      if (roomId.isNotEmpty) {
+                        context.read<MatchHistoryBloc>().add(
+                              AddMatchToPlayerHistoryEvent(
+                                roomId: roomId,
+                                playerId: context.read<AppBloc>().state.user.id,
+                              ),
+                            );
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: const Text('Add'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
       resizeToAvoidBottomInset: false,
       body: Row(
         children: [

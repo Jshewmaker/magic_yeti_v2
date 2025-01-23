@@ -19,6 +19,20 @@ final class LoadMatchHistory extends MatchHistoryEvent {
   List<Object> get props => [userId];
 }
 
+/// Event to add a match to the player's history
+final class AddMatchToPlayerHistoryEvent extends MatchHistoryEvent {
+  const AddMatchToPlayerHistoryEvent({
+    required this.roomId,
+    required this.playerId,
+  });
+
+  final String roomId;
+  final String playerId;
+
+  @override
+  List<Object> get props => [roomId, playerId];
+}
+
 /// Event to clear match history
 final class ClearMatchHistory extends MatchHistoryEvent {
   const ClearMatchHistory();
