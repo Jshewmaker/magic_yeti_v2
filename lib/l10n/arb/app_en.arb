@@ -223,5 +223,94 @@
     "description": "Message shown when there is no match history to display",
     "type": "text",
     "placeholders": {}
+  },
+  "gameOverTitle": "Game Over",
+  "@gameOverTitle": {
+    "description": "Title shown on the game over page",
+    "type": "text",
+    "placeholders": {}
+  },
+  "matchOverview": "Match Overview",
+  "@matchOverview": {
+    "description": "Match overview section title",
+    "type": "text",
+    "placeholders": {}
+  },
+  "winner": "Winner",
+  "@winner": {
+    "description": "Winner label in match overview",
+    "type": "text",
+    "placeholders": {}
+  },
+  "gameDuration": "Game Duration",
+  "@gameDuration": {
+    "description": "Game duration label in match overview",
+    "type": "text",
+    "placeholders": {}
+  },
+  "finalStandings": "Final Standings",
+  "@finalStandings": {
+    "description": "Final standings section title",
+    "type": "text",
+    "placeholders": {}
+  },
+  "lifePoints": "Life: {points}",
+  "@lifePoints": {
+    "description": "Life points display in standings",
+    "type": "text",
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "gameDetails": "Game Details",
+  "@gameDetails": {
+    "description": "Game details section title",
+    "type": "text",
+    "placeholders": {}
+  },
+  "whoWentFirst": "Who went first:",
+  "@whoWentFirst": {
+    "description": "Label for first player selection",
+    "type": "text",
+    "placeholders": {}
+  },
+  "accountOwner": "Account owner:",
+  "@accountOwner": {
+    "description": "Label for account owner selection",
+    "type": "text",
+    "placeholders": {}
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button text",
+    "type": "text",
+    "placeholders": {}
+  },
+  "playAgain": "Play Again",
+  "@playAgain": {
+    "description": "Play again button text",
+    "type": "text",
+    "placeholders": {}
+  },
+  "returnToHome": "Return to Home",
+  "@returnToHome": {
+    "description": "Return to home button text",
+    "type": "text",
+    "placeholders": {}
+  },
+  "durationFormat": "{hours}h {minutes}m",
+  "@durationFormat": {
+    "description": "Format for displaying duration",
+    "type": "text",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
   }
 }

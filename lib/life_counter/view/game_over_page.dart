@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:player_repository/player_repository.dart';
 
 class GameOverPage extends StatefulWidget {
@@ -32,6 +33,7 @@ class _GameOverPageState extends State<GameOverPage> {
   Widget build(BuildContext context) {
     final players = context.watch<GameBloc>().state.playerList;
     final gameState = context.watch<GameBloc>().state;
+    final l10n = context.l10n;
 
     // Sort players by life total to determine standings
     final sortedPlayers = List<Player>.from(players)
@@ -42,7 +44,7 @@ class _GameOverPageState extends State<GameOverPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Game Over'),
+        title: Text(l10n.gameOverTitle),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -56,7 +58,7 @@ class _GameOverPageState extends State<GameOverPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Match Overview',
+                      l10n.matchOverview,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 16),
@@ -67,7 +69,7 @@ class _GameOverPageState extends State<GameOverPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Winner',
+                                l10n.winner,
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               Text(
@@ -86,7 +88,7 @@ class _GameOverPageState extends State<GameOverPage> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              'Game Duration',
+                              l10n.gameDuration,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             Text(
@@ -111,7 +113,7 @@ class _GameOverPageState extends State<GameOverPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Final Standings',
+                      l10n.finalStandings,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 16),
@@ -133,7 +135,7 @@ class _GameOverPageState extends State<GameOverPage> {
                               ),
                             ),
                             Text(
-                              'Life: ${player.lifePoints}',
+                              l10n.lifePoints(player.lifePoints),
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ],
@@ -154,13 +156,13 @@ class _GameOverPageState extends State<GameOverPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Game Details',
+                      l10n.gameDetails,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 16),
                     // Who went first dropdown
                     Text(
-                      'Who went first:',
+                      l10n.whoWentFirst,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
@@ -189,7 +191,7 @@ class _GameOverPageState extends State<GameOverPage> {
                     const SizedBox(height: 24),
                     // Account owner dropdown
                     Text(
-                      'Account owner:',
+                      l10n.accountOwner,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
@@ -229,11 +231,11 @@ class _GameOverPageState extends State<GameOverPage> {
                       context.pop();
                     },
                     child: Text(
-                      'Cancel',
+                      l10n.cancel,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
-                  Spacer(),
+                  const Spacer(),
                   ElevatedButton(
                     onPressed: selectedPlayerId == null && firstPlayerId == null
                         ? null
@@ -248,7 +250,7 @@ class _GameOverPageState extends State<GameOverPage> {
                                 );
                             context.pop();
                           },
-                    child: const Text('Play Again'),
+                    child: Text(l10n.playAgain),
                   ),
                   const SizedBox(width: 32),
                   ElevatedButton(
@@ -265,7 +267,7 @@ class _GameOverPageState extends State<GameOverPage> {
                                 );
                             context.go(HomePage.routeName);
                           },
-                    child: const Text('Return to Home'),
+                    child: Text(l10n.returnToHome),
                   ),
                 ],
               ),
@@ -278,8 +280,8 @@ class _GameOverPageState extends State<GameOverPage> {
 
   String _formatDuration(int seconds) {
     final duration = Duration(seconds: seconds);
-    final hours = duration.inHours; // Get hours
-    final minutes = duration.inMinutes.remainder(60); // Get remaining minutes
-    return '${hours}h ${minutes}m'; // Format the output
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    return '${hours}h ${minutes}m';
   }
 }
