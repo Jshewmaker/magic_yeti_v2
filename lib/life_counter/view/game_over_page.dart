@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/home_page.dart';
+import 'package:player_repository/player_repository.dart';
 
 class GameOverPage extends StatefulWidget {
   const GameOverPage({super.key});
@@ -30,6 +31,14 @@ class _GameOverPageState extends State<GameOverPage> {
   @override
   Widget build(BuildContext context) {
     final players = context.watch<GameBloc>().state.playerList;
+    final gameState = context.watch<GameBloc>().state;
+
+    // Sort players by life total to determine standings
+    final sortedPlayers = List<Player>.from(players)
+      ..sort((a, b) => b.lifePoints.compareTo(a.lifePoints));
+
+    final winner = sortedPlayers.first;
+    final gameDuration = gameState.elapsedSeconds;
 
     return Scaffold(
       appBar: AppBar(
@@ -39,155 +48,176 @@ class _GameOverPageState extends State<GameOverPage> {
         padding: const EdgeInsets.all(16),
         child: ScrollableColumn(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
+            // Match Overview Section
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Match Overview',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
                       children: [
-                        const SizedBox(height: 32),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Winner',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              Text(
+                                winner.name,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                      color: AppColors.white,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
                         Column(
-                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              'Who went first:',
-                              style: Theme.of(context).textTheme.titleLarge,
+                              'Game Duration',
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
-                            const SizedBox(height: 8),
-                            DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 16),
-                              ),
-                              value: firstPlayerId,
-                              items: players.map((player) {
-                                return DropdownMenuItem(
-                                  value: player.id,
-                                  child: Text(
-                                    player.name,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (String? value) {
-                                setState(() {
-                                  firstPlayerId = value;
-                                });
-                              },
-                            ),
-                            const SizedBox(height: 32),
                             Text(
-                              'Please select account owner:',
+                              _formatDuration(gameDuration),
                               style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 16),
-                              ),
-                              value: selectedPlayerId,
-                              items: players.map((player) {
-                                return DropdownMenuItem(
-                                  value: player.id,
-                                  child: Text(
-                                    player.name,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (String? value) {
-                                setState(() {
-                                  selectedPlayerId = value;
-                                });
-                              },
                             ),
                           ],
                         ),
-                        const SizedBox(height: 32),
                       ],
                     ),
-                  ),
+                  ],
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 32),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Final Standings Section
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Final Standings',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 16),
+                    ...sortedPlayers.asMap().entries.map((entry) {
+                      final player = entry.value;
+                      final rank = entry.key + 1;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
                           children: [
                             Text(
-                              'Who went first:',
-                              style: Theme.of(context).textTheme.titleLarge,
+                              '$rank. ',
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
-                            const SizedBox(height: 8),
-                            DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 16),
+                            Expanded(
+                              child: Text(
+                                player.name,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
-                              value: firstPlayerId,
-                              items: players.map((player) {
-                                return DropdownMenuItem(
-                                  value: player.id,
-                                  child: Text(
-                                    player.name,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (String? value) {
-                                setState(() {
-                                  firstPlayerId = value;
-                                });
-                              },
                             ),
-                            const SizedBox(height: 32),
                             Text(
-                              'Please select account owner:',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 16),
-                              ),
-                              value: selectedPlayerId,
-                              items: players.map((player) {
-                                return DropdownMenuItem(
-                                  value: player.id,
-                                  child: Text(
-                                    player.name,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (String? value) {
-                                setState(() {
-                                  selectedPlayerId = value;
-                                });
-                              },
+                              'Life: ${player.lifePoints}',
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ],
                         ),
-                        const SizedBox(height: 32),
-                      ],
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Game Details Section
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Game Details',
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                  ),
-                )
-              ],
+                    const SizedBox(height: 16),
+                    // Who went first dropdown
+                    Text(
+                      'Who went first:',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                      value: firstPlayerId,
+                      items: players.map((player) {
+                        return DropdownMenuItem(
+                          value: player.id,
+                          child: Text(
+                            player.name,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? value) {
+                        setState(() {
+                          firstPlayerId = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    // Account owner dropdown
+                    Text(
+                      'Account owner:',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                      value: selectedPlayerId,
+                      items: players.map((player) {
+                        return DropdownMenuItem(
+                          value: player.id,
+                          child: Text(
+                            player.name,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? value) {
+                        setState(() {
+                          selectedPlayerId = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -244,5 +274,12 @@ class _GameOverPageState extends State<GameOverPage> {
         ),
       ),
     );
+  }
+
+  String _formatDuration(int seconds) {
+    final duration = Duration(seconds: seconds);
+    final hours = duration.inHours; // Get hours
+    final minutes = duration.inMinutes.remainder(60); // Get remaining minutes
+    return '${hours}h ${minutes}m'; // Format the output
   }
 }
