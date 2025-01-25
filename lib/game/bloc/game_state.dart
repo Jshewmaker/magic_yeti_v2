@@ -10,10 +10,12 @@ class GameState extends Equatable {
     this.elapsedSeconds = 0,
     this.startTime,
     this.firstPlayerId,
+    this.gameModel,
     this.error,
   });
 
   final GameStatus status;
+  final GameModel? gameModel;
   final List<Player> playerList;
   final Player? winner;
   final int elapsedSeconds;
@@ -31,6 +33,7 @@ class GameState extends Equatable {
     DateTime? startTime,
     String? hostId,
     String? firstPlayerId,
+    GameModel? gameModel,
   }) {
     return GameState(
       status: status ?? this.status,
@@ -40,6 +43,7 @@ class GameState extends Equatable {
       startTime: startTime ?? this.startTime,
       error: error ?? this.error,
       firstPlayerId: firstPlayerId ?? this.firstPlayerId,
+      gameModel: gameModel ?? this.gameModel,
     );
   }
 
@@ -52,5 +56,6 @@ class GameState extends Equatable {
         startTime,
         firstPlayerId,
         error,
+        gameModel,
       ];
 }

@@ -32,12 +32,20 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
           children: [
             Expanded(
               child: TextField(
+                onSubmitted: (value) =>
+                    context.read<PlayerCustomizationBloc>().add(
+                          CardListRequested(
+                            cardName: value,
+                          ),
+                        ),
                 decoration: InputDecoration(
                   hintText: l10n.searchCommanderHintText,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  prefixIcon: const Icon(Icons.search),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                  ),
                 ),
                 controller: textController,
                 autocorrect: false,
@@ -59,7 +67,8 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                   ),
                 ),
               ),
-              child: Text(l10n.searchButtonText),
+              child: Text(l10n.searchButtonText,
+                  style: const TextStyle(color: AppColors.white)),
               onPressed: () => context.read<PlayerCustomizationBloc>().add(
                     CardListRequested(
                       cardName: textController.text,

@@ -4,6 +4,23 @@ import 'package:player_repository/player_repository.dart';
 
 part 'player.g.dart';
 
+/// A utility class that wraps a value that might be updated to null.
+/// This allows copyWith to differentiate between "not provided" (null)
+/// and "explicitly set to null" (Value(null))
+class Value<T> {
+  final T? value;
+  const Value(this.value);
+}
+
+/// Player state in the game
+enum PlayerModelState {
+  active,
+  eliminated;
+
+  bool get isActive => this == PlayerModelState.active;
+  bool get isEliminated => this == PlayerModelState.eliminated;
+}
+
 /// {@template player}
 /// Player object that holds all player info
 /// {@endtemplate}
@@ -19,9 +36,11 @@ class Player extends Equatable {
     required this.color,
     required this.commanderDamageList,
     this.firebaseId,
-    this.timeOfDeath = -1,
-    this.placement = 99,
-  });
+    this.state = PlayerModelState.eliminated,
+    int? placement,
+    int? timeOfDeath,
+  })  : _placement = placement,
+        _timeOfDeath = timeOfDeath;
 
   /// Creates a Player object from a JSON map
   factory Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
@@ -47,32 +66,47 @@ class Player extends Equatable {
   /// The player's color represented as an integer.
   final int color;
 
-  /// The player's placement in the game, defaults to 99.
-  final int placement;
+  /// The player's current state in the game
+  final PlayerModelState state;
 
-  /// The time when the player was eliminated from the game,
-  /// defaults to an empty string.
-  final int timeOfDeath;
+  final int? _placement;
+  final int? _timeOfDeath;
 
-  /// A list representing the damage dealt to the player by each commander,
-  /// defaults to an empty map.
-  final Map<String, int> commanderDamageList;
+  /// The player's placement in the game. Only available when player is eliminated.
+  int get placement {
+    if (!state.isEliminated) {
+      throw StateError('Cannot get placement for active player');
+    }
+    return _placement!;
+  }
 
-  /// Connect the generated [_$PlayerToJson] function to the `toJson` method.
-  Map<String, dynamic> toJson() => _$PlayerToJson(this);
+  /// The time when the player was eliminated. Only available when player is eliminated.
+  int get timeOfDeath {
+    if (!state.isEliminated) {
+      throw StateError('Cannot get time of death for active player');
+    }
+    return _timeOfDeath!;
+  }
 
-  /// Creates a new player object with the same values as the current player,
+  /// Whether the player is still active in the game
+  bool get isActive => state.isActive;
+
+  /// Whether the player has been eliminated
+  bool get isEliminated => state.isEliminated;
+
+  /// Creates a new player object with the same values as the current player
   Player copyWith({
     String? id,
     String? name,
     Commander? commander,
-    int? timeOfDeath,
     int? playerNumber,
     int? lifePoints,
     int? color,
-    int? placement,
     String? firebaseId,
     Map<String, int>? commanderDamageList,
+    PlayerModelState? state,
+    Value<int?>? placement,
+    Value<int?>? timeOfDeath,
   }) {
     return Player(
       firebaseId: firebaseId ?? this.firebaseId,
@@ -82,11 +116,19 @@ class Player extends Equatable {
       commander: commander ?? this.commander,
       playerNumber: playerNumber ?? this.playerNumber,
       lifePoints: lifePoints ?? this.lifePoints,
-      placement: placement ?? this.placement,
-      timeOfDeath: timeOfDeath ?? this.timeOfDeath,
+      state: state ?? this.state,
+      placement: placement != null ? placement.value : _placement,
+      timeOfDeath: timeOfDeath != null ? timeOfDeath.value : _timeOfDeath,
       commanderDamageList: commanderDamageList ?? this.commanderDamageList,
     );
   }
+
+  /// A list representing the damage dealt to the player by each commander,
+  /// defaults to an empty map.
+  final Map<String, int> commanderDamageList;
+
+  /// Connect the generated [_$PlayerToJson] function to the `toJson` method.
+  Map<String, dynamic> toJson() => _$PlayerToJson(this);
 
   @override
   List<Object?> get props => [
@@ -96,8 +138,10 @@ class Player extends Equatable {
         commander,
         playerNumber,
         lifePoints,
-        placement,
+        state,
         firebaseId,
         commanderDamageList,
+        _placement,
+        _timeOfDeath,
       ];
 }

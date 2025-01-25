@@ -11,12 +11,12 @@ part 'game_model.g.dart';
 class GameModel extends Equatable {
   /// {@macro game_model}
   const GameModel({
-    required this.hostId,
     required this.players,
     required this.startTime,
     required this.endTime,
     required this.winner,
     required this.durationInSeconds,
+    this.hostId = '',
     this.startingPlayerId = '',
     this.roomId = '',
     this.id,

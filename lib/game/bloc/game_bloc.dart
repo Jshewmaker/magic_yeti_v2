@@ -168,8 +168,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       for (final player in _players) {
         final resetPlayer = player.copyWith(
           lifePoints: _players.length == 4 ? 40 : 20,
-          timeOfDeath: -1,
-          placement: 99,
+          timeOfDeath: const Value(null),
+          placement: const Value(null),
+          state: PlayerModelState.active,
           commanderDamageList:
               Map.fromEntries(state.playerList.map((p) => MapEntry(p.id, 0))),
         );
@@ -190,22 +191,34 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     }
   }
 
-  void _onGameFinish(
+  Future<void> _onGameFinish(
     GameFinishEvent event,
     Emitter<GameState> emit,
-  ) {
+  ) async {
+    emit(state.copyWith(status: GameStatus.loading));
     _gameTimer?.cancel();
 
     final updateWinner = event.winner.copyWith(
-      placement: 1,
+      placement: const Value(1),
+      lifePoints: 0,
+      state: PlayerModelState.eliminated,
+      timeOfDeath: Value(DateTime.now().millisecondsSinceEpoch),
     );
+
     _playerRepository.updatePlayer(updateWinner);
 
+    final gameModel = GameModel(
+      roomId: await generateShortGameId(),
+      id: const Uuid().v4(),
+      winner: updateWinner,
+      players: state.playerList,
+      startTime: state.startTime ?? DateTime.now(),
+      endTime: DateTime.now(),
+      durationInSeconds: state.elapsedSeconds,
+    );
+
     emit(
-      state.copyWith(
-        status: GameStatus.finished,
-        winner: event.winner,
-      ),
+      state.copyWith(status: GameStatus.finished, gameModel: gameModel),
     );
   }
 
@@ -225,22 +238,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     Emitter<GameState> emit,
   ) async {
     try {
-      final player = state.playerList.firstWhere(
-        (player) => player.id == event.playerId,
-      );
-
-      final updatedPlayer = player.copyWith(
-        firebaseId: event.firebaseId,
-      );
-
-      _playerRepository.updatePlayer(updatedPlayer);
       final updateWinner = state.playerList.firstWhere(
         (player) => player.placement == 1,
       );
       final gameModel = GameModel(
         roomId: await generateShortGameId(),
         hostId: event.firebaseId,
-        startingPlayerId: event.firstPlayerId,
         id: const Uuid().v4(),
         winner: updateWinner,
         players: state.playerList,
@@ -248,15 +251,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         endTime: DateTime.now(),
         durationInSeconds: state.elapsedSeconds,
       );
-      await _database.saveGameStats(
-        gameModel,
-      );
 
-      await _database.addMatchToPlayerHistory(
-        gameModel,
-        event.firebaseId,
-      );
-      add(const GameResetEvent());
+      emit(state.copyWith(gameModel: gameModel));
     } catch (e) {
       emit(state.copyWith(status: GameStatus.error, error: e.toString()));
     }

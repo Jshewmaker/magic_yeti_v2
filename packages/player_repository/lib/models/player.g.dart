@@ -16,8 +16,10 @@ Player _$PlayerFromJson(Map<String, dynamic> json) => Player(
       commanderDamageList:
           Map<String, int>.from(json['commanderDamageList'] as Map),
       firebaseId: json['firebaseId'] as String?,
-      timeOfDeath: (json['timeOfDeath'] as num?)?.toInt() ?? -1,
-      placement: (json['placement'] as num?)?.toInt() ?? 99,
+      state: $enumDecodeNullable(_$PlayerModelStateEnumMap, json['state']) ??
+          PlayerModelState.eliminated,
+      placement: (json['placement'] as num?)?.toInt(),
+      timeOfDeath: (json['timeOfDeath'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$PlayerToJson(Player instance) => <String, dynamic>{
@@ -28,7 +30,13 @@ Map<String, dynamic> _$PlayerToJson(Player instance) => <String, dynamic>{
       'playerNumber': instance.playerNumber,
       'lifePoints': instance.lifePoints,
       'color': instance.color,
+      'state': _$PlayerModelStateEnumMap[instance.state]!,
       'placement': instance.placement,
       'timeOfDeath': instance.timeOfDeath,
       'commanderDamageList': instance.commanderDamageList,
     };
+
+const _$PlayerModelStateEnumMap = {
+  PlayerModelState.active: 'active',
+  PlayerModelState.eliminated: 'eliminated',
+};

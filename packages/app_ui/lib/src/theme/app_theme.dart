@@ -84,9 +84,9 @@ class AppTheme {
   ElevatedButtonThemeData get _elevatedButtonTheme {
     return ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        foregroundColor: AppColors.background,
-        backgroundColor: AppColors.quaternary,
-        disabledBackgroundColor: AppColors.white,
+        foregroundColor: AppColors.quaternary.withValues(alpha: .9),
+        backgroundColor: AppColors.quaternary.withValues(alpha: .9),
+        disabledBackgroundColor: AppColors.quaternary,
         disabledForegroundColor: AppColors.neutral60,
       ),
     );
