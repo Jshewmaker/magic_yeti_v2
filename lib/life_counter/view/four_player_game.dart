@@ -31,14 +31,14 @@ class FourPlayerGame extends StatelessWidget {
               children: [
                 Expanded(
                   child: _PlayerColumn(
-                    topPlayerId: playerList[3].id,
+                    topPlayerId: playerList[2].id,
                     bottomPlayerId: playerList[1].id,
                   ),
                 ),
                 const CenterControlColumn(),
                 Expanded(
                   child: _PlayerColumn(
-                    topPlayerId: playerList[2].id,
+                    topPlayerId: playerList[3].id,
                     bottomPlayerId: playerList[0].id,
                     alignment: Alignment.centerRight,
                   ),
