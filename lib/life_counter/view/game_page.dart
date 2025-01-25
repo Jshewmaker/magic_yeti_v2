@@ -28,7 +28,7 @@ class GamePage extends StatelessWidget {
     return BlocListener<GameBloc, GameState>(
       listener: (context, state) {
         if (state.status == GameStatus.finished) {
-          context.go('/game_page${GameOverPage.routePath}');
+          context.go(GameOverPage.routePath);
         }
       },
       child: playerCount == 2 ? const TwoPlayerGame() : const FourPlayerGame(),

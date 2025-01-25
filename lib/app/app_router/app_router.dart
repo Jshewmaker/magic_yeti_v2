@@ -62,16 +62,14 @@ class AppRouter {
             name: GamePage.routePath,
             child: GamePage.pageBuilder(context, state),
           ),
-          routes: [
-            AppRoute(
-              name: GameOverPage.routeName,
-              path: GameOverPage.routePath,
-              pageBuilder: (context, state) => NoTransitionPage(
-                name: GameOverPage.routeName,
-                child: GameOverPage.pageBuilder(context, state),
-              ),
-            ),
-          ],
+        ),
+        AppRoute(
+          name: GameOverPage.routeName,
+          path: GameOverPage.routePath,
+          pageBuilder: (context, state) => NoTransitionPage(
+            name: GameOverPage.routeName,
+            child: GameOverPage.pageBuilder(context, state),
+          ),
         ),
         AppRoute(
           name: LoginPage.routeName,

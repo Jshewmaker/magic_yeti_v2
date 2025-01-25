@@ -10,6 +10,7 @@ import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/bloc/game_over_bloc.dart';
+import 'package:magic_yeti/life_counter/view/game_page.dart';
 import 'package:player_repository/models/player.dart';
 
 class GameOverPage extends StatelessWidget {
@@ -113,15 +114,15 @@ class ButtonsWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          TextButton(
-            onPressed: () {
-              context.pop();
-            },
-            child: Text(
-              l10n.cancel,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
+          // TextButton(
+          //   onPressed: () {
+          //     context.pop();
+          //   },
+          //   child: Text(
+          //     l10n.cancel,
+          //     style: Theme.of(context).textTheme.titleMedium,
+          //   ),
+          // ),
           const Spacer(),
           SizedBox(
             height: 50,
@@ -161,7 +162,7 @@ class ButtonsWidget extends StatelessWidget {
                             ),
                           );
                       context.read<GameBloc>().add(const GameResetEvent());
-                      context.pop();
+                      context.go(GamePage.routePath);
                     },
               child: Text(
                 l10n.playAgain,
