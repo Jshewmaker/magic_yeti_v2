@@ -26,10 +26,10 @@ class GameOverPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final players = context.watch<GameBloc>().state.playerList;
     return BlocProvider(
       create: (context) => GameOverBloc(
-        players: players,
+        players: context.read<GameBloc>().state.playerList,
+        gameModel: context.read<GameBloc>().state.gameModel!,
         firebaseDatabaseRepository: context.read<FirebaseDatabaseRepository>(),
       ),
       child: const GameOverView(),
@@ -42,13 +42,12 @@ class GameOverView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gameState = context.watch<GameBloc>().state;
     final l10n = context.l10n;
     final gameOverState = context.watch<GameOverBloc>().state;
-    final players = gameState.playerList;
+    final players = gameOverState.standings;
 
     final winner = gameOverState.standings.first;
-    final gameDuration = gameState.elapsedSeconds;
+    final gameDuration = gameOverState.gameModel.durationInSeconds;
 
     return Scaffold(
       appBar: AppBar(
@@ -71,7 +70,6 @@ class GameOverView extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       WinnerWidget(
-                        l10n: l10n,
                         winner: winner,
                         gameDuration: gameDuration,
                       ),
@@ -83,22 +81,16 @@ class GameOverView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     DraggableStandingsWidget(
-                      l10n: l10n,
                       gameOverState: gameOverState,
                     ),
                     QuestionWidget(
-                      l10n: l10n,
                       gameOverState: gameOverState,
                       players: players,
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                ButtonsWidget(
-                  l10n: l10n,
-                  gameOverState: gameOverState,
-                  gameState: gameState,
-                ),
+                const ButtonsWidget(),
               ]),
             ),
           ),
@@ -110,18 +102,13 @@ class GameOverView extends StatelessWidget {
 
 class ButtonsWidget extends StatelessWidget {
   const ButtonsWidget({
-    required this.l10n,
-    required this.gameOverState,
-    required this.gameState,
     super.key,
   });
 
-  final AppLocalizations l10n;
-  final GameOverState gameOverState;
-  final GameState gameState;
-
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final gameOverState = context.watch<GameOverBloc>().state;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -146,7 +133,7 @@ class ButtonsWidget extends StatelessWidget {
                   : () {
                       context.read<GameOverBloc>().add(
                             SendGameOverStatsEvent(
-                              gameModel: gameState.gameModel,
+                              gameModel: gameOverState.gameModel,
                               userId: context.read<AppBloc>().state.user.id,
                             ),
                           );
@@ -155,7 +142,6 @@ class ButtonsWidget extends StatelessWidget {
                     },
               child: Text(
                 l10n.returnToHome,
-                style: const TextStyle(color: AppColors.white),
               ),
             ),
           ),
@@ -170,7 +156,7 @@ class ButtonsWidget extends StatelessWidget {
                   : () {
                       context.read<GameOverBloc>().add(
                             SendGameOverStatsEvent(
-                              gameModel: gameState.gameModel,
+                              gameModel: gameOverState.gameModel,
                               userId: context.read<AppBloc>().state.user.id,
                             ),
                           );
@@ -179,7 +165,6 @@ class ButtonsWidget extends StatelessWidget {
                     },
               child: Text(
                 l10n.playAgain,
-                style: const TextStyle(color: AppColors.white),
               ),
             ),
           ),
@@ -191,18 +176,17 @@ class ButtonsWidget extends StatelessWidget {
 
 class QuestionWidget extends StatelessWidget {
   const QuestionWidget({
-    required this.l10n,
     required this.gameOverState,
     required this.players,
     super.key,
   });
 
-  final AppLocalizations l10n;
   final GameOverState gameOverState;
   final List<Player> players;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -280,41 +264,15 @@ class QuestionWidget extends StatelessWidget {
 
 class DraggableStandingsWidget extends StatelessWidget {
   const DraggableStandingsWidget({
-    required this.l10n,
     required this.gameOverState,
     super.key,
   });
 
-  final AppLocalizations l10n;
   final GameOverState gameOverState;
 
   @override
   Widget build(BuildContext context) {
-    Widget proxyDecorator(
-      Widget child,
-      int index,
-      Animation<double> animation,
-    ) {
-      final player = gameOverState.standings[index];
-
-      return AnimatedBuilder(
-        animation: animation,
-        builder: (BuildContext context, Widget? child) {
-          final animValue = Curves.easeInOut.transform(animation.value);
-
-          final scale = lerpDouble(1, 1.1, animValue)!;
-          return Transform.scale(
-            scale: scale,
-            child: StandingsWidget(
-              key: Key('$index'),
-              player: player,
-              index: index,
-            ),
-          );
-        },
-        child: child,
-      );
-    }
+    final l10n = context.l10n;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -340,7 +298,29 @@ class DraggableStandingsWidget extends StatelessWidget {
             width: 300,
             child: ReorderableListView.builder(
               shrinkWrap: true,
-              proxyDecorator: proxyDecorator,
+              proxyDecorator:
+                  (Widget child, int index, Animation<double> animation) {
+                final player = gameOverState.standings[index];
+
+                return AnimatedBuilder(
+                  animation: animation,
+                  builder: (BuildContext context, Widget? child) {
+                    final animValue =
+                        Curves.easeInOut.transform(animation.value);
+
+                    final scale = lerpDouble(1, 1.1, animValue)!;
+                    return Transform.scale(
+                      scale: scale,
+                      child: StandingsWidget(
+                        key: Key('$index'),
+                        player: player,
+                        index: index,
+                      ),
+                    );
+                  },
+                  child: child,
+                );
+              },
               physics: const NeverScrollableScrollPhysics(),
               itemCount: gameOverState.standings.length,
               onReorder: (oldIndex, newIndex) {
@@ -370,18 +350,17 @@ class DraggableStandingsWidget extends StatelessWidget {
 
 class WinnerWidget extends StatelessWidget {
   const WinnerWidget({
-    super.key,
-    required this.l10n,
     required this.winner,
     required this.gameDuration,
+    super.key,
   });
 
-  final AppLocalizations l10n;
   final Player winner;
   final int gameDuration;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Row(
       children: [
         Expanded(
