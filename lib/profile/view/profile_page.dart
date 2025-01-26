@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/profile/bloc/profile_bloc.dart';
+import 'package:firebase_database_repository/firebase_database_repository.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -17,67 +19,188 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.select((AppBloc bloc) => bloc.state.user);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
+    return BlocProvider(
+      create: (context) => ProfileBloc(
+        firebaseDatabaseRepository: context.read<FirebaseDatabaseRepository>(),
+        userProfile: user,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 500,
-              child: Column(
-                children: [
-                  if (user.imageUrl != null && user.imageUrl!.isNotEmpty)
-                    Center(
-                      child: CircleAvatar(
-                        radius: 75,
-                        backgroundImage: NetworkImage(user.imageUrl!),
-                      ),
-                    ),
-                  const SizedBox(height: 50),
-                  _ProfileField(
-                      label: 'Username', value: user.username ?? 'Not set'),
-                  _ProfileField(
-                    label: 'First Name',
-                    value: user.firstName ?? 'Not set',
-                  ),
-                  _ProfileField(
-                    label: 'Last Name',
-                    value: user.lastName ?? 'Not set',
-                  ),
-                  _ProfileField(label: 'Email', value: user.email ?? 'Not set'),
-                  _ProfileField(label: 'Bio', value: user.bio ?? 'Not set'),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          // TODO: Add edit profile functionality
-                        },
-                        child: const Text('Edit Profile'),
-                      ),
-                      const SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          context
-                              .read<AppBloc>()
-                              .add(const AppLogoutRequested());
-                          context.pop();
-                        },
-                        child: const Text('Sign Out'),
-                      ),
-                    ],
-                  ),
-                ],
+      child: const ProfileView(),
+    );
+  }
+}
+
+class ProfileView extends StatelessWidget {
+  const ProfileView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<ProfileBloc, ProfileState>(
+      listenWhen: (previous, current) => previous.status != current.status,
+      listener: (context, state) {
+        if (state.status == ProfileStatus.success) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(content: Text('Profile Updated Successfully')),
+            );
+        }
+        if (state.status == ProfileStatus.failure) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(
+                content: Text('Failed to update profile'),
+                backgroundColor: Colors.red,
               ),
+            );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Profile'),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 500,
+                  child: BlocBuilder<ProfileBloc, ProfileState>(
+                    buildWhen: (previous, current) =>
+                        previous.status != current.status,
+                    builder: (context, state) {
+                      if (state.status == ProfileStatus.loading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      return Form(
+                        child: Column(
+                          children: [
+                            if (state.userProfile.imageUrl != null &&
+                                state.userProfile.imageUrl!.isNotEmpty)
+                              Center(
+                                child: CircleAvatar(
+                                  radius: 75,
+                                  backgroundImage:
+                                      NetworkImage(state.userProfile.imageUrl!),
+                                ),
+                              ),
+                            if (state.userProfile.imageUrl == null ||
+                                state.userProfile.imageUrl!.isEmpty)
+                              Center(
+                                child: CircleAvatar(
+                                  radius: 75,
+                                  backgroundColor: Theme.of(context).primaryColor,
+                                  child: Text(
+                                    (state.userProfile.username ?? '')
+                                        .isNotEmpty
+                                        ? state.userProfile.username![0]
+                                            .toUpperCase()
+                                        : '',
+                                    style: const TextStyle(
+                                      fontSize: 40,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 50),
+                            _ProfileField(
+                              label: 'Username',
+                              initialValue: state.userProfile.username ?? '',
+                              onChanged: (value) => context
+                                  .read<ProfileBloc>()
+                                  .add(ProfileUsernameChanged(value)),
+                            ),
+                            _ProfileField(
+                              label: 'First Name',
+                              initialValue: state.userProfile.firstName ?? '',
+                              onChanged: (value) => context
+                                  .read<ProfileBloc>()
+                                  .add(ProfileFirstNameChanged(value)),
+                            ),
+                            _ProfileField(
+                              label: 'Last Name',
+                              initialValue: state.userProfile.lastName ?? '',
+                              onChanged: (value) => context
+                                  .read<ProfileBloc>()
+                                  .add(ProfileLastNameChanged(value)),
+                            ),
+                            _ProfileField(
+                              label: 'Email',
+                              initialValue: state.userProfile.email ?? '',
+                              onChanged: (value) => context
+                                  .read<ProfileBloc>()
+                                  .add(ProfileEmailChanged(value)),
+                            ),
+                            _ProfileField(
+                              label: 'Bio',
+                              initialValue: state.userProfile.bio ?? '',
+                              onChanged: (value) => context
+                                  .read<ProfileBloc>()
+                                  .add(ProfileBioChanged(value)),
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _EditProfileButton(),
+                                const SizedBox(width: 16),
+                                _SignOutButton(),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _EditProfileButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      buildWhen: (previous, current) =>
+          previous.isEditing != current.isEditing ||
+          previous.status != current.status,
+      builder: (context, state) {
+        return ElevatedButton(
+          onPressed: state.status == ProfileStatus.loading
+              ? null
+              : () {
+                  if (state.isEditing) {
+                    context.read<ProfileBloc>().add(const ProfileSubmitted());
+                  } else {
+                    context
+                        .read<ProfileBloc>()
+                        .add(const ProfileEditingToggled());
+                  }
+                },
+          child: Text(state.isEditing ? 'Save Profile' : 'Edit Profile'),
+        );
+      },
+    );
+  }
+}
+
+class _SignOutButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        context.read<AppBloc>().add(const AppLogoutRequested());
+        context.pop();
+      },
+      child: const Text('Sign Out'),
     );
   }
 }
@@ -85,30 +208,47 @@ class ProfilePage extends StatelessWidget {
 class _ProfileField extends StatelessWidget {
   const _ProfileField({
     required this.label,
-    required this.value,
+    required this.initialValue,
+    required this.onChanged,
   });
 
   final String label;
-  final String value;
+  final String initialValue;
+  final void Function(String) onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '$label:',
-            style: Theme.of(context).textTheme.titleLarge,
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      buildWhen: (previous, current) => previous.isEditing != current.isEditing,
+      builder: (context, state) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 100,
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: state.isEditing
+                    ? TextFormField(
+                        initialValue: initialValue,
+                        decoration: InputDecoration(
+                          hintText: 'Enter $label',
+                        ),
+                        onChanged: onChanged,
+                      )
+                    : Text(initialValue.isEmpty ? 'Not set' : initialValue),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

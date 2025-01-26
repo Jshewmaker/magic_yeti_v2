@@ -109,6 +109,7 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.read<AppBloc>().state.user;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -130,13 +131,20 @@ class SectionHeader extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           if (onMorePressed != null)
-            IconButton(
-              onPressed: onMorePressed,
-              icon: const Icon(
-                Icons.account_circle_sharp,
-                color: AppColors.onSurfaceVariant,
-              ),
-            ),
+            user.imageUrl == null || user.imageUrl!.isEmpty
+                ? IconButton(
+                    onPressed: onMorePressed,
+                    icon: const Icon(
+                      Icons.account_circle_sharp,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  )
+                : InkWell(
+                    onTap: onMorePressed,
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(user.imageUrl!),
+                    ),
+                  ),
         ],
       ),
     );
