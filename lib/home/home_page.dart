@@ -27,15 +27,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => MatchHistoryBloc(
-        databaseRepository: context.read<FirebaseDatabaseRepository>(),
-        user: context.read<UserProfileModel>(),
-      )..add(
-          LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
-        ),
-      child: const HomeView(),
-    );
+    return const HomeView();
   }
 }
 

@@ -1,7 +1,9 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/models/models.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:magic_yeti/home/bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:player_repository/models/player.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -39,57 +41,97 @@ class MatchDetailsView extends StatelessWidget {
 
   final GameModel game;
 
+  void _handlePlayerSelection(BuildContext context, Player player) {
+    final currentUserFirebaseId = game.hostId;
+
+    // Dispatch event to update player ownership
+    context.read<MatchHistoryBloc>().add(
+          UpdatePlayerOwnership(
+            game: game,
+            player: player,
+            currentUserFirebaseId: currentUserFirebaseId,
+          ),
+        );
+
+    // Show a confirmation snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('You were ${player.name} in this game'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final winner = game.winner;
     final gameDuration = game.durationInSeconds;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.matchDetailsTitle),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Match Details',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 16),
-                      MatchWinnerWidget(
-                        winner: winner,
-                        gameDuration: gameDuration,
-                        startingPlayerId: game.startingPlayerId,
-                      ),
-                      const SizedBox(height: 16),
-                      MatchStandingsWidget(
-                        players: game.players,
-                        winner: winner,
-                      ),
-                      const SizedBox(height: 16),
-                      MatchMetadataWidget(
-                        game: game,
-                      ),
-                    ],
-                  ),
-                ),
-              ]),
+    return BlocListener<MatchHistoryBloc, MatchHistoryState>(
+      listenWhen: (previous, current) =>
+          previous.status != current.status &&
+          current.status == HomeStatus.failure,
+      listener: (context, state) {
+        if (state.status == HomeStatus.failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to save: ${state.error}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
             ),
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.matchDetailsTitle),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.pop(),
           ),
-        ],
+        ),
+        body: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Match Details',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 16),
+                        MatchWinnerWidget(
+                          winner: winner,
+                          gameDuration: gameDuration,
+                          startingPlayerId: game.startingPlayerId,
+                        ),
+                        const SizedBox(height: 16),
+                        MatchStandingsWidget(
+                          players: game.players,
+                          winner: winner,
+                          currentUserFirebaseId: game.hostId,
+                          onSelectPlayer: (player) =>
+                              _handlePlayerSelection(context, player),
+                        ),
+                        const SizedBox(height: 16),
+                        MatchMetadataWidget(
+                          game: game,
+                        ),
+                      ],
+                    ),
+                  ),
+                ]),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -198,11 +240,15 @@ class MatchStandingsWidget extends StatelessWidget {
   const MatchStandingsWidget({
     required this.players,
     required this.winner,
+    required this.currentUserFirebaseId,
+    required this.onSelectPlayer,
     super.key,
   });
 
   final List<Player> players;
   final Player winner;
+  final String? currentUserFirebaseId;
+  final void Function(Player) onSelectPlayer;
 
   @override
   Widget build(BuildContext context) {
@@ -230,12 +276,29 @@ class MatchStandingsWidget extends StatelessWidget {
                     LinkWidget(uri: player.commander?.scryFallUrl),
                   ],
                 ),
-                trailing: player.id == winner.id
-                    ? const Icon(
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (player.firebaseId == currentUserFirebaseId)
+                      const Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: Icon(
+                          Icons.person,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    if (player.id == winner.id)
+                      const Icon(
                         Icons.emoji_events,
                         color: Colors.amber,
-                      )
-                    : null,
+                      ),
+                    if (player.firebaseId != currentUserFirebaseId)
+                      TextButton(
+                        onPressed: () => onSelectPlayer(player),
+                        child: const Text('This is me'),
+                      ),
+                  ],
+                ),
               ),
             ),
           ],

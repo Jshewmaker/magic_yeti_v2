@@ -17,6 +17,7 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
     on<ClearMatchHistory>(_onClearMatchHistory);
     on<CompileMatchHistoryData>(_onCompileMatchHistoryData);
     on<AddMatchToPlayerHistoryEvent>(_addMatchToPlayerHistory);
+    on<UpdatePlayerOwnership>(_onUpdatePlayerOwnership);
   }
 
   final FirebaseDatabaseRepository _databaseRepository;
@@ -200,6 +201,45 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
         games: const [],
       ),
     );
+  }
+
+  Future<void> _onUpdatePlayerOwnership(
+    UpdatePlayerOwnership event,
+    Emitter<MatchHistoryState> emit,
+  ) async {
+    try {
+      // Update the player's Firebase ID
+      final updatedPlayers = event.game.players.map((p) {
+        if (p.id == event.player.id) {
+          return p.copyWith(firebaseId: event.currentUserFirebaseId);
+        }
+        return p;
+      }).toList();
+
+      // Update the game model with the new player list
+      final updatedGame = event.game.copyWith(players: updatedPlayers);
+
+      // Save the updated game to Firebase
+      await _databaseRepository.saveGameStats(updatedGame);
+
+      // Update the games list in state
+      final updatedGames = state.games.map((game) {
+        if (game.id == event.game.id) {
+          return updatedGame;
+        }
+        return game;
+      }).toList();
+
+      emit(state.copyWith(
+        games: updatedGames,
+        status: HomeStatus.loadingHistorySuccess,
+      ));
+    } catch (error) {
+      emit(state.copyWith(
+        status: HomeStatus.failure,
+        error: error.toString(),
+      ));
+    }
   }
 
   String _formatDuration(int seconds) {
