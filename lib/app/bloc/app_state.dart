@@ -15,32 +15,33 @@ class AppState extends Equatable {
   const AppState._({
     required this.status,
     this.forceUpgrade = const ForceUpgrade(isUpgradeRequired: false),
-    this.user = User.unauthenticated,
+    this.user = UserProfileModel.empty,
   });
 
-  const AppState.downForMaintenance([User user = User.unauthenticated])
-      : this._(status: AppStatus.downForMaintenance, user: user);
+  const AppState.downForMaintenance([
+    UserProfileModel user = UserProfileModel.empty,
+  ]) : this._(status: AppStatus.downForMaintenance, user: user);
 
   const AppState.forceUpgradeRequired(
     ForceUpgrade forceUpgrade, [
-    User user = User.unauthenticated,
+    UserProfileModel user = UserProfileModel.empty,
   ]) : this._(
           status: AppStatus.forceUpgradeRequired,
           forceUpgrade: forceUpgrade,
           user: user,
         );
 
-  const AppState.authenticated(User user)
+  const AppState.authenticated(UserProfileModel user)
       : this._(status: AppStatus.authenticated, user: user);
 
-  const AppState.onboardingRequired(User user)
+  const AppState.onboardingRequired(UserProfileModel user)
       : this._(status: AppStatus.onboardingRequired, user: user);
 
   const AppState.unauthenticated() : this._(status: AppStatus.unauthenticated);
 
   final AppStatus status;
   final ForceUpgrade forceUpgrade;
-  final User user;
+  final UserProfileModel user;
 
   @override
   List<Object> get props => [status, forceUpgrade, user];

@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_inputs/form_inputs.dart';
 import 'package:go_router/go_router.dart';
-import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
+import 'package:magic_yeti/onboarding/onboarding.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
 
 class SignUpForm extends StatelessWidget {
@@ -19,7 +19,7 @@ class SignUpForm extends StatelessWidget {
     return BlocListener<SignUpBloc, SignUpState>(
       listener: (context, state) {
         if (state.status.isSuccess) {
-          context.go(HomePage.routeName);
+          context.go(OnboardingPage.routeName);
         } else if (state.status.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()

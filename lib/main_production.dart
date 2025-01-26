@@ -15,12 +15,13 @@ void main() {
     (FirebaseFirestore firebaseFirestore) async {
       final authenticationClient = FirebaseAuthenticationClient();
 
-      final userRepository =
-          UserRepository(authenticationClient: authenticationClient);
       final firebaseDatabaseRepository = FirebaseDatabaseRepository(
         firebase: FirebaseFirestore.instance,
       );
-
+      final userRepository = UserRepository(
+        authenticationClient: authenticationClient,
+        firebaseDatabaseRepository: firebaseDatabaseRepository,
+      );
       final scryfallRepository = ScryfallRepository();
       final user = await userRepository.user.first;
       final appConfigRepository = FakeAppConfigRepository();

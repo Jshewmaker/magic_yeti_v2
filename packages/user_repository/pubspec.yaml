@@ -9,6 +9,9 @@ dependencies:
   authentication_client:
     path: ../authentication_client/authentication_client
   equatable: ^2.0.5
+  firebase_database_repository:
+    path: ../firebase_database_repository
+  rxdart: ^0.28.0
 
 dev_dependencies:
   mocktail: ^1.0.3

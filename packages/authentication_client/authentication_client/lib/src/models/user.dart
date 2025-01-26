@@ -37,6 +37,24 @@ class User extends Equatable {
   /// Whether the current user is anonymous.
   final bool isAnonymous;
 
+  /// Copy the current user with the provided values.
+  User copyWith({
+    String? email,
+    String? id,
+    String? name,
+    String? photo,
+    bool? isNewUser,
+    bool? isAnonymous,
+  }) =>
+      User(
+        email: email ?? this.email,
+        id: id ?? this.id,
+        name: name ?? this.name,
+        photo: photo ?? this.photo,
+        isNewUser: isNewUser ?? this.isNewUser,
+        isAnonymous: isAnonymous ?? this.isAnonymous,
+      );
+
   /// An unauthenticated user.
   static const unauthenticated = User(id: '');
 

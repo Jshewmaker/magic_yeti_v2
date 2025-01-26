@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:app_config_repository/app_config_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_database_repository/models/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:user_repository/user_repository.dart';
 
@@ -16,10 +17,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   AppBloc({
     required AppConfigRepository appConfigRepository,
     required UserRepository userRepository,
-    required User user,
+    required UserProfileModel user,
   })  : _userRepository = userRepository,
         super(
-          user == User.unauthenticated
+          user == UserProfileModel.empty
               ? const AppState.unauthenticated()
               : AppState.authenticated(user),
         ) {
@@ -42,7 +43,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   final UserRepository _userRepository;
   late StreamSubscription<ForceUpgrade> _forceUpgradeSubscription;
   late StreamSubscription<bool> _isDownForMaintenanceSubscription;
-  late StreamSubscription<User> _userSubscription;
+  late StreamSubscription<UserProfileModel> _userSubscription;
 
   void _downForMaintenanceStatusChanged(bool isDownForMaintenance) {
     add(
@@ -56,7 +57,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     add(AppForceUpgradeStatusChanged(forceUpgrade));
   }
 
-  void _userChanged(User user) => add(AppUserChanged(user));
+  void _userChanged(UserProfileModel user) => add(AppUserChanged(user));
 
   void _onDownForMaintenanceStatusChanged(
     AppDownForMaintenanceStatusChanged event,
@@ -103,7 +104,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       case AppStatus.onboardingRequired:
         return event.user == User.unauthenticated
             ? emit(const AppState.unauthenticated())
-            : event.user.isNewUser
+            : event.user.isAnonymous
                 ? emit(AppState.authenticated(event.user))
                 : emit(AppState.authenticated(event.user));
     }

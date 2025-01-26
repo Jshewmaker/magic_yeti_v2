@@ -12,7 +12,6 @@ import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
 import 'package:magic_yeti/login/login.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
-import 'package:user_repository/user_repository.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class HomePage extends StatelessWidget {
@@ -29,7 +28,7 @@ class HomePage extends StatelessWidget {
     return BlocProvider(
       create: (context) => MatchHistoryBloc(
         databaseRepository: context.read<FirebaseDatabaseRepository>(),
-        user: context.read<User>(),
+        user: context.read<UserProfileModel>(),
       )..add(
           LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
         ),
@@ -88,7 +87,7 @@ class HomeView extends StatelessWidget {
         child: const Icon(Icons.add),
       ),
       resizeToAvoidBottomInset: false,
-      body: Row(
+      body: const Row(
         children: [
           Expanded(child: LeftSidePanel()),
           Expanded(child: MatchHistoryPanel()),

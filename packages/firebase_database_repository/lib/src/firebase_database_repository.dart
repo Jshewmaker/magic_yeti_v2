@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database_repository/models/game_model.dart';
+import 'package:firebase_database_repository/models/models.dart';
 import 'package:player_repository/player_repository.dart';
 
 /// {@template save_game_stats_exception}
@@ -70,6 +71,40 @@ class GameNotFoundException implements Exception {
   final Object stackTrace;
 }
 
+/// {@template update_user_profile_exception}
+/// Exception thrown when updating a user profile fails.
+/// {@endtemplate}
+class UpdateUserProfileException implements Exception {
+  /// {@macro update_user_profile_exception}
+  const UpdateUserProfileException({
+    required this.message,
+    required this.stackTrace,
+  });
+
+  /// A description of the error.
+  final String message;
+
+  /// The stack trace for the exception.
+  final Object stackTrace;
+}
+
+/// {@template get_user_profile_exception}
+/// Exception thrown when getting a user profile fails.
+/// {@endtemplate}
+class GetUserProfileException implements Exception {
+  /// {@macro get_user_profile_exception}
+  const GetUserProfileException({
+    required this.message,
+    required this.stackTrace,
+  });
+
+  /// A description of the error.
+  final String message;
+
+  /// The stack trace for the exception.
+  final Object stackTrace;
+}
+
 /// {@template firebase_database_repository}
 /// Firebase database package
 /// {@endtemplate}
@@ -80,6 +115,7 @@ class FirebaseDatabaseRepository {
 
   final FirebaseFirestore _firebase;
 
+  /// Check if a game ID already exists
   Future<bool> checkIfGameIdExists(String gameId) async {
     try {
       return await _firebase
@@ -187,6 +223,37 @@ class FirebaseDatabaseRepository {
           .set(game.toJson());
     } on Exception catch (error, stackTrace) {
       throw AddMatchToPlayerHistoryException(
+        message: error.toString(),
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Update a user's profile
+  Future<void> updateUserProfile(
+    String userId,
+    UserProfileModel userProfile,
+  ) async {
+    try {
+      await _firebase.collection('users').doc(userId).set(userProfile.toJson());
+    } on Exception catch (error, stackTrace) {
+      throw UpdateUserProfileException(
+        message: error.toString(),
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Get a user's profile
+  Stream<UserProfileModel> getUserProfile(String userId) {
+    try {
+      return _firebase
+          .collection('users')
+          .doc(userId)
+          .snapshots()
+          .map((doc) => UserProfileModel.fromJson(doc.data()!));
+    } on Exception catch (error, stackTrace) {
+      throw GetUserProfileException(
         message: error.toString(),
         stackTrace: stackTrace,
       );

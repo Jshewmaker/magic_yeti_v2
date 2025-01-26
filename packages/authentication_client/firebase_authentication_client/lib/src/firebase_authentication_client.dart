@@ -303,13 +303,12 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
 }
 
 extension on firebase_auth.User {
-  User toUser({bool isNewUser = false}) {
+  User toUser() {
     return User(
       id: uid,
       email: email,
       name: displayName,
       photo: photoURL,
-      isNewUser: isNewUser,
       isAnonymous: email == null || email == '',
     );
   }
@@ -318,6 +317,6 @@ extension on firebase_auth.User {
 extension on firebase_auth.UserCredential {
   User get toUser {
     if (user == null) return User.unauthenticated;
-    return user!.toUser(isNewUser: additionalUserInfo?.isNewUser ?? false);
+    return user!.toUser();
   }
 }

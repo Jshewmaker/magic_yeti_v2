@@ -2,7 +2,6 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:player_repository/models/player.dart';
-import 'package:user_repository/user_repository.dart';
 
 part 'match_history_event.dart';
 part 'match_history_state.dart';
@@ -10,7 +9,7 @@ part 'match_history_state.dart';
 class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
   MatchHistoryBloc({
     required FirebaseDatabaseRepository databaseRepository,
-    required User user,
+    required UserProfileModel user,
   })  : _databaseRepository = databaseRepository,
         _user = user,
         super(const MatchHistoryState()) {
@@ -21,7 +20,7 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
   }
 
   final FirebaseDatabaseRepository _databaseRepository;
-  final User _user;
+  final UserProfileModel _user;
 
   Future<void> _onLoadMatchHistory(
     LoadMatchHistory event,

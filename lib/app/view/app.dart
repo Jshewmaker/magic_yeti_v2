@@ -17,7 +17,7 @@ class App extends StatelessWidget {
     required AppConfigRepository appConfigRepository,
     required UserRepository userRepository,
     required ScryfallRepository scryfallRepository,
-    required User user,
+    required UserProfileModel user,
     super.key,
   })  : _appConfigRepository = appConfigRepository,
         _userRepository = userRepository,
@@ -30,7 +30,7 @@ class App extends StatelessWidget {
   final AppConfigRepository _appConfigRepository;
   final UserRepository _userRepository;
 
-  final User _user;
+  final UserProfileModel _user;
 
   @override
   Widget build(BuildContext context) {

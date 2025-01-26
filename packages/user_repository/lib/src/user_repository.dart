@@ -4,22 +4,51 @@
 import 'dart:async';
 
 import 'package:authentication_client/authentication_client.dart';
+import 'package:firebase_database_repository/firebase_database_repository.dart';
+import 'package:rxdart/rxdart.dart';
 
 /// {@template user_repository}
 /// Repository which manages the user domain.
 /// {@endtemplate}
 class UserRepository {
   /// {@macro user_repository}
-  UserRepository({required AuthenticationClient authenticationClient})
-      : _authenticationClient = authenticationClient;
+  UserRepository({
+    required AuthenticationClient authenticationClient,
+    required FirebaseDatabaseRepository firebaseDatabaseRepository,
+  })  : _authenticationClient = authenticationClient,
+        _firebaseDatabaseRepository = firebaseDatabaseRepository;
 
   final AuthenticationClient _authenticationClient;
+  final FirebaseDatabaseRepository _firebaseDatabaseRepository;
+  final _userController = PublishSubject<UserProfileModel>();
 
   /// Stream of [User] which will emit the current user when
-  /// the authentication state changes.
+  /// the authentication state changes or when the user profile is updated.
   ///
   /// Emits [User.unauthenticated] if the user is not authenticated.
-  Stream<User> get user => _authenticationClient.user;
+  Stream<UserProfileModel> get user => Rx.merge([
+        _authenticationClient.user.switchMap((user) {
+          if (user == User.unauthenticated) {
+            return Stream.value(UserProfileModel.empty);
+          }
+          return _firebaseDatabaseRepository.getUserProfile(user.id).onErrorResume(
+                (error, stackTrace) => Stream.value(
+                  UserProfileModel(
+                    id: user.id,
+                    email: user.email ?? '',
+                    username: user.name?.split(' ').first ?? '',
+                    firstName: user.name?.split(' ').first ?? '',
+                    lastName: user.name?.split(' ').last ?? '',
+                    bio: '',
+                    imageUrl: user.photo ?? '',
+                    isNewUser: true,
+                    isAnonymous: user.isAnonymous,
+                  ),
+                ),
+              );
+        }),
+        _userController.stream,
+      ]);
 
   /// Creates a new user with the provided [email] and [password].
   ///
