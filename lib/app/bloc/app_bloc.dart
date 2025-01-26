@@ -108,7 +108,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         return event.user == User.unauthenticated
             ? emit(const AppState.unauthenticated())
             : event.user.isAnonymous
-                ? emit(AppState.authenticated(event.user))
+                ? emit(AppState.anonymous(event.user))
                 : emit(AppState.authenticated(event.user));
     }
   }
@@ -120,7 +120,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     if (state.status == AppStatus.onboardingRequired) {
       return state.user == User.unauthenticated
           ? emit(const AppState.unauthenticated())
-          : emit(AppState.authenticated(state.user));
+          : state.user.isAnonymous
+              ? emit(AppState.anonymous(state.user))
+              : emit(AppState.authenticated(state.user));
     }
   }
 

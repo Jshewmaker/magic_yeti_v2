@@ -11,6 +11,7 @@ import 'package:magic_yeti/home/bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
 import 'package:magic_yeti/login/login.dart';
+import 'package:magic_yeti/profile/view/profile_page.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -165,32 +166,7 @@ class LeftSidePanel extends StatelessWidget {
                 title: l10n.statsTitle,
                 onMorePressed: onMore
                     ? () {
-                        showDialog<void>(
-                          context: context,
-                          builder: (BuildContext _) => AlertDialog(
-                            title: const Text('Logout'),
-                            content:
-                                const Text('Are you sure you want to logout?'),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  context
-                                      .read<AppBloc>()
-                                      .add(const AppLogoutRequested());
-                                  context
-                                      .read<MatchHistoryBloc>()
-                                      .add(const ClearMatchHistory());
-                                },
-                                child: const Text('Logout'),
-                              ),
-                            ],
-                          ),
-                        );
+                        context.push(ProfilePage.routePath);
                       }
                     : null,
               ),
@@ -445,10 +421,13 @@ class MatchHistoryPanel extends StatelessWidget {
     final l10n = context.l10n;
     return BlocListener<AppBloc, AppState>(
       listener: (context, state) {
-        // Reload match history when auth state changes
-        context.read<MatchHistoryBloc>().add(
-              LoadMatchHistory(userId: state.user.id),
-            );
+        if (state.status != AppStatus.authenticated) {
+          context.read<MatchHistoryBloc>().add(const ClearMatchHistory());
+        } else {
+          context
+              .read<MatchHistoryBloc>()
+              .add(LoadMatchHistory(userId: state.user.id));
+        }
       },
       listenWhen: (previous, current) => previous.user != current.user,
       child: Column(
