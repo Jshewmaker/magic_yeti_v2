@@ -95,7 +95,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     final updatedPlayer = player.copyWith(
       commander: event.commander,
       name: event.playerName,
-      firebaseId: event.firebaseId,
+      firebaseId: () => event.firebaseId,
     );
 
     _playerRepository.updatePlayer(updatedPlayer);

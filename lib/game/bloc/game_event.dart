@@ -58,17 +58,6 @@ class GameResumeEvent extends GameEvent {
   const GameResumeEvent();
 }
 
-class GameUpdatePlayerOwnershipEvent extends GameEvent {
-  const GameUpdatePlayerOwnershipEvent({
-    required this.firebaseId,
-  });
-
-  final String firebaseId;
-
-  @override
-  List<Object?> get props => [firebaseId];
-}
-
 enum PlayerAction {
   increment,
   decrement,

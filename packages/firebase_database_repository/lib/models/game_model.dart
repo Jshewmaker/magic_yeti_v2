@@ -14,7 +14,7 @@ class GameModel extends Equatable {
     required this.players,
     required this.startTime,
     required this.endTime,
-    required this.winner,
+    required this.winnerId,
     required this.durationInSeconds,
     this.hostId = '',
     this.startingPlayerId = '',
@@ -48,7 +48,7 @@ class GameModel extends Equatable {
   final DateTime endTime;
 
   /// The winning player
-  final Player winner;
+  final String winnerId;
 
   /// Total duration of the game in seconds
   final int durationInSeconds;
@@ -63,12 +63,14 @@ class GameModel extends Equatable {
         roomId,
         players,
         startTime,
+        startingPlayerId,
         endTime,
-        winner,
+        winnerId,
         durationInSeconds,
       ];
 
-  /// Creates a copy of this GameModel with the given fields replaced with the new values.
+  /// Creates a copy of this GameModel with the given fields replaced with the
+  /// new values.
   GameModel copyWith({
     String? id,
     String? hostId,
@@ -76,7 +78,7 @@ class GameModel extends Equatable {
     List<Player>? players,
     DateTime? startTime,
     DateTime? endTime,
-    Player? winner,
+    String? winnerId,
     String? startingPlayerId,
     int? durationInSeconds,
   }) {
@@ -88,7 +90,7 @@ class GameModel extends Equatable {
       players: players ?? this.players,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
-      winner: winner ?? this.winner,
+      winnerId: winnerId ?? this.winnerId,
       durationInSeconds: durationInSeconds ?? this.durationInSeconds,
     );
   }

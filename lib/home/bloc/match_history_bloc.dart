@@ -87,7 +87,10 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
   int _calculateTotalWins(List<GameModel> games) {
     var wins = 0;
     for (final game in games) {
-      if (game.winner.firebaseId == _user.id) {
+      final winningPlayer = game.players.firstWhere(
+        (player) => player.id == game.winnerId,
+      );
+      if (winningPlayer.firebaseId == _user.id) {
         wins++;
       }
     }
@@ -208,10 +211,15 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
     Emitter<MatchHistoryState> emit,
   ) async {
     try {
-      // Update the player's Firebase ID
+      // Update the players list, removing the Firebase ID from any player that had it
+      // and assigning it to the selected player
       final updatedPlayers = event.game.players.map((p) {
         if (p.id == event.player.id) {
-          return p.copyWith(firebaseId: event.currentUserFirebaseId);
+          // Assign the Firebase ID to the selected player
+          return p.copyWith(firebaseId: () => event.currentUserFirebaseId);
+        } else if (p.firebaseId == event.currentUserFirebaseId) {
+          // Remove the Firebase ID from any other player that had it
+          return p.copyWith(firebaseId: () => null);
         }
         return p;
       }).toList();
@@ -220,18 +228,21 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
       final updatedGame = event.game.copyWith(players: updatedPlayers);
 
       // Save the updated game to Firebase
-      await _databaseRepository.saveGameStats(updatedGame);
+      await _databaseRepository.updateGameStats(
+        game: updatedGame,
+        playerId: event.currentUserFirebaseId,
+      );
 
       // Update the games list in state
-      final updatedGames = state.games.map((game) {
-        if (game.id == event.game.id) {
-          return updatedGame;
-        }
-        return game;
-      }).toList();
+      // final updatedGames = state.games.map((game) {
+      //   if (game.id == event.game.id) {
+      //     return updatedGame;
+      //   }
+      //   return game;
+      // }).toList();
 
       emit(state.copyWith(
-        games: updatedGames,
+        //games: updatedGames,
         status: HomeStatus.loadingHistorySuccess,
       ));
     } catch (error) {

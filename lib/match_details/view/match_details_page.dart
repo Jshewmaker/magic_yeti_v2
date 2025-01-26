@@ -3,6 +3,7 @@ import 'package:firebase_database_repository/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/home/bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:player_repository/models/player.dart';
@@ -42,7 +43,13 @@ class MatchDetailsView extends StatelessWidget {
   final GameModel game;
 
   void _handlePlayerSelection(BuildContext context, Player player) {
-    final currentUserFirebaseId = game.hostId;
+    final currentUserFirebaseId = context.read<AppBloc>().state.user.id;
+
+    // Find the currently assigned player, if any
+    final currentPlayer = game.players.firstWhere(
+      (p) => p.firebaseId == currentUserFirebaseId,
+      orElse: () => player,
+    );
 
     // Dispatch event to update player ownership
     context.read<MatchHistoryBloc>().add(
@@ -56,7 +63,10 @@ class MatchDetailsView extends StatelessWidget {
     // Show a confirmation snackbar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('You were ${player.name} in this game'),
+        content: currentPlayer.id != player.id
+            ? Text(
+                'Changed your player from ${currentPlayer.name} to ${player.name}')
+            : Text('You were ${player.name} in this game'),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -65,7 +75,9 @@ class MatchDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final winner = game.winner;
+    final winningPlayer = game.players.firstWhere(
+      (player) => player.id == game.winnerId,
+    );
     final gameDuration = game.durationInSeconds;
 
     return BlocListener<MatchHistoryBloc, MatchHistoryState>(
@@ -108,14 +120,14 @@ class MatchDetailsView extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         MatchWinnerWidget(
-                          winner: winner,
+                          winner: winningPlayer,
                           gameDuration: gameDuration,
                           startingPlayerId: game.startingPlayerId,
                         ),
                         const SizedBox(height: 16),
                         MatchStandingsWidget(
                           players: game.players,
-                          winner: winner,
+                          winner: winningPlayer,
                           currentUserFirebaseId: game.hostId,
                           onSelectPlayer: (player) =>
                               _handlePlayerSelection(context, player),

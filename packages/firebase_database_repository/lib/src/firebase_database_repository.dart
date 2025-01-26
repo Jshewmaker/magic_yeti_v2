@@ -1,7 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_database_repository/models/game_model.dart';
 import 'package:firebase_database_repository/models/models.dart';
-import 'package:player_repository/player_repository.dart';
 
 /// {@template save_game_stats_exception}
 /// Exception thrown when saving game stats fails.
@@ -134,7 +132,10 @@ class FirebaseDatabaseRepository {
   /// Save game stats at end of game.
   Future<void> saveGameStats(GameModel game) async {
     try {
-      await _firebase.collection('games').doc().set(game.toJson());
+      final newDoc = _firebase.collection('games').doc();
+      await _firebase.collection('games').doc(newDoc.id).set(
+            game.copyWith(id: newDoc.id).toJson(),
+          );
     } on Exception catch (error, stackTrace) {
       throw SaveGameStatsException(
         message: error.toString(),
@@ -162,30 +163,6 @@ class FirebaseDatabaseRepository {
         stackTrace: StackTrace.current,
       );
     }
-  }
-
-  /// Update player data in Firebase for the current game
-  Future<void> updatePlayerData(Player player) async {
-    final gameSnapshot = await _firebase
-        .collection('games')
-        .orderBy('endTime', descending: true)
-        .limit(1)
-        .get();
-
-    if (gameSnapshot.docs.isEmpty) return;
-
-    final gameDoc = gameSnapshot.docs.first;
-    final game = GameModel.fromJson(gameDoc.data());
-
-    final updatedPlayers = game.players.map((p) {
-      if (p.id == player.id) {
-        return player;
-      }
-      return p;
-    }).toList();
-
-    final updatedGame = game.copyWith(players: updatedPlayers);
-    await gameDoc.reference.update(updatedGame.toJson());
   }
 
   /// Get a specific game by its roomID
@@ -219,10 +196,30 @@ class FirebaseDatabaseRepository {
           .collection('users')
           .doc(playerId)
           .collection('matches')
-          .doc()
+          .doc(game.id)
           .set(game.toJson());
     } on Exception catch (error, stackTrace) {
       throw AddMatchToPlayerHistoryException(
+        message: error.toString(),
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Update a match in the player's history
+  Future<void> updateGameStats({
+    required GameModel game,
+    required String playerId,
+  }) async {
+    try {
+      await _firebase
+          .collection('users')
+          .doc(playerId)
+          .collection('matches')
+          .doc(game.id)
+          .set(game.toJson());
+    } on Exception catch (error, stackTrace) {
+      throw SaveGameStatsException(
         message: error.toString(),
         stackTrace: stackTrace,
       );

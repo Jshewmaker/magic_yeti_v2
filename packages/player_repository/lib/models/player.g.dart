@@ -9,14 +9,14 @@ part of 'player.dart';
 Player _$PlayerFromJson(Map<String, dynamic> json) => Player(
       id: json['id'] as String,
       name: json['name'] as String,
-      commander: json['commander'] == null
-          ? null
-          : Commander.fromJson(json['commander'] as Map<String, dynamic>),
       playerNumber: (json['playerNumber'] as num).toInt(),
       lifePoints: (json['lifePoints'] as num).toInt(),
       color: (json['color'] as num).toInt(),
       commanderDamageList:
           Map<String, int>.from(json['commanderDamageList'] as Map),
+      commander: json['commander'] == null
+          ? null
+          : Commander.fromJson(json['commander'] as Map<String, dynamic>),
       firebaseId: json['firebaseId'] as String?,
       state: $enumDecodeNullable(_$PlayerModelStateEnumMap, json['state']) ??
           PlayerModelState.eliminated,

@@ -12,7 +12,7 @@ GameModel _$GameModelFromJson(Map<String, dynamic> json) => GameModel(
           .toList(),
       startTime: DateTime.parse(json['startTime'] as String),
       endTime: DateTime.parse(json['endTime'] as String),
-      winner: Player.fromJson(json['winner'] as Map<String, dynamic>),
+      winnerId: json['winnerId'] as String,
       durationInSeconds: (json['durationInSeconds'] as num).toInt(),
       hostId: json['hostId'] as String? ?? '',
       startingPlayerId: json['startingPlayerId'] as String? ?? '',
@@ -28,6 +28,6 @@ Map<String, dynamic> _$GameModelToJson(GameModel instance) => <String, dynamic>{
       'players': instance.players.map((e) => e.toJson()).toList(),
       'startTime': instance.startTime.toIso8601String(),
       'endTime': instance.endTime.toIso8601String(),
-      'winner': instance.winner.toJson(),
+      'winnerId': instance.winnerId,
       'durationInSeconds': instance.durationInSeconds,
     };

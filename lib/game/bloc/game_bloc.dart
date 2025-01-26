@@ -25,7 +25,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<GameFinishEvent>(_onGameFinish);
     on<PlayerRepositoryUpdateEvent>(_repositoryUpdated);
     on<GameTimerTickEvent>(_onTimerTick);
-    on<GameUpdatePlayerOwnershipEvent>(_onUpdatePlayerOwnership);
 
     _playersSubscription = _playerRepository.players.listen((players) {
       add(PlayerRepositoryUpdateEvent(players: players));
@@ -200,8 +199,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     final gameModel = GameModel(
       roomId: await generateShortGameId(),
-      id: const Uuid().v4(),
-      winner: updateWinner,
+      winnerId: updateWinner.id,
       players: state.playerList,
       startTime: state.startTime ?? DateTime.now(),
       endTime: DateTime.now(),
@@ -222,31 +220,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       add(GameFinishEvent(winner: alivePlayers.first));
     }
     emit(state.copyWith(playerList: event.players));
-  }
-
-  Future<void> _onUpdatePlayerOwnership(
-    GameUpdatePlayerOwnershipEvent event,
-    Emitter<GameState> emit,
-  ) async {
-    try {
-      final updateWinner = state.playerList.firstWhere(
-        (player) => player.placement == 1,
-      );
-      final gameModel = GameModel(
-        roomId: await generateShortGameId(),
-        hostId: event.firebaseId,
-        id: const Uuid().v4(),
-        winner: updateWinner,
-        players: state.playerList,
-        startTime: state.startTime ?? DateTime.now(),
-        endTime: DateTime.now(),
-        durationInSeconds: state.elapsedSeconds,
-      );
-
-      emit(state.copyWith(gameModel: gameModel));
-    } catch (e) {
-      emit(state.copyWith(status: GameStatus.error, error: e.toString()));
-    }
   }
 
   String _getRandomString(int length) {

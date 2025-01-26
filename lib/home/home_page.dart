@@ -457,26 +457,30 @@ class MatchHistoryPanel extends StatelessWidget {
                       itemCount: state.games.length,
                       itemBuilder: (context, index) {
                         final game = state.games[index];
+                        final winningPlayer = game.players.firstWhere(
+                          (player) => player.id == game.winnerId,
+                        );
                         return CustomListItem(
-                          wonGame: game.winner.firebaseId ==
+                          wonGame: winningPlayer.firebaseId ==
                               context.read<AppBloc>().state.user.id,
-                          thumbnail: (game.winner.commander?.imageUrl.isEmpty ??
+                          thumbnail: (winningPlayer
+                                      .commander?.imageUrl.isEmpty ??
                                   false)
                               ? Container(
-                                  color: Color(game.winner.color)
+                                  color: Color(winningPlayer.color)
                                       .withValues(alpha: .8),
                                 )
                               : Image.network(
                                   fit: BoxFit.cover,
-                                  game.winner.commander?.imageUrl ?? '',
+                                  winningPlayer.commander?.imageUrl ?? '',
                                   errorBuilder: (context, error, stackTrace) =>
                                       Container(
-                                    color: Color(game.winner.color)
+                                    color: Color(winningPlayer.color)
                                         .withValues(alpha: .8),
                                   ),
                                 ),
-                          playerName: game.winner.name,
-                          commanderName: game.winner.commander?.name ?? '',
+                          playerName: winningPlayer.name,
+                          commanderName: winningPlayer.commander?.name ?? '',
                           gameLength: Duration(seconds: game.durationInSeconds),
                           gameDatePlayed: game.endTime,
                           viewCount: index + 1,
@@ -540,7 +544,7 @@ class CustomListItem extends StatelessWidget {
               // Left section - Large thumbnail
               WinnerWidget(
                 thumbnail: thumbnail,
-                wentFirst: game.winner.id == game.startingPlayerId,
+                wentFirst: game.winnerId == game.startingPlayerId,
               ),
               const SizedBox(width: 5),
               // Middle section - Three stacked thumbnails

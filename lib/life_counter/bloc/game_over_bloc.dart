@@ -73,12 +73,12 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
         // Update player with new placement and firebase ID if selected
         return player.copyWith(
           placement: Value(index + 1),
-          firebaseId: player.id == state.selectedPlayerId
+          firebaseId: () => player.id == state.selectedPlayerId
               ? event.userId
               : player.firebaseId,
         );
       }).toList(),
-      winner: state.standings.first,
+      winnerId: state.standings.first.id,
       startingPlayerId: state.firstPlayerId,
     );
 
