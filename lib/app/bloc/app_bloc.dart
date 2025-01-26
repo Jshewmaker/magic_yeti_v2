@@ -22,7 +22,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         super(
           user == UserProfileModel.empty
               ? const AppState.unauthenticated()
-              : AppState.authenticated(user),
+              : user.isAnonymous
+                  ? AppState.anonymous(user)
+                  : AppState.authenticated(user),
         ) {
     on<AppDownForMaintenanceStatusChanged>(_onDownForMaintenanceStatusChanged);
     on<AppForceUpgradeStatusChanged>(_onForceUpgradeStatusChanged);
@@ -100,6 +102,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       case AppStatus.downForMaintenance:
         return emit(AppState.downForMaintenance(event.user));
       case AppStatus.authenticated:
+      case AppStatus.anonymous:
       case AppStatus.unauthenticated:
       case AppStatus.onboardingRequired:
         return event.user == User.unauthenticated

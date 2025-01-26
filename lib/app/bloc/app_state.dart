@@ -7,6 +7,7 @@ enum AppStatus {
   downForMaintenance,
   forceUpgradeRequired,
   onboardingRequired,
+  anonymous,
   authenticated,
   unauthenticated,
 }
@@ -38,6 +39,9 @@ class AppState extends Equatable {
       : this._(status: AppStatus.onboardingRequired, user: user);
 
   const AppState.unauthenticated() : this._(status: AppStatus.unauthenticated);
+
+  const AppState.anonymous(UserProfileModel user)
+      : this._(status: AppStatus.anonymous, user: user);
 
   final AppStatus status;
   final ForceUpgrade forceUpgrade;

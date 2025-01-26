@@ -132,7 +132,7 @@ class SectionHeader extends StatelessWidget {
             IconButton(
               onPressed: onMorePressed,
               icon: const Icon(
-                Icons.more_vert,
+                Icons.account_circle_sharp,
                 color: AppColors.onSurfaceVariant,
               ),
             ),
@@ -155,7 +155,6 @@ class LeftSidePanel extends StatelessWidget {
       children: [
         SectionHeader(title: l10n.gameModeTitle),
         Expanded(
-          flex: 1,
           child: GameModeButtons(l10n: l10n),
         ),
         Expanded(

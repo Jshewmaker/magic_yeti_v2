@@ -4,7 +4,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/home/home_page.dart';
-import 'package:magic_yeti/onboarding/onboarding.dart';
 
 extension AppStatusRoute on AppStatus {
   String get route {
@@ -14,6 +13,7 @@ extension AppStatusRoute on AppStatus {
       case AppStatus.forceUpgradeRequired:
       case AppStatus.unauthenticated:
       case AppStatus.authenticated:
+      case AppStatus.anonymous:
         return HomePage.routeName;
     }
   }
