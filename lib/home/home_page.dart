@@ -529,8 +529,7 @@ class CustomListItem extends StatelessWidget {
     return InkWell(
       onTap: () {
         context.push(
-          MatchDetailsPage.routePath,
-          extra: game,
+          MatchDetailsPage.path(gameId: game.id!),
         );
       },
       child: Card(

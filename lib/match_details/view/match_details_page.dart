@@ -11,40 +11,39 @@ import 'package:url_launcher/url_launcher.dart';
 
 class MatchDetailsPage extends StatelessWidget {
   const MatchDetailsPage({
-    required this.game,
+    required this.gameId,
     super.key,
   });
 
-  factory MatchDetailsPage.pageBuilder(
-    _,
-    GoRouterState state,
-  ) {
-    final game = state.extra as GameModel?;
-    return MatchDetailsPage(game: game!);
+  factory MatchDetailsPage.pageBuilder(_, GoRouterState state) {
+    return MatchDetailsPage(gameId: state.pathParameters['gameId']!);
   }
 
-  final GameModel game;
+  final String gameId;
 
   static const routeName = 'match_details_page';
-  static String get routePath => '/match_details_page';
+  static String get routePath => '/match_details_page/:gameId';
+  static String path({required String gameId}) => '/match_details_page/$gameId';
 
   @override
   Widget build(BuildContext context) {
-    return MatchDetailsView(game: game);
+    return MatchDetailsView(gameId: gameId);
   }
 }
 
 class MatchDetailsView extends StatelessWidget {
   const MatchDetailsView({
-    required this.game,
+    required this.gameId,
     super.key,
   });
 
-  final GameModel game;
+  final String gameId;
 
   void _handlePlayerSelection(BuildContext context, Player player) {
     final currentUserFirebaseId = context.read<AppBloc>().state.user.id;
-
+    final game = context.read<MatchHistoryBloc>().state.games.firstWhere(
+          (game) => game.id == gameId,
+        );
     // Find the currently assigned player, if any
     final currentPlayer = game.players.firstWhere(
       (p) => p.firebaseId == currentUserFirebaseId,
@@ -75,12 +74,15 @@ class MatchDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final game = context.watch<MatchHistoryBloc>().state.games.firstWhere(
+          (game) => game.id == gameId,
+        );
     final winningPlayer = game.players.firstWhere(
       (player) => player.id == game.winnerId,
     );
     final gameDuration = game.durationInSeconds;
 
-    return BlocListener<MatchHistoryBloc, MatchHistoryState>(
+    return BlocConsumer<MatchHistoryBloc, MatchHistoryState>(
       listenWhen: (previous, current) =>
           previous.status != current.status &&
           current.status == HomeStatus.failure,
@@ -95,56 +97,58 @@ class MatchDetailsView extends StatelessWidget {
           );
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.matchDetailsTitle),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
-          ),
-        ),
-        body: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Match Details',
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        const SizedBox(height: 16),
-                        MatchWinnerWidget(
-                          winner: winningPlayer,
-                          gameDuration: gameDuration,
-                          startingPlayerId: game.startingPlayerId,
-                        ),
-                        const SizedBox(height: 16),
-                        MatchStandingsWidget(
-                          players: game.players,
-                          winner: winningPlayer,
-                          currentUserFirebaseId: game.hostId,
-                          onSelectPlayer: (player) =>
-                              _handlePlayerSelection(context, player),
-                        ),
-                        const SizedBox(height: 16),
-                        MatchMetadataWidget(
-                          game: game,
-                        ),
-                      ],
-                    ),
-                  ),
-                ]),
-              ),
+      builder: (context, state) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(l10n.matchDetailsTitle),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => context.pop(),
             ),
-          ],
-        ),
-      ),
+          ),
+          body: CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Match Details',
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          const SizedBox(height: 16),
+                          MatchWinnerWidget(
+                            winner: winningPlayer,
+                            gameDuration: gameDuration,
+                            startingPlayerId: game.startingPlayerId,
+                          ),
+                          const SizedBox(height: 16),
+                          MatchStandingsWidget(
+                            players: game.players,
+                            winner: winningPlayer,
+                            currentUserFirebaseId: game.hostId,
+                            onSelectPlayer: (player) =>
+                                _handlePlayerSelection(context, player),
+                          ),
+                          const SizedBox(height: 16),
+                          MatchMetadataWidget(
+                            game: game,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
