@@ -185,7 +185,7 @@ class MagicCard extends Equatable {
         lang,
         releasedAt,
         uri,
-        scryfallSetUri,
+        scryfallUri,
         layout,
         highresImage,
         imageStatus,

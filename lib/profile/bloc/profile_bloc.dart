@@ -96,11 +96,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         _userProfile.id,
         updatedProfile,
       );
-      emit(state.copyWith(
-        status: ProfileStatus.success,
-        isEditing: false,
-        userProfile: updatedProfile,
-      ));
+      emit(
+        state.copyWith(
+          status: ProfileStatus.success,
+          isEditing: false,
+          userProfile: updatedProfile,
+        ),
+      );
     } catch (_) {
       emit(state.copyWith(status: ProfileStatus.failure));
     }

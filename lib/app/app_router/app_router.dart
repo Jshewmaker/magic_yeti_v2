@@ -7,6 +7,7 @@ import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/life_counter/view/game_over_page.dart';
 import 'package:magic_yeti/life_counter/view/view.dart';
 import 'package:magic_yeti/login/login.dart';
+import 'package:magic_yeti/match_details/view/match_details_page.dart';
 import 'package:magic_yeti/onboarding/onboarding.dart';
 import 'package:magic_yeti/profile/view/profile_page.dart';
 import 'package:magic_yeti/reset_password/reset_password.dart';
@@ -63,6 +64,14 @@ class AppRouter {
           pageBuilder: (context, state) => NoTransitionPage(
             name: ProfilePage.routeName,
             child: ProfilePage.pageBuilder(context, state),
+          ),
+        ),
+        AppRoute(
+          name: MatchDetailsPage.routeName,
+          path: MatchDetailsPage.routePath,
+          pageBuilder: (context, state) => NoTransitionPage(
+            name: MatchDetailsPage.routeName,
+            child: MatchDetailsPage.pageBuilder(context, state),
           ),
         ),
         AppRoute(

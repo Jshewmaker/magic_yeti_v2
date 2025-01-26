@@ -200,6 +200,12 @@
     "type": "text",
     "placeholders": {}
   },
+  "matchDetailsTitle": "Match Details",
+  "@matchDetailsTitle": {
+    "description": "Title for the match details section",
+    "type": "text",
+    "placeholders": {}
+  },
   "gameModeTitle": "Game Mode",
   "@gameModeTitle": {
     "description": "Title for the game mode section",

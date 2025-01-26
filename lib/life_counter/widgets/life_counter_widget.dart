@@ -377,7 +377,7 @@ class BackgroundWidget extends StatelessWidget {
       borderRadius: const BorderRadius.all(Radius.circular(20)),
       child: SizedBox.expand(
         child: Image.network(
-          player.commander.imageUrl,
+          player.commander?.imageUrl ?? '',
           fit: BoxFit.fill,
           opacity: AlwaysStoppedAnimation(
             player.lifePoints <= 0 ? .2 : 1,

@@ -30,7 +30,7 @@ class Player extends Equatable {
   const Player({
     required this.id,
     required this.name,
-    required this.commander,
+    this.commander,
     required this.playerNumber,
     required this.lifePoints,
     required this.color,
@@ -55,7 +55,7 @@ class Player extends Equatable {
   final String name;
 
   /// The player's commander card.
-  final Commander commander;
+  final Commander? commander;
 
   /// The player's assigned number in the game.
   final int playerNumber;

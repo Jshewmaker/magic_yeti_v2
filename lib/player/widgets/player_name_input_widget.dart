@@ -40,8 +40,10 @@ class PlayerNameInputWidget extends StatelessWidget {
               ),
             ),
           ),
-          child: Text(context.l10n.saveButtonText,
-              style: const TextStyle(color: AppColors.white)),
+          child: Text(
+            context.l10n.saveButtonText,
+            style: const TextStyle(color: AppColors.white),
+          ),
         ),
       ],
     );

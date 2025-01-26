@@ -67,8 +67,10 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                   ),
                 ),
               ),
-              child: Text(l10n.searchButtonText,
-                  style: const TextStyle(color: AppColors.white)),
+              child: Text(
+                l10n.searchButtonText,
+                style: const TextStyle(color: AppColors.white),
+              ),
               onPressed: () => context.read<PlayerCustomizationBloc>().add(
                     CardListRequested(
                       cardName: textController.text,
@@ -105,8 +107,16 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                           UpdatePlayerCommander(
                             commander: Commander(
                               name: state.cardList?.data[index].name ?? '',
+                              typeLine:
+                                  state.cardList?.data[index].typeLine ?? '',
+                              scryFallUrl:
+                                  state.cardList?.data[index].scryfallUri ?? '',
+                              edhrecRank:
+                                  state.cardList?.data[index].edhrecRank,
                               artist: state.cardList?.data[index].artist ?? '',
                               colors: state.cardList?.data[index].colors ?? [],
+                              colorIdentity:
+                                  state.cardList?.data[index].colorIdentity,
                               cardType:
                                   state.cardList?.data[index].typeLine ?? '',
                               imageUrl: state.cardList?.data[index].imageUris

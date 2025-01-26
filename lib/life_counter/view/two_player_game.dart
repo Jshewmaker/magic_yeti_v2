@@ -24,7 +24,7 @@ class TwoPlayerGame extends StatelessWidget {
             DeviceOrientation.landscapeRight,
             DeviceOrientation.landscapeLeft,
             DeviceOrientation.portraitUp,
-            DeviceOrientation.portraitDown
+            DeviceOrientation.portraitDown,
           ]);
           return orientation == Orientation.portrait
               ? Column(

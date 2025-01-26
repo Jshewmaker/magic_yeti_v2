@@ -68,12 +68,12 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
 
   /// Calculate the number of unique commanders used by the player
   int _calculateUniqueCommanders(List<GameModel> games) {
-    final Set<String> uniqueCommanders = {};
+    final uniqueCommanders = <String>{};
 
     for (final game in games) {
       final player = _findPlayerInGame(game);
       final commanderKey =
-          '${player.commander.cardType}${player.commander.name}';
+          '${player.commander?.cardType}${player.commander?.name}';
       if (commanderKey.isNotEmpty) {
         uniqueCommanders.add(commanderKey);
       }

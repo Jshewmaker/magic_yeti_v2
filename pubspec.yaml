@@ -53,6 +53,7 @@ dependencies:
   wakelock_plus: ^1.2.10
   firebase_crashlytics: ^4.3.1
   firebase_analytics: ^11.4.1
+  url_launcher: ^6.3.1
 
 
 dev_dependencies:

@@ -1466,6 +1466,8 @@ PODS:
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
+  - url_launcher_ios (0.0.1):
+    - Flutter
   - wakelock_plus (0.0.1):
     - Flutter
 
@@ -1482,6 +1484,7 @@ DEPENDENCIES:
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
 
 SPEC REPOS:
@@ -1544,6 +1547,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/sign_in_with_apple/ios"
   sqflite_darwin:
     :path: ".symlinks/plugins/sqflite_darwin/darwin"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
   wakelock_plus:
     :path: ".symlinks/plugins/wakelock_plus/ios"
 
@@ -1592,6 +1597,7 @@ SPEC CHECKSUMS:
   RecaptchaInterop: 7d1a4a01a6b2cb1610a47ef3f85f0c411434cb21
   sign_in_with_apple: f3bf75217ea4c2c8b91823f225d70230119b8440
   sqflite_darwin: a553b1fd6fe66f53bbb0fe5b4f5bab93f08d7a13
+  url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
   wakelock_plus: 373cfe59b235a6dd5837d0fb88791d2f13a90d56
 
 PODFILE CHECKSUM: 6855ada6587ada1dd8acfc7fc1239123878aad1f

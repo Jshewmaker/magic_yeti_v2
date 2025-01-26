@@ -40,8 +40,8 @@ class CustomizePlayerView extends StatelessWidget {
     final player = context.read<PlayerRepository>().getPlayerById(playerId);
     context.read<PlayerCustomizationBloc>().add(
           UpdateAccountOwnership(
-              isOwner:
-                  context.read<PlayerBloc>().state.player.firebaseId != null),
+            isOwner: context.read<PlayerBloc>().state.player.firebaseId != null,
+          ),
         );
     final textController = TextEditingController(text: player.name);
     final scrollController = ScrollController();
@@ -64,9 +64,9 @@ class CustomizePlayerView extends StatelessWidget {
                       children: [
                         CommanderImageWidget(
                           imageUrl:
-                              state.commander?.imageUrl.isNotEmpty ?? false
-                                  ? state.commander!.imageUrl
-                                  : player.commander.imageUrl,
+                              (state.commander?.imageUrl.isNotEmpty ?? false)
+                                  ? state.commander?.imageUrl ?? ''
+                                  : player.commander?.imageUrl ?? '',
                           playerColor: player.color,
                         ),
                         const SizedBox(width: AppSpacing.md),

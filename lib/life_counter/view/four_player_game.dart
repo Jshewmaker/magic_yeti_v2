@@ -53,9 +53,11 @@ class FourPlayerGame extends StatelessWidget {
 }
 
 /// Represents a vertical column containing two player sections.
-/// Manages the layout of two players stacked vertically with appropriate spacing.
+/// Manages the layout of two players stacked vertically with appropriate
+/// spacing.
 /// [topPlayerId] and [bottomPlayerId] identify the players in this column.
-/// Optional [alignment] parameter allows customizing the alignment of player sections.
+/// Optional [alignment] parameter allows customizing the alignment of player
+/// sections.
 class _PlayerColumn extends StatelessWidget {
   const _PlayerColumn({
     required this.topPlayerId,

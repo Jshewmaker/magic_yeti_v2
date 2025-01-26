@@ -19,7 +19,7 @@ class AccountOwnershipWidget extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: Theme.of(context).colorScheme.surfaceVariant,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
       child: Row(
         children: [

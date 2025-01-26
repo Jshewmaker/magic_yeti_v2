@@ -114,15 +114,6 @@ class ButtonsWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          // TextButton(
-          //   onPressed: () {
-          //     context.pop();
-          //   },
-          //   child: Text(
-          //     l10n.cancel,
-          //     style: Theme.of(context).textTheme.titleMedium,
-          //   ),
-          // ),
           const Spacer(),
           SizedBox(
             height: 50,
@@ -412,17 +403,19 @@ class StandingsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: player.commander.imageUrl.isEmpty ? Color(player.color) : null,
+      color: player.commander?.imageUrl.isEmpty ?? true
+          ? Color(player.color)
+          : null,
       key: Key('$index'),
       child: Stack(
         children: [
           Container(
             height: 100,
-            decoration: player.commander.imageUrl.isNotEmpty
+            decoration: (player.commander?.imageUrl.isNotEmpty ?? false)
                 ? BoxDecoration(
                     image: DecorationImage(
                       alignment: Alignment.topCenter,
-                      image: NetworkImage(player.commander.imageUrl),
+                      image: NetworkImage(player.commander!.imageUrl),
                       fit: BoxFit.cover,
                       colorFilter: ColorFilter.mode(
                         Colors.black.withValues(alpha: 0.6),

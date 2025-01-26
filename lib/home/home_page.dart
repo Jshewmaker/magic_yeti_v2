@@ -11,6 +11,7 @@ import 'package:magic_yeti/home/bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
 import 'package:magic_yeti/login/login.dart';
+import 'package:magic_yeti/match_details/view/match_details_page.dart';
 import 'package:magic_yeti/profile/view/profile_page.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -273,9 +274,9 @@ class AccountWidget extends StatelessWidget {
 
 class StatsWidget extends StatelessWidget {
   const StatsWidget({
-    super.key,
     required this.title,
     required this.stat,
+    super.key,
   });
 
   final String title;
@@ -314,9 +315,9 @@ class GameModeButtons extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppColors.secondary.withOpacity(0.8),
-                    AppColors.tertiary.withOpacity(0.6),
-                    AppColors.secondary.withOpacity(0.8),
+                    AppColors.secondary.withValues(alpha: 0.8),
+                    AppColors.tertiary.withValues(alpha: 0.6),
+                    AppColors.secondary.withValues(alpha: 0.8),
                   ],
                   stops: const [0.0, 0.5, 1.0],
                 ),
@@ -467,14 +468,15 @@ class MatchHistoryPanel extends StatelessWidget {
                         return CustomListItem(
                           wonGame: game.winner.firebaseId ==
                               context.read<AppBloc>().state.user.id,
-                          thumbnail: game.winner.commander.imageUrl.isEmpty
+                          thumbnail: (game.winner.commander?.imageUrl.isEmpty ??
+                                  false)
                               ? Container(
                                   color: Color(game.winner.color)
                                       .withValues(alpha: .8),
                                 )
                               : Image.network(
                                   fit: BoxFit.cover,
-                                  game.winner.commander.imageUrl,
+                                  game.winner.commander?.imageUrl ?? '',
                                   errorBuilder: (context, error, stackTrace) =>
                                       Container(
                                     color: Color(game.winner.color)
@@ -482,7 +484,7 @@ class MatchHistoryPanel extends StatelessWidget {
                                   ),
                                 ),
                           playerName: game.winner.name,
-                          commanderName: game.winner.commander.name,
+                          commanderName: game.winner.commander?.name ?? '',
                           gameLength: Duration(seconds: game.durationInSeconds),
                           gameDatePlayed: game.endTime,
                           viewCount: index + 1,
@@ -528,33 +530,41 @@ class CustomListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: wonGame
-          ? AppColors.winner.withValues(alpha: .6)
-          : AppColors.onSurfaceVariant,
-      child: SizedBox(
-        height: 160,
-        child: Row(
-          children: <Widget>[
-            // Left section - Large thumbnail
-            WinnerWidget(
-              thumbnail: thumbnail,
-              wentFirst: game.winner.id == game.startingPlayerId,
-            ),
-            const SizedBox(width: 5),
-            // Middle section - Three stacked thumbnails
-            LosersWidget(game: game),
+    return InkWell(
+      onTap: () {
+        context.push(
+          MatchDetailsPage.routePath,
+          extra: game,
+        );
+      },
+      child: Card(
+        color: wonGame
+            ? AppColors.winner.withValues(alpha: .6)
+            : AppColors.onSurfaceVariant,
+        child: SizedBox(
+          height: 160,
+          child: Row(
+            children: <Widget>[
+              // Left section - Large thumbnail
+              WinnerWidget(
+                thumbnail: thumbnail,
+                wentFirst: game.winner.id == game.startingPlayerId,
+              ),
+              const SizedBox(width: 5),
+              // Middle section - Three stacked thumbnails
+              LosersWidget(game: game),
 
-            // Right section - Text information
-            DetailsWidget(
-              playerName: playerName,
-              commanderName: commanderName,
-              gameLength: gameLength,
-              gameDatePlayed: gameDatePlayed,
-              textStyle: textStyle,
-              roomId: game.roomId,
-            ),
-          ],
+              // Right section - Text information
+              DetailsWidget(
+                playerName: playerName,
+                commanderName: commanderName,
+                gameLength: gameLength,
+                gameDatePlayed: gameDatePlayed,
+                textStyle: textStyle,
+                roomId: game.roomId,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -583,7 +593,7 @@ class DetailsWidget extends StatelessWidget {
     final hours = gameLength.inHours;
     final minutes = gameLength.inMinutes.remainder(60);
     if (hours > 0) {
-      return '$hours hr ${minutes} min';
+      return '$hours hr $minutes min';
     }
     return '$minutes min';
   }
@@ -696,14 +706,14 @@ class LosersWidget extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (player.commander.imageUrl.isEmpty)
+                  if (player.commander?.imageUrl.isEmpty ?? false)
                     Container(
                       color: Color(player.color).withValues(alpha: .8),
                     )
                   else
                     Image.network(
                       fit: BoxFit.cover,
-                      player.commander.imageUrl,
+                      player.commander?.imageUrl ?? '',
                       errorBuilder: (context, error, stackTrace) => Container(
                         color: Color(player.color).withValues(alpha: .8),
                       ),
