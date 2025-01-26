@@ -130,12 +130,15 @@ class FirebaseDatabaseRepository {
   }
 
   /// Save game stats at end of game.
-  Future<void> saveGameStats(GameModel game) async {
+  ///
+  /// Takes a [GameModel] and returns the document ID of the saved game.
+  Future<String> saveGameStats(GameModel game) async {
     try {
       final newDoc = _firebase.collection('games').doc();
       await _firebase.collection('games').doc(newDoc.id).set(
             game.copyWith(id: newDoc.id).toJson(),
           );
+      return newDoc.id;
     } on Exception catch (error, stackTrace) {
       throw SaveGameStatsException(
         message: error.toString(),

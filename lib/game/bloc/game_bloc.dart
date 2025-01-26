@@ -142,6 +142,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(
       state.copyWith(
         elapsedSeconds: event.elapsedSeconds,
+        status: GameStatus.running,
       ),
     );
   }
@@ -168,7 +169,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       }
 
       // Give time for the repository to update
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 10));
 
       add(const GameStartEvent());
     } catch (e) {

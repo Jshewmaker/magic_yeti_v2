@@ -82,10 +82,11 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
       startingPlayerId: state.firstPlayerId,
     );
 
-    await _firebaseDatabaseRepository.saveGameStats(updatedGameModel);
+    final docId =
+        await _firebaseDatabaseRepository.saveGameStats(updatedGameModel);
 
     await _firebaseDatabaseRepository.addMatchToPlayerHistory(
-      updatedGameModel,
+      updatedGameModel.copyWith(id: docId),
       event.userId,
     );
 

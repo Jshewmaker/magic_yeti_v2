@@ -23,34 +23,36 @@ class TrackerWidgets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final players =
-        context.select<GameBloc, List<Player>>((bloc) => bloc.state.playerList);
+    final players = context.select<GameBloc, List<Player>>(
+      (bloc) => bloc.state.playerList.map((player) => player).toList(),
+    );
 
     return BlocProvider(
       create: (context) => TrackerBloc(),
-      child: BlocListener<GameBloc, GameState>(
-        listenWhen: (previous, current) => previous.status != current.status,
-        listener: (context, state) {
-          if (state.status == GameStatus.loading) {
+      child: BlocBuilder<TrackerBloc, TrackerState>(
+        builder: (context, state) {
+          final status = context.select<GameBloc, GameStatus>(
+            (bloc) => bloc.state.status,
+          );
+
+          if (status == GameStatus.reset) {
             context.read<TrackerBloc>().add(const ResetTrackerIcons());
           }
-        },
-        child: BlocBuilder<TrackerBloc, TrackerState>(
-          builder: (context, state) {
-            return RotatedBox(
-              quarterTurns: rotate ? 0 : 2,
-              child: Container(
-                width: 80,
-                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                decoration: BoxDecoration(
-                  color: Colors.transparent.withValues(alpha: .8),
-                  borderRadius: const BorderRadius.all(Radius.circular(20)),
-                ),
-                child: ListView(
-                  children: [
-                    if (players.length > 2)
-                      ...players.map(
-                        (player) => Column(
+          return RotatedBox(
+            quarterTurns: rotate ? 0 : 2,
+            child: Container(
+              width: 80,
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+              decoration: BoxDecoration(
+                color: Colors.transparent.withValues(alpha: .8),
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
+              ),
+              child: ListView(
+                children: [
+                  if (players.length > 2)
+                    ...players.map(
+                      (player) {
+                        return Column(
                           children: [
                             CommanderDamageTracker(
                               color: player.color,
@@ -59,70 +61,70 @@ class TrackerWidgets extends StatelessWidget {
                               commanderPlayerId: player.id,
                             ),
                           ],
-                        ),
-                      ),
-                    ...state.icons.map(
-                      (icon) => Column(
-                        children: [
-                          const SizedBox(
-                            height: AppSpacing.xs,
-                          ),
-                          Dismissible(
-                            onDismissed: (_) => context
-                                .read<TrackerBloc>()
-                                .add(RemoveTrackerIcon(icon)),
-                            key: Key('$icon'),
-                            child: ClipRRect(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(10)),
-                              child: CounterTrackerWidget(
-                                icon: Icon(
-                                  icon,
-                                  size: 40,
-                                  color: AppColors.white.withValues(alpha: .5),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                    Column(
+                  ...state.icons.map(
+                    (icon) => Column(
                       children: [
                         const SizedBox(
                           height: AppSpacing.xs,
                         ),
-                        ClipRRect(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10)),
-                          child: Container(
-                            width: 70,
-                            height: 70,
-                            color: AppColors.white.withValues(alpha: .5),
-                            child: IconButton(
-                              icon: const Icon(
-                                FontAwesomeIcons.plus,
-                                color: AppColors.white,
+                        Dismissible(
+                          onDismissed: (_) => context
+                              .read<TrackerBloc>()
+                              .add(RemoveTrackerIcon(icon)),
+                          key: Key('$icon'),
+                          child: ClipRRect(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(10)),
+                            child: CounterTrackerWidget(
+                              icon: Icon(
+                                icon,
+                                size: 40,
+                                color: AppColors.white.withValues(alpha: .5),
                               ),
-                              onPressed: () async {
-                                final icon = await _dialogBuilder(context);
-                                if (icon != null) {
-                                  context
-                                      .read<TrackerBloc>()
-                                      .add(AddTrackerIcon(icon));
-                                }
-                              },
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  Column(
+                    children: [
+                      const SizedBox(
+                        height: AppSpacing.xs,
+                      ),
+                      ClipRRect(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(10)),
+                        child: Container(
+                          width: 70,
+                          height: 70,
+                          color: AppColors.white.withValues(alpha: .5),
+                          child: IconButton(
+                            icon: const Icon(
+                              FontAwesomeIcons.plus,
+                              color: AppColors.white,
+                            ),
+                            onPressed: () async {
+                              final icon = await _dialogBuilder(context);
+                              if (icon != null) {
+                                context
+                                    .read<TrackerBloc>()
+                                    .add(AddTrackerIcon(icon));
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
