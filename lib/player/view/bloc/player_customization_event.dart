@@ -34,3 +34,25 @@ final class UpdateAccountOwnership extends PlayerCustomizationEvent {
   @override
   List<Object> get props => [isOwner];
 }
+
+final class UpdateCommanderFilters extends PlayerCustomizationEvent {
+  const UpdateCommanderFilters({
+    required this.showOnlyLegendary,
+    required this.hasPartner,
+  });
+
+  final bool showOnlyLegendary;
+  final bool hasPartner;
+
+  @override
+  List<Object> get props => [showOnlyLegendary, hasPartner];
+}
+
+final class UpdatePartnerSelection extends PlayerCustomizationEvent {
+  const UpdatePartnerSelection({required this.selectingPartner});
+
+  final bool selectingPartner;
+
+  @override
+  List<Object> get props => [selectingPartner];
+}

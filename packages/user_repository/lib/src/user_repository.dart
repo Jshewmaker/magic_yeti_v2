@@ -28,10 +28,12 @@ class UserRepository {
   /// Emits [User.unauthenticated] if the user is not authenticated.
   Stream<UserProfileModel> get user => Rx.merge([
         _authenticationClient.user.switchMap((user) {
-          if (user == User.unauthenticated) {
+          if (user == User.unauthenticated || user.id.isEmpty) {
             return Stream.value(UserProfileModel.empty);
           }
-          return _firebaseDatabaseRepository.getUserProfile(user.id).onErrorResume(
+          return _firebaseDatabaseRepository
+              .getUserProfile(user.id)
+              .onErrorResume(
                 (error, stackTrace) => Stream.value(
                   UserProfileModel(
                     id: user.id,

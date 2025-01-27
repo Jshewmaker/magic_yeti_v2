@@ -55,10 +55,9 @@ class TrackerWidgets extends StatelessWidget {
                         return Column(
                           children: [
                             CommanderDamageTracker(
-                              color: player.color,
-                              imageUrl: player.commander?.imageUrl ?? '',
-                              playerId: playerId,
+                              player: player,
                               commanderPlayerId: player.id,
+                              playerId: playerId,
                             ),
                           ],
                         );

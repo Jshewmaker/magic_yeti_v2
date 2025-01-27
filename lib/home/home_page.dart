@@ -323,7 +323,7 @@ class GameModeButtons extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.quaternary.withOpacity(0.9),
+                    color: AppColors.quaternary.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: ElevatedButton(
@@ -470,15 +470,77 @@ class MatchHistoryPanel extends StatelessWidget {
                                   color: Color(winningPlayer.color)
                                       .withValues(alpha: .8),
                                 )
-                              : Image.network(
-                                  fit: BoxFit.cover,
-                                  winningPlayer.commander?.imageUrl ?? '',
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Container(
-                                    color: Color(winningPlayer.color)
-                                        .withValues(alpha: .8),
-                                  ),
-                                ),
+                              : winningPlayer.partner?.imageUrl == null
+                                  ? Image.network(
+                                      fit: BoxFit.cover,
+                                      winningPlayer.commander?.imageUrl ?? '',
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Container(
+                                        color: Color(winningPlayer.color)
+                                            .withValues(alpha: .8),
+                                      ),
+                                    )
+                                  : Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Expanded(
+                                          child: Image.network(
+                                            winningPlayer.commander?.imageUrl ??
+                                                '',
+                                            fit: BoxFit.fitHeight,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Container(
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      Color(winningPlayer.color)
+                                                          .withValues(
+                                                    alpha: winningPlayer
+                                                                .lifePoints <=
+                                                            0
+                                                        ? .3
+                                                        : 1,
+                                                  ),
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                    Radius.circular(20),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Image.network(
+                                            winningPlayer.partner?.imageUrl ??
+                                                '',
+                                            fit: BoxFit.fitHeight,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Container(
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      Color(winningPlayer.color)
+                                                          .withValues(
+                                                    alpha: winningPlayer
+                                                                .lifePoints <=
+                                                            0
+                                                        ? .3
+                                                        : 1,
+                                                  ),
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                    Radius.circular(20),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                           playerName: winningPlayer.name,
                           commanderName: winningPlayer.commander?.name ?? '',
                           gameLength: Duration(seconds: game.durationInSeconds),
@@ -706,13 +768,58 @@ class LosersWidget extends StatelessWidget {
                       color: Color(player.color).withValues(alpha: .8),
                     )
                   else
-                    Image.network(
-                      fit: BoxFit.cover,
-                      player.commander?.imageUrl ?? '',
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Color(player.color).withValues(alpha: .8),
-                      ),
-                    ),
+                    player.partner?.imageUrl == null
+                        ? Image.network(
+                            fit: BoxFit.cover,
+                            player.commander?.imageUrl ?? '',
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                              color: Color(player.color).withValues(alpha: .8),
+                            ),
+                          )
+                        : Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: Image.network(
+                                  player.commander?.imageUrl ?? '',
+                                  fit: BoxFit.fitHeight,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        color: Color(player.color).withValues(
+                                          alpha:
+                                              player.lifePoints <= 0 ? .3 : 1,
+                                        ),
+                                        borderRadius: const BorderRadius.all(
+                                          Radius.circular(20),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              Expanded(
+                                child: Image.network(
+                                  player.partner?.imageUrl ?? '',
+                                  fit: BoxFit.fitHeight,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        color: Color(player.color).withValues(
+                                          alpha:
+                                              player.lifePoints <= 0 ? .3 : 1,
+                                        ),
+                                        borderRadius: const BorderRadius.all(
+                                          Radius.circular(20),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
                   if (player.id == game.startingPlayerId)
                     Positioned(
                       top: 4,

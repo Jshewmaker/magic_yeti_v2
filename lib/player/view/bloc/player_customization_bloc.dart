@@ -15,6 +15,8 @@ class PlayerCustomizationBloc
     on<CardListRequested>(_cardListRequested);
     on<UpdatePlayerCommander>(updatePlayerCommander);
     on<UpdateAccountOwnership>(_onUpdateAccountOwnership);
+    on<UpdateCommanderFilters>(_onUpdateCommanderFilters);
+    on<UpdatePartnerSelection>(_onUpdatePartnerSelection);
   }
 
   final ScryfallRepository _scryfallRepository;
@@ -32,10 +34,15 @@ class PlayerCustomizationBloc
       final cardList = await _scryfallRepository.getCardFullText(
         cardName: event.cardName,
       );
+
+      final filteredCards = cardList.data
+          .where((card) => card.typeLine.toLowerCase().contains('legendary'))
+          .toList();
       emit(
         state.copyWith(
           status: PlayerCustomizationStatus.success,
           cardList: cardList,
+          filteredCards: filteredCards,
         ),
       );
     } catch (e) {
@@ -53,15 +60,9 @@ class PlayerCustomizationBloc
   ) async {
     emit(
       state.copyWith(
-        status: PlayerCustomizationStatus.loading,
-      ),
-    );
-
-    emit(
-      state.copyWith(
         status: PlayerCustomizationStatus.success,
-        commander: () => event.commander ?? state.commander,
-        partner: () => event.partner ?? state.partner,
+        commander: event.commander,
+        partner: event.partner,
       ),
     );
   }
@@ -71,5 +72,28 @@ class PlayerCustomizationBloc
     Emitter<PlayerCustomizationState> emit,
   ) {
     emit(state.copyWith(isAccountOwner: event.isOwner));
+  }
+
+  void _onUpdateCommanderFilters(
+    UpdateCommanderFilters event,
+    Emitter<PlayerCustomizationState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        showOnlyLegendary: event.showOnlyLegendary,
+        hasPartner: event.hasPartner,
+      ),
+    );
+  }
+
+  void _onUpdatePartnerSelection(
+    UpdatePartnerSelection event,
+    Emitter<PlayerCustomizationState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        selectingPartner: event.selectingPartner,
+      ),
+    );
   }
 }

@@ -14,7 +14,11 @@ class PlayerCustomizationState extends Equatable {
     this.commander,
     this.partner,
     this.cardList,
+    this.filteredCards,
     this.isAccountOwner = false,
+    this.showOnlyLegendary = true,
+    this.hasPartner = false,
+    this.selectingPartner = false,
   });
 
   final PlayerCustomizationStatus status;
@@ -22,27 +26,49 @@ class PlayerCustomizationState extends Equatable {
   final Commander? commander;
   final Commander? partner;
   final SearchCards? cardList;
+  final List<MagicCard>? filteredCards;
   final bool isAccountOwner;
+  final bool showOnlyLegendary;
+  final bool hasPartner;
+  final bool selectingPartner;
 
   @override
-  List<Object?> get props =>
-      [status, name, commander, partner, cardList, isAccountOwner];
+  List<Object?> get props => [
+        status,
+        name,
+        commander,
+        partner,
+        cardList,
+        filteredCards,
+        isAccountOwner,
+        showOnlyLegendary,
+        hasPartner,
+        selectingPartner,
+      ];
 
   PlayerCustomizationState copyWith({
     PlayerCustomizationStatus? status,
     String? name,
-    Commander? Function()? commander,
-    Commander? Function()? partner,
+    Commander? commander,
+    Commander? partner,
     SearchCards? cardList,
+    List<MagicCard>? filteredCards,
     bool? isAccountOwner,
+    bool? showOnlyLegendary,
+    bool? hasPartner,
+    bool? selectingPartner,
   }) {
     return PlayerCustomizationState(
       status: status ?? this.status,
       name: name ?? this.name,
-      commander: commander != null ? commander() : this.commander,
-      partner: partner != null ? partner() : this.partner,
+      commander: commander ?? this.commander,
+      partner: partner ?? this.partner,
       cardList: cardList ?? this.cardList,
+      filteredCards: filteredCards ?? this.filteredCards,
       isAccountOwner: isAccountOwner ?? this.isAccountOwner,
+      showOnlyLegendary: showOnlyLegendary ?? this.showOnlyLegendary,
+      hasPartner: hasPartner ?? this.hasPartner,
+      selectingPartner: selectingPartner ?? this.selectingPartner,
     );
   }
 }

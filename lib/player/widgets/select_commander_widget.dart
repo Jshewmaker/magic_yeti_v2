@@ -20,169 +20,155 @@ class SelectCommanderWidget extends StatefulWidget {
 
 class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
   final textController = TextEditingController();
-  bool showOnlyLegendary = true;
-  bool hasPartner = false;
-  bool selectingPartner = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
+    return BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: TextField(
-                onSubmitted: (value) =>
-                    context.read<PlayerCustomizationBloc>().add(
-                          CardListRequested(
-                            cardName: value,
-                          ),
-                        ),
-                decoration: InputDecoration(
-                  hintText: selectingPartner
-                      ? 'Search for partner commander...'
-                      : l10n.searchCommanderHintText,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  prefixIcon: const Icon(
-                    Icons.search,
-                  ),
-                ),
-                controller: textController,
-                autocorrect: false,
-                onTap: () {
-                  widget.scrollController.animateTo(
-                    200,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            ElevatedButton(
-              style: ButtonStyle(
-                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              child: Text(
-                l10n.searchButtonText,
-                style: const TextStyle(color: AppColors.white),
-              ),
-              onPressed: () => context.read<PlayerCustomizationBloc>().add(
-                    CardListRequested(
-                      cardName: textController.text,
-                    ),
-                  ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Switch(
-              value: showOnlyLegendary,
-              onChanged: (value) {
-                setState(() {
-                  showOnlyLegendary = value;
-                });
-              },
-            ),
-            Text(
-              'Show Only Legendary Cards',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.white,
-                  ),
-            ),
-            const Spacer(),
             Row(
               children: [
-                Checkbox(
-                  value: hasPartner,
-                  onChanged: (value) {
-                    setState(() {
-                      hasPartner = value ?? false;
-                      if (!hasPartner) {
-                        selectingPartner = false;
-                        // Clear partner when unchecked
+                Expanded(
+                  child: TextField(
+                    onSubmitted: (value) =>
                         context.read<PlayerCustomizationBloc>().add(
-                              const UpdatePlayerCommander(
-                                partner: null,
+                              CardListRequested(
+                                cardName: value,
                               ),
-                            );
-                      }
-                    });
-                  },
+                            ),
+                    decoration: InputDecoration(
+                      hintText: state.selectingPartner
+                          ? 'Search for partner commander...'
+                          : l10n.searchCommanderHintText,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                      ),
+                    ),
+                    controller: textController,
+                    autocorrect: false,
+                    onTap: () {
+                      widget.scrollController.animateTo(
+                        200,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    },
+                  ),
                 ),
-                Text(
-                  'Has Partner',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.white,
+                const SizedBox(width: AppSpacing.sm),
+                ElevatedButton(
+                  style: ButtonStyle(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    l10n.searchButtonText,
+                    style: const TextStyle(color: AppColors.white),
+                  ),
+                  onPressed: () => context.read<PlayerCustomizationBloc>().add(
+                        CardListRequested(
+                          cardName: textController.text,
+                        ),
                       ),
                 ),
               ],
             ),
-          ],
-        ),
-        if (hasPartner) ...[
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(
-                    selectingPartner ? Colors.green : Colors.blue,
-                  ),
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Switch(
+                  value: state.showOnlyLegendary,
+                  onChanged: (value) {
+                    context.read<PlayerCustomizationBloc>().add(
+                          UpdateCommanderFilters(
+                            showOnlyLegendary: value,
+                            hasPartner: state.hasPartner,
+                          ),
+                        );
+                  },
+                ),
+                Text(
+                  'Show Only Legendary Cards',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.white,
+                      ),
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: state.hasPartner,
+                      onChanged: (value) {
+                        context.read<PlayerCustomizationBloc>().add(
+                              UpdateCommanderFilters(
+                                showOnlyLegendary: state.showOnlyLegendary,
+                                hasPartner: value ?? false,
+                              ),
+                            );
+                      },
+                    ),
+                    Text(
+                      'Has Partner',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.white,
+                          ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            if (state.hasPartner) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(
+                        state.selectingPartner ? Colors.green : Colors.blue,
+                      ),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    onPressed: () {
+                      context.read<PlayerCustomizationBloc>().add(
+                            UpdatePartnerSelection(
+                              selectingPartner: !state.selectingPartner,
+                            ),
+                          );
+                      textController.clear();
+                    },
+                    child: Text(
+                      state.selectingPartner
+                          ? 'Selecting Partner'
+                          : 'Select Main Commander',
+                      style: const TextStyle(color: AppColors.white),
                     ),
                   ),
-                ),
-                onPressed: () {
-                  setState(() {
-                    selectingPartner = !selectingPartner;
-                    textController.clear();
-                  });
-                },
-                child: Text(
-                  selectingPartner
-                      ? 'Selecting Partner'
-                      : 'Select Main Commander',
-                  style: const TextStyle(color: AppColors.white),
-                ),
+                ],
               ),
             ],
-          ),
-        ],
-        const SizedBox(height: AppSpacing.md),
-        BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
-          builder: (context, state) {
-            if (state.status == PlayerCustomizationStatus.loading) {
-              return const Center(
+            const SizedBox(height: AppSpacing.md),
+            if (state.status == PlayerCustomizationStatus.loading) ...[
+              const Center(
                 child: CircularProgressIndicator(
                   color: Colors.white,
                 ),
-              );
-            }
-            if (state.status == PlayerCustomizationStatus.success) {
-              final filteredCards = showOnlyLegendary
-                  ? state.cardList?.data
-                      .where(
-                        (card) =>
-                            card.typeLine.toLowerCase().contains('legend'),
-                      )
-                      .toList()
-                  : state.cardList?.data;
-
-              return GridView.builder(
+              ),
+            ] else if (state.status == PlayerCustomizationStatus.success) ...[
+              GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(AppSpacing.sm),
@@ -192,12 +178,12 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                   crossAxisSpacing: AppSpacing.xs,
                   mainAxisSpacing: AppSpacing.xs,
                 ),
-                itemCount: filteredCards?.length,
+                itemCount: state.filteredCards?.length,
                 itemBuilder: (context, index) {
-                  final card = filteredCards?[index];
+                  final card = state.filteredCards?[index];
                   return GestureDetector(
                     onTap: () {
-                      if (selectingPartner) {
+                      if (state.selectingPartner) {
                         context.read<PlayerCustomizationBloc>().add(
                               UpdatePlayerCommander(
                                 partner: Commander(
@@ -275,14 +261,15 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                     ),
                   );
                 },
-              );
-            }
-            return const SizedBox(
-              height: 400,
-            );
-          },
-        ),
-      ],
+              ),
+            ] else ...[
+              const SizedBox(
+                height: 400,
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 }

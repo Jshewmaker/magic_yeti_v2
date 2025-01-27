@@ -28,7 +28,7 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
     Emitter<MatchHistoryState> emit,
   ) async {
     emit(state.copyWith(status: HomeStatus.loadingHistory));
-
+    if (event.userId.isEmpty) return;
     await emit.forEach(
       _databaseRepository.getGames(event.userId),
       onData: (List<GameModel> games) {
