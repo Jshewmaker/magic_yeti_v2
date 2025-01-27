@@ -81,6 +81,7 @@ class CustomizePlayerView extends StatelessWidget {
                                         UpdatePlayerInfoEvent(
                                           playerName: textController.text,
                                           commander: state.commander,
+                                          partner: state.partner,
                                           playerId: playerId,
                                           firebaseId: state.isAccountOwner
                                               ? context

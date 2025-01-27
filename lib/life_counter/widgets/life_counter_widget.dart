@@ -376,25 +376,73 @@ class BackgroundWidget extends StatelessWidget {
     return ClipRRect(
       borderRadius: const BorderRadius.all(Radius.circular(20)),
       child: SizedBox.expand(
-        child: Image.network(
-          player.commander?.imageUrl ?? '',
-          fit: BoxFit.fill,
-          opacity: AlwaysStoppedAnimation(
-            player.lifePoints <= 0 ? .2 : 1,
-          ),
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Color(player.color).withValues(
-                  alpha: player.lifePoints <= 0 ? .3 : 1,
+        child: player.partner?.imageUrl == null
+            ? Image.network(
+                player.commander?.imageUrl ?? '',
+                fit: BoxFit.cover,
+                opacity: AlwaysStoppedAnimation(
+                  player.lifePoints <= 0 ? .2 : 1,
                 ),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(20),
-                ),
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Color(player.color).withValues(
+                        alpha: player.lifePoints <= 0 ? .3 : 1,
+                      ),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(20),
+                      ),
+                    ),
+                  );
+                },
+              )
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Image.network(
+                      player.commander?.imageUrl ?? '',
+                      fit: BoxFit.fitHeight,
+                      opacity: AlwaysStoppedAnimation(
+                        player.lifePoints <= 0 ? .2 : 1,
+                      ),
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Color(player.color).withValues(
+                              alpha: player.lifePoints <= 0 ? .3 : 1,
+                            ),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(20),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: Image.network(
+                      player.partner?.imageUrl ?? '',
+                      fit: BoxFit.fitHeight,
+                      opacity: AlwaysStoppedAnimation(
+                        player.lifePoints <= 0 ? .2 : 1,
+                      ),
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Color(player.color).withValues(
+                              alpha: player.lifePoints <= 0 ? .3 : 1,
+                            ),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(20),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            );
-          },
-        ),
       ),
     );
   }
