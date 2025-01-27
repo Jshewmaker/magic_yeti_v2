@@ -178,9 +178,9 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                   crossAxisSpacing: AppSpacing.xs,
                   mainAxisSpacing: AppSpacing.xs,
                 ),
-                itemCount: state.filteredCards?.length,
+                itemCount: state.magicCardList?.length,
                 itemBuilder: (context, index) {
-                  final card = state.filteredCards?[index];
+                  final card = state.magicCardList?[index];
                   return GestureDetector(
                     onTap: () {
                       if (state.selectingPartner) {

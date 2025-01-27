@@ -78,11 +78,17 @@ class PlayerCustomizationBloc
     UpdateCommanderFilters event,
     Emitter<PlayerCustomizationState> emit,
   ) {
+    final cardList = event.showOnlyLegendary
+        ? state.cardList?.data
+            .where((card) => card.typeLine.toLowerCase().contains('legendary'))
+            .toList()
+        : state.cardList?.data ?? [];
+
     emit(
       state.copyWith(
-        showOnlyLegendary: event.showOnlyLegendary,
-        hasPartner: event.hasPartner,
-      ),
+          showOnlyLegendary: event.showOnlyLegendary,
+          hasPartner: event.hasPartner,
+          filteredCards: cardList),
     );
   }
 

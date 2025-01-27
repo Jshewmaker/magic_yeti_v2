@@ -14,7 +14,7 @@ class PlayerCustomizationState extends Equatable {
     this.commander,
     this.partner,
     this.cardList,
-    this.filteredCards,
+    this.magicCardList,
     this.isAccountOwner = false,
     this.showOnlyLegendary = true,
     this.hasPartner = false,
@@ -26,7 +26,7 @@ class PlayerCustomizationState extends Equatable {
   final Commander? commander;
   final Commander? partner;
   final SearchCards? cardList;
-  final List<MagicCard>? filteredCards;
+  final List<MagicCard>? magicCardList;
   final bool isAccountOwner;
   final bool showOnlyLegendary;
   final bool hasPartner;
@@ -39,7 +39,7 @@ class PlayerCustomizationState extends Equatable {
         commander,
         partner,
         cardList,
-        filteredCards,
+        magicCardList,
         isAccountOwner,
         showOnlyLegendary,
         hasPartner,
@@ -64,7 +64,7 @@ class PlayerCustomizationState extends Equatable {
       commander: commander ?? this.commander,
       partner: partner ?? this.partner,
       cardList: cardList ?? this.cardList,
-      filteredCards: filteredCards ?? this.filteredCards,
+      magicCardList: filteredCards ?? this.magicCardList,
       isAccountOwner: isAccountOwner ?? this.isAccountOwner,
       showOnlyLegendary: showOnlyLegendary ?? this.showOnlyLegendary,
       hasPartner: hasPartner ?? this.hasPartner,
