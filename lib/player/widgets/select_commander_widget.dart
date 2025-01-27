@@ -20,6 +20,9 @@ class SelectCommanderWidget extends StatefulWidget {
 
 class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
   final textController = TextEditingController();
+  bool showOnlyLegendary = true;
+  bool hasPartner = false;
+  bool selectingPartner = false;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +42,9 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                           ),
                         ),
                 decoration: InputDecoration(
-                  hintText: l10n.searchCommanderHintText,
+                  hintText: selectingPartner
+                      ? 'Search for partner commander...'
+                      : l10n.searchCommanderHintText,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -79,6 +84,84 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
             ),
           ],
         ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Switch(
+              value: showOnlyLegendary,
+              onChanged: (value) {
+                setState(() {
+                  showOnlyLegendary = value;
+                });
+              },
+            ),
+            Text(
+              'Show Only Legendary Cards',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.white,
+                  ),
+            ),
+            const Spacer(),
+            Row(
+              children: [
+                Checkbox(
+                  value: hasPartner,
+                  onChanged: (value) {
+                    setState(() {
+                      hasPartner = value ?? false;
+                      if (!hasPartner) {
+                        selectingPartner = false;
+                        // Clear partner when unchecked
+                        context.read<PlayerCustomizationBloc>().add(
+                              const UpdatePlayerCommander(
+                                partner: null,
+                              ),
+                            );
+                      }
+                    });
+                  },
+                ),
+                Text(
+                  'Has Partner',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.white,
+                      ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        if (hasPartner) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(
+                    selectingPartner ? Colors.green : Colors.blue,
+                  ),
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                onPressed: () {
+                  setState(() {
+                    selectingPartner = !selectingPartner;
+                    textController.clear();
+                  });
+                },
+                child: Text(
+                  selectingPartner
+                      ? 'Selecting Partner'
+                      : 'Select Main Commander',
+                  style: const TextStyle(color: AppColors.white),
+                ),
+              ),
+            ],
+          ),
+        ],
         const SizedBox(height: AppSpacing.md),
         BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
           builder: (context, state) {
@@ -90,6 +173,15 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
               );
             }
             if (state.status == PlayerCustomizationStatus.success) {
+              final filteredCards = showOnlyLegendary
+                  ? state.cardList?.data
+                      .where(
+                        (card) =>
+                            card.typeLine.toLowerCase().contains('legend'),
+                      )
+                      .toList()
+                  : state.cardList?.data;
+
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -100,45 +192,60 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                   crossAxisSpacing: AppSpacing.xs,
                   mainAxisSpacing: AppSpacing.xs,
                 ),
-                itemCount: state.cardList?.data.length,
+                itemCount: filteredCards?.length,
                 itemBuilder: (context, index) {
+                  final card = filteredCards?[index];
                   return GestureDetector(
-                    onTap: () => context.read<PlayerCustomizationBloc>().add(
-                          UpdatePlayerCommander(
-                            commander: Commander(
-                              name: state.cardList?.data[index].name ?? '',
-                              typeLine:
-                                  state.cardList?.data[index].typeLine ?? '',
-                              scryFallUrl:
-                                  state.cardList?.data[index].scryfallUri ?? '',
-                              edhrecRank:
-                                  state.cardList?.data[index].edhrecRank,
-                              artist: state.cardList?.data[index].artist ?? '',
-                              colors: state.cardList?.data[index].colors ?? [],
-                              colorIdentity:
-                                  state.cardList?.data[index].colorIdentity,
-                              cardType:
-                                  state.cardList?.data[index].typeLine ?? '',
-                              imageUrl: state.cardList?.data[index].imageUris
-                                      ?.artCrop ??
-                                  '',
-                              manaCost:
-                                  state.cardList?.data[index].manaCost ?? '',
-                              oracleText:
-                                  state.cardList?.data[index].oracleText ?? '',
-                              power: state.cardList?.data[index].power,
-                              toughness: state.cardList?.data[index].toughness,
-                            ),
-                          ),
-                        ),
+                    onTap: () {
+                      if (selectingPartner) {
+                        context.read<PlayerCustomizationBloc>().add(
+                              UpdatePlayerCommander(
+                                partner: Commander(
+                                  name: card?.name ?? '',
+                                  typeLine: card?.typeLine ?? '',
+                                  scryFallUrl: card?.scryfallUri ?? '',
+                                  edhrecRank: card?.edhrecRank,
+                                  artist: card?.artist ?? '',
+                                  colors: card?.colors ?? [],
+                                  colorIdentity: card?.colorIdentity,
+                                  cardType: card?.typeLine ?? '',
+                                  imageUrl: card?.imageUris?.artCrop ?? '',
+                                  manaCost: card?.manaCost ?? '',
+                                  oracleText: card?.oracleText ?? '',
+                                  power: card?.power,
+                                  toughness: card?.toughness,
+                                ),
+                              ),
+                            );
+                      } else {
+                        context.read<PlayerCustomizationBloc>().add(
+                              UpdatePlayerCommander(
+                                commander: Commander(
+                                  name: card?.name ?? '',
+                                  typeLine: card?.typeLine ?? '',
+                                  scryFallUrl: card?.scryfallUri ?? '',
+                                  edhrecRank: card?.edhrecRank,
+                                  artist: card?.artist ?? '',
+                                  colors: card?.colors ?? [],
+                                  colorIdentity: card?.colorIdentity,
+                                  cardType: card?.typeLine ?? '',
+                                  imageUrl: card?.imageUris?.artCrop ?? '',
+                                  manaCost: card?.manaCost ?? '',
+                                  oracleText: card?.oracleText ?? '',
+                                  power: card?.power,
+                                  toughness: card?.toughness,
+                                ),
+                              ),
+                            );
+                      }
+                    },
                     child: Card(
                       elevation: 0,
                       child: Column(
                         children: [
                           Expanded(
                             child: Image.network(
-                              state.cardList?.data[index].imageUris?.normal ??
-                                  '',
+                              card?.imageUris?.normal ?? '',
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   const ColoredBox(
@@ -152,7 +259,7 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                           Padding(
                             padding: const EdgeInsets.all(AppSpacing.xs),
                             child: Text(
-                              state.cardList?.data[index].artist ?? '',
+                              card?.artist ?? '',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall

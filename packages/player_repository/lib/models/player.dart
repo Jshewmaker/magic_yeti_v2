@@ -35,6 +35,7 @@ class Player extends Equatable {
     required this.color,
     required this.commanderDamageList,
     this.commander,
+    this.partner,
     this.firebaseId,
     this.state = PlayerModelState.eliminated,
     int? placement,
@@ -56,6 +57,9 @@ class Player extends Equatable {
 
   /// The player's commander card.
   final Commander? commander;
+
+  /// The commander's partner card.
+  final Commander? partner;
 
   /// The player's assigned number in the game.
   final int playerNumber;
@@ -99,6 +103,7 @@ class Player extends Equatable {
     String? id,
     String? name,
     Commander? commander,
+    Commander? partner,
     int? playerNumber,
     int? lifePoints,
     int? color,
@@ -114,6 +119,7 @@ class Player extends Equatable {
       name: name ?? this.name,
       color: color ?? this.color,
       commander: commander ?? this.commander,
+      partner: partner ?? this.partner,
       playerNumber: playerNumber ?? this.playerNumber,
       lifePoints: lifePoints ?? this.lifePoints,
       state: state ?? this.state,
@@ -136,6 +142,7 @@ class Player extends Equatable {
         name,
         color,
         commander,
+        partner,
         playerNumber,
         lifePoints,
         state,

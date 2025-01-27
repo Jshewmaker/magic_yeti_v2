@@ -12,6 +12,7 @@ class PlayerCustomizationState extends Equatable {
     this.status = PlayerCustomizationStatus.initial,
     this.name = '',
     this.commander,
+    this.partner,
     this.cardList,
     this.isAccountOwner = false,
   });
@@ -19,24 +20,27 @@ class PlayerCustomizationState extends Equatable {
   final PlayerCustomizationStatus status;
   final String name;
   final Commander? commander;
+  final Commander? partner;
   final SearchCards? cardList;
   final bool isAccountOwner;
 
   @override
   List<Object?> get props =>
-      [status, name, commander, cardList, isAccountOwner];
+      [status, name, commander, partner, cardList, isAccountOwner];
 
   PlayerCustomizationState copyWith({
     PlayerCustomizationStatus? status,
     String? name,
-    Commander? commander,
+    Commander? Function()? commander,
+    Commander? Function()? partner,
     SearchCards? cardList,
     bool? isAccountOwner,
   }) {
     return PlayerCustomizationState(
       status: status ?? this.status,
       name: name ?? this.name,
-      commander: commander ?? this.commander,
+      commander: commander != null ? commander() : this.commander,
+      partner: partner != null ? partner() : this.partner,
       cardList: cardList ?? this.cardList,
       isAccountOwner: isAccountOwner ?? this.isAccountOwner,
     );

@@ -60,7 +60,8 @@ class PlayerCustomizationBloc
     emit(
       state.copyWith(
         status: PlayerCustomizationStatus.success,
-        commander: event.commander,
+        commander: () => event.commander ?? state.commander,
+        partner: () => event.partner ?? state.partner,
       ),
     );
   }

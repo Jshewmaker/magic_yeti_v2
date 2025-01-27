@@ -4,7 +4,7 @@ sealed class PlayerCustomizationEvent extends Equatable {
   const PlayerCustomizationEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 final class CardListRequested extends PlayerCustomizationEvent {
@@ -17,12 +17,13 @@ final class CardListRequested extends PlayerCustomizationEvent {
 }
 
 final class UpdatePlayerCommander extends PlayerCustomizationEvent {
-  const UpdatePlayerCommander({required this.commander});
+  const UpdatePlayerCommander({this.commander, this.partner});
 
-  final Commander commander;
+  final Commander? commander;
+  final Commander? partner;
 
   @override
-  List<Object> get props => [commander];
+  List<Object?> get props => [commander, partner];
 }
 
 final class UpdateAccountOwnership extends PlayerCustomizationEvent {

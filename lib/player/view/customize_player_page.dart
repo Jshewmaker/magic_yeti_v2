@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
 import 'package:magic_yeti/player/view/bloc/player_customization_bloc.dart';
-import 'package:magic_yeti/player/widgets/account_ownership_widget.dart';
 import 'package:magic_yeti/player/widgets/commander_image_widget.dart';
 import 'package:magic_yeti/player/widgets/player_name_input_widget.dart';
 import 'package:magic_yeti/player/widgets/select_commander_widget.dart';
@@ -67,6 +66,7 @@ class CustomizePlayerView extends StatelessWidget {
                               (state.commander?.imageUrl.isNotEmpty ?? false)
                                   ? state.commander?.imageUrl ?? ''
                                   : player.commander?.imageUrl ?? '',
+                          partnerImageUrl: state.partner?.imageUrl,
                           playerColor: player.color,
                         ),
                         const SizedBox(width: AppSpacing.md),
@@ -93,10 +93,6 @@ class CustomizePlayerView extends StatelessWidget {
                                       );
                                   Navigator.pop(context);
                                 },
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              AccountOwnershipWidget(
-                                isAccountOwner: state.isAccountOwner,
                               ),
                             ],
                           ),
