@@ -9,6 +9,8 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:magic_yeti/app/app.dart';
 import 'package:magic_yeti/firebase_options.dart';
 
 Future<void> bootstrap(
@@ -31,9 +33,7 @@ Future<void> bootstrap(
     return true;
   };
 
-  // Bloc.observer = AppBlocObserver(
-  //   analyticsRepository: analyticsRepository,
-  // );
+  Bloc.observer = AppBlocObserver();
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
   runApp(
     await builder(FirebaseFirestore.instance),

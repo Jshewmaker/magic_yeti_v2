@@ -1,9 +1,10 @@
+import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/profile/bloc/profile_bloc.dart';
-import 'package:firebase_database_repository/firebase_database_repository.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -58,6 +59,10 @@ class ProfileView extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Profile'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios),
+            onPressed: () => context.go(HomePage.routeName),
+          ),
         ),
         body: Padding(
           padding: const EdgeInsets.all(16),
@@ -77,25 +82,25 @@ class ProfileView extends StatelessWidget {
                       return Form(
                         child: Column(
                           children: [
-                            if (state.userProfile.imageUrl != null &&
-                                state.userProfile.imageUrl!.isNotEmpty)
+                            if (state.userProfile.photo != null &&
+                                state.userProfile.photo!.isNotEmpty)
                               Center(
                                 child: CircleAvatar(
                                   radius: 75,
                                   backgroundImage:
-                                      NetworkImage(state.userProfile.imageUrl!),
+                                      NetworkImage(state.userProfile.photo!),
                                 ),
                               ),
-                            if (state.userProfile.imageUrl == null ||
-                                state.userProfile.imageUrl!.isEmpty)
+                            if (state.userProfile.photo == null ||
+                                state.userProfile.photo!.isEmpty)
                               Center(
                                 child: CircleAvatar(
                                   radius: 75,
-                                  backgroundColor: Theme.of(context).primaryColor,
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
                                   child: Text(
-                                    (state.userProfile.username ?? '')
-                                        .isNotEmpty
-                                        ? state.userProfile.username![0]
+                                    (state.userProfile.name ?? '').isNotEmpty
+                                        ? state.userProfile.name![0]
                                             .toUpperCase()
                                         : '',
                                     style: const TextStyle(
@@ -108,21 +113,21 @@ class ProfileView extends StatelessWidget {
                             const SizedBox(height: 50),
                             _ProfileField(
                               label: 'Username',
-                              initialValue: state.userProfile.username ?? '',
+                              initialValue: state.userProfile.email ?? '',
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileUsernameChanged(value)),
                             ),
                             _ProfileField(
                               label: 'First Name',
-                              initialValue: state.userProfile.firstName ?? '',
+                              initialValue: state.userProfile.name ?? '',
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileFirstNameChanged(value)),
                             ),
                             _ProfileField(
                               label: 'Last Name',
-                              initialValue: state.userProfile.lastName ?? '',
+                              initialValue: state.userProfile.email ?? '',
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileLastNameChanged(value)),
@@ -136,7 +141,7 @@ class ProfileView extends StatelessWidget {
                             ),
                             _ProfileField(
                               label: 'Bio',
-                              initialValue: state.userProfile.bio ?? '',
+                              initialValue: state.userProfile.email ?? '',
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileBioChanged(value)),
@@ -195,12 +200,18 @@ class _EditProfileButton extends StatelessWidget {
 class _SignOutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        context.read<AppBloc>().add(const AppLogoutRequested());
-        context.pop();
+    return BlocListener<AppBloc, AppState>(
+      listener: (context, state) {
+        if (state.status == AppStatus.anonymous) {
+          context.go(HomePage.routeName);
+        }
       },
-      child: const Text('Sign Out'),
+      child: ElevatedButton(
+        onPressed: () {
+          context.read<AppBloc>().add(const AppLogoutRequested());
+        },
+        child: const Text('Sign Out'),
+      ),
     );
   }
 }

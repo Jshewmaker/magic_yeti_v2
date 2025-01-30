@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:app_config_repository/app_config_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:firebase_database_repository/models/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:user_repository/user_repository.dart';
 
@@ -17,10 +16,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   AppBloc({
     required AppConfigRepository appConfigRepository,
     required UserRepository userRepository,
-    required UserProfileModel user,
+    required User user,
   })  : _userRepository = userRepository,
         super(
-          user == UserProfileModel.empty
+          user == User.unauthenticated
               ? const AppState.unauthenticated()
               : user.isAnonymous
                   ? AppState.anonymous(user)
@@ -45,7 +44,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   final UserRepository _userRepository;
   late StreamSubscription<ForceUpgrade> _forceUpgradeSubscription;
   late StreamSubscription<bool> _isDownForMaintenanceSubscription;
-  late StreamSubscription<UserProfileModel> _userSubscription;
+  late StreamSubscription<User> _userSubscription;
 
   void _downForMaintenanceStatusChanged(bool isDownForMaintenance) {
     add(
@@ -59,7 +58,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     add(AppForceUpgradeStatusChanged(forceUpgrade));
   }
 
-  void _userChanged(UserProfileModel user) => add(AppUserChanged(user));
+  void _userChanged(User user) => add(AppUserChanged(user));
 
   void _onDownForMaintenanceStatusChanged(
     AppDownForMaintenanceStatusChanged event,

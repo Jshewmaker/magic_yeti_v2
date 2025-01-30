@@ -88,9 +88,21 @@
     "type": "text",
     "placeholders": {}
   },
+  "signUpWithAppleButtonText": "Sign up with Apple",
+  "@signUpWithAppleButtonText": {
+    "description": "Sign up with Apple Button Text",
+    "type": "text",
+    "placeholders": {}
+  },
   "signInWithGoogleButtonText": "Sign in with Google",
   "@signInWithGoogleButtonText": {
     "description": "Sign in with Google Button Text",
+    "type": "text",
+    "placeholders": {}
+  },
+  "signUpWithGoogleButtonText": "Sign up with Google",
+  "@signUpWithGoogleButtonText": {
+    "description": "Sign up with Google Button Text",
     "type": "text",
     "placeholders": {}
   },

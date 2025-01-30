@@ -29,12 +29,10 @@ class SignUpPage extends StatelessWidget {
           l10n.signUpAppBarTitle,
           style: theme.textTheme.displayMedium,
         ),
-        actions: [
-          IconButton(
-            onPressed: () => context.go(HomePage.routeName),
-            icon: const Icon(Icons.arrow_back),
-          ),
-        ],
+        leading: IconButton(
+          onPressed: () => context.go(HomePage.routeName),
+          icon: const Icon(Icons.arrow_back),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(

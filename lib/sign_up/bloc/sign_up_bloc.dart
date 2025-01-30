@@ -16,6 +16,8 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     on<SignUpEmailChanged>(_onEmailChanged);
     on<SignUpPasswordChanged>(_onPasswordChanged);
     on<SignUpSubmitted>(_onSubmitted);
+    on<SignUpGoogleSubmitted>(_onGoogleSubmitted);
+    on<SignUpAppleSubmitted>(_onAppleSubmitted);
   }
 
   final UserRepository _userRepository;
@@ -41,6 +43,36 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         valid: Formz.validate([state.email, password]),
       ),
     );
+  }
+
+  Future<void> _onGoogleSubmitted(
+    SignUpGoogleSubmitted event,
+    Emitter<SignUpState> emit,
+  ) async {
+    emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
+    try {
+      await _userRepository.logInWithGoogle();
+      emit(state.copyWith(status: FormzSubmissionStatus.success));
+    } on LogInWithGoogleCanceled {
+      emit(state.copyWith(status: FormzSubmissionStatus.canceled));
+    } catch (error, stackTrace) {
+      emit(state.copyWith(status: FormzSubmissionStatus.failure));
+      addError(error, stackTrace);
+    }
+  }
+
+  Future<void> _onAppleSubmitted(
+    SignUpAppleSubmitted event,
+    Emitter<SignUpState> emit,
+  ) async {
+    emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
+    try {
+      await _userRepository.logInWithApple();
+      emit(state.copyWith(status: FormzSubmissionStatus.success));
+    } catch (error, stackTrace) {
+      emit(state.copyWith(status: FormzSubmissionStatus.failure));
+      addError(error, stackTrace);
+    }
   }
 
   Future<void> _onSubmitted(

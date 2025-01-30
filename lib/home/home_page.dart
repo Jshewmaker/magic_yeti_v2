@@ -37,6 +37,12 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      body: const Row(
+        children: [
+          Expanded(child: LeftSidePanel()),
+          Expanded(child: MatchHistoryPanel()),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         foregroundColor: AppColors.white,
         onPressed: () {
@@ -81,12 +87,6 @@ class HomeView extends StatelessWidget {
         child: const Icon(Icons.add),
       ),
       resizeToAvoidBottomInset: false,
-      body: const Row(
-        children: [
-          Expanded(child: LeftSidePanel()),
-          Expanded(child: MatchHistoryPanel()),
-        ],
-      ),
     );
   }
 }
@@ -124,7 +124,7 @@ class SectionHeader extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           if (onMorePressed != null)
-            user.imageUrl == null || user.imageUrl!.isEmpty
+            user.photo == null || user.photo!.isEmpty
                 ? IconButton(
                     onPressed: onMorePressed,
                     icon: const Icon(
@@ -135,7 +135,7 @@ class SectionHeader extends StatelessWidget {
                 : InkWell(
                     onTap: onMorePressed,
                     child: CircleAvatar(
-                      backgroundImage: NetworkImage(user.imageUrl!),
+                      backgroundImage: NetworkImage(user.photo!),
                     ),
                   ),
         ],
@@ -167,7 +167,7 @@ class LeftSidePanel extends StatelessWidget {
                 title: l10n.statsTitle,
                 onMorePressed: onMore
                     ? () {
-                        context.push(ProfilePage.routePath);
+                        context.go(ProfilePage.routePath);
                       }
                     : null,
               ),
@@ -190,7 +190,7 @@ class AccountWidget extends StatelessWidget {
     final userIsLoggedIn =
         context.select((AppBloc bloc) => bloc.state.user.isAnonymous);
     if (context.select((MatchHistoryBloc bloc) => bloc.state.status) ==
-        HomeStatus.loadingHistorySuccess) {
+        MatchHistoryStatus.loadingHistorySuccess) {
       context.read<MatchHistoryBloc>().add(
             const CompileMatchHistoryData(),
           );
@@ -201,7 +201,6 @@ class AccountWidget extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             if (!userIsLoggedIn) ...[
               Row(
@@ -210,10 +209,6 @@ class AccountWidget extends StatelessWidget {
                   StatsWidget(
                     title: 'Win Rate',
                     stat: '${matchHistoryState.winPercentage}%',
-                  ),
-                  StatsWidget(
-                    title: 'Unique Commanders',
-                    stat: matchHistoryState.uniqueCommanderCount.toString(),
                   ),
                   StatsWidget(
                     title: 'Total Wins',
@@ -241,9 +236,23 @@ class AccountWidget extends StatelessWidget {
                     title: 'Average Placement',
                     stat: matchHistoryState.averagePlacement.toString(),
                   ),
+                ],
+              ),
+              const SizedBox(height: 48),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  StatsWidget(
+                    title: 'Unique Commanders',
+                    stat: matchHistoryState.uniqueCommanderCount.toString(),
+                  ),
                   StatsWidget(
                     title: 'Times Went First',
                     stat: matchHistoryState.timesWentFirst.toString(),
+                  ),
+                  StatsWidget(
+                    title: 'Avg EDHRec Rank',
+                    stat: matchHistoryState.avgEdhRecRank.toString(),
                   ),
                 ],
               ),
@@ -420,143 +429,138 @@ class MatchHistoryPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return BlocListener<AppBloc, AppState>(
-      listener: (context, state) {
-        if (state.status != AppStatus.authenticated) {
-          context.read<MatchHistoryBloc>().add(const ClearMatchHistory());
-        } else {
-          context
-              .read<MatchHistoryBloc>()
-              .add(LoadMatchHistory(userId: state.user.id));
-        }
-      },
-      listenWhen: (previous, current) => previous.user != current.user,
-      child: Column(
-        children: [
-          SectionHeader(title: l10n.matchHistoryTitle),
-          Expanded(
-            child: BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
-              builder: (context, state) {
-                switch (state.status) {
-                  case HomeStatus.initial:
-                  case HomeStatus.loadingHistory:
-                    return const Center(child: CircularProgressIndicator());
-                  case HomeStatus.failure:
+    final appState = context.watch<AppBloc>().state;
+
+    if (appState.status != AppStatus.authenticated) {
+      context.read<MatchHistoryBloc>().add(const ClearMatchHistory());
+    } else {
+      context
+          .read<MatchHistoryBloc>()
+          .add(LoadMatchHistory(userId: appState.user.id));
+    }
+    return Column(
+      children: [
+        SectionHeader(title: l10n.matchHistoryTitle),
+        Expanded(
+          child: BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
+            builder: (context, state) {
+              switch (state.status) {
+                case MatchHistoryStatus.initial:
+                case MatchHistoryStatus.loadingHistory:
+                  return const Center(child: CircularProgressIndicator());
+                case MatchHistoryStatus.failure:
+                  return Center(
+                    child: Text(l10n.matchHistoryLoadError),
+                  );
+                case MatchHistoryStatus.loadingHistorySuccess:
+                case MatchHistoryStatus.loadingStats:
+                case MatchHistoryStatus.loadingStatsSuccess:
+                  if (state.games.isEmpty) {
                     return Center(
-                      child: Text(l10n.matchHistoryLoadError),
+                      child: Text(l10n.noMatchHistoryAvailable),
                     );
-                  case HomeStatus.loadingHistorySuccess:
-                  case HomeStatus.loadingStats:
-                  case HomeStatus.loadingStatsSuccess:
-                    if (state.games.isEmpty) {
-                      return Center(
-                        child: Text(l10n.noMatchHistoryAvailable),
+                  }
+                  return ListView.builder(
+                    itemCount: state.games.length,
+                    itemBuilder: (context, index) {
+                      final game = state.games[index];
+                      final winningPlayer = game.players.firstWhere(
+                        (player) => player.id == game.winnerId,
                       );
-                    }
-                    return ListView.builder(
-                      itemCount: state.games.length,
-                      itemBuilder: (context, index) {
-                        final game = state.games[index];
-                        final winningPlayer = game.players.firstWhere(
-                          (player) => player.id == game.winnerId,
-                        );
-                        return CustomListItem(
-                          wonGame: winningPlayer.firebaseId ==
-                              context.read<AppBloc>().state.user.id,
-                          thumbnail: (winningPlayer
-                                      .commander?.imageUrl.isEmpty ??
-                                  false)
-                              ? Container(
-                                  color: Color(winningPlayer.color)
-                                      .withValues(alpha: .8),
-                                )
-                              : winningPlayer.partner?.imageUrl == null
-                                  ? Image.network(
-                                      fit: BoxFit.cover,
-                                      winningPlayer.commander?.imageUrl ?? '',
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              Container(
-                                        color: Color(winningPlayer.color)
-                                            .withValues(alpha: .8),
-                                      ),
-                                    )
-                                  : Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        Expanded(
-                                          child: Image.network(
-                                            winningPlayer.commander?.imageUrl ??
-                                                '',
-                                            fit: BoxFit.fitHeight,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return Container(
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      Color(winningPlayer.color)
-                                                          .withValues(
-                                                    alpha: winningPlayer
-                                                                .lifePoints <=
-                                                            0
-                                                        ? .3
-                                                        : 1,
-                                                  ),
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                    Radius.circular(20),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Image.network(
-                                            winningPlayer.partner?.imageUrl ??
-                                                '',
-                                            fit: BoxFit.fitHeight,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return Container(
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      Color(winningPlayer.color)
-                                                          .withValues(
-                                                    alpha: winningPlayer
-                                                                .lifePoints <=
-                                                            0
-                                                        ? .3
-                                                        : 1,
-                                                  ),
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                    Radius.circular(20),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ],
+                      return CustomListItem(
+                        wonGame: winningPlayer.firebaseId ==
+                            context.read<AppBloc>().state.user.id,
+                        thumbnail: (winningPlayer.commander?.imageUrl.isEmpty ??
+                                false)
+                            ? Container(
+                                color: Color(winningPlayer.color)
+                                    .withValues(alpha: .8),
+                              )
+                            : winningPlayer.partner?.imageUrl == null
+                                ? Image.network(
+                                    fit: BoxFit.cover,
+                                    winningPlayer.commander?.imageUrl ?? '',
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                      color: Color(winningPlayer.color)
+                                          .withValues(alpha: .8),
                                     ),
-                          playerName: winningPlayer.name,
-                          commanderName: winningPlayer.commander?.name ?? '',
-                          gameLength: Duration(seconds: game.durationInSeconds),
-                          gameDatePlayed: game.endTime,
-                          viewCount: index + 1,
-                          textStyle: Theme.of(context).textTheme,
-                          game: game,
-                        );
-                      },
-                    );
-                }
-              },
-            ),
+                                  )
+                                : Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                        child: Image.network(
+                                          winningPlayer.commander?.imageUrl ??
+                                              '',
+                                          fit: BoxFit.fitHeight,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Container(
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    Color(winningPlayer.color)
+                                                        .withValues(
+                                                  alpha: winningPlayer
+                                                              .lifePoints <=
+                                                          0
+                                                      ? .3
+                                                      : 1,
+                                                ),
+                                                borderRadius:
+                                                    const BorderRadius.all(
+                                                  Radius.circular(20),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Image.network(
+                                          winningPlayer.partner?.imageUrl ?? '',
+                                          fit: BoxFit.fitHeight,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Container(
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    Color(winningPlayer.color)
+                                                        .withValues(
+                                                  alpha: winningPlayer
+                                                              .lifePoints <=
+                                                          0
+                                                      ? .3
+                                                      : 1,
+                                                ),
+                                                borderRadius:
+                                                    const BorderRadius.all(
+                                                  Radius.circular(20),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                        playerName: winningPlayer.name,
+                        commanderName: winningPlayer.commander?.name ?? '',
+                        gameLength: Duration(seconds: game.durationInSeconds),
+                        gameDatePlayed: game.endTime,
+                        viewCount: index + 1,
+                        textStyle: Theme.of(context).textTheme,
+                        game: game,
+                      );
+                    },
+                  );
+              }
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

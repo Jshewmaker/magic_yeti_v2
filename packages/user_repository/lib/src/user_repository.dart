@@ -20,37 +20,12 @@ class UserRepository {
 
   final AuthenticationClient _authenticationClient;
   final FirebaseDatabaseRepository _firebaseDatabaseRepository;
-  final _userController = PublishSubject<UserProfileModel>();
 
   /// Stream of [User] which will emit the current user when
   /// the authentication state changes or when the user profile is updated.
   ///
   /// Emits [User.unauthenticated] if the user is not authenticated.
-  Stream<UserProfileModel> get user => Rx.merge([
-        _authenticationClient.user.switchMap((user) {
-          if (user == User.unauthenticated || user.id.isEmpty) {
-            return Stream.value(UserProfileModel.empty);
-          }
-          return _firebaseDatabaseRepository
-              .getUserProfile(user.id)
-              .onErrorResume(
-                (error, stackTrace) => Stream.value(
-                  UserProfileModel(
-                    id: user.id,
-                    email: user.email ?? '',
-                    username: user.name?.split(' ').first ?? '',
-                    firstName: user.name?.split(' ').first ?? '',
-                    lastName: user.name?.split(' ').last ?? '',
-                    bio: '',
-                    imageUrl: user.photo ?? '',
-                    isNewUser: true,
-                    isAnonymous: user.isAnonymous,
-                  ),
-                ),
-              );
-        }),
-        _userController.stream,
-      ]);
+  Stream<User> get user => _authenticationClient.user;
 
   /// Creates a new user with the provided [email] and [password].
   ///

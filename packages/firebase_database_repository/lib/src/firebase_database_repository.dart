@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database_repository/models/models.dart';
 
@@ -156,10 +158,13 @@ class FirebaseDatabaseRepository {
           .collection('matches')
           .snapshots()
           .map(
-            (snapshot) => snapshot.docs
-                .map((doc) => GameModel.fromJson(doc.data()))
-                .toList(),
-          );
+        (snapshot) {
+          return snapshot.docs.map((doc) {
+            final game = GameModel.fromJson(doc.data());
+            return game;
+          }).toList();
+        },
+      );
     } on Exception catch (e) {
       throw GetGamesException(
         message: e.toString(),

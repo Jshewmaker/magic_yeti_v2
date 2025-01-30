@@ -85,9 +85,9 @@ class MatchDetailsView extends StatelessWidget {
     return BlocConsumer<MatchHistoryBloc, MatchHistoryState>(
       listenWhen: (previous, current) =>
           previous.status != current.status &&
-          current.status == HomeStatus.failure,
+          current.status == MatchHistoryStatus.failure,
       listener: (context, state) {
-        if (state.status == HomeStatus.failure) {
+        if (state.status == MatchHistoryStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Failed to save: ${state.error}'),
@@ -268,6 +268,8 @@ class MatchStandingsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    players.sort((a, b) => a.placement.compareTo(b.placement));
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),

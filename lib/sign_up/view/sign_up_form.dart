@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_inputs/form_inputs.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
+import 'package:magic_yeti/login/login.dart';
 import 'package:magic_yeti/onboarding/onboarding.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
 
@@ -16,6 +17,7 @@ class SignUpForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final theme = Theme.of(context);
     return BlocListener<SignUpBloc, SignUpState>(
       listener: (context, state) {
         if (state.status.isSuccess) {
@@ -28,16 +30,33 @@ class SignUpForm extends StatelessWidget {
             );
         }
       },
-      child: const ScrollableColumn(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _EmailInput(),
-          SizedBox(height: AppSpacing.xs),
-          _PasswordInput(),
-          SizedBox(height: AppSpacing.xs),
-          _SignUpButton(),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: ScrollableColumn(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const _EmailInput(),
+            const SizedBox(height: AppSpacing.xs),
+            const _PasswordInput(),
+            const SizedBox(height: AppSpacing.xs),
+            const _SignUpButton(),
+            const SizedBox(height: AppSpacing.xlg),
+            GoogleLoginButton(
+              buttonText: l10n.signUpWithGoogleButtonText,
+              onPressed: () =>
+                  context.read<SignUpBloc>().add(const SignUpGoogleSubmitted()),
+            ),
+            if (theme.platform == TargetPlatform.iOS) ...[
+              AppleLoginButton(
+                buttonText: l10n.signUpWithAppleButtonText,
+                onPressed: () => context
+                    .read<SignUpBloc>()
+                    .add(const SignUpAppleSubmitted()),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

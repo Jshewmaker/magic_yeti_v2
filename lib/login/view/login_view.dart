@@ -4,7 +4,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:form_inputs/form_inputs.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/home/home_page.dart';
@@ -20,7 +19,13 @@ class LoginView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(
+        title: const Text('Login'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go(HomePage.routeName),
+        ),
+      ),
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
           if (state.status.isSuccess) {
@@ -81,16 +86,25 @@ class _LoginActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const LoginButton(),
         const SizedBox(height: AppSpacing.xlg),
-        const GoogleLoginButton(),
+        GoogleLoginButton(
+          buttonText: l10n.signInWithGoogleButtonText,
+          onPressed: () =>
+              context.read<LoginBloc>().add(const LoginGoogleSubmitted()),
+        ),
         if (theme.platform == TargetPlatform.iOS) ...[
           const SizedBox(height: AppSpacing.xlg),
-          const AppleLoginButton(),
+          AppleLoginButton(
+            buttonText: l10n.signInWithAppleButtonText,
+            onPressed: () =>
+                context.read<LoginBloc>().add(const LoginAppleSubmitted()),
+          ),
         ],
         const SizedBox(height: AppSpacing.xxlg),
         const SignUpButton(),
@@ -168,44 +182,6 @@ class LoginButton extends StatelessWidget {
       child: state.status.isInProgress
           ? const CircularProgressIndicator()
           : Text(l10n.loginButtonText),
-    );
-  }
-}
-
-class AppleLoginButton extends StatelessWidget {
-  @visibleForTesting
-  const AppleLoginButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return ElevatedButton.icon(
-      label: Text(l10n.signInWithAppleButtonText),
-      icon: const Icon(FontAwesomeIcons.apple, color: AppColors.white),
-      onPressed: () =>
-          context.read<LoginBloc>().add(const LoginAppleSubmitted()),
-    );
-  }
-}
-
-class GoogleLoginButton extends StatelessWidget {
-  @visibleForTesting
-  const GoogleLoginButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return ElevatedButton(
-      onPressed: () =>
-          context.read<LoginBloc>().add(const LoginGoogleSubmitted()),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(FontAwesomeIcons.google, color: AppColors.white),
-          const SizedBox(width: AppSpacing.xlg),
-          Text(l10n.signInWithGoogleButtonText),
-        ],
-      ),
     );
   }
 }

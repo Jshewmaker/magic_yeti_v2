@@ -23,7 +23,7 @@ class ProfileState extends Equatable {
   final String? email;
   final String? bio;
   final bool isValid;
-  final UserProfileModel userProfile;
+  final User userProfile;
 
   ProfileState copyWith({
     ProfileStatus? status,
@@ -34,7 +34,7 @@ class ProfileState extends Equatable {
     String? email,
     String? bio,
     bool? isValid,
-    UserProfileModel? userProfile,
+    User? userProfile,
   }) {
     return ProfileState(
       status: status ?? this.status,

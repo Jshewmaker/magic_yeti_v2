@@ -9,9 +9,7 @@ part 'match_history_state.dart';
 class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
   MatchHistoryBloc({
     required FirebaseDatabaseRepository databaseRepository,
-    required UserProfileModel user,
   })  : _databaseRepository = databaseRepository,
-        _user = user,
         super(const MatchHistoryState()) {
     on<LoadMatchHistory>(_onLoadMatchHistory);
     on<ClearMatchHistory>(_onClearMatchHistory);
@@ -21,13 +19,17 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
   }
 
   final FirebaseDatabaseRepository _databaseRepository;
-  final UserProfileModel _user;
 
   Future<void> _onLoadMatchHistory(
     LoadMatchHistory event,
     Emitter<MatchHistoryState> emit,
   ) async {
-    emit(state.copyWith(status: HomeStatus.loadingHistory));
+    emit(
+      state.copyWith(
+        status: MatchHistoryStatus.loadingHistory,
+        userId: event.userId,
+      ),
+    );
     if (event.userId.isEmpty) return;
     await emit.forEach(
       _databaseRepository.getGames(event.userId),
@@ -37,13 +39,13 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
           ..sort((a, b) => b.endTime.compareTo(a.endTime));
 
         return state.copyWith(
-          status: HomeStatus.loadingHistorySuccess,
+          status: MatchHistoryStatus.loadingHistorySuccess,
           games: sortedGames,
         );
       },
       onError: (error, stackTrace) {
         return state.copyWith(
-          status: HomeStatus.failure,
+          status: MatchHistoryStatus.failure,
           error: error.toString(),
         );
       },
@@ -60,7 +62,7 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
     } catch (error) {
       emit(
         state.copyWith(
-          status: HomeStatus.failure,
+          status: MatchHistoryStatus.failure,
           error: error.toString(),
         ),
       );
@@ -90,7 +92,7 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
       final winningPlayer = game.players.firstWhere(
         (player) => player.id == game.winnerId,
       );
-      if (winningPlayer.firebaseId == _user.id) {
+      if (winningPlayer.firebaseId == state.userId) {
         wins++;
       }
     }
@@ -106,7 +108,7 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
   /// Find the player in a game, defaulting to first player if not found
   Player _findPlayerInGame(GameModel game) {
     return game.players.firstWhere(
-      (player) => player.firebaseId == _user.id,
+      (player) => player.firebaseId == state.userId,
       orElse: () => game.players.first,
     );
   }
@@ -163,35 +165,64 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
     return timesFirst;
   }
 
+  double _calculateAvgEdhRecRank(
+    List<GameModel> games,
+    int uniqueCommanderCount,
+  ) {
+    if (games.isEmpty) return 0;
+
+    var totalRecRank = 0;
+    for (final game in games) {
+      final player = _findPlayerInGame(game);
+      totalRecRank += player.commander?.edhrecRank ?? 0;
+    }
+
+    // Round to 1 decimal place
+    return double.parse(
+        (totalRecRank / uniqueCommanderCount).toStringAsFixed(1));
+  }
+
   Future<void> _onCompileMatchHistoryData(
     CompileMatchHistoryData event,
     Emitter<MatchHistoryState> emit,
   ) async {
-    emit(state.copyWith(status: HomeStatus.loadingStats));
+    emit(state.copyWith(status: MatchHistoryStatus.loadingStats));
 
-    final games = state.games;
+    try {
+      final games = state.games;
 
-    // Calculate statistics
-    final uniqueCommanderCount = _calculateUniqueCommanders(games);
-    final totalWins = _calculateTotalWins(games);
-    final winPercentage = _calculateWinPercentage(games, totalWins);
-    final shortestGameDuration = _findShortestGameDuration(games);
-    final longestGameDuration = _findLongestGameDuration(games);
-    final averagePlacement = _calculateAveragePlacement(games);
-    final timesWentFirst = _calculateTimesWentFirst(games);
+      // Calculate statistics
+      final uniqueCommanderCount = _calculateUniqueCommanders(games);
+      final totalWins = _calculateTotalWins(games);
+      final winPercentage = _calculateWinPercentage(games, totalWins);
+      final shortestGameDuration = _findShortestGameDuration(games);
+      final longestGameDuration = _findLongestGameDuration(games);
+      final averagePlacement = _calculateAveragePlacement(games);
+      final timesWentFirst = _calculateTimesWentFirst(games);
+      final avgEdhRecRank =
+          _calculateAvgEdhRecRank(games, uniqueCommanderCount);
 
-    emit(
-      state.copyWith(
-        status: HomeStatus.loadingStatsSuccess,
-        uniqueCommanderCount: uniqueCommanderCount,
-        totalWins: totalWins,
-        winPercentage: winPercentage,
-        shortestGameDuration: _formatDuration(shortestGameDuration),
-        longestGameDuration: _formatDuration(longestGameDuration),
-        averagePlacement: averagePlacement,
-        timesWentFirst: timesWentFirst,
-      ),
-    );
+      emit(
+        state.copyWith(
+          status: MatchHistoryStatus.loadingStatsSuccess,
+          uniqueCommanderCount: uniqueCommanderCount,
+          totalWins: totalWins,
+          winPercentage: winPercentage,
+          shortestGameDuration: _formatDuration(shortestGameDuration),
+          longestGameDuration: _formatDuration(longestGameDuration),
+          averagePlacement: averagePlacement,
+          timesWentFirst: timesWentFirst,
+          avgEdhRecRank: avgEdhRecRank,
+        ),
+      );
+    } on Exception catch (e) {
+      emit(
+        state.copyWith(
+          status: MatchHistoryStatus.failure,
+          error: e.toString(),
+        ),
+      );
+    }
   }
 
   void _onClearMatchHistory(
@@ -200,7 +231,7 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
   ) {
     emit(
       state.copyWith(
-        status: HomeStatus.loadingHistorySuccess,
+        status: MatchHistoryStatus.loadingHistorySuccess,
         games: const [],
       ),
     );
@@ -241,15 +272,19 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
       //   return game;
       // }).toList();
 
-      emit(state.copyWith(
-        //games: updatedGames,
-        status: HomeStatus.loadingHistorySuccess,
-      ));
+      emit(
+        state.copyWith(
+          //games: updatedGames,
+          status: MatchHistoryStatus.loadingHistorySuccess,
+        ),
+      );
     } catch (error) {
-      emit(state.copyWith(
-        status: HomeStatus.failure,
-        error: error.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: MatchHistoryStatus.failure,
+          error: error.toString(),
+        ),
+      );
     }
   }
 

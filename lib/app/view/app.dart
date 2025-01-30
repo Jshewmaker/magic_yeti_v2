@@ -18,7 +18,7 @@ class App extends StatelessWidget {
     required AppConfigRepository appConfigRepository,
     required UserRepository userRepository,
     required ScryfallRepository scryfallRepository,
-    required UserProfileModel user,
+    required User user,
     super.key,
   })  : _appConfigRepository = appConfigRepository,
         _userRepository = userRepository,
@@ -31,7 +31,7 @@ class App extends StatelessWidget {
   final AppConfigRepository _appConfigRepository;
   final UserRepository _userRepository;
 
-  final UserProfileModel _user;
+  final User _user;
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +64,6 @@ class App extends StatelessWidget {
           BlocProvider(
             create: (context) => MatchHistoryBloc(
               databaseRepository: context.read<FirebaseDatabaseRepository>(),
-              user: context.read<AppBloc>().state.user,
             )..add(
                 LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
               ),

@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:form_inputs/form_inputs.dart';
+import 'package:user_repository/user_repository.dart';
 
 part 'profile_event.dart';
 part 'profile_state.dart';
@@ -9,7 +10,7 @@ part 'profile_state.dart';
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc({
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
-    required UserProfileModel userProfile,
+    required User userProfile,
   })  : _firebaseDatabaseRepository = firebaseDatabaseRepository,
         _userProfile = userProfile,
         super(ProfileState(userProfile: userProfile)) {
@@ -23,7 +24,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   final FirebaseDatabaseRepository _firebaseDatabaseRepository;
-  final UserProfileModel _userProfile;
+  final User _userProfile;
 
   void _onEditingToggled(
     ProfileEditingToggled event,
@@ -84,25 +85,25 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.loading));
 
     try {
-      final updatedProfile = _userProfile.copyWith(
-        username: state.username?.value,
-        firstName: state.firstName,
-        lastName: state.lastName,
-        email: state.email,
-        bio: state.bio,
-      );
+      // final updatedProfile = _userProfile.copyWith(
+      //   username: state.username?.value,
+      //   firstName: state.firstName,
+      //   lastName: state.lastName,
+      //   email: state.email,
+      //   bio: state.bio,
+      // );
 
-      await _firebaseDatabaseRepository.updateUserProfile(
-        _userProfile.id,
-        updatedProfile,
-      );
-      emit(
-        state.copyWith(
-          status: ProfileStatus.success,
-          isEditing: false,
-          userProfile: updatedProfile,
-        ),
-      );
+      // await _firebaseDatabaseRepository.updateUserProfile(
+      //   _userProfile.id,
+      //   updatedProfile,
+      // );
+      // emit(
+      //   state.copyWith(
+      //     status: ProfileStatus.success,
+      //     isEditing: false,
+      //     userProfile: updatedProfile,
+      //   ),
+      // );
     } catch (_) {
       emit(state.copyWith(status: ProfileStatus.failure));
     }

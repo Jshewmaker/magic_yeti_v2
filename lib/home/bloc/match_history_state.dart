@@ -1,6 +1,6 @@
 part of 'match_history_bloc.dart';
 
-enum HomeStatus {
+enum MatchHistoryStatus {
   initial,
   loadingHistory,
   loadingHistorySuccess,
@@ -11,7 +11,8 @@ enum HomeStatus {
 
 class MatchHistoryState extends Equatable {
   const MatchHistoryState({
-    this.status = HomeStatus.initial,
+    this.status = MatchHistoryStatus.initial,
+    this.userId = '',
     this.games = const [],
     this.error,
     this.uniqueCommanderCount = 0,
@@ -21,9 +22,11 @@ class MatchHistoryState extends Equatable {
     this.longestGameDuration = '0',
     this.averagePlacement = 0,
     this.timesWentFirst = 0,
+    this.avgEdhRecRank = 0,
   });
 
-  final HomeStatus status;
+  final MatchHistoryStatus status;
+  final String userId;
   final List<GameModel> games;
   final String? error;
   final int uniqueCommanderCount;
@@ -33,9 +36,11 @@ class MatchHistoryState extends Equatable {
   final String longestGameDuration;
   final double averagePlacement;
   final int timesWentFirst;
+  final double avgEdhRecRank;
 
   MatchHistoryState copyWith({
-    HomeStatus? status,
+    MatchHistoryStatus? status,
+    String? userId,
     List<GameModel>? games,
     String? error,
     int? uniqueCommanderCount,
@@ -45,9 +50,11 @@ class MatchHistoryState extends Equatable {
     String? longestGameDuration,
     double? averagePlacement,
     int? timesWentFirst,
+    double? avgEdhRecRank,
   }) {
     return MatchHistoryState(
       status: status ?? this.status,
+      userId: userId ?? this.userId,
       games: games ?? this.games,
       error: error ?? this.error,
       uniqueCommanderCount: uniqueCommanderCount ?? this.uniqueCommanderCount,
@@ -57,6 +64,7 @@ class MatchHistoryState extends Equatable {
       longestGameDuration: longestGameDuration ?? this.longestGameDuration,
       averagePlacement: averagePlacement ?? this.averagePlacement,
       timesWentFirst: timesWentFirst ?? this.timesWentFirst,
+      avgEdhRecRank: avgEdhRecRank ?? this.avgEdhRecRank,
     );
   }
 
@@ -64,6 +72,7 @@ class MatchHistoryState extends Equatable {
   List<Object?> get props => [
         status,
         games,
+        userId,
         error,
         uniqueCommanderCount,
         totalWins,
@@ -72,5 +81,6 @@ class MatchHistoryState extends Equatable {
         longestGameDuration,
         averagePlacement,
         timesWentFirst,
+        avgEdhRecRank,
       ];
 }
