@@ -36,6 +36,7 @@ class FourPlayerGame extends StatelessWidget {
                         playerId: playerList[2].id,
                         rotate: true,
                       ),
+                      const SizedBox(height: AppSpacing.xxs),
                       LeftPlayer(
                         playerId: playerList[1].id,
                         rotate: false,
@@ -51,6 +52,7 @@ class FourPlayerGame extends StatelessWidget {
                         playerId: playerList[3].id,
                         rotate: true,
                       ),
+                      const SizedBox(height: AppSpacing.xxs),
                       RightPlayer(
                         playerId: playerList[0].id,
                         rotate: false,
