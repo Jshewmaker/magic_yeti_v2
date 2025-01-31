@@ -30,19 +30,34 @@ class FourPlayerGame extends StatelessWidget {
             body: Row(
               children: [
                 Expanded(
-                  child: _PlayerColumn(
-                    topPlayerId: playerList[2].id,
-                    bottomPlayerId: playerList[1].id,
+                  child: Column(
+                    children: [
+                      LeftPlayer(
+                        playerId: playerList[2].id,
+                        rotate: true,
+                      ),
+                      LeftPlayer(
+                        playerId: playerList[1].id,
+                        rotate: false,
+                      ),
+                    ],
                   ),
                 ),
                 const CenterControlColumn(),
                 Expanded(
-                  child: _PlayerColumn(
-                    topPlayerId: playerList[3].id,
-                    bottomPlayerId: playerList[0].id,
-                    alignment: Alignment.centerRight,
+                  child: Column(
+                    children: [
+                      RightPlayer(
+                        playerId: playerList[3].id,
+                        rotate: true,
+                      ),
+                      RightPlayer(
+                        playerId: playerList[0].id,
+                        rotate: false,
+                      ),
+                    ],
                   ),
-                ),
+                )
               ],
             ),
           );
@@ -52,62 +67,10 @@ class FourPlayerGame extends StatelessWidget {
   }
 }
 
-/// Represents a vertical column containing two player sections.
-/// Manages the layout of two players stacked vertically with appropriate
-/// spacing.
-/// [topPlayerId] and [bottomPlayerId] identify the players in this column.
-/// Optional [alignment] parameter allows customizing the alignment of player
-/// sections.
-class _PlayerColumn extends StatelessWidget {
-  const _PlayerColumn({
-    required this.topPlayerId,
-    required this.bottomPlayerId,
-    this.alignment,
-  });
-
-  final String topPlayerId;
-  final String bottomPlayerId;
-  final AlignmentGeometry? alignment;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: _PlayerSection(
-            playerId: topPlayerId,
-            rotate: true,
-            alignment: alignment,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Expanded(
-          child: _PlayerSection(
-            playerId: bottomPlayerId,
-            rotate: false,
-            alignment: alignment,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Individual player section containing life counter and tracker widgets.
-/// Combines LifeCounterWidget and TrackerWidgets for a single player.
-/// [playerId] identifies the player
-/// [rotate] determines if the section should be rotated for proper orientation
-/// [alignment] allows customizing the stack alignment of components
-class _PlayerSection extends StatelessWidget {
-  const _PlayerSection({
-    required this.playerId,
-    required this.rotate,
-    this.alignment,
-  });
-
+class LeftPlayer extends StatelessWidget {
+  const LeftPlayer({required this.playerId, required this.rotate, super.key});
   final String playerId;
   final bool rotate;
-  final AlignmentGeometry? alignment;
 
   @override
   Widget build(BuildContext context) {
@@ -116,17 +79,64 @@ class _PlayerSection extends StatelessWidget {
         playerRepository: context.read<PlayerRepository>(),
         playerId: playerId,
       ),
-      child: Stack(
-        alignment: alignment ?? Alignment.topLeft,
-        children: [
-          LifeCounterWidget(
-            rotate: rotate,
+      child: Expanded(
+        child: SizedBox.expand(
+          child: Row(
+            children: [
+              Flexible(
+                child: TrackerWidgets(
+                  rotate: !rotate,
+                  playerId: playerId,
+                  leftSideTracker: true,
+                ),
+              ),
+              Flexible(
+                flex: 6,
+                child: LifeCounterWidget(
+                  rotate: rotate,
+                  leftSideTracker: true,
+                ),
+              ),
+            ],
           ),
-          TrackerWidgets(
-            rotate: !rotate,
-            playerId: playerId,
+        ),
+      ),
+    );
+  }
+}
+
+class RightPlayer extends StatelessWidget {
+  const RightPlayer({required this.playerId, required this.rotate, super.key});
+  final String playerId;
+  final bool rotate;
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => PlayerBloc(
+        playerRepository: context.read<PlayerRepository>(),
+        playerId: playerId,
+      ),
+      child: Expanded(
+        child: SizedBox.expand(
+          child: Row(
+            children: [
+              Flexible(
+                flex: 6,
+                child: LifeCounterWidget(
+                  rotate: rotate,
+                  leftSideTracker: false,
+                ),
+              ),
+              Flexible(
+                child: TrackerWidgets(
+                  rotate: !rotate,
+                  playerId: playerId,
+                  leftSideTracker: false,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

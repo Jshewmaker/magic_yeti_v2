@@ -28,6 +28,11 @@ class AppTheme {
       colorScheme: _colorScheme,
       elevatedButtonTheme: _elevatedButtonTheme,
       switchTheme: _switchTheme,
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: AppColors.tertiarySecondary,
+        actionTextColor: AppColors.white,
+        contentTextStyle: TextStyle(color: AppColors.white),
+      ),
     );
   }
 

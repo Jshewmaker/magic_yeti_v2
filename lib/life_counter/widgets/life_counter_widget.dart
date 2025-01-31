@@ -9,10 +9,12 @@ import 'package:player_repository/player_repository.dart';
 
 class LifeCounterWidget extends StatelessWidget {
   LifeCounterWidget({
+    required this.leftSideTracker,
     this.rotate = false,
     super.key,
   });
   final bool rotate;
+  final bool leftSideTracker;
 
   final textController = TextEditingController();
 
@@ -20,35 +22,47 @@ class LifeCounterWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final player = context.watch<PlayerBloc>().state.player;
     textController.text = player.name;
-    return RotatedBox(
-      quarterTurns: rotate ? 2 : 0,
-      child: Stack(
-        children: [
-          BackgroundWidget(player: player),
-          _LifeTrackerWidget(lifePoints: player.lifePoints),
-          Row(
-            children: [
-              DecrementLifeWidget(player: player),
-              IncrementLifeWidget(player: player),
-            ],
-          ),
-          _PlayerNameWidget(
-            name: textController.text,
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (_) => BlocProvider.value(
-                    value: context.read<PlayerBloc>(),
-                    child: CustomizePlayerPage(
-                      playerId: player.id,
+    return ClipRRect(
+      borderRadius: leftSideTracker
+          ? const BorderRadius.only(
+              topRight: Radius.circular(20),
+              bottomRight: Radius.circular(20),
+            )
+          : const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              bottomLeft: Radius.circular(20),
+            ),
+      child: RotatedBox(
+        quarterTurns: rotate ? 2 : 0,
+        child: Stack(
+          children: [
+            BackgroundWidget(
+                player: player, rotate: rotate, leftSideTracker: true),
+            _LifeTrackerWidget(lifePoints: player.lifePoints),
+            Row(
+              children: [
+                DecrementLifeWidget(player: player),
+                IncrementLifeWidget(player: player),
+              ],
+            ),
+            _PlayerNameWidget(
+              name: textController.text,
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<PlayerBloc>(),
+                      child: CustomizePlayerPage(
+                        playerId: player.id,
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-        ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -221,11 +235,11 @@ class _LifeTrackerWidget extends StatelessWidget {
           children: [
             _LifeText(player: state.player),
             const Positioned(
-              left: 420,
+              left: 400,
               child: FaIcon(FontAwesomeIcons.plus),
             ),
             const Positioned(
-              right: 420,
+              right: 400,
               child: FaIcon(FontAwesomeIcons.minus),
             ),
             const _LifeChangesWidget(),
@@ -268,7 +282,7 @@ class _LifeChangesWidget extends StatelessWidget {
         return Center(
           child: Transform.translate(
             offset: Offset(
-              change > 0 ? 175 : -120,
+              change > 0 ? 140 : -140,
               2,
             ),
             child: _LifePointChangeAnimation(change: change),
@@ -366,84 +380,76 @@ class _LifePointChangeAnimationState extends State<_LifePointChangeAnimation>
 class BackgroundWidget extends StatelessWidget {
   const BackgroundWidget({
     required this.player,
+    required this.rotate,
+    required this.leftSideTracker,
     super.key,
   });
 
   final Player player;
+  final bool rotate;
+  final bool leftSideTracker;
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.all(Radius.circular(20)),
-      child: SizedBox.expand(
-        child: player.partner?.imageUrl == null
-            ? Image.network(
-                player.commander?.imageUrl ?? '',
-                fit: BoxFit.cover,
-                opacity: AlwaysStoppedAnimation(
-                  player.lifePoints <= 0 ? .2 : 1,
-                ),
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Color(player.color).withValues(
-                        alpha: player.lifePoints <= 0 ? .3 : 1,
-                      ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(20),
-                      ),
-                    ),
-                  );
-                },
-              )
-            : Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: Image.network(
-                      player.commander?.imageUrl ?? '',
-                      fit: BoxFit.fitHeight,
-                      opacity: AlwaysStoppedAnimation(
-                        player.lifePoints <= 0 ? .2 : 1,
-                      ),
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Color(player.color).withValues(
-                              alpha: player.lifePoints <= 0 ? .3 : 1,
-                            ),
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(20),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  Expanded(
-                    child: Image.network(
-                      player.partner?.imageUrl ?? '',
-                      fit: BoxFit.fitHeight,
-                      opacity: AlwaysStoppedAnimation(
-                        player.lifePoints <= 0 ? .2 : 1,
-                      ),
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Color(player.color).withValues(
-                              alpha: player.lifePoints <= 0 ? .3 : 1,
-                            ),
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(20),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+    return SizedBox.expand(
+      child: player.partner?.imageUrl == null
+          ? Image.network(
+              player.commander?.imageUrl ?? '',
+              fit: BoxFit.cover,
+              opacity: AlwaysStoppedAnimation(
+                player.lifePoints <= 0 ? .2 : 1,
               ),
-      ),
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Color(player.color).withValues(
+                      alpha: player.lifePoints <= 0 ? .3 : 1,
+                    ),
+                  ),
+                );
+              },
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Image.network(
+                    player.commander?.imageUrl ?? '',
+                    fit: BoxFit.fitHeight,
+                    opacity: AlwaysStoppedAnimation(
+                      player.lifePoints <= 0 ? .2 : 1,
+                    ),
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Color(player.color).withValues(
+                            alpha: player.lifePoints <= 0 ? .3 : 1,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: Image.network(
+                    player.partner?.imageUrl ?? '',
+                    fit: BoxFit.fitHeight,
+                    opacity: AlwaysStoppedAnimation(
+                      player.lifePoints <= 0 ? .2 : 1,
+                    ),
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Color(player.color).withValues(
+                            alpha: player.lifePoints <= 0 ? .3 : 1,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

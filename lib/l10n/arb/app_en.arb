@@ -330,5 +330,95 @@
         "type": "int"
       }
     }
+  },
+  "addGameToHistoryTitle": "Add Game to Match History",
+  "@addGameToHistoryTitle": {
+    "description": "Title for the add game dialog",
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterRoomIdHint": "Enter room ID",
+  "@enterRoomIdHint": {
+    "description": "Hint text for room ID input",
+    "type": "text",
+    "placeholders": {}
+  },
+  "addButtonText": "Add",
+  "@addButtonText": {
+    "description": "Add button text",
+    "type": "text",
+    "placeholders": {}
+  },
+  "gameNotFoundError": "Game not found",
+  "@gameNotFoundError": {
+    "description": "Error message when game is not found",
+    "type": "text",
+    "placeholders": {}
+  },
+  "loginSignUpTitle": "Login/Sign Up",
+  "@loginSignUpTitle": {
+    "description": "Title for login/sign up section",
+    "type": "text",
+    "placeholders": {}
+  },
+  "winRateTitle": "Win Rate",
+  "@winRateTitle": {
+    "description": "Title for win rate stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "totalWinsTitle": "Total Wins",
+  "@totalWinsTitle": {
+    "description": "Title for total wins stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "totalGamesTitle": "Total Games",
+  "@totalGamesTitle": {
+    "description": "Title for total games stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "shortestGameTitle": "Shortest Game",
+  "@shortestGameTitle": {
+    "description": "Title for shortest game stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "longestGameTitle": "Longest Game",
+  "@longestGameTitle": {
+    "description": "Title for longest game stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "averagePlacementTitle": "Average Placement",
+  "@averagePlacementTitle": {
+    "description": "Title for average placement stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "uniqueCommandersTitle": "Unique Commanders",
+  "@uniqueCommandersTitle": {
+    "description": "Title for unique commanders stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "timesWentFirstTitle": "Times Went First",
+  "@timesWentFirstTitle": {
+    "description": "Title for times went first stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "avgEdhRecRankTitle": "Avg EDHRec Rank",
+  "@avgEdhRecRankTitle": {
+    "description": "Title for average EDHRec rank stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "underConstructionText": "Under Construction",
+  "@underConstructionText": {
+    "description": "Text shown for features under construction",
+    "type": "text",
+    "placeholders": {}
   }
 }

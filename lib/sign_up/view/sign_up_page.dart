@@ -41,7 +41,12 @@ class SignUpPage extends StatelessWidget {
         ),
         child: BlocProvider<SignUpBloc>(
           create: (_) => SignUpBloc(context.read<UserRepository>()),
-          child: const SignUpForm(),
+          child: Row(
+            children: [
+              const Expanded(child: SignUpForm()),
+              Expanded(child: Image.asset('assets/icon/icon.png')),
+            ],
+          ),
         ),
       ),
     );

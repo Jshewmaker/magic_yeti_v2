@@ -17,6 +17,9 @@ abstract class AppColors {
   /// Tertiary - Muted Purple
   static const Color tertiary = Color(0xFF6B4E71);
 
+  /// Tertiary Secondary - Muted Purple
+  static const Color tertiarySecondary = Color(0xFF88638F);
+
   /// quaternary - Lighter Background
   static const Color quaternary = Color(0xFF282A36);
 

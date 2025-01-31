@@ -36,6 +36,7 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       body: const Row(
         children: [
@@ -45,39 +46,41 @@ class HomeView extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         foregroundColor: AppColors.white,
+        backgroundColor: AppColors.tertiary,
         onPressed: () {
           showDialog<void>(
             context: context,
             builder: (BuildContext _) {
               String roomId = '';
               return AlertDialog(
-                title: const Text('Add Game to Match History'),
+                title: Text(l10n.addGameToHistoryTitle),
                 content: TextField(
+                  autocorrect: false,
                   onChanged: (value) {
-                    roomId = value;
+                    roomId = value.toUpperCase();
                   },
-                  decoration: const InputDecoration(
-                    hintText: 'Enter room ID',
+                  decoration: InputDecoration(
+                    hintText: l10n.enterRoomIdHint,
                   ),
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: Text(l10n.cancelTextButton),
                   ),
                   TextButton(
                     onPressed: () {
                       if (roomId.isNotEmpty) {
                         context.read<MatchHistoryBloc>().add(
                               AddMatchToPlayerHistoryEvent(
-                                roomId: roomId,
+                                roomId: roomId.toUpperCase(),
                                 playerId: context.read<AppBloc>().state.user.id,
                               ),
                             );
                         Navigator.pop(context);
                       }
                     },
-                    child: const Text('Add'),
+                    child: Text(l10n.addButtonText),
                   ),
                 ],
               );
@@ -164,7 +167,7 @@ class LeftSidePanel extends StatelessWidget {
           child: Column(
             children: [
               SectionHeader(
-                title: l10n.statsTitle,
+                title: onMore ? l10n.statsTitle : 'Login/Sign Up',
                 onMorePressed: onMore
                     ? () {
                         context.go(ProfilePage.routePath);
@@ -200,74 +203,124 @@ class AccountWidget extends StatelessWidget {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(32),
-        child: Column(
-          children: [
-            if (!userIsLoggedIn) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        child: !userIsLoggedIn
+            ? Column(
                 children: [
-                  StatsWidget(
-                    title: 'Win Rate',
-                    stat: '${matchHistoryState.winPercentage}%',
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      StatsWidget(
+                        title: l10n.winRateTitle,
+                        stat: '${matchHistoryState.winPercentage}%',
+                      ),
+                      StatsWidget(
+                        title: l10n.totalWinsTitle,
+                        stat: matchHistoryState.totalWins.toString(),
+                      ),
+                      StatsWidget(
+                        title: l10n.totalGamesTitle,
+                        stat: matchHistoryState.games.length.toString(),
+                      ),
+                    ],
                   ),
-                  StatsWidget(
-                    title: 'Total Wins',
-                    stat: matchHistoryState.totalWins.toString(),
+                  const SizedBox(height: 48),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      StatsWidget(
+                        title: l10n.shortestGameTitle,
+                        stat: matchHistoryState.shortestGameDuration,
+                      ),
+                      StatsWidget(
+                        title: l10n.longestGameTitle,
+                        stat: matchHistoryState.longestGameDuration,
+                      ),
+                      StatsWidget(
+                        title: l10n.averagePlacementTitle,
+                        stat: matchHistoryState.averagePlacement.toString(),
+                      ),
+                    ],
                   ),
-                  StatsWidget(
-                    title: 'Total Games',
-                    stat: matchHistoryState.games.length.toString(),
+                  const SizedBox(height: 48),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      StatsWidget(
+                        title: l10n.uniqueCommandersTitle,
+                        stat: matchHistoryState.uniqueCommanderCount.toString(),
+                      ),
+                      StatsWidget(
+                        title: l10n.timesWentFirstTitle,
+                        stat: matchHistoryState.timesWentFirst.toString(),
+                      ),
+                      StatsWidget(
+                        title: l10n.avgEdhRecRankTitle,
+                        stat: matchHistoryState.avgEdhRecRank.toString(),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 70,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ElevatedButton(
+                      onPressed: () => context.go(LoginPage.routeName),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary.withValues(
+                          alpha: 0.1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                      ),
+                      child: Center(
+                        child: Text(
+                          l10n.loginButtonText,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                              ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Container(
+                    height: 70,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ElevatedButton(
+                      onPressed: () => context.go(SignUpPage.routeName),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary.withValues(
+                          alpha: 0.1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                      ),
+                      child: Center(
+                        child: Text(
+                          l10n.signUpAppBarTitle,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                              ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 48),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  StatsWidget(
-                    title: 'Shortest Game',
-                    stat: matchHistoryState.shortestGameDuration,
-                  ),
-                  StatsWidget(
-                    title: 'Longest Game',
-                    stat: matchHistoryState.longestGameDuration,
-                  ),
-                  StatsWidget(
-                    title: 'Average Placement',
-                    stat: matchHistoryState.averagePlacement.toString(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 48),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  StatsWidget(
-                    title: 'Unique Commanders',
-                    stat: matchHistoryState.uniqueCommanderCount.toString(),
-                  ),
-                  StatsWidget(
-                    title: 'Times Went First',
-                    stat: matchHistoryState.timesWentFirst.toString(),
-                  ),
-                  StatsWidget(
-                    title: 'Avg EDHRec Rank',
-                    stat: matchHistoryState.avgEdhRecRank.toString(),
-                  ),
-                ],
-              ),
-            ] else ...[
-              ElevatedButton(
-                onPressed: () => context.go(LoginPage.routeName),
-                child: Text(l10n.loginButtonText),
-              ),
-              ElevatedButton(
-                onPressed: () => context.go(SignUpPage.routeName),
-                child: Text(l10n.signUpAppBarTitle),
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }
@@ -311,23 +364,6 @@ class GameModeButtons extends StatelessWidget {
           Expanded(
             child: Container(
               margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.secondary.withValues(alpha: 0.8),
-                    AppColors.tertiary.withValues(alpha: 0.6),
-                    AppColors.secondary.withValues(alpha: 0.8),
-                  ],
-                  stops: const [0.0, 0.5, 1.0],
-                ),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppColors.secondary,
-                  width: 2,
-                ),
-              ),
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: Container(
@@ -336,7 +372,14 @@ class GameModeButtons extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: ElevatedButton(
-                    onPressed: () => _createGame(context, 2, 20),
+                    onLongPress: () => _createGame(context, 2, 20),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(l10n.underConstructionText),
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary.withValues(
                         alpha: 0.1,
@@ -355,21 +398,22 @@ class GameModeButtons extends StatelessWidget {
                               .textTheme
                               .headlineSmall
                               ?.copyWith(
-                                color: AppColors.secondary,
+                                color:
+                                    AppColors.secondary.withValues(alpha: 0.2),
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Under Construction',
+                        Text(
+                          l10n.underConstructionText,
                           style: TextStyle(
-                            color: AppColors.secondary,
+                            color: AppColors.secondary.withValues(alpha: 0.2),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const Icon(
+                        Icon(
                           Icons.construction,
-                          color: AppColors.secondary,
+                          color: AppColors.secondary.withValues(alpha: 0.2),
                           size: 32,
                         ),
                       ],
@@ -438,129 +482,158 @@ class MatchHistoryPanel extends StatelessWidget {
           .read<MatchHistoryBloc>()
           .add(LoadMatchHistory(userId: appState.user.id));
     }
-    return Column(
-      children: [
-        SectionHeader(title: l10n.matchHistoryTitle),
-        Expanded(
-          child: BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
-            builder: (context, state) {
-              switch (state.status) {
-                case MatchHistoryStatus.initial:
-                case MatchHistoryStatus.loadingHistory:
-                  return const Center(child: CircularProgressIndicator());
-                case MatchHistoryStatus.failure:
-                  return Center(
-                    child: Text(l10n.matchHistoryLoadError),
-                  );
-                case MatchHistoryStatus.loadingHistorySuccess:
-                case MatchHistoryStatus.loadingStats:
-                case MatchHistoryStatus.loadingStatsSuccess:
-                  if (state.games.isEmpty) {
+    return BlocListener<MatchHistoryBloc, MatchHistoryState>(
+      listener: (context, state) {
+        if (state.status == MatchHistoryStatus.gameNotFound) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: AppColors.tertiarySecondary,
+              content: Center(
+                child: Text(
+                  l10n.gameNotFoundError,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppColors.black,
+                      ),
+                ),
+              ),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(
+                bottom: 20,
+                right: 20,
+                left: MediaQuery.of(context).size.width / 2,
+              ),
+            ),
+          );
+        }
+      },
+      child: Column(
+        children: [
+          SectionHeader(title: l10n.matchHistoryTitle),
+          Expanded(
+            child: BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
+              builder: (context, state) {
+                switch (state.status) {
+                  case MatchHistoryStatus.initial:
+                  case MatchHistoryStatus.loadingHistory:
+                    return const Center(child: CircularProgressIndicator());
+                  case MatchHistoryStatus.failure:
                     return Center(
-                      child: Text(l10n.noMatchHistoryAvailable),
+                      child: Text(l10n.matchHistoryLoadError),
                     );
-                  }
-                  return ListView.builder(
-                    itemCount: state.games.length,
-                    itemBuilder: (context, index) {
-                      final game = state.games[index];
-                      final winningPlayer = game.players.firstWhere(
-                        (player) => player.id == game.winnerId,
+                  case MatchHistoryStatus.loadingHistorySuccess:
+                  case MatchHistoryStatus.gameNotFound:
+                  case MatchHistoryStatus.loadingStats:
+                  case MatchHistoryStatus.loadingStatsSuccess:
+                    if (state.games.isEmpty) {
+                      return Center(
+                        child: Text(l10n.noMatchHistoryAvailable,
+                            style: Theme.of(context).textTheme.titleMedium),
                       );
-                      return CustomListItem(
-                        wonGame: winningPlayer.firebaseId ==
-                            context.read<AppBloc>().state.user.id,
-                        thumbnail: (winningPlayer.commander?.imageUrl.isEmpty ??
-                                false)
-                            ? Container(
-                                color: Color(winningPlayer.color)
-                                    .withValues(alpha: .8),
-                              )
-                            : winningPlayer.partner?.imageUrl == null
-                                ? Image.network(
-                                    fit: BoxFit.cover,
-                                    winningPlayer.commander?.imageUrl ?? '',
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Container(
-                                      color: Color(winningPlayer.color)
-                                          .withValues(alpha: .8),
+                    }
+                    return ListView.builder(
+                      itemCount: state.games.length,
+                      itemBuilder: (context, index) {
+                        final game = state.games[index];
+                        final winningPlayer = game.players.firstWhere(
+                          (player) => player.id == game.winnerId,
+                        );
+                        return CustomListItem(
+                          wonGame: winningPlayer.firebaseId ==
+                              context.read<AppBloc>().state.user.id,
+                          thumbnail: (winningPlayer
+                                      .commander?.imageUrl.isEmpty ??
+                                  false)
+                              ? Container(
+                                  color: Color(winningPlayer.color)
+                                      .withValues(alpha: .8),
+                                )
+                              : winningPlayer.partner?.imageUrl == null
+                                  ? Image.network(
+                                      fit: BoxFit.cover,
+                                      winningPlayer.commander?.imageUrl ?? '',
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Container(
+                                        color: Color(winningPlayer.color)
+                                            .withValues(alpha: .8),
+                                      ),
+                                    )
+                                  : Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Expanded(
+                                          child: Image.network(
+                                            winningPlayer.commander?.imageUrl ??
+                                                '',
+                                            fit: BoxFit.fitHeight,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Container(
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      Color(winningPlayer.color)
+                                                          .withValues(
+                                                    alpha: winningPlayer
+                                                                .lifePoints <=
+                                                            0
+                                                        ? .3
+                                                        : 1,
+                                                  ),
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                    Radius.circular(20),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Image.network(
+                                            winningPlayer.partner?.imageUrl ??
+                                                '',
+                                            fit: BoxFit.fitHeight,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Container(
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      Color(winningPlayer.color)
+                                                          .withValues(
+                                                    alpha: winningPlayer
+                                                                .lifePoints <=
+                                                            0
+                                                        ? .3
+                                                        : 1,
+                                                  ),
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                    Radius.circular(20),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  )
-                                : Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Expanded(
-                                        child: Image.network(
-                                          winningPlayer.commander?.imageUrl ??
-                                              '',
-                                          fit: BoxFit.fitHeight,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                            return Container(
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    Color(winningPlayer.color)
-                                                        .withValues(
-                                                  alpha: winningPlayer
-                                                              .lifePoints <=
-                                                          0
-                                                      ? .3
-                                                      : 1,
-                                                ),
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                  Radius.circular(20),
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Image.network(
-                                          winningPlayer.partner?.imageUrl ?? '',
-                                          fit: BoxFit.fitHeight,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                            return Container(
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    Color(winningPlayer.color)
-                                                        .withValues(
-                                                  alpha: winningPlayer
-                                                              .lifePoints <=
-                                                          0
-                                                      ? .3
-                                                      : 1,
-                                                ),
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                  Radius.circular(20),
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                        playerName: winningPlayer.name,
-                        commanderName: winningPlayer.commander?.name ?? '',
-                        gameLength: Duration(seconds: game.durationInSeconds),
-                        gameDatePlayed: game.endTime,
-                        viewCount: index + 1,
-                        textStyle: Theme.of(context).textTheme,
-                        game: game,
-                      );
-                    },
-                  );
-              }
-            },
+                          playerName: winningPlayer.name,
+                          commanderName: winningPlayer.commander?.name ?? '',
+                          gameLength: Duration(seconds: game.durationInSeconds),
+                          gameDatePlayed: game.endTime,
+                          viewCount: index + 1,
+                          textStyle: Theme.of(context).textTheme,
+                          game: game,
+                        );
+                      },
+                    );
+                }
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

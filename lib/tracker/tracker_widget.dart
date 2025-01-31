@@ -13,6 +13,7 @@ class TrackerWidgets extends StatelessWidget {
   const TrackerWidgets({
     required this.rotate,
     required this.playerId,
+    required this.leftSideTracker,
     super.key,
   });
 
@@ -20,6 +21,9 @@ class TrackerWidgets extends StatelessWidget {
 
   /// Player who owns the tracker.
   final String playerId;
+
+  /// Whether this is the left or right side of the screen.
+  final bool leftSideTracker;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +49,16 @@ class TrackerWidgets extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
               decoration: BoxDecoration(
                 color: Colors.transparent.withValues(alpha: .8),
-                borderRadius: const BorderRadius.all(Radius.circular(20)),
+                borderRadius:
+                    (leftSideTracker && rotate) || (!leftSideTracker && !rotate)
+                        ? const BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            bottomLeft: Radius.circular(20),
+                          )
+                        : const BorderRadius.only(
+                            topRight: Radius.circular(20),
+                            bottomRight: Radius.circular(20),
+                          ),
               ),
               child: ListView(
                 children: [

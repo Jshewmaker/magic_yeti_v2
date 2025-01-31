@@ -20,7 +20,6 @@ class LoginView extends StatelessWidget {
     final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go(HomePage.routeName),
@@ -39,15 +38,23 @@ class LoginView extends StatelessWidget {
               );
           }
         },
-        child: const SafeArea(
-          minimum: EdgeInsets.all(AppSpacing.xlg),
-          child: ScrollableColumn(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: SafeArea(
+          minimum: const EdgeInsets.all(AppSpacing.xlg),
+          child: Row(
             children: [
-              _LoginContent(),
-              _LoginActions(),
+              const Expanded(
+                child: Column(
+                  children: [
+                    _LoginContent(),
+                    _LoginActions(),
+                  ],
+                ),
+              ),
+              Expanded(
+                  child: Image.asset(
+                'assets/icon/icon.png',
+                fit: BoxFit.fitWidth,
+              )),
             ],
           ),
         ),
@@ -63,19 +70,22 @@ class _LoginContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: AppSpacing.xlg),
-        Text(l10n.loginWelcomeText, style: theme.textTheme.displayLarge),
-        const SizedBox(height: AppSpacing.xxlg),
-        const EmailInput(),
-        const SizedBox(height: AppSpacing.xs),
-        const PasswordInput(),
-        const SizedBox(height: AppSpacing.xs),
-        const ResetPasswordButton(),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxlg),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: AppSpacing.xlg),
+          Text(l10n.loginWelcomeText, style: theme.textTheme.displayLarge),
+          const SizedBox(height: AppSpacing.xxlg),
+          const EmailInput(),
+          const SizedBox(height: AppSpacing.xs),
+          const PasswordInput(),
+          const SizedBox(height: AppSpacing.xs),
+          const ResetPasswordButton(),
+        ],
+      ),
     );
   }
 }
@@ -87,28 +97,31 @@ class _LoginActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const LoginButton(),
-        const SizedBox(height: AppSpacing.xlg),
-        GoogleLoginButton(
-          buttonText: l10n.signInWithGoogleButtonText,
-          onPressed: () =>
-              context.read<LoginBloc>().add(const LoginGoogleSubmitted()),
-        ),
-        if (theme.platform == TargetPlatform.iOS) ...[
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxlg),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const LoginButton(),
           const SizedBox(height: AppSpacing.xlg),
-          AppleLoginButton(
-            buttonText: l10n.signInWithAppleButtonText,
+          GoogleLoginButton(
+            buttonText: l10n.signInWithGoogleButtonText,
             onPressed: () =>
-                context.read<LoginBloc>().add(const LoginAppleSubmitted()),
+                context.read<LoginBloc>().add(const LoginGoogleSubmitted()),
           ),
+          if (theme.platform == TargetPlatform.iOS) ...[
+            const SizedBox(height: AppSpacing.xlg),
+            AppleLoginButton(
+              buttonText: l10n.signInWithAppleButtonText,
+              onPressed: () =>
+                  context.read<LoginBloc>().add(const LoginAppleSubmitted()),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.xxlg),
+          const SignUpButton(),
         ],
-        const SizedBox(height: AppSpacing.xxlg),
-        const SignUpButton(),
-      ],
+      ),
     );
   }
 }

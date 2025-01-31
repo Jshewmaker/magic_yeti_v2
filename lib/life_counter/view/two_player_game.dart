@@ -16,47 +16,49 @@ class TwoPlayerGame extends StatelessWidget {
     final playerList = context.read<GameBloc>().state.playerList;
     final orientation = MediaQuery.of(context).orientation;
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          SystemChrome.setPreferredOrientations([
-            DeviceOrientation.landscapeRight,
-            DeviceOrientation.landscapeLeft,
-            DeviceOrientation.portraitUp,
-            DeviceOrientation.portraitDown,
-          ]);
-          return orientation == Orientation.portrait
-              ? Column(
-                  children: [
-                    Expanded(
-                      child: _PlayerSection(
-                        playerId: playerList[1].id,
-                        rotate: true,
+    return Scaffold(
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            SystemChrome.setPreferredOrientations([
+              DeviceOrientation.landscapeRight,
+              DeviceOrientation.landscapeLeft,
+              DeviceOrientation.portraitUp,
+              DeviceOrientation.portraitDown,
+            ]);
+            return orientation == Orientation.portrait
+                ? Column(
+                    children: [
+                      Expanded(
+                        child: _PlayerSection(
+                          playerId: playerList[1].id,
+                          rotate: true,
+                        ),
                       ),
-                    ),
-                    const RotatedBox(
-                        quarterTurns: 3, child: CenterControlColumn()),
-                    Expanded(
-                      child: _PlayerSection(
-                        playerId: playerList[0].id,
-                        rotate: false,
+                      const RotatedBox(
+                          quarterTurns: 3, child: CenterControlColumn()),
+                      Expanded(
+                        child: _PlayerSection(
+                          playerId: playerList[0].id,
+                          rotate: false,
+                        ),
                       ),
-                    ),
-                  ],
-                )
-              : Row(
-                  children: [
-                    Expanded(
-                      child: _PlayerColumn(
-                        topPlayerId: playerList[1].id,
-                        bottomPlayerId: playerList[0].id,
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Expanded(
+                        child: _PlayerColumn(
+                          topPlayerId: playerList[1].id,
+                          bottomPlayerId: playerList[0].id,
+                        ),
                       ),
-                    ),
-                    const CenterControlColumn(),
-                  ],
-                );
-        },
+                      const CenterControlColumn(),
+                    ],
+                  );
+          },
+        ),
       ),
     );
   }
@@ -114,10 +116,12 @@ class _PlayerSection extends StatelessWidget {
         children: [
           LifeCounterWidget(
             rotate: rotate,
+            leftSideTracker: true,
           ),
           TrackerWidgets(
             rotate: !rotate,
             playerId: playerId,
+            leftSideTracker: true,
           ),
         ],
       ),

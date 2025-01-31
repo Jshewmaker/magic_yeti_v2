@@ -5,6 +5,7 @@ enum MatchHistoryStatus {
   loadingHistory,
   loadingHistorySuccess,
   loadingStats,
+  gameNotFound,
   loadingStatsSuccess,
   failure
 }
