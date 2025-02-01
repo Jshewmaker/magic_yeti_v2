@@ -391,6 +391,12 @@
     "type": "text",
     "placeholders": {}
   },
+  "linkToMyAccount": "Link to my account",
+  "@linkToMyAccount": {
+    "description": "Text shown when linking to an account",
+    "type": "text",
+    "placeholders": {}
+  },
   "finalStandings": "Final Standings",
   "@finalStandings": {
     "description": "Final standings section title",
@@ -545,5 +551,12 @@
     "description": "Text shown for features under construction",
     "type": "text",
     "placeholders": {}
+  },
+  "comingSoonText": "Feature Coming Soon!",
+  "@comingSoonText": {
+    "description": "Text shown for features coming soon",
+    "type": "text",
+    "placeholders": {}
   }
+  
 }

@@ -376,7 +376,7 @@ class GameModeButtons extends StatelessWidget {
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(l10n.underConstructionText),
+                          content: Text(l10n.comingSoonText),
                         ),
                       );
                     },

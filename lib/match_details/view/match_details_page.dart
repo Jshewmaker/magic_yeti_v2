@@ -2,6 +2,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
@@ -137,6 +138,7 @@ class MatchDetailsView extends StatelessWidget {
                             players: game.players,
                             winner: winningPlayer,
                             currentUserFirebaseId: game.hostId,
+                            startingPlayerId: game.startingPlayerId,
                             onSelectPlayer: (player) =>
                                 _handlePlayerSelection(context, player),
                           ),
@@ -208,7 +210,8 @@ class MatchWinnerWidget extends StatelessWidget {
                               ),
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
-                            LinkWidget(uri: winner.commander?.scryFallUrl),
+                            LinkWidget(
+                                uri: winner.commander?.scryFallUrl ?? ''),
                           ],
                         ),
                       if (winner.id == startingPlayerId)
@@ -235,26 +238,28 @@ class MatchWinnerWidget extends StatelessWidget {
 
 class LinkWidget extends StatelessWidget {
   const LinkWidget({
-    required this.uri,
+    this.uri = '',
     super.key,
   });
 
-  final String? uri;
+  final String uri;
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.link, color: AppColors.neutral60),
-      onPressed: () async {
-        final url = Uri.parse(
-          uri ?? '',
-        );
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url);
-        }
-      },
-      tooltip: context.l10n.viewOnScryfall,
-    );
+    return uri.isEmpty
+        ? const SizedBox.shrink()
+        : IconButton(
+            icon: const Icon(Icons.link, color: AppColors.neutral60),
+            onPressed: () async {
+              final url = Uri.parse(
+                uri,
+              );
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url);
+              }
+            },
+            tooltip: context.l10n.viewOnScryfall,
+          );
   }
 }
 
@@ -263,6 +268,7 @@ class MatchStandingsWidget extends StatelessWidget {
     required this.players,
     required this.winner,
     required this.currentUserFirebaseId,
+    required this.startingPlayerId,
     required this.onSelectPlayer,
     super.key,
   });
@@ -270,6 +276,7 @@ class MatchStandingsWidget extends StatelessWidget {
   final List<Player> players;
   final Player winner;
   final String? currentUserFirebaseId;
+  final String startingPlayerId;
   final void Function(Player) onSelectPlayer;
 
   String _getOrdinalNumber(int number) {
@@ -290,6 +297,7 @@ class MatchStandingsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     players.sort((a, b) => a.placement.compareTo(b.placement));
 
     return Card(
@@ -326,7 +334,7 @@ class MatchStandingsWidget extends StatelessWidget {
                           ),
                     ),
                   ),
-                  const SizedBox(width: 56),
+                  const SizedBox(width: 30),
                   Expanded(
                     child: Text(
                       context.l10n.playerNameColumnHeader,
@@ -365,7 +373,6 @@ class MatchStandingsWidget extends StatelessWidget {
                 title: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(width: 40),
                     const SizedBox(width: 40),
                     Text(player.name),
                   ],
@@ -374,8 +381,9 @@ class MatchStandingsWidget extends StatelessWidget {
                     ? const SizedBox.shrink()
                     : Row(
                         children: [
+                          const SizedBox(width: 40),
                           Text(player.commander?.name ?? ''),
-                          LinkWidget(uri: player.commander?.scryFallUrl),
+                          LinkWidget(uri: player.commander?.scryFallUrl ?? ''),
                         ],
                       ),
                 trailing: Row(
@@ -384,20 +392,43 @@ class MatchStandingsWidget extends StatelessWidget {
                     if (player.firebaseId == currentUserFirebaseId)
                       const Padding(
                         padding: EdgeInsets.only(right: 8),
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.blue,
+                        child: Tooltip(
+                          triggerMode: TooltipTriggerMode.tap,
+                          message: 'You',
+                          child: Icon(
+                            Icons.person,
+                            color: Colors.blue,
+                          ),
                         ),
                       ),
                     if (player.id == winner.id)
-                      const Icon(
-                        Icons.emoji_events,
-                        color: Colors.amber,
+                      const Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: Tooltip(
+                          triggerMode: TooltipTriggerMode.tap,
+                          message: 'Won',
+                          child: Icon(
+                            Icons.emoji_events,
+                            color: Colors.amber,
+                          ),
+                        ),
+                      ),
+                    if (player.id == startingPlayerId)
+                      const Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: Tooltip(
+                          triggerMode: TooltipTriggerMode.tap,
+                          message: 'Went First',
+                          child: FaIcon(
+                            FontAwesomeIcons.one,
+                            color: Colors.green,
+                          ),
+                        ),
                       ),
                     if (player.firebaseId != currentUserFirebaseId)
                       TextButton(
                         onPressed: () => onSelectPlayer(player),
-                        child: const Text('This is me'),
+                        child: Text(l10n.linkToMyAccount),
                       ),
                   ],
                 ),
