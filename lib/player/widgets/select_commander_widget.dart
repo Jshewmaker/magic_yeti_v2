@@ -75,11 +75,14 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                     l10n.searchButtonText,
                     style: const TextStyle(color: AppColors.white),
                   ),
-                  onPressed: () => context.read<PlayerCustomizationBloc>().add(
-                        CardListRequested(
-                          cardName: textController.text,
-                        ),
-                      ),
+                  onPressed: () {
+                    FocusScope.of(context).unfocus();
+                    context.read<PlayerCustomizationBloc>().add(
+                          CardListRequested(
+                            cardName: textController.text,
+                          ),
+                        );
+                  },
                 ),
               ],
             ),
@@ -103,7 +106,6 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                         color: AppColors.white,
                       ),
                 ),
-                const Spacer(),
                 Row(
                   children: [
                     Checkbox(
@@ -119,7 +121,7 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                     ),
                     Text(
                       'Has Partner',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: AppColors.white,
                           ),
                     ),
@@ -133,10 +135,10 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                 children: [
                   ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
+                      backgroundColor: WidgetStateProperty.all(
                         state.selectingPartner ? Colors.green : Colors.blue,
                       ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -183,6 +185,11 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                   final card = state.magicCardList?[index];
                   return GestureDetector(
                     onTap: () {
+                      widget.scrollController.animateTo(
+                        0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
                       if (state.selectingPartner) {
                         context.read<PlayerCustomizationBloc>().add(
                               UpdatePlayerCommander(

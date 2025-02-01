@@ -119,19 +119,19 @@ class ProfileView extends StatelessWidget {
                                   .add(ProfileUsernameChanged(value)),
                             ),
                             _ProfileField(
-                              label: 'First Name',
+                              label: 'Name',
                               initialValue: state.userProfile.name ?? '',
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileFirstNameChanged(value)),
                             ),
-                            _ProfileField(
-                              label: 'Last Name',
-                              initialValue: state.userProfile.email ?? '',
-                              onChanged: (value) => context
-                                  .read<ProfileBloc>()
-                                  .add(ProfileLastNameChanged(value)),
-                            ),
+                            // _ProfileField(
+                            //   label: 'Last Name',
+                            //   initialValue: state.userProfile.name ?? '',
+                            //   onChanged: (value) => context
+                            //       .read<ProfileBloc>()
+                            //       .add(ProfileLastNameChanged(value)),
+                            // ),
                             _ProfileField(
                               label: 'Email',
                               initialValue: state.userProfile.email ?? '',
@@ -139,19 +139,12 @@ class ProfileView extends StatelessWidget {
                                   .read<ProfileBloc>()
                                   .add(ProfileEmailChanged(value)),
                             ),
-                            _ProfileField(
-                              label: 'Bio',
-                              initialValue: state.userProfile.email ?? '',
-                              onChanged: (value) => context
-                                  .read<ProfileBloc>()
-                                  .add(ProfileBioChanged(value)),
-                            ),
                             const SizedBox(height: 20),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                _EditProfileButton(),
-                                const SizedBox(width: 16),
+                                //   _EditProfileButton(),
+                                //const SizedBox(width: 16),
                                 _SignOutButton(),
                               ],
                             ),
