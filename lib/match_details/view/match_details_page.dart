@@ -3,6 +3,7 @@ import 'package:firebase_database_repository/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/home/bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
@@ -64,8 +65,12 @@ class MatchDetailsView extends StatelessWidget {
       SnackBar(
         content: currentPlayer.id != player.id
             ? Text(
-                'Changed your player from ${currentPlayer.name} to ${player.name}')
-            : Text('You were ${player.name} in this game'),
+                context.l10n.changedPlayerMessage(
+                  currentPlayer.name,
+                  player.name,
+                ),
+              )
+            : Text(context.l10n.wasPlayerMessage(player.name)),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -118,7 +123,7 @@ class MatchDetailsView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Match Details',
+                            l10n.matchDetailsHeading,
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           const SizedBox(height: 16),
@@ -167,6 +172,7 @@ class MatchWinnerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Card(
       color: AppColors.winner.withValues(alpha: .6),
       child: Padding(
@@ -177,14 +183,11 @@ class MatchWinnerWidget extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: winner.commander?.imageUrl != null &&
-                          winner.commander!.imageUrl.isNotEmpty
-                      ? NetworkImage(winner.commander!.imageUrl)
-                      : null,
-                  backgroundColor: winner.commander?.imageUrl != null &&
-                          winner.commander!.imageUrl.isNotEmpty
-                      ? null
-                      : Color(winner.color),
+                  backgroundImage:
+                      winner.commander?.imageUrl.isNotEmpty ?? false
+                          ? NetworkImage(winner.commander!.imageUrl)
+                          : null,
+                  backgroundColor: Color(winner.color),
                   radius: 50,
                 ),
                 const SizedBox(width: 16),
@@ -193,23 +196,23 @@ class MatchWinnerWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Winner: ${winner.name}',
+                        l10n.winnerLabel(winner.name),
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
-                      Row(
-                        children: [
-                          Text(
-                            'Commander: ${winner.commander?.name}',
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                          if (winner.commander == null)
-                            const SizedBox.shrink()
-                          else
+                      if (winner.commander?.name != null)
+                        Row(
+                          children: [
+                            Text(
+                              l10n.commanderLabel(
+                                winner.commander?.name ?? '',
+                              ),
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
                             LinkWidget(uri: winner.commander?.scryFallUrl),
-                        ],
-                      ),
+                          ],
+                        ),
                       if (winner.id == startingPlayerId)
-                        const Text('Started First'),
+                        Text('${winner.name} ${l10n.startedFirst}'),
                     ],
                   ),
                 ),
@@ -217,8 +220,11 @@ class MatchWinnerWidget extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Game Duration: ${_formatDuration(gameDuration)}',
-              style: Theme.of(context).textTheme.bodyMedium,
+              '${l10n.gameDuration} ${_formatDuration(gameDuration)}',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge
+                  ?.copyWith(fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -247,7 +253,7 @@ class LinkWidget extends StatelessWidget {
           await launchUrl(url);
         }
       },
-      tooltip: 'View on Scryfall',
+      tooltip: context.l10n.viewOnScryfall,
     );
   }
 }
@@ -266,6 +272,22 @@ class MatchStandingsWidget extends StatelessWidget {
   final String? currentUserFirebaseId;
   final void Function(Player) onSelectPlayer;
 
+  String _getOrdinalNumber(int number) {
+    if (number >= 11 && number <= 13) {
+      return '${number}th';
+    }
+    switch (number % 10) {
+      case 1:
+        return '${number}st';
+      case 2:
+        return '${number}nd';
+      case 3:
+        return '${number}rd';
+      default:
+        return '${number}th';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     players.sort((a, b) => a.placement.compareTo(b.placement));
@@ -277,23 +299,85 @@ class MatchStandingsWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Players',
+              context.l10n.playersHeading,
               style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 60,
+                    child: Text(
+                      context.l10n.placementColumnHeader,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  SizedBox(
+                    width: 80,
+                    child: Text(
+                      context.l10n.commanderColumnHeader,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(width: 56),
+                  Expanded(
+                    child: Text(
+                      context.l10n.playerNameColumnHeader,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             ...players.map(
               (player) => ListTile(
-                leading: CircleAvatar(
-                  backgroundImage:
-                      NetworkImage(player.commander?.imageUrl ?? ''),
-                ),
-                title: Text(player.name),
-                subtitle: Row(
+                titleAlignment: ListTileTitleAlignment.top,
+                leading: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(player.commander?.name ?? ''),
-                    LinkWidget(uri: player.commander?.scryFallUrl),
+                    SizedBox(
+                      width: 50,
+                      child: Text(
+                        _getOrdinalNumber(player.placement),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    const SizedBox(width: 40),
+                    CircleAvatar(
+                      backgroundImage:
+                          player.commander?.imageUrl.isNotEmpty ?? false
+                              ? NetworkImage(player.commander!.imageUrl)
+                              : null,
+                      backgroundColor: Color(player.color),
+                    ),
                   ],
                 ),
+                title: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(width: 40),
+                    const SizedBox(width: 40),
+                    Text(player.name),
+                  ],
+                ),
+                subtitle: player.commander?.name == null
+                    ? const SizedBox.shrink()
+                    : Row(
+                        children: [
+                          Text(player.commander?.name ?? ''),
+                          LinkWidget(uri: player.commander?.scryFallUrl),
+                        ],
+                      ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -336,6 +420,7 @@ class MatchMetadataWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -343,15 +428,18 @@ class MatchMetadataWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Match Information',
-              style: Theme.of(context).textTheme.titleLarge,
+              context.l10n.matchInformationHeading,
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
             const SizedBox(height: 8),
-            Text('Room ID: ${game.roomId}'),
-            Text(
-              'Played on: ${game.endTime.toLocal().toString().split('.')[0]}',
+            SelectableText(
+              context.l10n.roomIdLabel(game.roomId),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
-            // Text('Starting Life: ${game.}'),
+            Text(
+              '${l10n.playedOnLabel} ${DateFormat('MM/dd/yyyy').format(game.endTime.toLocal())}',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ],
         ),
       ),

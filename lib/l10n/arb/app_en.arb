@@ -214,9 +214,134 @@
   },
   "matchDetailsTitle": "Match Details",
   "@matchDetailsTitle": {
-    "description": "Title for the match details section",
+    "description": "Title shown in the AppBar of the Match Details Page",
     "type": "text",
     "placeholders": {}
+  },
+  "matchDetailsHeading": "Match Details",
+  "@matchDetailsHeading": {
+    "description": "Heading for the match details section",
+    "type": "text",
+    "placeholders": {}
+  },
+  "winnerLabel": "Winner: {name}",
+  "@winnerLabel": {
+    "description": "Label showing the winner's name",
+    "type": "text",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Player 1"
+      }
+    }
+  },
+  "commanderLabel": "Commander: {name}",
+  "@commanderLabel": {
+    "description": "Label showing the commander's name",
+    "type": "text",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Atraxa"
+      }
+    }
+  },
+  "startedFirst": "was the starting player",
+  "@startedFirst": {
+    "description": "Text shown when a player started first",
+    "type": "text",
+    "placeholders": {}
+  },
+  "gameDuration": "Game Duration:",
+  "@gameDuration": {
+    "description": "Label showing the game duration",
+    "type": "text",
+    "placeholders": {}
+  },
+  "viewOnScryfall": "View on Scryfall",
+  "@viewOnScryfall": {
+    "description": "Tooltip for Scryfall link button",
+    "type": "text",
+    "placeholders": {}
+  },
+  "playersHeading": "Players",
+  "@playersHeading": {
+    "description": "Heading for the players section",
+    "type": "text",
+    "placeholders": {}
+  },
+  "placementColumnHeader": "Placement",
+  "@placementColumnHeader": {
+    "description": "Column header for placement in players list",
+    "type": "text",
+    "placeholders": {}
+  },
+  "commanderColumnHeader": "Commander",
+  "@commanderColumnHeader": {
+    "description": "Column header for commander in players list",
+    "type": "text",
+    "placeholders": {}
+  },
+  "playerNameColumnHeader": "Player Name",
+  "@playerNameColumnHeader": {
+    "description": "Column header for player name in players list",
+    "type": "text",
+    "placeholders": {}
+  },
+  "thisIsMe": "This is me",
+  "@thisIsMe": {
+    "description": "Button text for claiming a player",
+    "type": "text",
+    "placeholders": {}
+  },
+  "matchInformationHeading": "Match Information",
+  "@matchInformationHeading": {
+    "description": "Heading for match information section",
+    "type": "text",
+    "placeholders": {}
+  },
+  "roomIdLabel": "Room ID: {id}",
+  "@roomIdLabel": {
+    "description": "Label showing the room ID",
+    "type": "text",
+    "placeholders": {
+      "id": {
+        "type": "String",
+        "example": "ABC123"
+      }
+    }
+  },
+  "playedOnLabel": "Played on:",
+  "@playedOnLabel": {
+    "description": "Label showing when the game was played",
+    "type": "text",
+    "placeholders": {}
+  },
+  "changedPlayerMessage": "Changed your player from {oldName} to {newName}",
+  "@changedPlayerMessage": {
+    "description": "Message shown when changing player ownership",
+    "type": "text",
+    "placeholders": {
+      "oldName": {
+        "type": "String",
+        "example": "Player 1"
+      },
+      "newName": {
+        "type": "String",
+        "example": "Player 2"
+      }
+    }
+  },
+  "wasPlayerMessage": "You were {name} in this game",
+  "@wasPlayerMessage": {
+    "description": "Message shown when selecting the same player",
+    "type": "text",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Player 1"
+      }
+    }
   },
   "gameModeTitle": "Game Mode",
   "@gameModeTitle": {
@@ -294,7 +419,7 @@
     "type": "text",
     "placeholders": {}
   },
-  "accountOwner": "Account owner:",
+  "accountOwner": "Please select the account owner from the list to sync the game stats to their account:",
   "@accountOwner": {
     "description": "Label for account owner selection",
     "type": "text",

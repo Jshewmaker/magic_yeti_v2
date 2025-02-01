@@ -218,9 +218,22 @@ class QuestionWidget extends StatelessWidget {
               },
             ),
             const SizedBox(height: 24),
-            Text(
-              l10n.accountOwner,
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              children: [
+                Text(
+                  l10n.accountOwner,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(width: 8),
+                const Tooltip(
+                  triggerMode: TooltipTriggerMode.tap,
+                  showDuration: Duration(milliseconds: 3000),
+                  message:
+                      '''We use this field to sync the data to the\ncurrent logged '''
+                      '''in user's account.\nDon't worry, a game id will be generated so\nthe other players can add this game to their account!''',
+                  child: Icon(Icons.info_outline),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
