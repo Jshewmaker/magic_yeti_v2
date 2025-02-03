@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:player_repository/models/opponent.dart';
 import 'package:player_repository/player_repository.dart';
 
 part 'player.g.dart';
@@ -10,6 +11,18 @@ part 'player.g.dart';
 class Value<T> {
   final T? value;
   const Value(this.value);
+}
+
+/// Type of damage done to a player.
+///
+/// [DamageType.commander] - Damage done from the player's commander
+/// [DamageType.partner] - Damage done from the player's commander's partner
+enum DamageType {
+  /// Damage done from the player's commander
+  commander,
+
+  /// Damage done from the player's commander's partner
+  partner,
 }
 
 /// Player state in the game
@@ -33,7 +46,7 @@ class Player extends Equatable {
     required this.playerNumber,
     required this.lifePoints,
     required this.color,
-    required this.commanderDamageList,
+    required this.opponents,
     this.commander,
     this.partner,
     this.firebaseId,
@@ -98,6 +111,9 @@ class Player extends Equatable {
   /// Whether the player has been eliminated
   bool get isEliminated => state.isEliminated;
 
+  /// A list representing the damage dealt to the player by each opponent's commander.
+  final List<Opponent> opponents;
+
   /// Creates a new player object with the same values as the current player
   Player copyWith({
     String? id,
@@ -108,10 +124,10 @@ class Player extends Equatable {
     int? lifePoints,
     int? color,
     String? Function()? firebaseId,
-    Map<String, int>? commanderDamageList,
     PlayerModelState? state,
     Value<int?>? placement,
     Value<int?>? timeOfDeath,
+    List<Opponent>? opponents,
   }) {
     return Player(
       firebaseId: firebaseId != null ? firebaseId() : this.firebaseId,
@@ -125,13 +141,9 @@ class Player extends Equatable {
       state: state ?? this.state,
       placement: placement != null ? placement.value : _placement,
       timeOfDeath: timeOfDeath != null ? timeOfDeath.value : _timeOfDeath,
-      commanderDamageList: commanderDamageList ?? this.commanderDamageList,
+      opponents: opponents ?? this.opponents,
     );
   }
-
-  /// A list representing the damage dealt to the player by each commander,
-  /// defaults to an empty map.
-  final Map<String, int> commanderDamageList;
 
   /// Connect the generated [_$PlayerToJson] function to the `toJson` method.
   Map<String, dynamic> toJson() => _$PlayerToJson(this);
@@ -147,7 +159,7 @@ class Player extends Equatable {
         lifePoints,
         state,
         firebaseId,
-        commanderDamageList,
+        opponents,
         _placement,
         _timeOfDeath,
       ];

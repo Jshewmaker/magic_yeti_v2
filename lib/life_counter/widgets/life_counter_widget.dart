@@ -344,15 +344,7 @@ class _LifePointChangeAnimationState extends State<_LifePointChangeAnimation>
     );
 
     _lastChange = widget.change;
-    _controller
-      ..forward()
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          context.read<LifeChangeBloc>().add(
-                const LifePointChangeCompleted(),
-              );
-        }
-      });
+    _controller.forward();
   }
 
   @override

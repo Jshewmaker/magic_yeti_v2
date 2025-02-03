@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/player/bloc/player_bloc.dart';
 import 'package:player_repository/models/models.dart';
+import 'package:player_repository/models/opponent.dart';
 
-class CommanderDamageTracker extends StatelessWidget {
+class CommanderDamageTracker extends StatefulWidget {
   const CommanderDamageTracker({
     required this.playerId,
     required this.player,
@@ -17,128 +18,456 @@ class CommanderDamageTracker extends StatelessWidget {
   final Player player;
 
   @override
-  Widget build(BuildContext context) {
-    const width = 70.0;
-    const height = 70.0;
+  State<CommanderDamageTracker> createState() => _CommanderDamageTrackerState();
+}
 
-    final commanderDamage = context.select<PlayerBloc, int>(
-      (bloc) => bloc.state.player.commanderDamageList[commanderPlayerId] ?? 0,
+class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animationController;
+  late final Animation<double> _scaleAnimation;
+  static const double _defaultSize = 70;
+  static const double _expandedSize = 140;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
     );
-
-    return GestureDetector(
-      onTap: () {
-        context.read<PlayerBloc>().add(
-              UpdatePlayerLifeEvent(decrement: true, playerId: playerId),
-            );
-        context.read<PlayerBloc>().add(
-              PlayerCommanderDamageIncremented(
-                commanderId: commanderPlayerId,
-              ),
-            );
-      },
-      onLongPress: () {
-        context.read<PlayerBloc>().add(
-              UpdatePlayerLifeEvent(decrement: false, playerId: playerId),
-            );
-        context.read<PlayerBloc>().add(
-              PlayerCommanderDamageDecremented(
-                commanderId: commanderPlayerId,
-              ),
-            );
-      },
-      onLongPressUp: () => context.read<PlayerBloc>().add(
-            const PlayerStopDecrement(),
-          ),
-      child: Container(
-        padding: const EdgeInsets.only(top: 5),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: width,
-              height: height,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(10)),
-                child: player.commander?.imageUrl.isEmpty ?? true
-                    ? Container(
-                        color: Color(player.color).withValues(alpha: .8),
-                        width: width,
-                        height: height,
-                      )
-                    : player.partner?.imageUrl == null
-                        ? Image.network(
-                            player.commander?.imageUrl ?? '',
-                            width: width,
-                            height: height,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color:
-                                    Color(player.color).withValues(alpha: .8),
-                                width: width,
-                                height: height,
-                              );
-                            },
-                            fit: BoxFit.cover,
-                          )
-                        : Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: Image.network(
-                                  player.commander?.imageUrl ?? '',
-                                  fit: BoxFit.fitHeight,
-                                  opacity: AlwaysStoppedAnimation(
-                                    player.lifePoints <= 0 ? .2 : 1,
-                                  ),
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        color: Color(player.color).withValues(
-                                          alpha:
-                                              player.lifePoints <= 0 ? .3 : 1,
-                                        ),
-                                        borderRadius: const BorderRadius.all(
-                                          Radius.circular(20),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              Expanded(
-                                child: Image.network(
-                                  player.partner?.imageUrl ?? '',
-                                  fit: BoxFit.fitHeight,
-                                  opacity: AlwaysStoppedAnimation(
-                                    player.lifePoints <= 0 ? .2 : 1,
-                                  ),
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        color: Color(player.color).withValues(
-                                          alpha:
-                                              player.lifePoints <= 0 ? .3 : 1,
-                                        ),
-                                        borderRadius: const BorderRadius.all(
-                                          Radius.circular(20),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-              ),
-            ),
-            StrokeText(
-              text: commanderDamage.toString(),
-              fontSize: 28,
-              color: AppColors.white,
-            ),
-          ],
-        ),
+    _scaleAnimation = Tween<double>(
+      begin: _defaultSize,
+      end: _expandedSize,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
       ),
     );
+
+    // Add listener to rebuild widget when animation value changes
+    _animationController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _handleTapOutside() {
+    if (_animationController.isCompleted) {
+      _animationController.reverse();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final opponent = context.select<PlayerBloc, Opponent>(
+      (bloc) => bloc.state.player.opponents.firstWhere(
+        (opponent) => opponent.playerId == widget.commanderPlayerId,
+      ),
+    );
+
+    final damageMap =
+        opponent.damages.fold<Map<DamageType, int>>({}, (map, damage) {
+      map[damage.damageType] = damage.amount;
+      return map;
+    });
+
+    final commanderDamage = damageMap[DamageType.commander];
+    final partnerDamage = damageMap[DamageType.partner];
+
+    // Debugging statements
+    print('CommanderDamageTracker: damageMap = ' + damageMap.toString());
+    print('CommanderDamageTracker: commanderDamage = ' +
+        (commanderDamage ?? 0).toString());
+    print(
+        'CommanderDamageTracker: partnerDamage = ' + partnerDamage.toString());
+
+    return widget.player.partner?.imageUrl.isNotEmpty ?? false
+        ? Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Color(widget.player.color),
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(10),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Column(
+                  children: [
+                    TapRegion(
+                      onTapOutside: (_) => _handleTapOutside(),
+                      child: GestureDetector(
+                        onTapDown: (details) {
+                          if (_animationController.isCompleted) {
+                            // When expanded, check if tap is in top or bottom half
+                            final box = context.findRenderObject() as RenderBox;
+                            final localPosition =
+                                box.globalToLocal(details.globalPosition);
+                            final isTopHalf =
+                                localPosition.dy < box.size.height / 2;
+
+                            if (isTopHalf) {
+                              context.read<PlayerBloc>().add(
+                                    UpdatePlayerLifeEvent(
+                                      decrement: true,
+                                      playerId: widget.playerId,
+                                    ),
+                                  );
+                              context.read<PlayerBloc>().add(
+                                    PlayerCommanderDamageIncremented(
+                                      commanderId: widget.commanderPlayerId,
+                                      damageType: DamageType.commander,
+                                    ),
+                                  );
+                            } else {
+                              context.read<PlayerBloc>().add(
+                                    UpdatePlayerLifeEvent(
+                                      decrement: false,
+                                      playerId: widget.playerId,
+                                    ),
+                                  );
+                              context.read<PlayerBloc>().add(
+                                    PlayerCommanderDamageDecremented(
+                                      commanderId: widget.commanderPlayerId,
+                                      damageType: DamageType.commander,
+                                    ),
+                                  );
+                            }
+                          } else {
+                            // Original behavior when not expanded
+                            context.read<PlayerBloc>().add(
+                                  UpdatePlayerLifeEvent(
+                                    decrement: true,
+                                    playerId: widget.playerId,
+                                  ),
+                                );
+                            context.read<PlayerBloc>().add(
+                                  PlayerCommanderDamageIncremented(
+                                    commanderId: widget.commanderPlayerId,
+                                    damageType: DamageType.commander,
+                                  ),
+                                );
+                          }
+                        },
+                        onLongPress: () {
+                          if (!_animationController.isCompleted) {
+                            _animationController.forward();
+                          } else {
+                            context.read<PlayerBloc>().add(
+                                  UpdatePlayerLifeEvent(
+                                    decrement: false,
+                                    playerId: widget.playerId,
+                                  ),
+                                );
+                            context.read<PlayerBloc>().add(
+                                  PlayerCommanderDamageDecremented(
+                                    commanderId: widget.commanderPlayerId,
+                                    damageType: DamageType.commander,
+                                  ),
+                                );
+                          }
+                        },
+                        onLongPressUp: () => context.read<PlayerBloc>().add(
+                              const PlayerStopDecrement(),
+                            ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox(
+                              width: _scaleAnimation.value,
+                              height: _scaleAnimation.value,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                ),
+                                child: widget.player.commander?.imageUrl
+                                            .isEmpty ??
+                                        true
+                                    ? Container(
+                                        color: Color(widget.player.color)
+                                            .withValues(alpha: .8),
+                                        width: _scaleAnimation.value,
+                                        height: _scaleAnimation.value,
+                                      )
+                                    : Image.network(
+                                        widget.player.commander?.imageUrl ?? '',
+                                        width: _scaleAnimation.value,
+                                        height: _scaleAnimation.value,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Container(
+                                            color: Color(widget.player.color)
+                                                .withValues(alpha: .8),
+                                            width: _scaleAnimation.value,
+                                            height: _scaleAnimation.value,
+                                          );
+                                        },
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                            ),
+                            StrokeText(
+                              text: commanderDamage.toString(),
+                              fontSize: 28,
+                              color: AppColors.white,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    TapRegion(
+                      onTapOutside: (_) => _handleTapOutside(),
+                      child: GestureDetector(
+                        onTapDown: (details) {
+                          if (_animationController.isCompleted) {
+                            // When expanded, check if tap is in top or bottom half
+                            final box = context.findRenderObject() as RenderBox;
+                            final localPosition =
+                                box.globalToLocal(details.globalPosition);
+                            final isTopHalf =
+                                localPosition.dy < box.size.height / 2;
+
+                            if (isTopHalf) {
+                              context.read<PlayerBloc>().add(
+                                    UpdatePlayerLifeEvent(
+                                      decrement: true,
+                                      playerId: widget.playerId,
+                                    ),
+                                  );
+                              context.read<PlayerBloc>().add(
+                                    PlayerCommanderDamageIncremented(
+                                      commanderId: widget.commanderPlayerId,
+                                      damageType: DamageType.partner,
+                                    ),
+                                  );
+                            } else {
+                              context.read<PlayerBloc>().add(
+                                    UpdatePlayerLifeEvent(
+                                      decrement: false,
+                                      playerId: widget.playerId,
+                                    ),
+                                  );
+                              context.read<PlayerBloc>().add(
+                                    PlayerCommanderDamageDecremented(
+                                      commanderId: widget.commanderPlayerId,
+                                      damageType: DamageType.partner,
+                                    ),
+                                  );
+                            }
+                          } else {
+                            // Original behavior when not expanded
+                            context.read<PlayerBloc>().add(
+                                  UpdatePlayerLifeEvent(
+                                    decrement: true,
+                                    playerId: widget.playerId,
+                                  ),
+                                );
+                            context.read<PlayerBloc>().add(
+                                  PlayerCommanderDamageIncremented(
+                                    commanderId: widget.commanderPlayerId,
+                                    damageType: DamageType.partner,
+                                  ),
+                                );
+                          }
+                        },
+                        onLongPress: () {
+                          if (!_animationController.isCompleted) {
+                            _animationController.forward();
+                          } else {
+                            context.read<PlayerBloc>().add(
+                                  UpdatePlayerLifeEvent(
+                                    decrement: false,
+                                    playerId: widget.playerId,
+                                  ),
+                                );
+                            context.read<PlayerBloc>().add(
+                                  PlayerCommanderDamageDecremented(
+                                    commanderId: widget.commanderPlayerId,
+                                    damageType: DamageType.partner,
+                                  ),
+                                );
+                          }
+                        },
+                        onLongPressUp: () => context.read<PlayerBloc>().add(
+                              const PlayerStopDecrement(),
+                            ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox(
+                              width: _scaleAnimation.value,
+                              height: _scaleAnimation.value,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10),
+                                ),
+                                child: widget.player.commander?.imageUrl
+                                            .isEmpty ??
+                                        true
+                                    ? Container(
+                                        color: Color(widget.player.color)
+                                            .withValues(alpha: .8),
+                                        width: _scaleAnimation.value,
+                                        height: _scaleAnimation.value,
+                                      )
+                                    : Image.network(
+                                        widget.player.partner?.imageUrl ?? '',
+                                        width: _scaleAnimation.value,
+                                        height: _scaleAnimation.value,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Container(
+                                            color: Color(widget.player.color)
+                                                .withValues(alpha: .8),
+                                            width: _scaleAnimation.value,
+                                            height: _scaleAnimation.value,
+                                          );
+                                        },
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                            ),
+                            StrokeText(
+                              text: partnerDamage.toString(),
+                              fontSize: 28,
+                              color: AppColors.white,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        : TapRegion(
+            onTapOutside: (_) => _handleTapOutside(),
+            child: GestureDetector(
+              onTapDown: (details) {
+                if (_animationController.isCompleted) {
+                  // When expanded, check if tap is in top or bottom half
+                  final box = context.findRenderObject() as RenderBox;
+                  final localPosition =
+                      box.globalToLocal(details.globalPosition);
+                  final isTopHalf = localPosition.dy < box.size.height / 2;
+
+                  if (isTopHalf) {
+                    context.read<PlayerBloc>().add(
+                          UpdatePlayerLifeEvent(
+                            decrement: true,
+                            playerId: widget.playerId,
+                          ),
+                        );
+                    context.read<PlayerBloc>().add(
+                          PlayerCommanderDamageIncremented(
+                            commanderId: widget.commanderPlayerId,
+                            damageType: DamageType.commander,
+                          ),
+                        );
+                  } else {
+                    context.read<PlayerBloc>().add(
+                          UpdatePlayerLifeEvent(
+                            decrement: false,
+                            playerId: widget.playerId,
+                          ),
+                        );
+                    context.read<PlayerBloc>().add(
+                          PlayerCommanderDamageDecremented(
+                            commanderId: widget.commanderPlayerId,
+                            damageType: DamageType.commander,
+                          ),
+                        );
+                  }
+                } else {
+                  // Original behavior when not expanded
+                  context.read<PlayerBloc>().add(
+                        UpdatePlayerLifeEvent(
+                          decrement: true,
+                          playerId: widget.playerId,
+                        ),
+                      );
+                  context.read<PlayerBloc>().add(
+                        PlayerCommanderDamageIncremented(
+                          commanderId: widget.commanderPlayerId,
+                          damageType: DamageType.commander,
+                        ),
+                      );
+                }
+              },
+              onLongPress: () {
+                if (!_animationController.isCompleted) {
+                  _animationController.forward();
+                } else {
+                  context.read<PlayerBloc>().add(
+                        UpdatePlayerLifeEvent(
+                          decrement: false,
+                          playerId: widget.playerId,
+                        ),
+                      );
+                  context.read<PlayerBloc>().add(
+                        PlayerCommanderDamageDecremented(
+                          commanderId: widget.commanderPlayerId,
+                          damageType: DamageType.commander,
+                        ),
+                      );
+                }
+              },
+              onLongPressUp: () => context.read<PlayerBloc>().add(
+                    const PlayerStopDecrement(),
+                  ),
+              child: Container(
+                padding: const EdgeInsets.only(top: 5),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: _scaleAnimation.value,
+                      height: _scaleAnimation.value,
+                      child: ClipRRect(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(10)),
+                        child: widget.player.commander?.imageUrl.isEmpty ?? true
+                            ? Container(
+                                color: Color(widget.player.color)
+                                    .withValues(alpha: .8),
+                                width: _scaleAnimation.value,
+                                height: _scaleAnimation.value,
+                              )
+                            : Image.network(
+                                widget.player.commander?.imageUrl ?? '',
+                                width: _scaleAnimation.value,
+                                height: _scaleAnimation.value,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Color(widget.player.color)
+                                        .withValues(alpha: .8),
+                                    width: _scaleAnimation.value,
+                                    height: _scaleAnimation.value,
+                                  );
+                                },
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+                    ),
+                    StrokeText(
+                      text: commanderDamage.toString(),
+                      fontSize: 28,
+                      color: AppColors.white,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
   }
 }

@@ -27,10 +27,10 @@ class TrackerWidgets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final players = context.select<GameBloc, List<Player>>(
-      (bloc) => bloc.state.playerList.map((player) => player).toList(),
-    );
-
+    // final players = context.select<GameBloc, List<Player>>(
+    //   (bloc) => bloc.state.playerList.map((player) => player).toList(),
+    // );
+    final players = context.watch<GameBloc>().state.playerList;
     return BlocProvider(
       create: (context) => TrackerBloc(),
       child: BlocBuilder<TrackerBloc, TrackerState>(

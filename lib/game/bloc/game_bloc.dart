@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
+import 'package:player_repository/models/commander_damage.dart';
+import 'package:player_repository/models/opponent.dart';
 import 'package:player_repository/player_repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -26,14 +28,14 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<PlayerRepositoryUpdateEvent>(_repositoryUpdated);
     on<GameTimerTickEvent>(_onTimerTick);
 
-    _playersSubscription = _playerRepository.players.listen((players) {
+    // Subscribe to player updates and emit them immediately
+    _playerRepository.players.listen((players) {
       add(PlayerRepositoryUpdateEvent(players: players));
     });
   }
 
   final PlayerRepository _playerRepository;
   final FirebaseDatabaseRepository _database;
-  StreamSubscription<List<Player>>? _playersSubscription;
   Timer? _gameTimer;
 
   List<Player> get _players => _playerRepository.getPlayers();
@@ -81,7 +83,16 @@ class GameBloc extends Bloc<GameEvent, GameState> {
           name: 'Player ${i + 1}',
           playerNumber: i,
           lifePoints: event.startingLifePoints,
-          commanderDamageList: {for (final e in uuidList) e: 0},
+          opponents: [
+            for (final e in uuidList)
+              Opponent(
+                playerId: e,
+                damages: [
+                  CommanderDamage(damageType: DamageType.commander, amount: 0),
+                  CommanderDamage(damageType: DamageType.partner, amount: 0),
+                ],
+              ),
+          ],
         );
         _playerRepository.createPlayer(player);
       }
@@ -142,7 +153,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(
       state.copyWith(
         elapsedSeconds: event.elapsedSeconds,
-        status: GameStatus.running,
       ),
     );
   }
@@ -157,13 +167,23 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     // Reset players
     try {
       for (final player in _players) {
+        final opponents = state.playerList
+            .map((p) => Opponent(
+                  playerId: p.id,
+                  damages: [
+                    CommanderDamage(
+                        damageType: DamageType.commander, amount: 0),
+                    CommanderDamage(damageType: DamageType.partner, amount: 0),
+                  ],
+                ))
+            .toList();
+
         final resetPlayer = player.copyWith(
           lifePoints: _players.length == 4 ? 40 : 20,
           timeOfDeath: const Value(null),
           placement: const Value(null),
           state: PlayerModelState.active,
-          commanderDamageList:
-              Map.fromEntries(state.playerList.map((p) => MapEntry(p.id, 0))),
+          opponents: opponents,
         );
         _playerRepository.updatePlayer(resetPlayer);
       }
@@ -216,11 +236,14 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     PlayerRepositoryUpdateEvent event,
     Emitter<GameState> emit,
   ) async {
+    // First emit the player update to ensure UI is always up to date
+    emit(state.copyWith(playerList: event.players));
+
+    // Then check for game-ending condition
     final alivePlayers = event.players.where((p) => p.lifePoints > 0).toList();
     if (alivePlayers.length == 1 && state.status == GameStatus.running) {
       add(GameFinishEvent(winner: alivePlayers.first));
     }
-    emit(state.copyWith(playerList: event.players));
   }
 
   String _getRandomString(int length) {
@@ -255,7 +278,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   @override
   Future<void> close() {
-    _playersSubscription?.cancel();
     _gameTimer?.cancel();
     return super.close();
   }

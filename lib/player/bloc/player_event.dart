@@ -36,21 +36,28 @@ class UpdatePlayerLifeEvent extends PlayerEvent {
 }
 
 class PlayerCommanderDamageIncremented extends PlayerEvent {
-  const PlayerCommanderDamageIncremented({required this.commanderId});
+  const PlayerCommanderDamageIncremented({
+    required this.commanderId,
+    required this.damageType,
+  });
 
   final String commanderId;
-
+  final DamageType damageType;
   @override
-  List<Object> get props => [commanderId];
+  List<Object> get props => [commanderId, damageType];
 }
 
 class PlayerCommanderDamageDecremented extends PlayerEvent {
-  const PlayerCommanderDamageDecremented({required this.commanderId});
+  const PlayerCommanderDamageDecremented({
+    required this.commanderId,
+    required this.damageType,
+  });
 
   final String commanderId;
+  final DamageType damageType;
 
   @override
-  List<Object> get props => [commanderId];
+  List<Object> get props => [commanderId, damageType];
 }
 
 class UpdatePlayerLifeByXEvent extends PlayerEvent {

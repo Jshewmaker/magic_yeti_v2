@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:player_repository/models/commander_damage.dart';
 import 'package:player_repository/player_repository.dart';
 
 part 'player_event.dart';
@@ -24,8 +25,7 @@ part 'player_state.dart';
 /// // Get all players
 /// final players = repository.getPlayers();
 ///
-/// // Listen to player updates
-/// repository.players.listen((players) {
+/// // Listen to player updository.players.listen((players) {
 ///   // Handle player updates
 /// });
 /// ```
@@ -174,14 +174,39 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     });
   }
 
+  /// Handles the increment of commander damage for a player.
+  ///
+  /// This method is called when a player receives commander damage from either a commander
+  /// or its partner. It updates the damage tracking in the [commanderDamageList] map.
+  ///
+  /// Parameters:
+  /// - [event]: Contains the type of damage (commander/partner) and the commander's ID
+  /// - [emit]: Used to emit new states during the damage tracking process
+  ///
+  /// The method:
+  /// 1. Sets the player status to updating
+  /// 2. Retrieves the current player
+  /// 3. Updates the appropriate damage counter based on damage type
+  /// 4. Saves the updated player
+  /// 5. Emits the new state with updated status and player
   void _onTrackerIncremented(
     PlayerCommanderDamageIncremented event,
     Emitter<PlayerState> emit,
   ) {
     emit(state.copyWith(status: PlayerStatus.updating));
     final player = _playerRepository.getPlayerById(_playerId);
-    player.commanderDamageList[event.commanderId] =
-        player.commanderDamageList[event.commanderId]! + 1;
+    final opponent = player.opponents.firstWhere(
+      (opponent) => opponent.playerId == event.commanderId,
+    );
+
+    final damage = opponent.damages.firstWhere(
+      (damage) => damage.damageType == event.damageType,
+      orElse: () => CommanderDamage(damageType: event.damageType, amount: 0),
+    );
+
+    final updatedDamage = damage.copyWith(amount: damage.amount + 1);
+    opponent.damages[opponent.damages.indexOf(damage)] = updatedDamage;
+
     _playerRepository.updatePlayer(player);
 
     emit(
@@ -192,14 +217,39 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
   }
 
+  /// Handles the decrement of commander damage for a player.
+  ///
+  /// This method is called when reducing commander damage from either a commander
+  /// or its partner. It updates the damage tracking in the [commanderDamageList] map.
+  ///
+  /// Parameters:
+  /// - [event]: Contains the type of damage (commander/partner) and the commander's ID
+  /// - [emit]: Used to emit new states during the damage tracking process
+  ///
+  /// The method:
+  /// 1. Sets the player status to updating
+  /// 2. Retrieves the current player
+  /// 3. Decrements the appropriate damage counter based on damage type
+  /// 4. Saves the updated player
+  /// 5. Emits the new state with updated status and player
   void _onTrackerDecremented(
     PlayerCommanderDamageDecremented event,
     Emitter<PlayerState> emit,
   ) {
     emit(state.copyWith(status: PlayerStatus.updating));
     final player = _playerRepository.getPlayerById(_playerId);
-    player.commanderDamageList[event.commanderId] =
-        player.commanderDamageList[event.commanderId]! - 1;
+    final opponent = player.opponents.firstWhere(
+      (opponent) => opponent.playerId == event.commanderId,
+    );
+
+    final damage = opponent.damages.firstWhere(
+      (damage) => damage.damageType == event.damageType,
+      orElse: () => CommanderDamage(damageType: event.damageType, amount: 0),
+    );
+
+    final updatedDamage = damage.copyWith(amount: damage.amount - 1);
+    opponent.damages[opponent.damages.indexOf(damage)] = updatedDamage;
+
     _playerRepository.updatePlayer(player);
 
     emit(
