@@ -15,5 +15,5 @@ Opponent _$OpponentFromJson(Map<String, dynamic> json) => Opponent(
 
 Map<String, dynamic> _$OpponentToJson(Opponent instance) => <String, dynamic>{
       'playerId': instance.playerId,
-      'damages': instance.damages,
+      'damages': instance.damages.map((e) => e.toJson()).toList(),
     };

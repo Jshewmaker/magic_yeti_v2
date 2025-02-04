@@ -13,18 +13,6 @@ class Value<T> {
   const Value(this.value);
 }
 
-/// Type of damage done to a player.
-///
-/// [DamageType.commander] - Damage done from the player's commander
-/// [DamageType.partner] - Damage done from the player's commander's partner
-enum DamageType {
-  /// Damage done from the player's commander
-  commander,
-
-  /// Damage done from the player's commander's partner
-  partner,
-}
-
 /// Player state in the game
 enum PlayerModelState {
   active,
@@ -112,7 +100,7 @@ class Player extends Equatable {
   bool get isEliminated => state.isEliminated;
 
   /// A list representing the damage dealt to the player by each opponent's commander.
-  final List<Opponent> opponents;
+  final List<Opponent>? opponents;
 
   /// Creates a new player object with the same values as the current player
   Player copyWith({

@@ -152,6 +152,7 @@ class ButtonsWidget extends StatelessWidget {
                               userId: context.read<AppBloc>().state.user.id,
                             ),
                           );
+
                       context.read<GameBloc>().add(const GameResetEvent());
                       context.go(GamePage.routePath);
                     },

@@ -4,8 +4,7 @@ import 'dart:math';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
-import 'package:player_repository/models/commander_damage.dart';
-import 'package:player_repository/models/opponent.dart';
+
 import 'package:player_repository/player_repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -25,8 +24,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<GameResumeEvent>(_onGameResume);
     on<GameResetEvent>(_onGameReset);
     on<GameFinishEvent>(_onGameFinish);
+    on<GameUpdateTimerEvent>(_onUpdateTimer);
     on<PlayerRepositoryUpdateEvent>(_repositoryUpdated);
-    on<GameTimerTickEvent>(_onTimerTick);
 
     // Subscribe to player updates and emit them immediately
     _playerRepository.players.listen((players) {
@@ -111,7 +110,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameStartEvent event,
     Emitter<GameState> emit,
   ) {
-    _startTimer();
     emit(
       state.copyWith(
         status: GameStatus.running,
@@ -126,7 +124,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GamePauseEvent event,
     Emitter<GameState> emit,
   ) {
-    _gameTimer?.cancel();
     emit(state.copyWith(status: GameStatus.paused));
   }
 
@@ -134,27 +131,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameResumeEvent event,
     Emitter<GameState> emit,
   ) {
-    _startTimer();
     emit(state.copyWith(status: GameStatus.running));
-  }
-
-  void _startTimer() {
-    _gameTimer?.cancel();
-    _gameTimer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => add(GameTimerTickEvent(elapsedSeconds: state.elapsedSeconds + 1)),
-    );
-  }
-
-  void _onTimerTick(
-    GameTimerTickEvent event,
-    Emitter<GameState> emit,
-  ) {
-    emit(
-      state.copyWith(
-        elapsedSeconds: event.elapsedSeconds,
-      ),
-    );
   }
 
   Future<void> _onGameReset(
@@ -202,12 +179,18 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     }
   }
 
+  void _onUpdateTimer(
+    GameUpdateTimerEvent event,
+    Emitter<GameState> emit,
+  ) {
+    emit(state.copyWith(elapsedSeconds: event.gameLength));
+  }
+
   Future<void> _onGameFinish(
     GameFinishEvent event,
     Emitter<GameState> emit,
   ) async {
     emit(state.copyWith(status: GameStatus.loading));
-    _gameTimer?.cancel();
 
     final updateWinner = event.winner.copyWith(
       placement: const Value(1),
@@ -228,7 +211,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     );
 
     emit(
-      state.copyWith(status: GameStatus.finished, gameModel: gameModel),
+      state.copyWith(gameModel: gameModel),
     );
   }
 
@@ -242,6 +225,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     // Then check for game-ending condition
     final alivePlayers = event.players.where((p) => p.lifePoints > 0).toList();
     if (alivePlayers.length == 1 && state.status == GameStatus.running) {
+      emit(state.copyWith(status: GameStatus.finished));
       add(GameFinishEvent(winner: alivePlayers.first));
     }
   }
@@ -278,7 +262,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   @override
   Future<void> close() {
-    _gameTimer?.cancel();
     return super.close();
   }
 }

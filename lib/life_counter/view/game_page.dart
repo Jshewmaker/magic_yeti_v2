@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
 import 'package:magic_yeti/life_counter/view/game_over_page.dart';
+import 'package:magic_yeti/timer/bloc/timer_bloc.dart';
 
 class GamePage extends StatelessWidget {
   const GamePage({super.key});
@@ -25,13 +26,24 @@ class GamePage extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return BlocListener<GameBloc, GameState>(
-      listener: (context, state) {
-        if (state.status == GameStatus.finished) {
-          context.go(GameOverPage.routePath);
-        }
-      },
-      child: playerCount == 2 ? const TwoPlayerGame() : const FourPlayerGame(),
+    return BlocProvider(
+      create: (context) => TimerBloc()..add(const TimerStartEvent()),
+      child: BlocListener<GameBloc, GameState>(
+        listener: (context, state) {
+          if (state.status == GameStatus.finished) {
+            context.read<TimerBloc>().add(const TimerPauseEvent());
+            final gameLength = context.read<TimerBloc>().state.elapsedSeconds;
+            context
+                .read<GameBloc>()
+                .add(GameUpdateTimerEvent(gameLength: gameLength));
+            context.read<TimerBloc>().add(const TimerResetEvent());
+            context.read<TimerBloc>().add(const TimerPauseEvent());
+            context.go(GameOverPage.routePath);
+          }
+        },
+        child:
+            playerCount == 2 ? const TwoPlayerGame() : const FourPlayerGame(),
+      ),
     );
   }
 }

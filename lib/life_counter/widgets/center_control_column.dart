@@ -7,6 +7,7 @@ import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/widgets/widgets.dart';
+import 'package:magic_yeti/timer/bloc/timer_bloc.dart';
 
 /// Central control column containing game controls and utilities.
 /// Displays reset button, timer widget, and dice icon.
@@ -110,13 +111,13 @@ class _PauseResumeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gameBloc = context.watch<GameBloc>();
+    final timerBloc = context.watch<TimerBloc>();
     return IconButton(
-      onPressed: () => gameBloc.state.status == GameStatus.paused
-          ? gameBloc.add(const GameResumeEvent())
-          : gameBloc.add(const GamePauseEvent()),
+      onPressed: () => timerBloc.state.status == TimerStatus.paused
+          ? timerBloc.add(const TimerResumeEvent())
+          : timerBloc.add(const TimerPauseEvent()),
       icon: Icon(
-        gameBloc.state.status == GameStatus.paused
+        timerBloc.state.status == TimerStatus.paused
             ? Icons.play_circle_outline_outlined
             : Icons.pause_circle_outline_rounded,
         size: 40,

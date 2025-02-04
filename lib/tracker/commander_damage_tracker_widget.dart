@@ -1,6 +1,7 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/player/bloc/player_bloc.dart';
 import 'package:player_repository/models/models.dart';
 import 'package:player_repository/models/opponent.dart';
@@ -63,11 +64,48 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
     }
   }
 
+  /// Builds the commander damage tracker widget with proper state management.
+  ///
+  /// This implementation uses a specialized selector pattern to ensure the widget
+  /// rebuilds correctly when nested state changes occur. Here's why this is necessary:
+  ///
+  /// 1. The Problem:
+  ///    - When using lists in Dart, modifying list contents doesn't change the list reference
+  ///    - Simple selectors only detect reference changes, not content changes
+  ///    - This means changes to damage amounts wouldn't trigger rebuilds
+  ///
+  /// 2. The Solution:
+  ///    - We create a tuple containing both the opponent and their damage amounts
+  ///    - By including damage amounts as a separate list, we force Flutter to compare values
+  ///    - Any change to damage amounts creates a new list, triggering a rebuild
+  ///
+  /// 3. Performance:
+  ///    - This approach is efficient as it only rebuilds when damage values actually change
+  ///    - The map operation on damages is lightweight and only runs during selection
+  ///
+  /// This widget will rebuild when:
+  ///   - Commander damage changes
+  ///   - Partner damage changes
+  ///   - The opponent's commander changes
+  ///   - The opponent's partner changes
   @override
   Widget build(BuildContext context) {
-    final opponent = context.select<PlayerBloc, Opponent>(
-      (bloc) => bloc.state.player.opponents.firstWhere(
-        (opponent) => opponent.playerId == widget.commanderPlayerId,
+    // Watch for changes in the opponent's damage by including the damage amounts in the selector
+    final opponent = context.select<PlayerBloc, (Opponent, List<int>)>(
+      (bloc) {
+        final opp = bloc.state.player.opponents!.firstWhere(
+          (opponent) => opponent.playerId == widget.commanderPlayerId,
+        );
+        // Include damage amounts in the selector to force rebuild when they change
+        final damageAmounts = opp.damages.map((d) => d.amount).toList();
+        return (opp, damageAmounts);
+      },
+    ).$1;
+
+    // Watch for changes in the commander and partner of the target player
+    final targetPlayer = context.select<GameBloc, Player>(
+      (bloc) => bloc.state.playerList.firstWhere(
+        (player) => player.id == widget.commanderPlayerId,
       ),
     );
 
@@ -79,13 +117,6 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
 
     final commanderDamage = damageMap[DamageType.commander];
     final partnerDamage = damageMap[DamageType.partner];
-
-    // Debugging statements
-    print('CommanderDamageTracker: damageMap = ' + damageMap.toString());
-    print('CommanderDamageTracker: commanderDamage = ' +
-        (commanderDamage ?? 0).toString());
-    print(
-        'CommanderDamageTracker: partnerDamage = ' + partnerDamage.toString());
 
     return widget.player.partner?.imageUrl.isNotEmpty ?? false
         ? Padding(
@@ -188,8 +219,8 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
                                   topLeft: Radius.circular(10),
                                   topRight: Radius.circular(10),
                                 ),
-                                child: widget.player.commander?.imageUrl
-                                            .isEmpty ??
+                                child: targetPlayer
+                                            .commander?.imageUrl.isEmpty ??
                                         true
                                     ? Container(
                                         color: Color(widget.player.color)
@@ -198,7 +229,7 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
                                         height: _scaleAnimation.value,
                                       )
                                     : Image.network(
-                                        widget.player.commander?.imageUrl ?? '',
+                                        targetPlayer.commander?.imageUrl ?? '',
                                         width: _scaleAnimation.value,
                                         height: _scaleAnimation.value,
                                         errorBuilder:
@@ -310,8 +341,7 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
                                   bottomLeft: Radius.circular(10),
                                   bottomRight: Radius.circular(10),
                                 ),
-                                child: widget.player.commander?.imageUrl
-                                            .isEmpty ??
+                                child: targetPlayer.partner?.imageUrl.isEmpty ??
                                         true
                                     ? Container(
                                         color: Color(widget.player.color)
@@ -320,7 +350,7 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
                                         height: _scaleAnimation.value,
                                       )
                                     : Image.network(
-                                        widget.player.partner?.imageUrl ?? '',
+                                        targetPlayer.partner?.imageUrl ?? '',
                                         width: _scaleAnimation.value,
                                         height: _scaleAnimation.value,
                                         errorBuilder:
@@ -436,7 +466,7 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
                       child: ClipRRect(
                         borderRadius:
                             const BorderRadius.all(Radius.circular(10)),
-                        child: widget.player.commander?.imageUrl.isEmpty ?? true
+                        child: targetPlayer.commander?.imageUrl.isEmpty ?? true
                             ? Container(
                                 color: Color(widget.player.color)
                                     .withValues(alpha: .8),
@@ -444,7 +474,7 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
                                 height: _scaleAnimation.value,
                               )
                             : Image.network(
-                                widget.player.commander?.imageUrl ?? '',
+                                targetPlayer.commander?.imageUrl ?? '',
                                 width: _scaleAnimation.value,
                                 height: _scaleAnimation.value,
                                 errorBuilder: (context, error, stackTrace) {

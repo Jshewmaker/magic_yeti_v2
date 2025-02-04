@@ -1,13 +1,25 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:player_repository/models/player.dart';
-import 'package:player_repository/player_repository.dart';
 
 part 'commander_damage.g.dart';
+
+/// Type of damage done to a player.
+///
+/// [DamageType.commander] - Damage done from the player's commander
+/// [DamageType.partner] - Damage done from the player's commander's partner
+enum DamageType {
+  /// Damage done from the player's commander
+  @JsonValue('commander')
+  commander,
+
+  /// Damage done from the player's commander's partner
+  @JsonValue('partner')
+  partner,
+}
 
 /// {@template commander_damage}
 /// Model representing a damage done by a commander
 /// {@endtemplate}
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class CommanderDamage {
   /// {@macro commander_damage}
   CommanderDamage({required this.damageType, required this.amount});

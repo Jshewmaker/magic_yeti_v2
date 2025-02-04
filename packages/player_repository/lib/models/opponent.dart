@@ -6,7 +6,7 @@ part 'opponent.g.dart';
 /// {@template opponent}
 /// Model representing an opponent in a game
 /// {@endtemplate}
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class Opponent {
   /// {@macro opponent}
   Opponent({required this.playerId, required this.damages});

@@ -12,8 +12,8 @@ Player _$PlayerFromJson(Map<String, dynamic> json) => Player(
       playerNumber: (json['playerNumber'] as num).toInt(),
       lifePoints: (json['lifePoints'] as num).toInt(),
       color: (json['color'] as num).toInt(),
-      opponents: (json['opponents'] as List<dynamic>)
-          .map((e) => Opponent.fromJson(e as Map<String, dynamic>))
+      opponents: (json['opponents'] as List<dynamic>?)
+          ?.map((e) => Opponent.fromJson(e as Map<String, dynamic>))
           .toList(),
       commander: json['commander'] == null
           ? null
@@ -40,7 +40,7 @@ Map<String, dynamic> _$PlayerToJson(Player instance) => <String, dynamic>{
       'state': _$PlayerModelStateEnumMap[instance.state]!,
       'placement': instance.placement,
       'timeOfDeath': instance.timeOfDeath,
-      'opponents': instance.opponents.map((e) => e.toJson()).toList(),
+      'opponents': instance.opponents?.map((e) => e.toJson()).toList(),
     };
 
 const _$PlayerModelStateEnumMap = {

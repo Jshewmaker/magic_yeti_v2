@@ -33,7 +33,7 @@ Future<void> bootstrap(
     return true;
   };
 
-  Bloc.observer = AppBlocObserver();
+  // Bloc.observer = AppBlocObserver();
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
   runApp(
     await builder(FirebaseFirestore.instance),

@@ -33,6 +33,16 @@ class GameFinishEvent extends GameEvent {
   List<Object?> get props => [winner];
 }
 
+class GameUpdateTimerEvent extends GameEvent {
+  const GameUpdateTimerEvent({
+    required this.gameLength,
+  });
+  final int gameLength;
+
+  @override
+  List<Object?> get props => [gameLength];
+}
+
 class PlayerRepositoryUpdateEvent extends GameEvent {
   const PlayerRepositoryUpdateEvent({
     required this.players,
@@ -41,13 +51,6 @@ class PlayerRepositoryUpdateEvent extends GameEvent {
 
   @override
   List<Object> get props => [players];
-}
-
-class GameTimerTickEvent extends GameEvent {
-  const GameTimerTickEvent({required this.elapsedSeconds});
-  final int elapsedSeconds;
-  @override
-  List<Object> get props => [];
 }
 
 class GamePauseEvent extends GameEvent {

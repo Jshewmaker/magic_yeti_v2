@@ -195,7 +195,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) {
     emit(state.copyWith(status: PlayerStatus.updating));
     final player = _playerRepository.getPlayerById(_playerId);
-    final opponent = player.opponents.firstWhere(
+    final opponent = player.opponents!.firstWhere(
       (opponent) => opponent.playerId == event.commanderId,
     );
 
@@ -238,7 +238,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) {
     emit(state.copyWith(status: PlayerStatus.updating));
     final player = _playerRepository.getPlayerById(_playerId);
-    final opponent = player.opponents.firstWhere(
+    final opponent = player.opponents!.firstWhere(
       (opponent) => opponent.playerId == event.commanderId,
     );
 
