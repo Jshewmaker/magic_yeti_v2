@@ -72,6 +72,9 @@ class TrackerWidgets extends StatelessWidget {
                               commanderPlayerId: player.id,
                               playerId: playerId,
                             ),
+                            const SizedBox(
+                              height: AppSpacing.xs,
+                            ),
                           ],
                         );
                       },
@@ -79,9 +82,6 @@ class TrackerWidgets extends StatelessWidget {
                   ...state.icons.map(
                     (icon) => Column(
                       children: [
-                        const SizedBox(
-                          height: AppSpacing.xs,
-                        ),
                         Dismissible(
                           onDismissed: (_) => context
                               .read<TrackerBloc>()
@@ -98,6 +98,9 @@ class TrackerWidgets extends StatelessWidget {
                               ),
                             ),
                           ),
+                        ),
+                        const SizedBox(
+                          height: AppSpacing.xs,
                         ),
                       ],
                     ),

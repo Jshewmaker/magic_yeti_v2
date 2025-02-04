@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/player/bloc/player_bloc.dart';
 import 'package:player_repository/models/models.dart';
-import 'package:player_repository/models/opponent.dart';
 
 class CommanderDamageTracker extends StatefulWidget {
   const CommanderDamageTracker({
@@ -245,6 +244,28 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
                                       ),
                               ),
                             ),
+                            if (_animationController.isCompleted) ...[
+                              Positioned(
+                                top: 10,
+                                left: 0,
+                                right: 0,
+                                child: Icon(
+                                  Icons.add,
+                                  color: AppColors.white.withOpacity(0.8),
+                                  size: 24,
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 10,
+                                left: 0,
+                                right: 0,
+                                child: Icon(
+                                  Icons.remove,
+                                  color: AppColors.white.withOpacity(0.8),
+                                  size: 24,
+                                ),
+                              ),
+                            ],
                             StrokeText(
                               text: commanderDamage.toString(),
                               fontSize: 28,
@@ -366,6 +387,28 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
                                       ),
                               ),
                             ),
+                            if (_animationController.isCompleted) ...[
+                              Positioned(
+                                top: 10,
+                                left: 0,
+                                right: 0,
+                                child: Icon(
+                                  Icons.add_circle_outline,
+                                  color: AppColors.white.withOpacity(0.8),
+                                  size: 24,
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 10,
+                                left: 0,
+                                right: 0,
+                                child: Icon(
+                                  Icons.remove_circle_outline,
+                                  color: AppColors.white.withOpacity(0.8),
+                                  size: 24,
+                                ),
+                              ),
+                            ],
                             StrokeText(
                               text: partnerDamage.toString(),
                               fontSize: 28,
@@ -455,47 +498,71 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
               onLongPressUp: () => context.read<PlayerBloc>().add(
                     const PlayerStopDecrement(),
                   ),
-              child: Container(
-                padding: const EdgeInsets.only(top: 5),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: _scaleAnimation.value,
-                      height: _scaleAnimation.value,
-                      child: ClipRRect(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(10)),
-                        child: targetPlayer.commander?.imageUrl.isEmpty ?? true
-                            ? Container(
-                                color: Color(widget.player.color)
-                                    .withValues(alpha: .8),
-                                width: _scaleAnimation.value,
-                                height: _scaleAnimation.value,
-                              )
-                            : Image.network(
-                                targetPlayer.commander?.imageUrl ?? '',
-                                width: _scaleAnimation.value,
-                                height: _scaleAnimation.value,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: Color(widget.player.color)
-                                        .withValues(alpha: .8),
-                                    width: _scaleAnimation.value,
-                                    height: _scaleAnimation.value,
-                                  );
-                                },
-                                fit: BoxFit.cover,
-                              ),
-                      ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: _scaleAnimation.value,
+                    height: _scaleAnimation.value,
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(10)),
+                          child: targetPlayer.commander?.imageUrl.isEmpty ??
+                                  true
+                              ? Container(
+                                  color: Color(widget.player.color)
+                                      .withValues(alpha: .8),
+                                  width: _scaleAnimation.value,
+                                  height: _scaleAnimation.value,
+                                )
+                              : Image.network(
+                                  targetPlayer.commander?.imageUrl ?? '',
+                                  width: _scaleAnimation.value,
+                                  height: _scaleAnimation.value,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: Color(widget.player.color)
+                                          .withValues(alpha: .8),
+                                      width: _scaleAnimation.value,
+                                      height: _scaleAnimation.value,
+                                    );
+                                  },
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                        if (_animationController.isCompleted) ...[
+                          Positioned(
+                            top: 10,
+                            left: 0,
+                            right: 0,
+                            child: Icon(
+                              Icons.add,
+                              color: AppColors.white.withValues(alpha: 0.8),
+                              size: 24,
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 10,
+                            left: 0,
+                            right: 0,
+                            child: Icon(
+                              Icons.remove,
+                              color: AppColors.white.withValues(alpha: 0.8),
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                    StrokeText(
-                      text: commanderDamage.toString(),
-                      fontSize: 28,
-                      color: AppColors.white,
-                    ),
-                  ],
-                ),
+                  ),
+                  StrokeText(
+                    text: commanderDamage.toString(),
+                    fontSize: 28,
+                    color: AppColors.white,
+                  ),
+                ],
               ),
             ),
           );
