@@ -7,7 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/tracker/bloc/tracker_bloc.dart';
 import 'package:magic_yeti/tracker/tracker.dart';
-import 'package:player_repository/models/models.dart';
+import 'package:player_repository/models/player.dart';
 
 class TrackerWidgets extends StatelessWidget {
   const TrackerWidgets({
@@ -27,10 +27,19 @@ class TrackerWidgets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final players = context.select<GameBloc, List<Player>>(
-    //   (bloc) => bloc.state.playerList.map((player) => player).toList(),
-    // );
+    context.select<GameBloc, List<(String?, String?)>>(
+      (bloc) => bloc.state.playerList
+          .map(
+            (player) => (
+              player.commander?.imageUrl,
+              player.partner?.imageUrl,
+            ),
+          )
+          .toList(),
+    );
+
     final players = context.read<GameBloc>().state.playerList;
+
     return BlocProvider(
       create: (context) => TrackerBloc(),
       child: BlocBuilder<TrackerBloc, TrackerState>(
