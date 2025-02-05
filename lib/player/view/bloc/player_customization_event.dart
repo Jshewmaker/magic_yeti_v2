@@ -26,6 +26,13 @@ final class UpdatePlayerCommander extends PlayerCustomizationEvent {
   List<Object?> get props => [commander, partner];
 }
 
+final class ClearCardList extends PlayerCustomizationEvent {
+  const ClearCardList();
+
+  @override
+  List<Object> get props => [];
+}
+
 final class UpdateAccountOwnership extends PlayerCustomizationEvent {
   const UpdateAccountOwnership({required this.isOwner});
 

@@ -24,7 +24,6 @@ class FourPlayerGame extends StatelessWidget {
         builder: (context, constraints) {
           SystemChrome.setPreferredOrientations([
             DeviceOrientation.landscapeRight,
-            DeviceOrientation.landscapeLeft,
           ]);
           return Scaffold(
             body: Row(

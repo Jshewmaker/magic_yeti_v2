@@ -159,7 +159,7 @@ class TrackerWidgets extends StatelessWidget {
         return Dialog(
           child: SizedBox(
             height: 300,
-            width: 300,
+            width: 500,
             child: Column(
               children: [
                 const Text(
@@ -170,10 +170,23 @@ class TrackerWidgets extends StatelessWidget {
                   child: GridView.count(
                     crossAxisCount: 5,
                     children: [
-                      ...iconList.map(
-                        (icon) => IconButton(
-                          icon: FaIcon(icon),
-                          onPressed: () => Navigator.pop(context, icon),
+                      ...iconMap.entries.map(
+                        (entry) => Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: FaIcon(entry.key),
+                              onPressed: () =>
+                                  Navigator.pop(context, entry.key),
+                            ),
+                            Text(
+                              entry.value,
+                              style: const TextStyle(
+                                color: AppColors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -188,14 +201,16 @@ class TrackerWidgets extends StatelessWidget {
   }
 }
 
-List<IconData> iconList = [
-  FontAwesomeIcons.droplet,
-  FontAwesomeIcons.skull,
-  FontAwesomeIcons.fire,
-  FontAwesomeIcons.sun,
-  FontAwesomeIcons.tree,
-  FontAwesomeIcons.diamond,
-  FontAwesomeIcons.dungeon,
-  FontAwesomeIcons.skullCrossbones,
-  FontAwesomeIcons.boltLightning,
-];
+Map<IconData, String> iconMap = {
+  FontAwesomeIcons.droplet: 'Island',
+  FontAwesomeIcons.skull: 'Swamp',
+  FontAwesomeIcons.fire: 'Mountain',
+  FontAwesomeIcons.sun: 'Plains',
+  FontAwesomeIcons.tree: 'Forest',
+  FontAwesomeIcons.diamond: 'Colorless',
+  FontAwesomeIcons.dungeon: 'Dungeon Level',
+  FontAwesomeIcons.skullCrossbones: 'Poison',
+  FontAwesomeIcons.boltLightning: 'Energy',
+  FontAwesomeIcons.radiation: 'Radiation',
+  FontAwesomeIcons.brain: 'Experience',
+};

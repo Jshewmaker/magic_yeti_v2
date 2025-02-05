@@ -17,6 +17,7 @@ class PlayerCustomizationBloc
     on<UpdateAccountOwnership>(_onUpdateAccountOwnership);
     on<UpdateCommanderFilters>(_onUpdateCommanderFilters);
     on<UpdatePartnerSelection>(_onUpdatePartnerSelection);
+    on<ClearCardList>(_onClearCardList);
   }
 
   final ScryfallRepository _scryfallRepository;
@@ -72,6 +73,13 @@ class PlayerCustomizationBloc
     Emitter<PlayerCustomizationState> emit,
   ) {
     emit(state.copyWith(isAccountOwner: event.isOwner));
+  }
+
+  void _onClearCardList(
+    ClearCardList event,
+    Emitter<PlayerCustomizationState> emit,
+  ) {
+    emit(state.copyWith(filteredCards: []));
   }
 
   void _onUpdateCommanderFilters(

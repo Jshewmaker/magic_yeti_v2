@@ -150,6 +150,9 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                               selectingPartner: !state.selectingPartner,
                             ),
                           );
+                      context
+                          .read<PlayerCustomizationBloc>()
+                          .add(const ClearCardList());
                       textController.clear();
                     },
                     child: Text(
