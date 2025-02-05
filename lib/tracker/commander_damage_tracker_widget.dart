@@ -82,7 +82,7 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker> {
             padding: const EdgeInsets.only(top: 5),
             child: Container(
               decoration: BoxDecoration(
-                color: Color(targetPlayer.color).withValues(alpha: 1),
+                color: Color(targetPlayer.color),
                 borderRadius: const BorderRadius.all(
                   Radius.circular(10),
                 ),
@@ -332,7 +332,7 @@ class _PartnerImage extends StatelessWidget {
       borderRadius: const BorderRadius.all(Radius.circular(10)),
       child: targetPlayer.partner?.imageUrl.isEmpty ?? true
           ? Container(
-              color: Color(playerColor).withValues(alpha: 0.8),
+              color: Color(playerColor),
               width: scale,
               height: scale,
             )
@@ -342,7 +342,7 @@ class _PartnerImage extends StatelessWidget {
               height: scale,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  color: Color(playerColor).withValues(alpha: 0.8),
+                  color: Color(playerColor),
                   width: scale,
                   height: scale,
                 );

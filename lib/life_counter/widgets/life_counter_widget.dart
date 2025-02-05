@@ -37,7 +37,10 @@ class LifeCounterWidget extends StatelessWidget {
         child: Stack(
           children: [
             BackgroundWidget(
-                player: player, rotate: rotate, leftSideTracker: true),
+              player: player,
+              rotate: rotate,
+              leftSideTracker: true,
+            ),
             _LifeTrackerWidget(lifePoints: player.lifePoints),
             Row(
               children: [
@@ -121,9 +124,7 @@ class _IncrementLifeWidgetState extends State<IncrementLifeWidget> {
             ),
         child: AnimatedContainer(
           decoration: BoxDecoration(
-            color: _isTapped
-                ? Colors.white.withValues(alpha: .2)
-                : Colors.transparent,
+            color: _isTapped ? Colors.white.withAlpha(32) : Colors.transparent,
             borderRadius: const BorderRadius.all(
               Radius.circular(20),
             ),
@@ -192,9 +193,7 @@ class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
             ),
         child: AnimatedContainer(
           decoration: BoxDecoration(
-            color: _isTapped
-                ? Colors.white.withValues(alpha: .2)
-                : Colors.transparent,
+            color: _isTapped ? Colors.white.withAlpha(32) : Colors.transparent,
             borderRadius: const BorderRadius.all(
               Radius.circular(20),
             ),
@@ -389,13 +388,19 @@ class BackgroundWidget extends StatelessWidget {
               player.commander?.imageUrl ?? '',
               fit: BoxFit.cover,
               opacity: AlwaysStoppedAnimation(
-                player.lifePoints <= 0 ? .2 : 1,
+                player.lifePoints <= 0 ? 0.2 : 1,
               ),
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   decoration: BoxDecoration(
-                    color: Color(player.color).withValues(
-                      alpha: player.lifePoints <= 0 ? .3 : 1,
+                    gradient: LinearGradient(
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                      colors: [
+                        Colors.white,
+                        Color(player.color),
+                        Color(player.color),
+                      ],
                     ),
                   ),
                 );
@@ -409,13 +414,22 @@ class BackgroundWidget extends StatelessWidget {
                     player.commander?.imageUrl ?? '',
                     fit: BoxFit.fitHeight,
                     opacity: AlwaysStoppedAnimation(
-                      player.lifePoints <= 0 ? .2 : 1,
+                      player.lifePoints <= 0 ? 0.2 : 1,
                     ),
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         decoration: BoxDecoration(
-                          color: Color(player.color).withValues(
-                            alpha: player.lifePoints <= 0 ? .3 : 1,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(player.color).withValues(
+                                alpha: player.lifePoints <= 0 ? 0.3 : 1.0,
+                              ),
+                              Color(player.color).withValues(
+                                alpha: player.lifePoints <= 0 ? 0.3 : 0.7,
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -427,13 +441,22 @@ class BackgroundWidget extends StatelessWidget {
                     player.partner?.imageUrl ?? '',
                     fit: BoxFit.fitHeight,
                     opacity: AlwaysStoppedAnimation(
-                      player.lifePoints <= 0 ? .2 : 1,
+                      player.lifePoints <= 0 ? 0.2 : 1,
                     ),
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         decoration: BoxDecoration(
-                          color: Color(player.color).withValues(
-                            alpha: player.lifePoints <= 0 ? .3 : 1,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(player.color).withValues(
+                                alpha: player.lifePoints <= 0 ? 0.3 : 1.0,
+                              ),
+                              Color(player.color).withValues(
+                                alpha: player.lifePoints <= 0 ? 0.3 : 0.7,
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -458,7 +481,7 @@ class _PlayerNameWidget extends StatelessWidget {
         ElevatedButton(
           style: ButtonStyle(
             backgroundColor:
-                WidgetStateProperty.all(Colors.black.withValues(alpha: .4)),
+                WidgetStateProperty.all(Colors.black.withAlpha(68)),
             shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
