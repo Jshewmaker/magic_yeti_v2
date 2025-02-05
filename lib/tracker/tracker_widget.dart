@@ -7,7 +7,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/tracker/bloc/tracker_bloc.dart';
 import 'package:magic_yeti/tracker/tracker.dart';
-import 'package:player_repository/models/player.dart';
 
 class TrackerWidgets extends StatelessWidget {
   const TrackerWidgets({

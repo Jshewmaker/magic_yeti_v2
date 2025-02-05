@@ -21,39 +21,7 @@ class CommanderDamageTracker extends StatefulWidget {
   State<CommanderDamageTracker> createState() => _CommanderDamageTrackerState();
 }
 
-class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _animationController;
-
-  static const double _defaultSize = 70;
-  static const double _expandedSize = 140;
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
-    _animationController.addStatusListener((status) {
-      if (status == AnimationStatus.completed ||
-          status == AnimationStatus.dismissed) {
-        setState(() {});
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  void _handleTapOutside() {
-    if (_animationController.isCompleted) {
-      _animationController.reverse();
-    }
-  }
-
+class _CommanderDamageTrackerState extends State<CommanderDamageTracker> {
   /// Builds the commander damage tracker widget with proper state management.
   ///
   /// This implementation uses a specialized selector pattern to ensure the widget
@@ -80,7 +48,8 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
   ///   - The opponent's partner changes
   @override
   Widget build(BuildContext context) {
-    // Watch for changes in the opponent's damage by including the damage amounts in the selector
+    // Watch for changes in the opponent's damage by including the damage amounts
+    // in the selector
     final opponent = context.select<PlayerBloc, (Opponent, List<int>)>(
       (bloc) {
         final opp = bloc.state.player.opponents!.firstWhere(
@@ -122,375 +91,191 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker>
                 padding: const EdgeInsets.all(4),
                 child: Column(
                   children: [
-                    TapRegion(
-                      onTapOutside: (_) => _handleTapOutside(),
-                      child: GestureDetector(
-                        onTap: () {
-                          if (!_animationController.isCompleted) {
-                            context.read<PlayerBloc>().add(
-                                  UpdatePlayerLifeEvent(
-                                    decrement: true,
-                                    playerId: widget.playerId,
-                                  ),
-                                );
-                            context.read<PlayerBloc>().add(
-                                  PlayerCommanderDamageIncremented(
-                                    commanderId: widget.commanderPlayerId,
-                                    damageType: DamageType.commander,
-                                  ),
-                                );
-                          }
-                        },
-                        onLongPressStart: (details) {
-                          if (!_animationController.isCompleted) {
-                            _animationController.forward();
-                          }
-                        },
-                        onLongPressDown: (details) {
-                          if (_animationController.isCompleted) {
-                            // When expanded, check if tap is in top or bottom half
-                            final box =
-                                context.findRenderObject()! as RenderBox;
-                            final localPosition =
-                                box.globalToLocal(details.globalPosition);
-                            final isTopHalf =
-                                localPosition.dy < box.size.height / 2;
-
-                            if (isTopHalf) {
-                              context.read<PlayerBloc>().add(
-                                    UpdatePlayerLifeEvent(
-                                      decrement: true,
-                                      playerId: widget.playerId,
-                                    ),
-                                  );
-                              context.read<PlayerBloc>().add(
-                                    PlayerCommanderDamageIncremented(
-                                      commanderId: widget.commanderPlayerId,
-                                      damageType: DamageType.commander,
-                                    ),
-                                  );
-                            } else {
-                              context.read<PlayerBloc>().add(
-                                    UpdatePlayerLifeEvent(
-                                      decrement: false,
-                                      playerId: widget.playerId,
-                                    ),
-                                  );
-                              context.read<PlayerBloc>().add(
-                                    PlayerCommanderDamageDecremented(
-                                      commanderId: widget.commanderPlayerId,
-                                      damageType: DamageType.commander,
-                                    ),
-                                  );
-                            }
-                          }
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          width: _animationController.isCompleted
-                              ? _expandedSize
-                              : _defaultSize,
-                          height: _animationController.isCompleted
-                              ? _expandedSize
-                              : _defaultSize,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              _CommanderImage(
-                                  targetPlayer: targetPlayer,
-                                  scale: _animationController.isCompleted
-                                      ? _expandedSize
-                                      : _defaultSize,
-                                  playerColor: widget.player.color),
-                              _CommanderIcons(
-                                  animationController: _animationController),
-                              StrokeText(
-                                text: commanderDamage.toString(),
-                                fontSize: 28,
-                                color: AppColors.white,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                    CommanderDamageButton(
+                      playerId: widget.playerId,
+                      commanderPlayerId: widget.commanderPlayerId,
+                      player: widget.player,
+                      targetPlayer: targetPlayer,
+                      commanderDamage: commanderDamage ?? 0,
+                      damageType: DamageType.commander,
                     ),
-
-                    TapRegion(
-                      onTapOutside: (_) => _handleTapOutside(),
-                      child: GestureDetector(
-                        onTap: () {
-                          if (!_animationController.isCompleted) {
-                            context.read<PlayerBloc>().add(
-                                  UpdatePlayerLifeEvent(
-                                    decrement: true,
-                                    playerId: widget.playerId,
-                                  ),
-                                );
-                            context.read<PlayerBloc>().add(
-                                  PlayerCommanderDamageIncremented(
-                                    commanderId: widget.commanderPlayerId,
-                                    damageType: DamageType.commander,
-                                  ),
-                                );
-                          }
-                        },
-                        onLongPressStart: (details) {
-                          if (!_animationController.isCompleted) {
-                            _animationController.forward();
-                          }
-                        },
-                        onLongPressDown: (details) {
-                          if (_animationController.isCompleted) {
-                            // When expanded, check if tap is in top or bottom half
-                            final box =
-                                context.findRenderObject()! as RenderBox;
-                            final localPosition =
-                                box.globalToLocal(details.globalPosition);
-                            final isTopHalf =
-                                localPosition.dy < box.size.height / 2;
-
-                            if (isTopHalf) {
-                              context.read<PlayerBloc>().add(
-                                    UpdatePlayerLifeEvent(
-                                      decrement: true,
-                                      playerId: widget.playerId,
-                                    ),
-                                  );
-                              context.read<PlayerBloc>().add(
-                                    PlayerCommanderDamageIncremented(
-                                      commanderId: widget.commanderPlayerId,
-                                      damageType: DamageType.partner,
-                                    ),
-                                  );
-                            } else {
-                              context.read<PlayerBloc>().add(
-                                    UpdatePlayerLifeEvent(
-                                      decrement: false,
-                                      playerId: widget.playerId,
-                                    ),
-                                  );
-                              context.read<PlayerBloc>().add(
-                                    PlayerCommanderDamageDecremented(
-                                      commanderId: widget.commanderPlayerId,
-                                      damageType: DamageType.partner,
-                                    ),
-                                  );
-                            }
-                          }
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          width: _animationController.isCompleted
-                              ? _expandedSize
-                              : _defaultSize,
-                          height: _animationController.isCompleted
-                              ? _expandedSize
-                              : _defaultSize,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              _PartnerImage(
-                                  targetPlayer: targetPlayer,
-                                  scale: _animationController.isCompleted
-                                      ? _expandedSize
-                                      : _defaultSize,
-                                  playerColor: widget.player.color),
-                              _CommanderIcons(
-                                  animationController: _animationController),
-                              StrokeText(
-                                text: partnerDamage.toString(),
-                                fontSize: 28,
-                                color: AppColors.white,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                    CommanderDamageButton(
+                      playerId: widget.playerId,
+                      commanderPlayerId: widget.commanderPlayerId,
+                      player: widget.player,
+                      targetPlayer: targetPlayer,
+                      commanderDamage: partnerDamage ?? 0,
+                      damageType: DamageType.partner,
                     ),
-
-                    // TapRegion(
-                    //   onTapOutside: (_) => _handleTapOutside(),
-                    //   child: GestureDetector(
-                    //     onTapDown: (details) {
-                    //       if (_animationController.isCompleted) {
-                    //         // When expanded, check if tap is in top or bottom half
-                    //         final box =
-                    //             context.findRenderObject()! as RenderBox;
-                    //         final localPosition =
-                    //             box.globalToLocal(details.globalPosition);
-                    //         final isTopHalf =
-                    //             localPosition.dy < box.size.height / 2;
-
-                    //         if (isTopHalf) {
-                    //           context.read<PlayerBloc>().add(
-                    //                 UpdatePlayerLifeEvent(
-                    //                   decrement: true,
-                    //                   playerId: widget.playerId,
-                    //                 ),
-                    //               );
-                    //           context.read<PlayerBloc>().add(
-                    //                 PlayerCommanderDamageIncremented(
-                    //                   commanderId: widget.commanderPlayerId,
-                    //                   damageType: DamageType.partner,
-                    //                 ),
-                    //               );
-                    //         } else {
-                    //           context.read<PlayerBloc>().add(
-                    //                 UpdatePlayerLifeEvent(
-                    //                   decrement: false,
-                    //                   playerId: widget.playerId,
-                    //                 ),
-                    //               );
-                    //           context.read<PlayerBloc>().add(
-                    //                 PlayerCommanderDamageDecremented(
-                    //                   commanderId: widget.commanderPlayerId,
-                    //                   damageType: DamageType.partner,
-                    //                 ),
-                    //               );
-                    //         }
-                    //       } else {
-                    //         // Original behavior when not expanded
-                    //         context.read<PlayerBloc>().add(
-                    //               UpdatePlayerLifeEvent(
-                    //                 decrement: true,
-                    //                 playerId: widget.playerId,
-                    //               ),
-                    //             );
-                    //         context.read<PlayerBloc>().add(
-                    //               PlayerCommanderDamageIncremented(
-                    //                 commanderId: widget.commanderPlayerId,
-                    //                 damageType: DamageType.partner,
-                    //               ),
-                    //             );
-                    //       }
-                    //     },
-                    //     onLongPressStart: (details) {
-                    //       if (!_animationController.isCompleted) {
-                    //         _animationController.forward();
-                    //       }
-                    //     },
-                    //     child: AnimatedContainer(
-                    //       duration: const Duration(milliseconds: 300),
-                    //       width:
-                    //           _animationController.isCompleted ? 200.0 : 200.0,
-                    //       height: _animationController.isCompleted
-                    //           ? _expandedSize
-                    //           : _defaultSize,
-                    //       child: Stack(
-                    //         alignment: Alignment.center,
-                    //         children: [
-                    //           _PartnerImage(
-                    //               targetPlayer: targetPlayer,
-                    //               scale: _animationController.isCompleted
-                    //                   ? _expandedSize
-                    //                   : _defaultSize,
-                    //               playerColor: widget.player.color),
-                    //           _PartnerIcons(
-                    //               animationController: _animationController),
-                    // StrokeText(
-                    //   text: partnerDamage.toString(),
-                    //   fontSize: 28,
-                    //   color: AppColors.white,
-                    // ),
-                    //         ],
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
             ),
           )
-        : TapRegion(
-            onTapOutside: (_) => _handleTapOutside(),
-            child: GestureDetector(
-              onTap: () {
-                if (!_animationController.isCompleted) {
-                  context.read<PlayerBloc>().add(
-                        UpdatePlayerLifeEvent(
-                          decrement: true,
-                          playerId: widget.playerId,
-                        ),
-                      );
-                  context.read<PlayerBloc>().add(
-                        PlayerCommanderDamageIncremented(
-                          commanderId: widget.commanderPlayerId,
-                          damageType: DamageType.commander,
-                        ),
-                      );
-                }
-              },
-              onLongPressStart: (details) {
-                if (!_animationController.isCompleted) {
-                  _animationController.forward();
-                }
-              },
-              onLongPressDown: (details) {
-                if (_animationController.isCompleted) {
-                  // When expanded, check if tap is in top or bottom half
-                  final box = context.findRenderObject()! as RenderBox;
-                  final localPosition =
-                      box.globalToLocal(details.globalPosition);
-                  final isTopHalf = localPosition.dy < box.size.height / 2;
-
-                  if (isTopHalf) {
-                    context.read<PlayerBloc>().add(
-                          UpdatePlayerLifeEvent(
-                            decrement: true,
-                            playerId: widget.playerId,
-                          ),
-                        );
-                    context.read<PlayerBloc>().add(
-                          PlayerCommanderDamageIncremented(
-                            commanderId: widget.commanderPlayerId,
-                            damageType: DamageType.commander,
-                          ),
-                        );
-                  } else {
-                    context.read<PlayerBloc>().add(
-                          UpdatePlayerLifeEvent(
-                            decrement: false,
-                            playerId: widget.playerId,
-                          ),
-                        );
-                    context.read<PlayerBloc>().add(
-                          PlayerCommanderDamageDecremented(
-                            commanderId: widget.commanderPlayerId,
-                            damageType: DamageType.commander,
-                          ),
-                        );
-                  }
-                }
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: _animationController.isCompleted
-                    ? _expandedSize
-                    : _defaultSize,
-                height: _animationController.isCompleted
-                    ? _expandedSize
-                    : _defaultSize,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    _CommanderImage(
-                        targetPlayer: targetPlayer,
-                        scale: _animationController.isCompleted
-                            ? _expandedSize
-                            : _defaultSize,
-                        playerColor: widget.player.color),
-                    _CommanderIcons(animationController: _animationController),
-                    StrokeText(
-                      text: commanderDamage.toString(),
-                      fontSize: 28,
-                      color: AppColors.white,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+        : CommanderDamageButton(
+            playerId: widget.playerId,
+            commanderPlayerId: widget.commanderPlayerId,
+            player: widget.player,
+            targetPlayer: targetPlayer,
+            commanderDamage: commanderDamage ?? 0,
+            damageType: DamageType.commander,
           );
+  }
+}
+
+class CommanderDamageButton extends StatefulWidget {
+  const CommanderDamageButton({
+    required this.playerId,
+    required this.commanderPlayerId,
+    required this.player,
+    required this.targetPlayer,
+    required this.commanderDamage,
+    required this.damageType,
+    super.key,
+  });
+
+  final String playerId;
+  final String commanderPlayerId;
+  final Player player;
+  final Player targetPlayer;
+  final int commanderDamage;
+  final DamageType damageType;
+
+  @override
+  State<CommanderDamageButton> createState() => _CommanderDamageButtonState();
+}
+
+class _CommanderDamageButtonState extends State<CommanderDamageButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animationController;
+
+  static const double _defaultSize = 70;
+  static const double _expandedSize = 140;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _animationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed ||
+          status == AnimationStatus.dismissed) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _handleTapOutside() {
+    if (_animationController.isCompleted) {
+      _animationController.reverse();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TapRegion(
+      onTapOutside: (_) => _handleTapOutside(),
+      child: GestureDetector(
+        onTap: () {
+          if (!_animationController.isCompleted) {
+            context.read<PlayerBloc>().add(
+                  UpdatePlayerLifeEvent(
+                    decrement: true,
+                    playerId: widget.playerId,
+                  ),
+                );
+            context.read<PlayerBloc>().add(
+                  PlayerCommanderDamageIncremented(
+                    commanderId: widget.commanderPlayerId,
+                    damageType: widget.damageType,
+                  ),
+                );
+          }
+        },
+        onLongPressStart: (details) {
+          if (!_animationController.isCompleted) {
+            _animationController.forward();
+          }
+        },
+        onLongPressDown: (details) {
+          if (_animationController.isCompleted) {
+            final box = context.findRenderObject()! as RenderBox;
+            final localPosition = box.globalToLocal(details.globalPosition);
+            final isTopHalf = localPosition.dy < box.size.height / 2;
+
+            if (isTopHalf) {
+              context.read<PlayerBloc>().add(
+                    UpdatePlayerLifeEvent(
+                      decrement: true,
+                      playerId: widget.playerId,
+                    ),
+                  );
+              context.read<PlayerBloc>().add(
+                    PlayerCommanderDamageIncremented(
+                      commanderId: widget.commanderPlayerId,
+                      damageType: widget.damageType,
+                    ),
+                  );
+            } else {
+              context.read<PlayerBloc>().add(
+                    UpdatePlayerLifeEvent(
+                      decrement: false,
+                      playerId: widget.playerId,
+                    ),
+                  );
+              context.read<PlayerBloc>().add(
+                    PlayerCommanderDamageDecremented(
+                      commanderId: widget.commanderPlayerId,
+                      damageType: widget.damageType,
+                    ),
+                  );
+            }
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width:
+              _animationController.isCompleted ? _expandedSize : _defaultSize,
+          height:
+              _animationController.isCompleted ? _expandedSize : _defaultSize,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (widget.damageType == DamageType.commander)
+                _CommanderImage(
+                  targetPlayer: widget.targetPlayer,
+                  scale: _animationController.isCompleted
+                      ? _expandedSize
+                      : _defaultSize,
+                  playerColor: widget.player.color,
+                )
+              else
+                _PartnerImage(
+                  targetPlayer: widget.targetPlayer,
+                  scale: _animationController.isCompleted
+                      ? _expandedSize
+                      : _defaultSize,
+                  playerColor: widget.player.color,
+                ),
+              _CommanderIcons(animationController: _animationController),
+              StrokeText(
+                text: widget.commanderDamage.toString(),
+                fontSize: 28,
+                color: AppColors.white,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
