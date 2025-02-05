@@ -394,6 +394,7 @@ class BackgroundWidget extends StatelessWidget {
                 return Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
+                      tileMode: TileMode.mirror,
                       begin: Alignment.topRight,
                       end: Alignment.bottomLeft,
                       colors: [

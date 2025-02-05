@@ -90,23 +90,19 @@ class TrackerWidgets extends StatelessWidget {
                   ...state.icons.map(
                     (icon) => Column(
                       children: [
-                        SizedBox(
-                          height: 80,
-                          width: 90,
-                          child: Dismissible(
-                            onDismissed: (_) => context
-                                .read<TrackerBloc>()
-                                .add(RemoveTrackerIcon(icon)),
-                            key: Key('$icon'),
-                            child: ClipRRect(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(10)),
-                              child: CounterTrackerWidget(
-                                icon: Icon(
-                                  icon,
-                                  size: 40,
-                                  color: AppColors.white.withValues(alpha: .5),
-                                ),
+                        Dismissible(
+                          onDismissed: (_) => context
+                              .read<TrackerBloc>()
+                              .add(RemoveTrackerIcon(icon)),
+                          key: Key('$icon'),
+                          child: ClipRRect(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(10)),
+                            child: CounterTrackerWidget(
+                              icon: Icon(
+                                icon,
+                                size: 40,
+                                color: AppColors.white.withValues(alpha: .5),
                               ),
                             ),
                           ),
@@ -123,8 +119,8 @@ class TrackerWidgets extends StatelessWidget {
                         borderRadius:
                             const BorderRadius.all(Radius.circular(10)),
                         child: Container(
-                          width: 90,
-                          height: 90,
+                          width: 80,
+                          height: 80,
                           color: AppColors.white.withValues(alpha: .5),
                           child: IconButton(
                             icon: const Icon(

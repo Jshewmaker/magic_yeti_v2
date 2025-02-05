@@ -23,8 +23,8 @@ class CounterTrackerWidget extends StatelessWidget {
             onLongPressUp: () =>
                 context.read<CounterBloc>().add(CounterStopDecrementing()),
             child: Container(
-              height: 70,
-              width: 70,
+              height: 80,
+              width: 80,
               padding: const EdgeInsets.only(top: 10),
               color: AppColors.neutral60.withValues(alpha: .2),
               child: Stack(
