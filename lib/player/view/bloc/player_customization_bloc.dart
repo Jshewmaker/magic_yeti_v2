@@ -86,9 +86,10 @@ class PlayerCustomizationBloc
 
     emit(
       state.copyWith(
-          showOnlyLegendary: event.showOnlyLegendary,
-          hasPartner: event.hasPartner,
-          filteredCards: cardList),
+        showOnlyLegendary: event.showOnlyLegendary,
+        hasPartner: event.hasPartner,
+        filteredCards: cardList,
+      ),
     );
   }
 

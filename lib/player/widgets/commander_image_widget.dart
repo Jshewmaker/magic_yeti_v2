@@ -35,7 +35,6 @@ class CommanderImageWidget extends StatelessWidget {
                 playerColor: playerColor,
               )
             : Row(
-                //  mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(

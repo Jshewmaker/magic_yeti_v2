@@ -77,12 +77,12 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker> {
     final commanderDamage = damageMap[DamageType.commander];
     final partnerDamage = damageMap[DamageType.partner];
 
-    return widget.player.partner?.imageUrl.isNotEmpty ?? false
+    return targetPlayer.partner?.imageUrl.isNotEmpty ?? false
         ? Padding(
             padding: const EdgeInsets.only(top: 5),
             child: Container(
               decoration: BoxDecoration(
-                color: Color(widget.player.color),
+                color: Color(targetPlayer.color),
                 borderRadius: const BorderRadius.all(
                   Radius.circular(10),
                 ),
@@ -372,34 +372,6 @@ class _CommanderIcons extends StatelessWidget {
               ),
               Icon(
                 Icons.remove,
-                color: AppColors.white.withValues(alpha: 0.8),
-                size: 24,
-              ),
-            ],
-          )
-        : const SizedBox.shrink();
-  }
-}
-
-class _PartnerIcons extends StatelessWidget {
-  const _PartnerIcons({
-    required this.animationController,
-  });
-  final AnimationController animationController;
-
-  @override
-  Widget build(BuildContext context) {
-    return animationController.isCompleted
-        ? Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(
-                Icons.add_circle_outline,
-                color: AppColors.white.withValues(alpha: 0.8),
-                size: 24,
-              ),
-              Icon(
-                Icons.remove_circle_outline,
                 color: AppColors.white.withValues(alpha: 0.8),
                 size: 24,
               ),

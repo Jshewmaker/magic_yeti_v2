@@ -66,7 +66,10 @@ class CustomizePlayerView extends StatelessWidget {
                               (state.commander?.imageUrl.isNotEmpty ?? false)
                                   ? state.commander?.imageUrl ?? ''
                                   : player.commander?.imageUrl ?? '',
-                          partnerImageUrl: state.partner?.imageUrl,
+                          partnerImageUrl:
+                              (state.partner?.imageUrl.isNotEmpty ?? false)
+                                  ? state.partner?.imageUrl
+                                  : player.partner?.imageUrl,
                           playerColor: player.color,
                         ),
                         const SizedBox(width: AppSpacing.md),
@@ -81,7 +84,9 @@ class CustomizePlayerView extends StatelessWidget {
                                         UpdatePlayerInfoEvent(
                                           playerName: textController.text,
                                           commander: state.commander,
-                                          partner: state.partner,
+                                          partner: state.hasPartner
+                                              ? state.partner
+                                              : null,
                                           playerId: playerId,
                                           firebaseId: state.isAccountOwner
                                               ? context
