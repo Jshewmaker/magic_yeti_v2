@@ -12,12 +12,24 @@ import 'package:player_repository/player_repository.dart';
 /// Arranges players in a 2x2 grid with central controls.
 /// Uses BLoC pattern for state management and game logic.
 @visibleForTesting
-class FourPlayerGame extends StatelessWidget {
+class FourPlayerGame extends StatefulWidget {
   const FourPlayerGame({super.key});
 
   @override
+  State<FourPlayerGame> createState() => _FourPlayerGameState();
+}
+
+class _FourPlayerGameState extends State<FourPlayerGame> {
+  bool _isExpanded = true;
+
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final playerList = context.read<GameBloc>().state.playerList;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: LayoutBuilder(
@@ -26,40 +38,69 @@ class FourPlayerGame extends StatelessWidget {
             DeviceOrientation.landscapeRight,
           ]);
           return Scaffold(
-            body: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      LeftPlayer(
-                        playerId: playerList[2].id,
-                        rotate: true,
+            body: BlocBuilder<GameBloc, GameState>(
+              buildWhen: (previous, current) =>
+                  previous.playerList != current.playerList,
+              builder: (context, state) {
+                final playerList = state.playerList;
+                return Stack(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            children: [
+                              LeftPlayer(
+                                playerId: playerList[2].id,
+                                rotate: true,
+                              ),
+                              const SizedBox(height: AppSpacing.xxs),
+                              LeftPlayer(
+                                playerId: playerList[1].id,
+                                rotate: false,
+                              ),
+                            ],
+                          ),
+                        ),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          width: _isExpanded ? 50 : 2,
+                          child: _isExpanded
+                              ? CenterControlColumn(onPressed: _toggleExpanded)
+                              : null,
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              RightPlayer(
+                                playerId: playerList[3].id,
+                                rotate: true,
+                              ),
+                              const SizedBox(height: AppSpacing.xxs),
+                              RightPlayer(
+                                playerId: playerList[0].id,
+                                rotate: false,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (!_isExpanded)
+                      Positioned.fill(
+                        child: Center(
+                          child: FloatingActionButton(
+                            onPressed: _toggleExpanded,
+                            backgroundColor: AppColors.primary,
+                            shape: const CircleBorder(),
+                            child: const Icon(Icons.star,
+                                color: AppColors.secondary),
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: AppSpacing.xxs),
-                      LeftPlayer(
-                        playerId: playerList[1].id,
-                        rotate: false,
-                      ),
-                    ],
-                  ),
-                ),
-                const CenterControlColumn(),
-                Expanded(
-                  child: Column(
-                    children: [
-                      RightPlayer(
-                        playerId: playerList[3].id,
-                        rotate: true,
-                      ),
-                      const SizedBox(height: AppSpacing.xxs),
-                      RightPlayer(
-                        playerId: playerList[0].id,
-                        rotate: false,
-                      ),
-                    ],
-                  ),
-                )
-              ],
+                  ],
+                );
+              },
             ),
           );
         },
@@ -84,15 +125,15 @@ class LeftPlayer extends StatelessWidget {
         child: SizedBox.expand(
           child: Row(
             children: [
-              Flexible(
+              SizedBox(
+                width: 90,
                 child: TrackerWidgets(
                   rotate: !rotate,
                   playerId: playerId,
                   leftSideTracker: true,
                 ),
               ),
-              Flexible(
-                flex: 6,
+              Expanded(
                 child: LifeCounterWidget(
                   rotate: rotate,
                   leftSideTracker: true,
@@ -121,14 +162,14 @@ class RightPlayer extends StatelessWidget {
         child: SizedBox.expand(
           child: Row(
             children: [
-              Flexible(
-                flex: 6,
+              Expanded(
                 child: LifeCounterWidget(
                   rotate: rotate,
                   leftSideTracker: false,
                 ),
               ),
-              Flexible(
+              SizedBox(
+                width: 90,
                 child: TrackerWidgets(
                   rotate: !rotate,
                   playerId: playerId,

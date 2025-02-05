@@ -82,13 +82,13 @@ class _CommanderDamageTrackerState extends State<CommanderDamageTracker> {
             padding: const EdgeInsets.only(top: 5),
             child: Container(
               decoration: BoxDecoration(
-                color: Color(targetPlayer.color),
+                color: Color(targetPlayer.color).withValues(alpha: 1),
                 borderRadius: const BorderRadius.all(
                   Radius.circular(10),
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(8),
                 child: Column(
                   children: [
                     CommanderDamageButton(
@@ -149,7 +149,7 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
 
-  static const double _defaultSize = 70;
+  static const double _defaultSize = 80;
   static const double _expandedSize = 140;
 
   @override

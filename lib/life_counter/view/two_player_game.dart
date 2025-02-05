@@ -37,7 +37,10 @@ class TwoPlayerGame extends StatelessWidget {
                         ),
                       ),
                       const RotatedBox(
-                          quarterTurns: 3, child: CenterControlColumn()),
+                          quarterTurns: 3,
+                          child: CenterControlColumn(
+                            onPressed: null,
+                          )),
                       Expanded(
                         child: _PlayerSection(
                           playerId: playerList[0].id,
@@ -54,7 +57,7 @@ class TwoPlayerGame extends StatelessWidget {
                           bottomPlayerId: playerList[0].id,
                         ),
                       ),
-                      const CenterControlColumn(),
+                      const CenterControlColumn(onPressed: null),
                     ],
                   );
           },

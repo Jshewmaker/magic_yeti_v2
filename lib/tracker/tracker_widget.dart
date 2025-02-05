@@ -53,7 +53,7 @@ class TrackerWidgets extends StatelessWidget {
           return RotatedBox(
             quarterTurns: rotate ? 0 : 2,
             child: Container(
-              width: 80,
+              width: 90,
               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
               decoration: BoxDecoration(
                 color: Colors.transparent.withValues(alpha: .8),
@@ -90,19 +90,23 @@ class TrackerWidgets extends StatelessWidget {
                   ...state.icons.map(
                     (icon) => Column(
                       children: [
-                        Dismissible(
-                          onDismissed: (_) => context
-                              .read<TrackerBloc>()
-                              .add(RemoveTrackerIcon(icon)),
-                          key: Key('$icon'),
-                          child: ClipRRect(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(10)),
-                            child: CounterTrackerWidget(
-                              icon: Icon(
-                                icon,
-                                size: 40,
-                                color: AppColors.white.withValues(alpha: .5),
+                        SizedBox(
+                          height: 80,
+                          width: 90,
+                          child: Dismissible(
+                            onDismissed: (_) => context
+                                .read<TrackerBloc>()
+                                .add(RemoveTrackerIcon(icon)),
+                            key: Key('$icon'),
+                            child: ClipRRect(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(10)),
+                              child: CounterTrackerWidget(
+                                icon: Icon(
+                                  icon,
+                                  size: 40,
+                                  color: AppColors.white.withValues(alpha: .5),
+                                ),
                               ),
                             ),
                           ),
@@ -115,15 +119,12 @@ class TrackerWidgets extends StatelessWidget {
                   ),
                   Column(
                     children: [
-                      const SizedBox(
-                        height: AppSpacing.xs,
-                      ),
                       ClipRRect(
                         borderRadius:
                             const BorderRadius.all(Radius.circular(10)),
                         child: Container(
-                          width: 70,
-                          height: 70,
+                          width: 90,
+                          height: 90,
                           color: AppColors.white.withValues(alpha: .5),
                           child: IconButton(
                             icon: const Icon(
@@ -140,6 +141,9 @@ class TrackerWidgets extends StatelessWidget {
                             },
                           ),
                         ),
+                      ),
+                      const SizedBox(
+                        height: AppSpacing.xs,
                       ),
                     ],
                   ),
