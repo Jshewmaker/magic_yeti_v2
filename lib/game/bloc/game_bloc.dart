@@ -69,7 +69,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   ) async {
     emit(state.copyWith(status: GameStatus.loading));
     const uuid = Uuid();
-    _playerRepository.clearPlayers();
+    if (_playerRepository.getPlayers().isNotEmpty) {
+      _playerRepository.clearPlayers();
+    }
     try {
       final uuidList =
           List.generate(event.numberOfPlayers, (index) => uuid.v4());
@@ -82,6 +84,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
           name: 'Player ${i + 1}',
           playerNumber: i,
           lifePoints: event.startingLifePoints,
+          state: PlayerModelState.active,
           opponents: [
             for (final e in uuidList)
               Opponent(
@@ -223,8 +226,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(state.copyWith(playerList: event.players));
 
     // Then check for game-ending condition
-    final alivePlayers = event.players.where((p) => p.lifePoints > 0).toList();
-    if (alivePlayers.length == 1 && state.status == GameStatus.running) {
+    final alivePlayers =
+        event.players.where((p) => p.state == PlayerModelState.active).toList();
+    if (alivePlayers.length <= 1 && state.status == GameStatus.running) {
       emit(state.copyWith(status: GameStatus.finished));
       add(GameFinishEvent(winner: alivePlayers.first));
     }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:player_repository/models/player.dart';
+import 'package:rxdart/rxdart.dart';
 
 /// {@template player_repository}
 /// A repository for managing player data in the application.
@@ -15,12 +16,11 @@ import 'package:player_repository/models/player.dart';
 /// {@endtemplate}
 class PlayerRepository {
   /// {@macro player_repository}
-  PlayerRepository() {
-    _playerController = StreamController<List<Player>>.broadcast();
-  }
+  PlayerRepository();
 
   /// Internal stream controller for managing player list updates.
-  late final StreamController<List<Player>> _playerController;
+  final StreamController<List<Player>> _playerController =
+      BehaviorSubject<List<Player>>();
 
   /// Internal list of players.
   final List<Player> _players = [];

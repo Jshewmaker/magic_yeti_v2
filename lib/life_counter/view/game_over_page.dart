@@ -12,6 +12,7 @@ import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/bloc/game_over_bloc.dart';
 import 'package:magic_yeti/life_counter/view/game_page.dart';
 import 'package:player_repository/models/player.dart';
+import 'package:player_repository/player_repository.dart';
 
 class GameOverPage extends StatelessWidget {
   const GameOverPage({super.key});
@@ -29,8 +30,7 @@ class GameOverPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => GameOverBloc(
-        players: context.read<GameBloc>().state.playerList,
-        gameModel: context.read<GameBloc>().state.gameModel!,
+        players: context.read<PlayerRepository>().getPlayers(),
         firebaseDatabaseRepository: context.read<FirebaseDatabaseRepository>(),
       ),
       child: const GameOverView(),
@@ -44,58 +44,62 @@ class GameOverView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final gameOverState = context.watch<GameOverBloc>().state;
-    final players = gameOverState.standings;
 
-    final winner = gameOverState.standings.first;
-    final gameDuration = gameOverState.gameModel.durationInSeconds;
+    final gameModel = context.watch<GameBloc>().state.gameModel;
+    if (gameModel == null) return const CircularProgressIndicator();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.gameOverTitle),
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.matchOverview,
-                        style: Theme.of(context).textTheme.headlineSmall,
+      body: BlocBuilder<GameOverBloc, GameOverState>(
+        builder: (context, state) {
+          final players = state.standings;
+          final winner = players.first;
+
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.matchOverview,
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          const SizedBox(height: 16),
+                          WinnerWidget(
+                            winner: winner,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      WinnerWidget(
-                        winner: winner,
-                        gameDuration: gameDuration,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DraggableStandingsWidget(
-                      gameOverState: gameOverState,
                     ),
-                    QuestionWidget(
-                      gameOverState: gameOverState,
-                      players: players,
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DraggableStandingsWidget(
+                          gameOverState: state,
+                        ),
+                        QuestionWidget(
+                          gameOverState: state,
+                          players: players,
+                        ),
+                      ],
                     ),
-                  ],
+                    const SizedBox(height: 16),
+                    const ButtonsWidget(),
+                  ]),
                 ),
-                const SizedBox(height: 16),
-                const ButtonsWidget(),
-              ]),
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -357,15 +361,15 @@ class DraggableStandingsWidget extends StatelessWidget {
 class WinnerWidget extends StatelessWidget {
   const WinnerWidget({
     required this.winner,
-    required this.gameDuration,
     super.key,
   });
 
   final Player winner;
-  final int gameDuration;
 
   @override
   Widget build(BuildContext context) {
+    final gameDuration =
+        context.watch<GameOverBloc>().state.gameModel?.durationInSeconds;
     final l10n = context.l10n;
     return Row(
       children: [
@@ -394,7 +398,7 @@ class WinnerWidget extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
-              _formatDuration(gameDuration),
+              _formatDuration(gameDuration ?? 0),
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ],
@@ -429,7 +433,7 @@ class StandingsWidget extends StatelessWidget {
                 ? BoxDecoration(
                     image: DecorationImage(
                       alignment: Alignment.topCenter,
-                      image: NetworkImage(player.commander!.imageUrl),
+                      image: NetworkImage(player.commander?.imageUrl ?? ''),
                       fit: BoxFit.cover,
                       colorFilter: ColorFilter.mode(
                         Colors.black.withValues(alpha: 0.6),

@@ -9,12 +9,10 @@ part 'game_over_state.dart';
 class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
   GameOverBloc({
     required List<Player> players,
-    required GameModel gameModel,
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
   })  : _firebaseDatabaseRepository = firebaseDatabaseRepository,
         super(
           GameOverState(
-            gameModel: gameModel,
             standings: List<Player>.from(players)
               ..sort((a, b) => a.placement.compareTo(b.placement)),
             selectedPlayerId: null,

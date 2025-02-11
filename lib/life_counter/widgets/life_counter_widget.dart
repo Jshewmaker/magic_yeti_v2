@@ -232,7 +232,16 @@ class _LifeTrackerWidget extends StatelessWidget {
           alignment: Alignment.center,
           fit: StackFit.expand,
           children: [
-            _LifeText(player: state.player),
+            if (state.player.state.isEliminated)
+              const Center(
+                child: FaIcon(
+                  FontAwesomeIcons.skullCrossbones,
+                  size: 96,
+                  color: AppColors.black,
+                ),
+              )
+            else
+              _LifeText(player: state.player),
             const Positioned(
               left: 400,
               child: FaIcon(FontAwesomeIcons.plus),
@@ -262,7 +271,7 @@ class _LifeText extends StatelessWidget {
       child: StrokeText(
         text: '${player.lifePoints}',
         fontSize: 96,
-        color: player.lifePoints <= 0 ? AppColors.black : AppColors.white,
+        color: AppColors.white,
       ),
     );
   }
@@ -391,17 +400,19 @@ class BackgroundWidget extends StatelessWidget {
                 player.lifePoints <= 0 ? 0.2 : 1,
               ),
               errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      tileMode: TileMode.mirror,
-                      begin: Alignment.topRight,
-                      end: Alignment.bottomLeft,
-                      colors: [
-                        Colors.white,
-                        Color(player.color),
-                        Color(player.color),
-                      ],
+                return Opacity(
+                  opacity: player.lifePoints <= 0 ? 0.2 : 1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        tileMode: TileMode.mirror,
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                        colors: [
+                          Color(player.color).withValues(alpha: 1.8),
+                          Color(player.color),
+                        ],
+                      ),
                     ),
                   ),
                 );

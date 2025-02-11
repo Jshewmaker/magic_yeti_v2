@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   json_annotation: ^4.9.0
+  rxdart: ^0.28.0
 
 dev_dependencies:
   build_runner: ^2.3.3

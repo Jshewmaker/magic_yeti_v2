@@ -5,14 +5,14 @@ enum GameOverStatus { initial, loading, success, failure }
 class GameOverState extends Equatable {
   const GameOverState({
     required this.standings,
-    required this.gameModel,
     required this.selectedPlayerId,
     required this.firstPlayerId,
+    this.gameModel,
     this.status = GameOverStatus.initial,
   });
 
   final List<Player> standings;
-  final GameModel gameModel;
+  final GameModel? gameModel;
   final String? selectedPlayerId;
   final String? firstPlayerId;
   final GameOverStatus status;
