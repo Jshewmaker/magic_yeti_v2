@@ -68,7 +68,10 @@ class PlayerRepository {
   ///
   /// Returns the player with updated death time if applicable.
   Player _checkPlayerDeath(Player player) {
-    if (player.lifePoints <= 0) {
+    final isLethalCommanderDamage =
+        player.opponents?.any((p) => p.damages.any((d) => d.amount >= 21)) ??
+            false;
+    if (player.lifePoints <= 0 || isLethalCommanderDamage) {
       // Only set death time and placement if they're still active
       if (player.isActive) {
         // Count how many players are already eliminated to determine placement
