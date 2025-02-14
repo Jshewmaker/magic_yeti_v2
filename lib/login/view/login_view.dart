@@ -43,7 +43,7 @@ class LoginView extends StatelessWidget {
           child: Row(
             children: [
               const Expanded(
-                child: Column(
+                child: ScrollableColumn(
                   children: [
                     _LoginContent(),
                     _LoginActions(),

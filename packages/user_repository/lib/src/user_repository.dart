@@ -5,7 +5,6 @@ import 'dart:async';
 
 import 'package:authentication_client/authentication_client.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
-import 'package:rxdart/rxdart.dart';
 
 /// {@template user_repository}
 /// Repository which manages the user domain.
