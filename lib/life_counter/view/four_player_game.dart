@@ -87,14 +87,21 @@ class _FourPlayerGameState extends State<FourPlayerGame> {
                       ],
                     ),
                     if (!_isExpanded)
-                      Positioned.fill(
-                        child: Center(
+                      Center(
+                        child: SizedBox(
+                          width: 70,
+                          height: 70,
                           child: FloatingActionButton(
                             onPressed: _toggleExpanded,
                             backgroundColor: AppColors.primary,
                             shape: const CircleBorder(),
-                            child: const Icon(Icons.star,
-                                color: AppColors.secondary),
+                            child: ClipOval(
+                              child: Image.asset(
+                                'assets/icon/yeti_icon.png',
+                                color: Colors.white,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
                         ),
                       ),

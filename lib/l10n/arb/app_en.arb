@@ -246,6 +246,18 @@
       }
     }
   },
+  "noCommanders": "No Commanders found",
+  "@noCommanders": {
+    "description": "Text shown when no commanders are found",
+    "type": "text",
+    "placeholders": {}
+  },
+  "somethingWentWrong": "Something went wrong",
+  "@somethingWentWrong": {
+    "description": "Text shown when something went wrong",
+    "type": "text",
+    "placeholders": {}
+  },
   "startedFirst": "was the starting player",
   "@startedFirst": {
     "description": "Text shown when a player started first",

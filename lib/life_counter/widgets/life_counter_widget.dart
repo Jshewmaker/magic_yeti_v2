@@ -244,11 +244,11 @@ class _LifeTrackerWidget extends StatelessWidget {
               _LifeText(player: state.player),
             const Positioned(
               left: 400,
-              child: FaIcon(FontAwesomeIcons.plus),
+              child: FaIcon(FontAwesomeIcons.plus, size: 36),
             ),
             const Positioned(
               right: 400,
-              child: FaIcon(FontAwesomeIcons.minus),
+              child: FaIcon(FontAwesomeIcons.minus, size: 36),
             ),
             const _LifeChangesWidget(),
           ],
@@ -352,7 +352,15 @@ class _LifePointChangeAnimationState extends State<_LifePointChangeAnimation>
     );
 
     _lastChange = widget.change;
-    _controller.forward();
+    _controller
+      ..forward()
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          context.read<LifeChangeBloc>().add(
+                const LifePointChangeCompleted(),
+              );
+        }
+      });
   }
 
   @override
@@ -365,13 +373,10 @@ class _LifePointChangeAnimationState extends State<_LifePointChangeAnimation>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _opacityAnimation,
-      child: Text(
-        '${widget.change.abs()}',
-        style: const TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: AppColors.white,
-        ),
+      child: StrokeText(
+        text: '${widget.change.abs()}',
+        fontSize: 48,
+        color: AppColors.white,
       ),
     );
   }
@@ -397,11 +402,11 @@ class BackgroundWidget extends StatelessWidget {
               player.commander?.imageUrl ?? '',
               fit: BoxFit.cover,
               opacity: AlwaysStoppedAnimation(
-                player.lifePoints <= 0 ? 0.2 : 1,
+                player.state.isEliminated ? 0.2 : 1,
               ),
               errorBuilder: (context, error, stackTrace) {
                 return Opacity(
-                  opacity: player.lifePoints <= 0 ? 0.2 : 1,
+                  opacity: player.state.isEliminated ? 0.2 : 1,
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -426,7 +431,7 @@ class BackgroundWidget extends StatelessWidget {
                     player.commander?.imageUrl ?? '',
                     fit: BoxFit.fitHeight,
                     opacity: AlwaysStoppedAnimation(
-                      player.lifePoints <= 0 ? 0.2 : 1,
+                      player.state.isEliminated ? 0.2 : 1,
                     ),
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
@@ -436,10 +441,10 @@ class BackgroundWidget extends StatelessWidget {
                             end: Alignment.bottomRight,
                             colors: [
                               Color(player.color).withValues(
-                                alpha: player.lifePoints <= 0 ? 0.3 : 1.0,
+                                alpha: player.state.isEliminated ? 0.3 : 1.0,
                               ),
                               Color(player.color).withValues(
-                                alpha: player.lifePoints <= 0 ? 0.3 : 0.7,
+                                alpha: player.state.isEliminated ? 0.3 : 0.7,
                               ),
                             ],
                           ),
@@ -453,7 +458,7 @@ class BackgroundWidget extends StatelessWidget {
                     player.partner?.imageUrl ?? '',
                     fit: BoxFit.fitHeight,
                     opacity: AlwaysStoppedAnimation(
-                      player.lifePoints <= 0 ? 0.2 : 1,
+                      player.state.isEliminated ? 0.2 : 1,
                     ),
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
@@ -463,10 +468,10 @@ class BackgroundWidget extends StatelessWidget {
                             end: Alignment.bottomRight,
                             colors: [
                               Color(player.color).withValues(
-                                alpha: player.lifePoints <= 0 ? 0.3 : 1.0,
+                                alpha: player.state.isEliminated ? 0.3 : 1.0,
                               ),
                               Color(player.color).withValues(
-                                alpha: player.lifePoints <= 0 ? 0.3 : 0.7,
+                                alpha: player.state.isEliminated ? 0.3 : 0.7,
                               ),
                             ],
                           ),
@@ -493,7 +498,7 @@ class _PlayerNameWidget extends StatelessWidget {
         ElevatedButton(
           style: ButtonStyle(
             backgroundColor:
-                WidgetStateProperty.all(Colors.black.withAlpha(68)),
+                WidgetStateProperty.all(Colors.black.withAlpha(150)),
             shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

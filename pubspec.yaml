@@ -71,3 +71,4 @@ flutter:
   generate: true
   assets:
     - assets/icon/icon.png
+    - assets/icon/yeti_icon.png

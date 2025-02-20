@@ -7,6 +7,7 @@ part 'life_change_state.dart';
 class LifeChangeBloc extends Bloc<LifeChangeEvent, LifeChangeState> {
   LifeChangeBloc() : super(const LifeChangeState()) {
     on<LifePointsChanged>(_onLifePointsChanged);
+    on<LifePointChangeCompleted>(_onLifePointChangeCompleted);
   }
 
   void _onLifePointsChanged(
@@ -22,5 +23,13 @@ class LifeChangeBloc extends Bloc<LifeChangeEvent, LifeChangeState> {
         state.change != null ? state.change! + newChange : newChange;
 
     emit(state.copyWith(change: totalChange));
+  }
+
+  void _onLifePointChangeCompleted(
+    LifePointChangeCompleted event,
+    Emitter<LifeChangeState> emit,
+  ) {
+    // Reset the change when animation is complete
+    emit(const LifeChangeState());
   }
 }

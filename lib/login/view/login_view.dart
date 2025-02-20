@@ -51,10 +51,11 @@ class LoginView extends StatelessWidget {
                 ),
               ),
               Expanded(
-                  child: Image.asset(
-                'assets/icon/icon.png',
-                fit: BoxFit.fitWidth,
-              )),
+                child: Image.asset(
+                  'assets/icon/icon.png',
+                  fit: BoxFit.fitWidth,
+                ),
+              ),
             ],
           ),
         ),

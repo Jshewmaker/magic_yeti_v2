@@ -272,9 +272,26 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                   );
                 },
               ),
+            ],
+            if (state.status == PlayerCustomizationStatus.failure) ...[
+              SizedBox(
+                height: 400,
+                child: Center(
+                  child: Text(l10n.somethingWentWrong),
+                ),
+              ),
+            ],
+            if (state.magicCardList?.isEmpty ?? false) ...[
+              SizedBox(
+                height: 400,
+                child: Center(
+                  child: Text(l10n.noCommanders),
+                ),
+              ),
             ] else ...[
               const SizedBox(
                 height: 400,
+                child: Center(),
               ),
             ],
           ],

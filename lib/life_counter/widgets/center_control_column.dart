@@ -137,7 +137,10 @@ class _DiceIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: onPressed,
-      icon: const Icon(Icons.menu, color: AppColors.neutral60),
+      icon: const Icon(
+        Icons.close_fullscreen,
+        color: AppColors.neutral60,
+      ),
     );
   }
 }

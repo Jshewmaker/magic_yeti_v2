@@ -113,6 +113,7 @@ class ButtonsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final gameModel = context.watch<GameBloc>().state.gameModel;
     final gameOverState = context.watch<GameOverBloc>().state;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -127,10 +128,11 @@ class ButtonsWidget extends StatelessWidget {
                       gameOverState.firstPlayerId == null
                   ? null
                   : () {
+                      final userId = context.read<AppBloc>().state.user.id;
                       context.read<GameOverBloc>().add(
                             SendGameOverStatsEvent(
-                              gameModel: gameOverState.gameModel,
-                              userId: context.read<AppBloc>().state.user.id,
+                              gameModel: gameModel,
+                              userId: userId,
                             ),
                           );
 
@@ -152,7 +154,7 @@ class ButtonsWidget extends StatelessWidget {
                   : () {
                       context.read<GameOverBloc>().add(
                             SendGameOverStatsEvent(
-                              gameModel: gameOverState.gameModel,
+                              gameModel: gameModel,
                               userId: context.read<AppBloc>().state.user.id,
                             ),
                           );
