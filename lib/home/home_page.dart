@@ -4,6 +4,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
@@ -16,7 +17,7 @@ import 'package:magic_yeti/profile/view/profile_page.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   factory HomePage.pageBuilder(_, __) {
@@ -24,6 +25,31 @@ class HomePage extends StatelessWidget {
   }
 
   static const routeName = '/';
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
