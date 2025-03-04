@@ -290,9 +290,13 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
   }
 
   @override
-  Future<void> deleteAccount() {
-    // TODO(jshewmak): implement deleteAccount
-    throw UnimplementedError();
+  Future<void> deleteAccount() async {
+    try {
+      final providerData = _firebaseAuth.currentUser?.providerData;
+      await _firebaseAuth.currentUser?.delete();
+    } on Exception catch (e, stackTrace) {
+      Error.throwWithStackTrace(DeleteAccountFailure(e), stackTrace);
+    }
   }
 
   @override

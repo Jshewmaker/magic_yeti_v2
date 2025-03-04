@@ -59,3 +59,7 @@ class ProfileBioChanged extends ProfileEvent {
 class ProfileSubmitted extends ProfileEvent {
   const ProfileSubmitted();
 }
+
+class ProfileDeleted extends ProfileEvent {
+  const ProfileDeleted();
+}

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/profile/bloc/profile_bloc.dart';
+import 'package:user_repository/user_repository.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -23,6 +24,7 @@ class ProfilePage extends StatelessWidget {
     return BlocProvider(
       create: (context) => ProfileBloc(
         firebaseDatabaseRepository: context.read<FirebaseDatabaseRepository>(),
+        userRepository: context.read<UserRepository>(),
         userProfile: user,
       ),
       child: const ProfileView(),
@@ -146,6 +148,8 @@ class ProfileView extends StatelessWidget {
                                 //   _EditProfileButton(),
                                 //const SizedBox(width: 16),
                                 _SignOutButton(),
+                                const SizedBox(width: 16),
+                                _DeleteProfileButton(),
                               ],
                             ),
                           ],
@@ -190,6 +194,25 @@ class _EditProfileButton extends StatelessWidget {
   }
 }
 
+class _DeleteProfileButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      buildWhen: (previous, current) => previous.status != current.status,
+      builder: (context, state) {
+        return ElevatedButton(
+          onPressed: state.status == ProfileStatus.loading
+              ? null
+              : () {
+                  context.read<ProfileBloc>().add(const ProfileDeleted());
+                },
+          child: const Text('Delete Profile'),
+        );
+      },
+    );
+  }
+}
+
 class _SignOutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -228,7 +251,6 @@ class _ProfileField extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
                 width: 100,

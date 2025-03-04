@@ -23,10 +23,10 @@ dependencies:
   equatable: ^2.0.5
   fake_app_config_repository:
     path: packages/app_config_repository/fake_app_config_repository
-  firebase_database: ^11.2.0
   firebase_authentication_client:
     path: packages/authentication_client/firebase_authentication_client
   firebase_core: ^3.8.1
+  firebase_database: ^11.2.0
   firebase_database_repository:
     path: packages/firebase_database_repository
   flutter:
@@ -51,7 +51,6 @@ dependencies:
   uuid: ^4.5.1
   bloc_concurrency: ^0.2.5
   wakelock_plus: ^1.2.10
-  firebase_crashlytics: ^4.3.1
   firebase_analytics: ^11.4.1
   url_launcher: ^6.3.1
 

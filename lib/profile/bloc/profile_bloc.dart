@@ -10,8 +10,10 @@ part 'profile_state.dart';
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc({
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
+    required UserRepository userRepository,
     required User userProfile,
   })  : _firebaseDatabaseRepository = firebaseDatabaseRepository,
+        _userRepository = userRepository,
         _userProfile = userProfile,
         super(ProfileState(userProfile: userProfile)) {
     on<ProfileEditingToggled>(_onEditingToggled);
@@ -21,9 +23,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileEmailChanged>(_onEmailChanged);
     on<ProfileBioChanged>(_onBioChanged);
     on<ProfileSubmitted>(_onSubmitted);
+    on<ProfileDeleted>(_onDeleteProfile);
   }
 
   final FirebaseDatabaseRepository _firebaseDatabaseRepository;
+  final UserRepository _userRepository;
   final User _userProfile;
 
   void _onEditingToggled(
@@ -104,6 +108,19 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       //     userProfile: updatedProfile,
       //   ),
       // );
+    } catch (_) {
+      emit(state.copyWith(status: ProfileStatus.failure));
+    }
+  }
+
+  Future<void> _onDeleteProfile(
+    ProfileDeleted event,
+    Emitter<ProfileState> emit,
+  ) async {
+    emit(state.copyWith(status: ProfileStatus.loading));
+    try {
+      await _userRepository.deleteAccount();
+      emit(state.copyWith(status: ProfileStatus.success));
     } catch (_) {
       emit(state.copyWith(status: ProfileStatus.failure));
     }
