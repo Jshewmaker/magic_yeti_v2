@@ -17,7 +17,7 @@ dependencies:
     path: packages/app_ui
   authentication_client:
     path: packages/authentication_client/authentication_client
-  bloc: ^8.1.4
+  bloc: ^9.0.0
   cached_network_image: ^3.3.1
   cloud_firestore: ^5.5.0
   equatable: ^2.0.5
@@ -31,7 +31,7 @@ dependencies:
     path: packages/firebase_database_repository
   flutter:
     sdk: flutter
-  flutter_bloc: ^8.1.3
+  flutter_bloc: ^9.1.0
   flutter_launcher_icons: ^0.14.2
   flutter_localizations:
     sdk: flutter
@@ -49,14 +49,14 @@ dependencies:
   user_repository:
     path: packages/user_repository
   uuid: ^4.5.1
-  bloc_concurrency: ^0.2.5
+  bloc_concurrency: ^0.3.0
   wakelock_plus: ^1.2.10
   firebase_analytics: ^11.4.1
   url_launcher: ^6.3.1
 
 
 dev_dependencies:
-  bloc_test: ^9.1.4
+  bloc_test: ^10.0.0
   build_runner: ^2.3.3
   change_app_package_name: ^1.4.0
   flutter_test:
