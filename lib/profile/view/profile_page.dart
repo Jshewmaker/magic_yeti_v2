@@ -2,6 +2,7 @@ import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hold_to_confirm_button/hold_to_confirm_button.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/profile/bloc/profile_bloc.dart';
@@ -204,9 +205,45 @@ class _DeleteProfileButton extends StatelessWidget {
           onPressed: state.status == ProfileStatus.loading
               ? null
               : () {
-                  context.read<ProfileBloc>().add(const ProfileDeleted());
+                  _showDeleteConfirmationDialog(context);
                 },
           child: const Text('Delete Profile'),
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return BlocProvider.value(
+          value: context.read<AppBloc>(),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: const Text('Delete Profile'),
+                content: const Text(
+                  'Are you sure you want to delete your profile? All of your data will be lost forever and cannot be recovered.',
+                ),
+                actions: [
+                  ElevatedButton(
+                      onPressed: () => context.pop(),
+                      child: const Text('Cancel')),
+                  HoldToConfirmButton(
+                    child: const Text('Delete Profile'),
+                    onProgressCompleted: () {
+                      context
+                          .read<AppBloc>()
+                          .add(const AppUserAccountDeleted());
+                      context.pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
         );
       },
     );

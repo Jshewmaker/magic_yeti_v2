@@ -112,7 +112,7 @@ class _LoginActions extends StatelessWidget {
                 context.read<LoginBloc>().add(const LoginGoogleSubmitted()),
           ),
           if (theme.platform == TargetPlatform.iOS) ...[
-            const SizedBox(height: AppSpacing.xlg),
+            const SizedBox(height: AppSpacing.md),
             AppleLoginButton(
               buttonText: l10n.signInWithAppleButtonText,
               onPressed: () =>

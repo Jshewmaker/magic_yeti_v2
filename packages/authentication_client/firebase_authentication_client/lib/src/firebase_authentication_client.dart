@@ -292,9 +292,32 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
   @override
   Future<void> deleteAccount() async {
     try {
-      final providerData = _firebaseAuth.currentUser?.providerData;
       await _firebaseAuth.currentUser?.delete();
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        await _reauthenticateAndDelete();
+      }
     } on Exception catch (e, stackTrace) {
+      Error.throwWithStackTrace(DeleteAccountFailure(e), stackTrace);
+    }
+  }
+
+  Future<void> _reauthenticateAndDelete() async {
+    try {
+      final providerData = _firebaseAuth.currentUser?.providerData.first;
+
+      if (firebase_auth.AppleAuthProvider().providerId ==
+          providerData!.providerId) {
+        await _firebaseAuth.currentUser!
+            .reauthenticateWithProvider(firebase_auth.AppleAuthProvider());
+      } else if (firebase_auth.GoogleAuthProvider().providerId ==
+          providerData.providerId) {
+        await _firebaseAuth.currentUser!
+            .reauthenticateWithProvider(firebase_auth.GoogleAuthProvider());
+      }
+
+      await _firebaseAuth.currentUser?.delete();
+    } catch (e, stackTrace) {
       Error.throwWithStackTrace(DeleteAccountFailure(e), stackTrace);
     }
   }

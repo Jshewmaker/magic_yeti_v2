@@ -668,6 +668,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  hold_to_confirm_button:
+    dependency: "direct main"
+    description:
+      name: hold_to_confirm_button
+      sha256: "8e5c784fec9d10c90c6f92d9347fc5dac20da6cd7269630a3e08c072852d28a7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   http:
     dependency: transitive
     description:

@@ -18,11 +18,13 @@ dependencies:
   authentication_client:
     path: packages/authentication_client/authentication_client
   bloc: ^8.1.4
+  bloc_concurrency: ^0.2.5
   cached_network_image: ^3.3.1
   cloud_firestore: ^5.5.0
   equatable: ^2.0.5
   fake_app_config_repository:
     path: packages/app_config_repository/fake_app_config_repository
+  firebase_analytics: ^11.4.1
   firebase_authentication_client:
     path: packages/authentication_client/firebase_authentication_client
   firebase_core: ^3.8.1
@@ -39,6 +41,7 @@ dependencies:
   form_inputs:
     path: packages/form_inputs
   go_router: ^14.0.2
+  hold_to_confirm_button: ^0.0.2
   intl: ^0.19.0
   json_annotation: ^4.8.0
   player_repository:
@@ -46,14 +49,11 @@ dependencies:
   provider: ^6.1.1
   scryfall_repository:
     path: packages/scryfall_repository
+  url_launcher: ^6.3.1
   user_repository:
     path: packages/user_repository
   uuid: ^4.5.1
-  bloc_concurrency: ^0.2.5
   wakelock_plus: ^1.2.10
-  firebase_analytics: ^11.4.1
-  url_launcher: ^6.3.1
-
 
 dev_dependencies:
   bloc_test: ^9.1.4
