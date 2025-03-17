@@ -34,9 +34,6 @@ class _FourPlayerGameState extends State<FourPlayerGame> {
       value: SystemUiOverlayStyle.light,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          SystemChrome.setPreferredOrientations([
-            DeviceOrientation.landscapeRight,
-          ]);
           return Scaffold(
             body: BlocBuilder<GameBloc, GameState>(
               buildWhen: (previous, current) =>

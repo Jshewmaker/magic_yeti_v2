@@ -174,7 +174,7 @@
     "type": "text",
     "placeholders": {}
   },
-  "numberOfPlayers": "{numberOfPlayers} Player Game",
+  "numberOfPlayers": "{numberOfPlayers} Player",
   "@numberOfPlayers": {
     "placeholders": {
         "numberOfPlayers": {

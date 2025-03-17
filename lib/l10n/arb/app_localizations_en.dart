@@ -103,7 +103,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String numberOfPlayers(int numberOfPlayers) {
-    return '$numberOfPlayers Player Game';
+    return '$numberOfPlayers Player';
   }
 
   @override

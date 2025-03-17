@@ -4,7 +4,6 @@ import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
@@ -33,33 +32,21 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
-  void initState() {
-    super.initState();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
-  }
-
-  @override
-  void dispose() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return const HomeView();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Use breakpoint to determine if we're on a phone or tablet
+        // Common breakpoint for phones vs tablets is around 600dp
+        final isPhone = constraints.maxWidth < 600;
+
+        return isPhone ? const _PhoneView() : const _TabletView();
+      },
+    );
   }
 }
 
-class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+class _TabletView extends StatelessWidget {
+  const _TabletView();
 
   @override
   Widget build(BuildContext context) {
@@ -186,9 +173,7 @@ class LeftSidePanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(title: l10n.gameModeTitle),
-        Expanded(
-          child: GameModeButtons(l10n: l10n),
-        ),
+        GameModeButtons(l10n: l10n),
         Expanded(
           flex: 2,
           child: Column(
@@ -383,101 +368,186 @@ class GameModeButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check if we're on a phone by using MediaQuery
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isPhone = screenWidth < 600;
+
+    // For phones, use a column layout instead of row
     return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.quaternary.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: ElevatedButton(
-                    onLongPress: () => _createGame(context, 2, 20),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(l10n.comingSoonText),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary.withValues(
-                        alpha: 0.1,
+      padding: const EdgeInsets.all(8),
+      child: isPhone
+          ? GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 8,
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              children: [
+                ElevatedButton(
+                  onLongPress: () => _createGame(context, 2, 20),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(l10n.comingSoonText),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      padding: const EdgeInsets.all(16),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary.withValues(
+                      alpha: 0.1,
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          l10n.numberOfPlayers(2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        l10n.numberOfPlayers(2),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(
+                              color: AppColors.secondary.withValues(alpha: 0.2),
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      Text(
+                        l10n.underConstructionText,
+                        style: TextStyle(
+                          color: AppColors.secondary.withValues(alpha: 0.2),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Icon(
+                        Icons.construction,
+                        color: AppColors.secondary.withValues(alpha: 0.2),
+                        size: 32,
+                      ),
+                    ],
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () => _createGame(context, 4, 40),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary.withValues(
+                      alpha: 0.1,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      l10n.numberOfPlayers(4),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Colors.white,
+                              ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.quaternary.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: ElevatedButton(
+                          onLongPress: () => _createGame(context, 2, 20),
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(l10n.comingSoonText),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary.withValues(
+                              alpha: 0.1,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            padding: const EdgeInsets.all(16),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                l10n.numberOfPlayers(2),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(
+                                      color: AppColors.secondary
+                                          .withValues(alpha: 0.2),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                l10n.underConstructionText,
+                                style: TextStyle(
+                                  color: AppColors.secondary
+                                      .withValues(alpha: 0.2),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Icon(
+                                Icons.construction,
+                                color:
+                                    AppColors.secondary.withValues(alpha: 0.2),
+                                size: 32,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ElevatedButton(
+                      onPressed: () => _createGame(context, 4, 40),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary.withValues(
+                          alpha: 0.1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                      ),
+                      child: Center(
+                        child: Text(
+                          l10n.numberOfPlayers(4),
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall
                               ?.copyWith(
-                                color:
-                                    AppColors.secondary.withValues(alpha: 0.2),
-                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          l10n.underConstructionText,
-                          style: TextStyle(
-                            color: AppColors.secondary.withValues(alpha: 0.2),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Icon(
-                          Icons.construction,
-                          color: AppColors.secondary.withValues(alpha: 0.2),
-                          size: 32,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ElevatedButton(
-                onPressed: () => _createGame(context, 4, 40),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary.withValues(
-                    alpha: 0.1,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.all(16),
-                ),
-                child: Center(
-                  child: Text(
-                    l10n.numberOfPlayers(4),
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                        ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -876,10 +946,12 @@ class LosersWidget extends StatelessWidget {
                         ? Image.network(
                             fit: BoxFit.cover,
                             player.commander?.imageUrl ?? '',
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                              color: Color(player.color).withValues(alpha: .8),
-                            ),
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color:
+                                    Color(player.color).withValues(alpha: .8),
+                              );
+                            },
                           )
                         : Row(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -998,6 +1070,140 @@ class WinnerWidget extends StatelessWidget {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PhoneView extends StatelessWidget {
+  const _PhoneView();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.quaternary,
+          title: Text(
+            'Magic Yeti',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          bottom: TabBar(
+            tabs: [
+              Tab(text: l10n.gameModeTitle),
+              Tab(text: 'History'),
+            ],
+            indicatorColor: AppColors.tertiary,
+            labelColor: AppColors.onSurfaceVariant,
+          ),
+        ),
+        body: const TabBarView(
+          children: [
+            PhoneLeftSidePanel(),
+            MatchHistoryPanel(),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          foregroundColor: AppColors.white,
+          backgroundColor: AppColors.tertiary,
+          onPressed: () {
+            showDialog<void>(
+              context: context,
+              builder: (BuildContext _) {
+                String roomId = '';
+                return AlertDialog(
+                  title: Text(l10n.addGameToHistoryTitle),
+                  content: TextField(
+                    autocorrect: false,
+                    onChanged: (value) {
+                      roomId = value.toUpperCase();
+                    },
+                    decoration: InputDecoration(
+                      hintText: l10n.enterRoomIdHint,
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(l10n.cancelTextButton),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        if (roomId.isNotEmpty) {
+                          context.read<MatchHistoryBloc>().add(
+                                AddMatchToPlayerHistoryEvent(
+                                  roomId: roomId.toUpperCase(),
+                                  playerId:
+                                      context.read<AppBloc>().state.user.id,
+                                ),
+                              );
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: Text(l10n.addButtonText),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+          child: const Icon(Icons.add),
+        ),
+        resizeToAvoidBottomInset: false,
+      ),
+    );
+  }
+}
+
+class PhoneLeftSidePanel extends StatelessWidget {
+  const PhoneLeftSidePanel({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final onMore =
+        context.watch<AppBloc>().state.status == AppStatus.authenticated;
+    return SingleChildScrollView(
+      // Replace ScrollableColumn with SingleChildScrollView + Column
+      // for better control over the sizing on phones
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min, // Take only as much space as needed
+        children: [
+          // GameMode section - Reduced padding
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: GameModeButtons(l10n: l10n),
+          ),
+          // Account section with compact design
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SectionHeader(
+                  title: onMore ? l10n.statsTitle : 'Login/Sign Up',
+                  onMorePressed: onMore
+                      ? () {
+                          context.go(ProfilePage.routePath);
+                        }
+                      : null,
+                ),
+                // Wrap in fixed height container to prevent excessive growth
+                SizedBox(
+                  height: MediaQuery.of(context).size.height *
+                      0.4, // Limit height to 40% of screen
+                  child: const AccountWidget(),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

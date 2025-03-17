@@ -284,7 +284,7 @@ abstract class AppLocalizations {
   /// No description provided for @numberOfPlayers.
   ///
   /// In en, this message translates to:
-  /// **'{numberOfPlayers} Player Game'**
+  /// **'{numberOfPlayers} Player'**
   String numberOfPlayers(int numberOfPlayers);
 
   /// Hint text shown in commander search input field

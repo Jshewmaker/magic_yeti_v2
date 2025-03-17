@@ -44,7 +44,6 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
 
   @override
   void dispose() {
-    SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeRight]);
     rotationController.dispose();
     super.dispose();
   }
@@ -52,12 +51,6 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
   void toggleRotation() {
     final newRotated = !rotationController.value;
     rotationController.value = newRotated;
-    SystemChrome.setPreferredOrientations([
-      if (newRotated)
-        DeviceOrientation.landscapeLeft
-      else
-        DeviceOrientation.landscapeRight,
-    ]);
   }
 
   @override
@@ -135,8 +128,7 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
                                                   : null,
                                             ),
                                           );
-                                      SystemChrome.setPreferredOrientations(
-                                          [DeviceOrientation.landscapeRight]);
+
                                       Navigator.pop(context);
                                     },
                                   ),

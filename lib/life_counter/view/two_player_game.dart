@@ -21,12 +21,6 @@ class TwoPlayerGame extends StatelessWidget {
         value: SystemUiOverlayStyle.light,
         child: LayoutBuilder(
           builder: (context, constraints) {
-            SystemChrome.setPreferredOrientations([
-              DeviceOrientation.landscapeRight,
-              DeviceOrientation.landscapeLeft,
-              DeviceOrientation.portraitUp,
-              DeviceOrientation.portraitDown,
-            ]);
             return orientation == Orientation.portrait
                 ? Column(
                     children: [
