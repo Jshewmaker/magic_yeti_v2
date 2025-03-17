@@ -214,62 +214,47 @@ class AccountWidget extends StatelessWidget {
     final l10n = context.l10n;
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
         child: !userIsLoggedIn
-            ? Column(
+            ? GridView.count(
+                crossAxisCount: 3,
+                crossAxisSpacing: 8,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      StatsWidget(
-                        title: l10n.winRateTitle,
-                        stat: '${matchHistoryState.winPercentage}%',
-                      ),
-                      StatsWidget(
-                        title: l10n.totalWinsTitle,
-                        stat: matchHistoryState.totalWins.toString(),
-                      ),
-                      StatsWidget(
-                        title: l10n.totalGamesTitle,
-                        stat: matchHistoryState.games.length.toString(),
-                      ),
-                    ],
+                  StatsWidget(
+                    title: l10n.winRateTitle,
+                    stat: '${matchHistoryState.winPercentage}%',
                   ),
-                  const SizedBox(height: 48),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      StatsWidget(
-                        title: l10n.shortestGameTitle,
-                        stat: matchHistoryState.shortestGameDuration,
-                      ),
-                      StatsWidget(
-                        title: l10n.longestGameTitle,
-                        stat: matchHistoryState.longestGameDuration,
-                      ),
-                      StatsWidget(
-                        title: l10n.averagePlacementTitle,
-                        stat: matchHistoryState.averagePlacement.toString(),
-                      ),
-                    ],
+                  StatsWidget(
+                    title: l10n.totalWinsTitle,
+                    stat: matchHistoryState.totalWins.toString(),
                   ),
-                  const SizedBox(height: 48),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      StatsWidget(
-                        title: l10n.uniqueCommandersTitle,
-                        stat: matchHistoryState.uniqueCommanderCount.toString(),
-                      ),
-                      StatsWidget(
-                        title: l10n.timesWentFirstTitle,
-                        stat: matchHistoryState.timesWentFirst.toString(),
-                      ),
-                      StatsWidget(
-                        title: l10n.avgEdhRecRankTitle,
-                        stat: matchHistoryState.avgEdhRecRank.toString(),
-                      ),
-                    ],
+                  StatsWidget(
+                    title: l10n.totalGamesTitle,
+                    stat: matchHistoryState.games.length.toString(),
+                  ),
+                  StatsWidget(
+                    title: l10n.shortestGameTitle,
+                    stat: matchHistoryState.shortestGameDuration,
+                  ),
+                  StatsWidget(
+                    title: l10n.longestGameTitle,
+                    stat: matchHistoryState.longestGameDuration,
+                  ),
+                  StatsWidget(
+                    title: l10n.averagePlacementTitle,
+                    stat: matchHistoryState.averagePlacement.toString(),
+                  ),
+                  StatsWidget(
+                    title: l10n.uniqueCommandersTitle,
+                    stat: matchHistoryState.uniqueCommanderCount.toString(),
+                  ),
+                  StatsWidget(
+                    title: l10n.timesWentFirstTitle,
+                    stat: matchHistoryState.timesWentFirst.toString(),
+                  ),
+                  StatsWidget(
+                    title: l10n.avgEdhRecRankTitle,
+                    stat: matchHistoryState.avgEdhRecRank.toString(),
                   ),
                 ],
               )
@@ -352,8 +337,16 @@ class StatsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(stat, style: Theme.of(context).textTheme.headlineLarge),
-        Text(title, style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          stat,
+          style: Theme.of(context).textTheme.headlineMedium,
+          textAlign: TextAlign.center,
+        ),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleSmall,
+          textAlign: TextAlign.center,
+        ),
       ],
     );
   }
@@ -376,75 +369,83 @@ class GameModeButtons extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8),
       child: isPhone
-          ? GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8,
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
+          ? Row(
               children: [
-                ElevatedButton(
-                  onLongPress: () => _createGame(context, 2, 20),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.comingSoonText),
+                Expanded(
+                  child: SizedBox(
+                    height: 120, // Fixed height for both buttons
+                    child: ElevatedButton(
+                      onLongPress: () => _createGame(context, 2, 20),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(l10n.comingSoonText),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary.withValues(
+                          alpha: 0.1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        padding: const EdgeInsets.all(16),
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary.withValues(
-                      alpha: 0.1,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        l10n.numberOfPlayers(2),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            l10n.numberOfPlayers(2),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  color: AppColors.secondary
+                                      .withValues(alpha: 0.2),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          Text(
+                            l10n.underConstructionText,
+                            style: TextStyle(
                               color: AppColors.secondary.withValues(alpha: 0.2),
                               fontWeight: FontWeight.bold,
                             ),
+                          ),
+                          Icon(
+                            Icons.construction,
+                            color: AppColors.secondary.withValues(alpha: 0.2),
+                            size: 32,
+                          ),
+                        ],
                       ),
-                      Text(
-                        l10n.underConstructionText,
-                        style: TextStyle(
-                          color: AppColors.secondary.withValues(alpha: 0.2),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Icon(
-                        Icons.construction,
-                        color: AppColors.secondary.withValues(alpha: 0.2),
-                        size: 32,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () => _createGame(context, 4, 40),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary.withValues(
-                      alpha: 0.1,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      l10n.numberOfPlayers(4),
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Colors.white,
-                              ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 120, // Same fixed height for consistency
+                    child: ElevatedButton(
+                      onPressed: () => _createGame(context, 4, 40),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary.withValues(
+                          alpha: 0.1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                      ),
+                      child: Text(
+                        l10n.numberOfPlayers(4),
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                      ),
                     ),
                   ),
                 ),
@@ -623,8 +624,10 @@ class MatchHistoryPanel extends StatelessWidget {
                   case MatchHistoryStatus.loadingStatsSuccess:
                     if (state.games.isEmpty) {
                       return Center(
-                        child: Text(l10n.noMatchHistoryAvailable,
-                            style: Theme.of(context).textTheme.titleMedium),
+                        child: Text(
+                          l10n.noMatchHistoryAvailable,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                       );
                     }
                     return ListView.builder(
@@ -1097,7 +1100,7 @@ class _PhoneView extends StatelessWidget {
           bottom: TabBar(
             tabs: [
               Tab(text: l10n.gameModeTitle),
-              Tab(text: 'History'),
+              Tab(text: l10n.matchHistoryTitle),
             ],
             indicatorColor: AppColors.tertiary,
             labelColor: AppColors.onSurfaceVariant,
@@ -1169,43 +1172,24 @@ class PhoneLeftSidePanel extends StatelessWidget {
     final l10n = context.l10n;
     final onMore =
         context.watch<AppBloc>().state.status == AppStatus.authenticated;
-    return SingleChildScrollView(
-      // Replace ScrollableColumn with SingleChildScrollView + Column
-      // for better control over the sizing on phones
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min, // Take only as much space as needed
-        children: [
-          // GameMode section - Reduced padding
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: GameModeButtons(l10n: l10n),
-          ),
-          // Account section with compact design
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SectionHeader(
-                  title: onMore ? l10n.statsTitle : 'Login/Sign Up',
-                  onMorePressed: onMore
-                      ? () {
-                          context.go(ProfilePage.routePath);
-                        }
-                      : null,
-                ),
-                // Wrap in fixed height container to prevent excessive growth
-                SizedBox(
-                  height: MediaQuery.of(context).size.height *
-                      0.4, // Limit height to 40% of screen
-                  child: const AccountWidget(),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        // GameMode section - Reduced padding
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: GameModeButtons(l10n: l10n),
+        ),
+        // Account section with compact design
+        SectionHeader(
+          title: onMore ? l10n.statsTitle : l10n.loginSignUpTitle,
+          onMorePressed: onMore
+              ? () {
+                  context.go(ProfilePage.routePath);
+                }
+              : null,
+        ),
+        const AccountWidget(),
+      ],
     );
   }
 }

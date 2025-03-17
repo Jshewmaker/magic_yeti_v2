@@ -534,25 +534,25 @@
     "type": "text",
     "placeholders": {}
   },
-  "averagePlacementTitle": "Average Placement",
+  "averagePlacementTitle": "Average\nPlacement",
   "@averagePlacementTitle": {
     "description": "Title for average placement stat",
     "type": "text",
     "placeholders": {}
   },
-  "uniqueCommandersTitle": "Unique Commanders",
+  "uniqueCommandersTitle": "Unique\nCommanders",
   "@uniqueCommandersTitle": {
     "description": "Title for unique commanders stat",
     "type": "text",
     "placeholders": {}
   },
-  "timesWentFirstTitle": "Times Went First",
+  "timesWentFirstTitle": "Times\nWent First",
   "@timesWentFirstTitle": {
     "description": "Title for times went first stat",
     "type": "text",
     "placeholders": {}
   },
-  "avgEdhRecRankTitle": "Avg EDHRec Rank",
+  "avgEdhRecRankTitle": "Average\nEDHRec Rank",
   "@avgEdhRecRankTitle": {
     "description": "Title for average EDHRec rank stat",
     "type": "text",
