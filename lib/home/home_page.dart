@@ -169,27 +169,19 @@ class LeftSidePanel extends StatelessWidget {
     final l10n = context.l10n;
     final onMore =
         context.watch<AppBloc>().state.status == AppStatus.authenticated;
-    return ScrollableColumn(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Column(
       children: [
         SectionHeader(title: l10n.gameModeTitle),
         GameModeButtons(l10n: l10n),
-        Expanded(
-          flex: 2,
-          child: Column(
-            children: [
-              SectionHeader(
-                title: onMore ? l10n.statsTitle : 'Login/Sign Up',
-                onMorePressed: onMore
-                    ? () {
-                        context.go(ProfilePage.routePath);
-                      }
-                    : null,
-              ),
-              const AccountWidget(),
-            ],
-          ),
+        SectionHeader(
+          title: onMore ? l10n.statsTitle : 'Login/Sign Up',
+          onMorePressed: onMore
+              ? () {
+                  context.go(ProfilePage.routePath);
+                }
+              : null,
         ),
+        const AccountWidget(),
       ],
     );
   }
@@ -218,6 +210,7 @@ class AccountWidget extends StatelessWidget {
         child: !userIsLoggedIn
             ? GridView.count(
                 crossAxisCount: 3,
+                childAspectRatio: 1.6,
                 crossAxisSpacing: 8,
                 children: [
                   StatsWidget(
@@ -362,193 +355,90 @@ class GameModeButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Check if we're on a phone by using MediaQuery
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final isPhone = screenWidth < 600;
 
     // For phones, use a column layout instead of row
     return Padding(
-      padding: const EdgeInsets.all(8),
-      child: isPhone
-          ? Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 120, // Fixed height for both buttons
-                    child: ElevatedButton(
-                      onLongPress: () => _createGame(context, 2, 20),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.comingSoonText),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary.withValues(
-                          alpha: 0.1,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        padding: const EdgeInsets.all(16),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            l10n.numberOfPlayers(2),
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                  color: AppColors.secondary
-                                      .withValues(alpha: 0.2),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                          Text(
-                            l10n.underConstructionText,
-                            style: TextStyle(
-                              color: AppColors.secondary.withValues(alpha: 0.2),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Icon(
-                            Icons.construction,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 120, // Fixed height for both buttons
+              child: ElevatedButton(
+                onLongPress: () => _createGame(context, 2, 20),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.comingSoonText),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary.withValues(
+                    alpha: 0.1,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      l10n.numberOfPlayers(2),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(
                             color: AppColors.secondary.withValues(alpha: 0.2),
-                            size: 32,
+                            fontWeight: FontWeight.bold,
                           ),
-                        ],
+                    ),
+                    Text(
+                      l10n.underConstructionText,
+                      style: TextStyle(
+                        color: AppColors.secondary.withValues(alpha: 0.2),
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: SizedBox(
-                    height: 120, // Same fixed height for consistency
-                    child: ElevatedButton(
-                      onPressed: () => _createGame(context, 4, 40),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary.withValues(
-                          alpha: 0.1,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.all(16),
-                      ),
-                      child: Text(
-                        l10n.numberOfPlayers(4),
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                      ),
+                    Icon(
+                      Icons.construction,
+                      color: AppColors.secondary.withValues(alpha: 0.2),
+                      size: 32,
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            )
-          : Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.quaternary.withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: ElevatedButton(
-                          onLongPress: () => _createGame(context, 2, 20),
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(l10n.comingSoonText),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary.withValues(
-                              alpha: 0.1,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            padding: const EdgeInsets.all(16),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                l10n.numberOfPlayers(2),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(
-                                      color: AppColors.secondary
-                                          .withValues(alpha: 0.2),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                l10n.underConstructionText,
-                                style: TextStyle(
-                                  color: AppColors.secondary
-                                      .withValues(alpha: 0.2),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Icon(
-                                Icons.construction,
-                                color:
-                                    AppColors.secondary.withValues(alpha: 0.2),
-                                size: 32,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ElevatedButton(
-                      onPressed: () => _createGame(context, 4, 40),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary.withValues(
-                          alpha: 0.1,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.all(16),
-                      ),
-                      child: Center(
-                        child: Text(
-                          l10n.numberOfPlayers(4),
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(
-                                color: Colors.white,
-                              ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: SizedBox(
+              height: 120, // Same fixed height for consistency
+              child: ElevatedButton(
+                onPressed: () => _createGame(context, 4, 40),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary.withValues(
+                    alpha: 0.1,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                ),
+                child: Text(
+                  l10n.numberOfPlayers(4),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
