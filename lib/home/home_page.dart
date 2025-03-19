@@ -65,7 +65,9 @@ class _TabletView extends StatelessWidget {
             child: Column(
               children: [
                 SectionHeader(title: l10n.matchHistoryTitle),
-                const MatchHistoryPanel(),
+                const Expanded(
+                  child: MatchHistoryPanel(),
+                ),
               ],
             ),
           ),
@@ -508,7 +510,6 @@ class MatchHistoryPanel extends StatelessWidget {
       },
       child: Column(
         children: [
-          SectionHeader(title: l10n.matchHistoryTitle),
           Expanded(
             child: BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
               builder: (context, state) {
