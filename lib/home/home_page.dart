@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
@@ -34,20 +35,17 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Use breakpoint to determine if we're on a phone or tablet
-        // Common breakpoint for phones vs tablets is around 600dp
-        final isPhone = constraints.smallest.shortestSide < 600;
-        if (isPhone) {
-          SystemChrome.setPreferredOrientations([
-            DeviceOrientation.portraitUp,
-          ]);
-        }
+    // Use DeviceInfoProvider instead of LayoutBuilder
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
+    
+    // Set preferred orientations for phones
+    if (isPhone) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+      ]);
+    }
 
-        return isPhone ? const _PhoneView() : const _TabletView();
-      },
-    );
+    return isPhone ? const _PhoneView() : const _TabletView();
   }
 }
 
@@ -508,134 +506,119 @@ class MatchHistoryPanel extends StatelessWidget {
           );
         }
       },
-      child: Column(
-        children: [
-          Expanded(
-            child: BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
-              builder: (context, state) {
-                switch (state.status) {
-                  case MatchHistoryStatus.initial:
-                  case MatchHistoryStatus.loadingHistory:
-                    return const Center(child: CircularProgressIndicator());
-                  case MatchHistoryStatus.failure:
-                    return Center(
-                      child: Text(l10n.matchHistoryLoadError),
-                    );
-                  case MatchHistoryStatus.loadingHistorySuccess:
-                  case MatchHistoryStatus.gameNotFound:
-                  case MatchHistoryStatus.loadingStats:
-                  case MatchHistoryStatus.loadingStatsSuccess:
-                    if (state.games.isEmpty) {
-                      return Center(
-                        child: Text(
-                          l10n.noMatchHistoryAvailable,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      );
-                    }
-                    return ListView.builder(
-                      itemCount: state.games.length,
-                      itemBuilder: (context, index) {
-                        final game = state.games[index];
-                        final winningPlayer = game.players.firstWhere(
-                          (player) => player.id == game.winnerId,
-                        );
-                        return CustomListItem(
-                          wonGame: winningPlayer.firebaseId ==
-                              context.read<AppBloc>().state.user.id,
-                          thumbnail: (winningPlayer
-                                      .commander?.imageUrl.isEmpty ??
-                                  false)
-                              ? Container(
+      child: BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
+        builder: (context, state) {
+          switch (state.status) {
+            case MatchHistoryStatus.initial:
+            case MatchHistoryStatus.loadingHistory:
+              return const Center(child: CircularProgressIndicator());
+            case MatchHistoryStatus.failure:
+              return Center(
+                child: Text(l10n.matchHistoryLoadError),
+              );
+            case MatchHistoryStatus.loadingHistorySuccess:
+            case MatchHistoryStatus.gameNotFound:
+            case MatchHistoryStatus.loadingStats:
+            case MatchHistoryStatus.loadingStatsSuccess:
+              if (state.games.isEmpty) {
+                return Center(
+                  child: Text(
+                    l10n.noMatchHistoryAvailable,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                );
+              }
+              return ListView.builder(
+                itemCount: state.games.length,
+                itemBuilder: (context, index) {
+                  final game = state.games[index];
+                  final winningPlayer = game.players.firstWhere(
+                    (player) => player.id == game.winnerId,
+                  );
+                  return CustomListItem(
+                    wonGame: winningPlayer.firebaseId ==
+                        context.read<AppBloc>().state.user.id,
+                    thumbnail: (winningPlayer.commander?.imageUrl.isEmpty ??
+                            false)
+                        ? Container(
+                            color: Color(winningPlayer.color)
+                                .withValues(alpha: .8),
+                          )
+                        : winningPlayer.partner?.imageUrl == null
+                            ? Image.network(
+                                fit: BoxFit.cover,
+                                winningPlayer.commander?.imageUrl ?? '',
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
                                   color: Color(winningPlayer.color)
                                       .withValues(alpha: .8),
-                                )
-                              : winningPlayer.partner?.imageUrl == null
-                                  ? Image.network(
-                                      fit: BoxFit.cover,
+                                ),
+                              )
+                            : Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: Image.network(
                                       winningPlayer.commander?.imageUrl ?? '',
+                                      fit: BoxFit.fitHeight,
                                       errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              Container(
-                                        color: Color(winningPlayer.color)
-                                            .withValues(alpha: .8),
-                                      ),
-                                    )
-                                  : Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        Expanded(
-                                          child: Image.network(
-                                            winningPlayer.commander?.imageUrl ??
-                                                '',
-                                            fit: BoxFit.fitHeight,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return Container(
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      Color(winningPlayer.color)
-                                                          .withValues(
-                                                    alpha: winningPlayer
-                                                                .lifePoints <=
-                                                            0
-                                                        ? .3
-                                                        : 1,
-                                                  ),
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                    Radius.circular(20),
-                                                  ),
-                                                ),
-                                              );
-                                            },
+                                          (context, error, stackTrace) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: Color(winningPlayer.color)
+                                                .withValues(
+                                              alpha:
+                                                  winningPlayer.lifePoints <= 0
+                                                      ? .3
+                                                      : 1,
+                                            ),
+                                            borderRadius:
+                                                const BorderRadius.all(
+                                              Radius.circular(20),
+                                            ),
                                           ),
-                                        ),
-                                        Expanded(
-                                          child: Image.network(
-                                            winningPlayer.partner?.imageUrl ??
-                                                '',
-                                            fit: BoxFit.fitHeight,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return Container(
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      Color(winningPlayer.color)
-                                                          .withValues(
-                                                    alpha: winningPlayer
-                                                                .lifePoints <=
-                                                            0
-                                                        ? .3
-                                                        : 1,
-                                                  ),
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                    Radius.circular(20),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ],
+                                        );
+                                      },
                                     ),
-                          playerName: winningPlayer.name,
-                          commanderName: winningPlayer.commander?.name ?? '',
-                          gameLength: Duration(seconds: game.durationInSeconds),
-                          gameDatePlayed: game.endTime,
-                          viewCount: index + 1,
-                          textStyle: Theme.of(context).textTheme,
-                          game: game,
-                        );
-                      },
-                    );
-                }
-              },
-            ),
-          ),
-        ],
+                                  ),
+                                  Expanded(
+                                    child: Image.network(
+                                      winningPlayer.partner?.imageUrl ?? '',
+                                      fit: BoxFit.fitHeight,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: Color(winningPlayer.color)
+                                                .withValues(
+                                              alpha:
+                                                  winningPlayer.lifePoints <= 0
+                                                      ? .3
+                                                      : 1,
+                                            ),
+                                            borderRadius:
+                                                const BorderRadius.all(
+                                              Radius.circular(20),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                    playerName: winningPlayer.name,
+                    commanderName: winningPlayer.commander?.name ?? '',
+                    gameLength: Duration(seconds: game.durationInSeconds),
+                    gameDatePlayed: game.endTime,
+                    viewCount: index + 1,
+                    textStyle: Theme.of(context).textTheme,
+                    game: game,
+                  );
+                },
+              );
+          }
+        },
       ),
     );
   }
@@ -789,7 +772,7 @@ class DetailsWidget extends StatelessWidget {
                     Clipboard.setData(ClipboardData(text: roomId));
                     showToast(
                       context,
-                      Toast.success(message: l10n.copiedGameId),
+                      Toast.success(message: '${l10n.copiedGameId}: $roomId'),
                     );
                   },
                 ),

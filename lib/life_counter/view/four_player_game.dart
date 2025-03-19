@@ -2,6 +2,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/life_counter/widgets/widgets.dart';
 import 'package:magic_yeti/player/player.dart';
@@ -127,7 +128,7 @@ class LeftPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final trackerSize = MediaQuery.sizeOf(context).width > 800 ? 90.0 : 60.0;
+    final trackerSize = DeviceInfoProvider.of(context).isPhone ? 60.0 : 90.0;
     return BlocProvider(
       create: (context) => PlayerBloc(
         playerRepository: context.read<PlayerRepository>(),
