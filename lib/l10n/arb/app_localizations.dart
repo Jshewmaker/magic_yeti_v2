@@ -605,6 +605,12 @@ abstract class AppLocalizations {
   /// **'Unique\nCommanders'**
   String get uniqueCommandersTitle;
 
+  /// Message shown when game ID is copied
+  ///
+  /// In en, this message translates to:
+  /// **'Copied game ID'**
+  String get copiedGameId;
+
   /// Title for times went first stat
   ///
   /// In en, this message translates to:

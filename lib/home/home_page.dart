@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
@@ -37,7 +38,12 @@ class _HomePageState extends State<HomePage> {
       builder: (context, constraints) {
         // Use breakpoint to determine if we're on a phone or tablet
         // Common breakpoint for phones vs tablets is around 600dp
-        final isPhone = constraints.maxWidth < 600;
+        final isPhone = constraints.smallest.shortestSide < 600;
+        if (isPhone) {
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.portraitUp,
+          ]);
+        }
 
         return isPhone ? const _PhoneView() : const _TabletView();
       },
@@ -52,10 +58,17 @@ class _TabletView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      body: const Row(
+      body: Row(
         children: [
-          Expanded(child: LeftSidePanel()),
-          Expanded(child: MatchHistoryPanel()),
+          const Expanded(child: LeftSidePanel()),
+          Expanded(
+            child: Column(
+              children: [
+                SectionHeader(title: l10n.matchHistoryTitle),
+                const MatchHistoryPanel(),
+              ],
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -210,7 +223,6 @@ class AccountWidget extends StatelessWidget {
         child: !userIsLoggedIn
             ? GridView.count(
                 crossAxisCount: 3,
-                childAspectRatio: 1.6,
                 crossAxisSpacing: 8,
                 children: [
                   StatsWidget(
@@ -731,7 +743,7 @@ class DetailsWidget extends StatelessWidget {
     final l10n = context.l10n;
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -743,6 +755,7 @@ class DetailsWidget extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: textStyle.headlineMedium?.fontSize,
+                    height: 0.9, // Reduce the line height
                   ),
                 ),
                 Text(
@@ -751,16 +764,35 @@ class DetailsWidget extends StatelessWidget {
                     fontSize: textStyle.titleMedium?.fontSize,
                     color: Colors.black45,
                     fontWeight: FontWeight.w500,
+                    height: 0.9, // Reduce the line height
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            SelectableText(
-              ' ${l10n.gameId}: $roomId',
-              style: textStyle.bodyLarge?.copyWith(
-                color: Colors.black45,
-              ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SelectableText(
+                  ' ${l10n.gameId}: $roomId',
+                  style: textStyle.labelLarge?.copyWith(
+                    color: Colors.black45,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.copy),
+                  iconSize: 16,
+                  visualDensity: VisualDensity.compact,
+                  color: Colors.black45,
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: roomId));
+                    showToast(
+                      context,
+                      Toast.success(message: l10n.copiedGameId),
+                    );
+                  },
+                ),
+              ],
             ),
             Row(
               children: [

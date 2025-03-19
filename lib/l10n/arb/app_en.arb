@@ -546,6 +546,12 @@
     "type": "text",
     "placeholders": {}
   },
+  "copiedGameId": "Copied game ID",
+  "@copiedGameId": {
+    "description": "Message shown when game ID is copied",
+    "type": "text",
+    "placeholders": {}
+  },
   "timesWentFirstTitle": "Times\nWent First",
   "@timesWentFirstTitle": {
     "description": "Title for times went first stat",

@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
@@ -162,7 +163,14 @@ class _HomeButton extends StatelessWidget {
           context,
           title: l10n.exitGameDialogText,
           body: l10n.navigationDialogText,
-          onConfirm: () => GoRouter.of(context).go(HomePage.routeName),
+          onConfirm: () {
+            SystemChrome.setPreferredOrientations([
+              DeviceOrientation.landscapeRight,
+              DeviceOrientation.landscapeLeft,
+              DeviceOrientation.portraitUp,
+            ]);
+            GoRouter.of(context).go(HomePage.routeName);
+          },
         );
       },
       icon: const Icon(

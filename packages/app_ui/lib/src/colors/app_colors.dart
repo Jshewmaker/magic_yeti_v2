@@ -41,6 +41,9 @@ abstract class AppColors {
   /// Color used to highlight the winner - Elegant Emerald
   static const Color winner = Color(0xFF34D399);
 
+  /// Success - Vibrant Green for success indicators and toasts
+  static const Color success = Color(0xFF10B981);
+
   /// red - Rich Ruby
   static const Color red = Color(0xFFDC2626);
 

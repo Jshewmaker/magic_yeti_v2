@@ -38,7 +38,7 @@ class TrackerWidgets extends StatelessWidget {
     );
 
     final players = context.read<GameBloc>().state.playerList;
-
+    final trackerSize = MediaQuery.sizeOf(context).width > 800 ? 80.0 : 60.0;
     return BlocProvider(
       create: (context) => TrackerBloc(),
       child: BlocBuilder<TrackerBloc, TrackerState>(
@@ -53,7 +53,6 @@ class TrackerWidgets extends StatelessWidget {
           return RotatedBox(
             quarterTurns: rotate ? 0 : 2,
             child: Container(
-              width: 90,
               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
               decoration: BoxDecoration(
                 color: Colors.transparent.withValues(alpha: .8),
@@ -119,8 +118,8 @@ class TrackerWidgets extends StatelessWidget {
                         borderRadius:
                             const BorderRadius.all(Radius.circular(10)),
                         child: Container(
-                          width: 80,
-                          height: 80,
+                          width: trackerSize,
+                          height: trackerSize,
                           color: AppColors.white.withValues(alpha: .5),
                           child: IconButton(
                             icon: const Icon(

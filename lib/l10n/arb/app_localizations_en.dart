@@ -280,6 +280,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uniqueCommandersTitle => 'Unique\nCommanders';
 
   @override
+  String get copiedGameId => 'Copied game ID';
+
+  @override
   String get timesWentFirstTitle => 'Times\nWent First';
 
   @override

@@ -11,6 +11,7 @@ class CounterTrackerWidget extends StatelessWidget {
   final Icon icon;
   @override
   Widget build(BuildContext context) {
+    final trackerSize = MediaQuery.sizeOf(context).width > 800 ? 80.0 : 60.0;
     return BlocProvider(
       create: (context) => CounterBloc(),
       child: BlocBuilder<CounterBloc, CounterState>(
@@ -23,8 +24,8 @@ class CounterTrackerWidget extends StatelessWidget {
             onLongPressUp: () =>
                 context.read<CounterBloc>().add(CounterStopDecrementing()),
             child: Container(
-              height: 80,
-              width: 80,
+              height: trackerSize,
+              width: trackerSize,
               padding: const EdgeInsets.only(top: 10),
               color: AppColors.neutral60.withValues(alpha: .2),
               child: Stack(
