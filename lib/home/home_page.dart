@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
@@ -33,15 +35,17 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Use breakpoint to determine if we're on a phone or tablet
-        // Common breakpoint for phones vs tablets is around 600dp
-        final isPhone = constraints.maxWidth < 600;
+    // Use DeviceInfoProvider instead of LayoutBuilder
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
+    
+    // Set preferred orientations for phones
+    if (isPhone) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+      ]);
+    }
 
-        return isPhone ? const _PhoneView() : const _TabletView();
-      },
-    );
+    return isPhone ? const _PhoneView() : const _TabletView();
   }
 }
 
@@ -52,10 +56,19 @@ class _TabletView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      body: const Row(
+      body: Row(
         children: [
-          Expanded(child: LeftSidePanel()),
-          Expanded(child: MatchHistoryPanel()),
+          const Expanded(child: LeftSidePanel()),
+          Expanded(
+            child: Column(
+              children: [
+                SectionHeader(title: l10n.matchHistoryTitle),
+                const Expanded(
+                  child: MatchHistoryPanel(),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -169,27 +182,19 @@ class LeftSidePanel extends StatelessWidget {
     final l10n = context.l10n;
     final onMore =
         context.watch<AppBloc>().state.status == AppStatus.authenticated;
-    return ScrollableColumn(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Column(
       children: [
         SectionHeader(title: l10n.gameModeTitle),
         GameModeButtons(l10n: l10n),
-        Expanded(
-          flex: 2,
-          child: Column(
-            children: [
-              SectionHeader(
-                title: onMore ? l10n.statsTitle : 'Login/Sign Up',
-                onMorePressed: onMore
-                    ? () {
-                        context.go(ProfilePage.routePath);
-                      }
-                    : null,
-              ),
-              const AccountWidget(),
-            ],
-          ),
+        SectionHeader(
+          title: onMore ? l10n.statsTitle : 'Login/Sign Up',
+          onMorePressed: onMore
+              ? () {
+                  context.go(ProfilePage.routePath);
+                }
+              : null,
         ),
+        const AccountWidget(),
       ],
     );
   }
@@ -214,62 +219,47 @@ class AccountWidget extends StatelessWidget {
     final l10n = context.l10n;
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
         child: !userIsLoggedIn
-            ? Column(
+            ? GridView.count(
+                crossAxisCount: 3,
+                crossAxisSpacing: 8,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      StatsWidget(
-                        title: l10n.winRateTitle,
-                        stat: '${matchHistoryState.winPercentage}%',
-                      ),
-                      StatsWidget(
-                        title: l10n.totalWinsTitle,
-                        stat: matchHistoryState.totalWins.toString(),
-                      ),
-                      StatsWidget(
-                        title: l10n.totalGamesTitle,
-                        stat: matchHistoryState.games.length.toString(),
-                      ),
-                    ],
+                  StatsWidget(
+                    title: l10n.winRateTitle,
+                    stat: '${matchHistoryState.winPercentage}%',
                   ),
-                  const SizedBox(height: 48),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      StatsWidget(
-                        title: l10n.shortestGameTitle,
-                        stat: matchHistoryState.shortestGameDuration,
-                      ),
-                      StatsWidget(
-                        title: l10n.longestGameTitle,
-                        stat: matchHistoryState.longestGameDuration,
-                      ),
-                      StatsWidget(
-                        title: l10n.averagePlacementTitle,
-                        stat: matchHistoryState.averagePlacement.toString(),
-                      ),
-                    ],
+                  StatsWidget(
+                    title: l10n.totalWinsTitle,
+                    stat: matchHistoryState.totalWins.toString(),
                   ),
-                  const SizedBox(height: 48),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      StatsWidget(
-                        title: l10n.uniqueCommandersTitle,
-                        stat: matchHistoryState.uniqueCommanderCount.toString(),
-                      ),
-                      StatsWidget(
-                        title: l10n.timesWentFirstTitle,
-                        stat: matchHistoryState.timesWentFirst.toString(),
-                      ),
-                      StatsWidget(
-                        title: l10n.avgEdhRecRankTitle,
-                        stat: matchHistoryState.avgEdhRecRank.toString(),
-                      ),
-                    ],
+                  StatsWidget(
+                    title: l10n.totalGamesTitle,
+                    stat: matchHistoryState.games.length.toString(),
+                  ),
+                  StatsWidget(
+                    title: l10n.shortestGameTitle,
+                    stat: matchHistoryState.shortestGameDuration,
+                  ),
+                  StatsWidget(
+                    title: l10n.longestGameTitle,
+                    stat: matchHistoryState.longestGameDuration,
+                  ),
+                  StatsWidget(
+                    title: l10n.averagePlacementTitle,
+                    stat: matchHistoryState.averagePlacement.toString(),
+                  ),
+                  StatsWidget(
+                    title: l10n.uniqueCommandersTitle,
+                    stat: matchHistoryState.uniqueCommanderCount.toString(),
+                  ),
+                  StatsWidget(
+                    title: l10n.timesWentFirstTitle,
+                    stat: matchHistoryState.timesWentFirst.toString(),
+                  ),
+                  StatsWidget(
+                    title: l10n.avgEdhRecRankTitle,
+                    stat: matchHistoryState.avgEdhRecRank.toString(),
                   ),
                 ],
               )
@@ -352,8 +342,16 @@ class StatsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(stat, style: Theme.of(context).textTheme.headlineLarge),
-        Text(title, style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          stat,
+          style: Theme.of(context).textTheme.headlineMedium,
+          textAlign: TextAlign.center,
+        ),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleSmall,
+          textAlign: TextAlign.center,
+        ),
       ],
     );
   }
@@ -369,185 +367,90 @@ class GameModeButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Check if we're on a phone by using MediaQuery
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final isPhone = screenWidth < 600;
 
     // For phones, use a column layout instead of row
     return Padding(
-      padding: const EdgeInsets.all(8),
-      child: isPhone
-          ? GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8,
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              children: [
-                ElevatedButton(
-                  onLongPress: () => _createGame(context, 2, 20),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.comingSoonText),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary.withValues(
-                      alpha: 0.1,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 120, // Fixed height for both buttons
+              child: ElevatedButton(
+                onLongPress: () => _createGame(context, 2, 20),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.comingSoonText),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    padding: const EdgeInsets.all(16),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary.withValues(
+                    alpha: 0.1,
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        l10n.numberOfPlayers(2),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                              color: AppColors.secondary.withValues(alpha: 0.2),
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      Text(
-                        l10n.underConstructionText,
-                        style: TextStyle(
-                          color: AppColors.secondary.withValues(alpha: 0.2),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Icon(
-                        Icons.construction,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      l10n.numberOfPlayers(2),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(
+                            color: AppColors.secondary.withValues(alpha: 0.2),
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    Text(
+                      l10n.underConstructionText,
+                      style: TextStyle(
                         color: AppColors.secondary.withValues(alpha: 0.2),
-                        size: 32,
-                      ),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () => _createGame(context, 4, 40),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary.withValues(
-                      alpha: 0.1,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      l10n.numberOfPlayers(4),
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Colors.white,
-                              ),
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.quaternary.withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: ElevatedButton(
-                          onLongPress: () => _createGame(context, 2, 20),
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(l10n.comingSoonText),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary.withValues(
-                              alpha: 0.1,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            padding: const EdgeInsets.all(16),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                l10n.numberOfPlayers(2),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(
-                                      color: AppColors.secondary
-                                          .withValues(alpha: 0.2),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                l10n.underConstructionText,
-                                style: TextStyle(
-                                  color: AppColors.secondary
-                                      .withValues(alpha: 0.2),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Icon(
-                                Icons.construction,
-                                color:
-                                    AppColors.secondary.withValues(alpha: 0.2),
-                                size: 32,
-                              ),
-                            ],
-                          ),
-                        ),
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ElevatedButton(
-                      onPressed: () => _createGame(context, 4, 40),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary.withValues(
-                          alpha: 0.1,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.all(16),
-                      ),
-                      child: Center(
-                        child: Text(
-                          l10n.numberOfPlayers(4),
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(
-                                color: Colors.white,
-                              ),
-                        ),
-                      ),
+                    Icon(
+                      Icons.construction,
+                      color: AppColors.secondary.withValues(alpha: 0.2),
+                      size: 32,
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: SizedBox(
+              height: 120, // Same fixed height for consistency
+              child: ElevatedButton(
+                onPressed: () => _createGame(context, 4, 40),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary.withValues(
+                    alpha: 0.1,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                ),
+                child: Text(
+                  l10n.numberOfPlayers(4),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -603,133 +506,119 @@ class MatchHistoryPanel extends StatelessWidget {
           );
         }
       },
-      child: Column(
-        children: [
-          SectionHeader(title: l10n.matchHistoryTitle),
-          Expanded(
-            child: BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
-              builder: (context, state) {
-                switch (state.status) {
-                  case MatchHistoryStatus.initial:
-                  case MatchHistoryStatus.loadingHistory:
-                    return const Center(child: CircularProgressIndicator());
-                  case MatchHistoryStatus.failure:
-                    return Center(
-                      child: Text(l10n.matchHistoryLoadError),
-                    );
-                  case MatchHistoryStatus.loadingHistorySuccess:
-                  case MatchHistoryStatus.gameNotFound:
-                  case MatchHistoryStatus.loadingStats:
-                  case MatchHistoryStatus.loadingStatsSuccess:
-                    if (state.games.isEmpty) {
-                      return Center(
-                        child: Text(l10n.noMatchHistoryAvailable,
-                            style: Theme.of(context).textTheme.titleMedium),
-                      );
-                    }
-                    return ListView.builder(
-                      itemCount: state.games.length,
-                      itemBuilder: (context, index) {
-                        final game = state.games[index];
-                        final winningPlayer = game.players.firstWhere(
-                          (player) => player.id == game.winnerId,
-                        );
-                        return CustomListItem(
-                          wonGame: winningPlayer.firebaseId ==
-                              context.read<AppBloc>().state.user.id,
-                          thumbnail: (winningPlayer
-                                      .commander?.imageUrl.isEmpty ??
-                                  false)
-                              ? Container(
+      child: BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
+        builder: (context, state) {
+          switch (state.status) {
+            case MatchHistoryStatus.initial:
+            case MatchHistoryStatus.loadingHistory:
+              return const Center(child: CircularProgressIndicator());
+            case MatchHistoryStatus.failure:
+              return Center(
+                child: Text(l10n.matchHistoryLoadError),
+              );
+            case MatchHistoryStatus.loadingHistorySuccess:
+            case MatchHistoryStatus.gameNotFound:
+            case MatchHistoryStatus.loadingStats:
+            case MatchHistoryStatus.loadingStatsSuccess:
+              if (state.games.isEmpty) {
+                return Center(
+                  child: Text(
+                    l10n.noMatchHistoryAvailable,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                );
+              }
+              return ListView.builder(
+                itemCount: state.games.length,
+                itemBuilder: (context, index) {
+                  final game = state.games[index];
+                  final winningPlayer = game.players.firstWhere(
+                    (player) => player.id == game.winnerId,
+                  );
+                  return CustomListItem(
+                    wonGame: winningPlayer.firebaseId ==
+                        context.read<AppBloc>().state.user.id,
+                    thumbnail: (winningPlayer.commander?.imageUrl.isEmpty ??
+                            false)
+                        ? Container(
+                            color: Color(winningPlayer.color)
+                                .withValues(alpha: .8),
+                          )
+                        : winningPlayer.partner?.imageUrl == null
+                            ? Image.network(
+                                fit: BoxFit.cover,
+                                winningPlayer.commander?.imageUrl ?? '',
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
                                   color: Color(winningPlayer.color)
                                       .withValues(alpha: .8),
-                                )
-                              : winningPlayer.partner?.imageUrl == null
-                                  ? Image.network(
-                                      fit: BoxFit.cover,
+                                ),
+                              )
+                            : Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: Image.network(
                                       winningPlayer.commander?.imageUrl ?? '',
+                                      fit: BoxFit.fitHeight,
                                       errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              Container(
-                                        color: Color(winningPlayer.color)
-                                            .withValues(alpha: .8),
-                                      ),
-                                    )
-                                  : Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        Expanded(
-                                          child: Image.network(
-                                            winningPlayer.commander?.imageUrl ??
-                                                '',
-                                            fit: BoxFit.fitHeight,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return Container(
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      Color(winningPlayer.color)
-                                                          .withValues(
-                                                    alpha: winningPlayer
-                                                                .lifePoints <=
-                                                            0
-                                                        ? .3
-                                                        : 1,
-                                                  ),
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                    Radius.circular(20),
-                                                  ),
-                                                ),
-                                              );
-                                            },
+                                          (context, error, stackTrace) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: Color(winningPlayer.color)
+                                                .withValues(
+                                              alpha:
+                                                  winningPlayer.lifePoints <= 0
+                                                      ? .3
+                                                      : 1,
+                                            ),
+                                            borderRadius:
+                                                const BorderRadius.all(
+                                              Radius.circular(20),
+                                            ),
                                           ),
-                                        ),
-                                        Expanded(
-                                          child: Image.network(
-                                            winningPlayer.partner?.imageUrl ??
-                                                '',
-                                            fit: BoxFit.fitHeight,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return Container(
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      Color(winningPlayer.color)
-                                                          .withValues(
-                                                    alpha: winningPlayer
-                                                                .lifePoints <=
-                                                            0
-                                                        ? .3
-                                                        : 1,
-                                                  ),
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                    Radius.circular(20),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ],
+                                        );
+                                      },
                                     ),
-                          playerName: winningPlayer.name,
-                          commanderName: winningPlayer.commander?.name ?? '',
-                          gameLength: Duration(seconds: game.durationInSeconds),
-                          gameDatePlayed: game.endTime,
-                          viewCount: index + 1,
-                          textStyle: Theme.of(context).textTheme,
-                          game: game,
-                        );
-                      },
-                    );
-                }
-              },
-            ),
-          ),
-        ],
+                                  ),
+                                  Expanded(
+                                    child: Image.network(
+                                      winningPlayer.partner?.imageUrl ?? '',
+                                      fit: BoxFit.fitHeight,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: Color(winningPlayer.color)
+                                                .withValues(
+                                              alpha:
+                                                  winningPlayer.lifePoints <= 0
+                                                      ? .3
+                                                      : 1,
+                                            ),
+                                            borderRadius:
+                                                const BorderRadius.all(
+                                              Radius.circular(20),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                    playerName: winningPlayer.name,
+                    commanderName: winningPlayer.commander?.name ?? '',
+                    gameLength: Duration(seconds: game.durationInSeconds),
+                    gameDatePlayed: game.endTime,
+                    viewCount: index + 1,
+                    textStyle: Theme.of(context).textTheme,
+                    game: game,
+                  );
+                },
+              );
+          }
+        },
       ),
     );
   }
@@ -838,7 +727,7 @@ class DetailsWidget extends StatelessWidget {
     final l10n = context.l10n;
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -850,6 +739,7 @@ class DetailsWidget extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: textStyle.headlineMedium?.fontSize,
+                    height: 0.9, // Reduce the line height
                   ),
                 ),
                 Text(
@@ -858,16 +748,35 @@ class DetailsWidget extends StatelessWidget {
                     fontSize: textStyle.titleMedium?.fontSize,
                     color: Colors.black45,
                     fontWeight: FontWeight.w500,
+                    height: 0.9, // Reduce the line height
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            SelectableText(
-              ' ${l10n.gameId}: $roomId',
-              style: textStyle.bodyLarge?.copyWith(
-                color: Colors.black45,
-              ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SelectableText(
+                  ' ${l10n.gameId}: $roomId',
+                  style: textStyle.labelLarge?.copyWith(
+                    color: Colors.black45,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.copy),
+                  iconSize: 16,
+                  visualDensity: VisualDensity.compact,
+                  color: Colors.black45,
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: roomId));
+                    showToast(
+                      context,
+                      Toast.success(message: '${l10n.copiedGameId}: $roomId'),
+                    );
+                  },
+                ),
+              ],
             ),
             Row(
               children: [
@@ -1097,7 +1006,7 @@ class _PhoneView extends StatelessWidget {
           bottom: TabBar(
             tabs: [
               Tab(text: l10n.gameModeTitle),
-              Tab(text: 'History'),
+              Tab(text: l10n.matchHistoryTitle),
             ],
             indicatorColor: AppColors.tertiary,
             labelColor: AppColors.onSurfaceVariant,
@@ -1169,43 +1078,24 @@ class PhoneLeftSidePanel extends StatelessWidget {
     final l10n = context.l10n;
     final onMore =
         context.watch<AppBloc>().state.status == AppStatus.authenticated;
-    return SingleChildScrollView(
-      // Replace ScrollableColumn with SingleChildScrollView + Column
-      // for better control over the sizing on phones
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min, // Take only as much space as needed
-        children: [
-          // GameMode section - Reduced padding
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: GameModeButtons(l10n: l10n),
-          ),
-          // Account section with compact design
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SectionHeader(
-                  title: onMore ? l10n.statsTitle : 'Login/Sign Up',
-                  onMorePressed: onMore
-                      ? () {
-                          context.go(ProfilePage.routePath);
-                        }
-                      : null,
-                ),
-                // Wrap in fixed height container to prevent excessive growth
-                SizedBox(
-                  height: MediaQuery.of(context).size.height *
-                      0.4, // Limit height to 40% of screen
-                  child: const AccountWidget(),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        // GameMode section - Reduced padding
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: GameModeButtons(l10n: l10n),
+        ),
+        // Account section with compact design
+        SectionHeader(
+          title: onMore ? l10n.statsTitle : l10n.loginSignUpTitle,
+          onMorePressed: onMore
+              ? () {
+                  context.go(ProfilePage.routePath);
+                }
+              : null,
+        ),
+        const AccountWidget(),
+      ],
     );
   }
 }

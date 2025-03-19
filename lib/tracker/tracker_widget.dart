@@ -4,6 +4,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/tracker/bloc/tracker_bloc.dart';
 import 'package:magic_yeti/tracker/tracker.dart';
@@ -38,7 +39,7 @@ class TrackerWidgets extends StatelessWidget {
     );
 
     final players = context.read<GameBloc>().state.playerList;
-
+    final trackerSize = DeviceInfoProvider.of(context).isPhone ? 60.0 : 90.0;
     return BlocProvider(
       create: (context) => TrackerBloc(),
       child: BlocBuilder<TrackerBloc, TrackerState>(
@@ -53,7 +54,6 @@ class TrackerWidgets extends StatelessWidget {
           return RotatedBox(
             quarterTurns: rotate ? 0 : 2,
             child: Container(
-              width: 90,
               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
               decoration: BoxDecoration(
                 color: Colors.transparent.withValues(alpha: .8),
@@ -119,8 +119,8 @@ class TrackerWidgets extends StatelessWidget {
                         borderRadius:
                             const BorderRadius.all(Radius.circular(10)),
                         child: Container(
-                          width: 80,
-                          height: 80,
+                          width: trackerSize,
+                          height: trackerSize,
                           color: AppColors.white.withValues(alpha: .5),
                           child: IconButton(
                             icon: const Icon(

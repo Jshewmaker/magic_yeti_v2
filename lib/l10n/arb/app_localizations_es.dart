@@ -274,16 +274,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get longestGameTitle => 'Longest Game';
 
   @override
-  String get averagePlacementTitle => 'Average Placement';
+  String get averagePlacementTitle => 'Average\nPlacement';
 
   @override
-  String get uniqueCommandersTitle => 'Unique Commanders';
+  String get uniqueCommandersTitle => 'Unique\nCommanders';
 
   @override
-  String get timesWentFirstTitle => 'Times Went First';
+  String get copiedGameId => 'Copied game ID';
 
   @override
-  String get avgEdhRecRankTitle => 'Avg EDHRec Rank';
+  String get timesWentFirstTitle => 'Times\nWent First';
+
+  @override
+  String get avgEdhRecRankTitle => 'Average\nEDHRec Rank';
 
   @override
   String get underConstructionText => 'Under Construction';

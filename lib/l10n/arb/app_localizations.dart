@@ -596,25 +596,31 @@ abstract class AppLocalizations {
   /// Title for average placement stat
   ///
   /// In en, this message translates to:
-  /// **'Average Placement'**
+  /// **'Average\nPlacement'**
   String get averagePlacementTitle;
 
   /// Title for unique commanders stat
   ///
   /// In en, this message translates to:
-  /// **'Unique Commanders'**
+  /// **'Unique\nCommanders'**
   String get uniqueCommandersTitle;
+
+  /// Message shown when game ID is copied
+  ///
+  /// In en, this message translates to:
+  /// **'Copied game ID'**
+  String get copiedGameId;
 
   /// Title for times went first stat
   ///
   /// In en, this message translates to:
-  /// **'Times Went First'**
+  /// **'Times\nWent First'**
   String get timesWentFirstTitle;
 
   /// Title for average EDHRec rank stat
   ///
   /// In en, this message translates to:
-  /// **'Avg EDHRec Rank'**
+  /// **'Average\nEDHRec Rank'**
   String get avgEdhRecRankTitle;
 
   /// Text shown for features under construction

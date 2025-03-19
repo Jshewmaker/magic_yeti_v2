@@ -2,6 +2,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/life_counter/widgets/widgets.dart';
 import 'package:magic_yeti/player/player.dart';
@@ -34,77 +35,84 @@ class _FourPlayerGameState extends State<FourPlayerGame> {
       value: SystemUiOverlayStyle.light,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return Scaffold(
-            body: BlocBuilder<GameBloc, GameState>(
-              buildWhen: (previous, current) =>
-                  previous.playerList != current.playerList,
-              builder: (context, state) {
-                final playerList = state.playerList;
-                return Stack(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            children: [
-                              LeftPlayer(
-                                playerId: playerList[2].id,
-                                rotate: true,
-                              ),
-                              const SizedBox(height: AppSpacing.xxs),
-                              LeftPlayer(
-                                playerId: playerList[1].id,
-                                rotate: false,
-                              ),
-                            ],
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeRight,
+            DeviceOrientation.landscapeLeft,
+          ]);
+          return SafeArea(
+            child: Scaffold(
+              body: BlocBuilder<GameBloc, GameState>(
+                buildWhen: (previous, current) =>
+                    previous.playerList != current.playerList,
+                builder: (context, state) {
+                  final playerList = state.playerList;
+                  return Stack(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              children: [
+                                LeftPlayer(
+                                  playerId: playerList[2].id,
+                                  rotate: true,
+                                ),
+                                const SizedBox(height: AppSpacing.xxs),
+                                LeftPlayer(
+                                  playerId: playerList[1].id,
+                                  rotate: false,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          width: _isExpanded ? 50 : 2,
-                          child: _isExpanded
-                              ? CenterControlColumn(onPressed: _toggleExpanded)
-                              : null,
-                        ),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              RightPlayer(
-                                playerId: playerList[3].id,
-                                rotate: true,
-                              ),
-                              const SizedBox(height: AppSpacing.xxs),
-                              RightPlayer(
-                                playerId: playerList[0].id,
-                                rotate: false,
-                              ),
-                            ],
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            width: _isExpanded ? 50 : 2,
+                            child: _isExpanded
+                                ? CenterControlColumn(
+                                    onPressed: _toggleExpanded)
+                                : null,
                           ),
-                        ),
-                      ],
-                    ),
-                    if (!_isExpanded)
-                      Center(
-                        child: SizedBox(
-                          width: 70,
-                          height: 70,
-                          child: FloatingActionButton(
-                            onPressed: _toggleExpanded,
-                            backgroundColor: AppColors.primary,
-                            shape: const CircleBorder(),
-                            child: ClipOval(
-                              child: Image.asset(
-                                'assets/icon/yeti_icon.png',
-                                color: Colors.white,
-                                fit: BoxFit.cover,
+                          Expanded(
+                            child: Column(
+                              children: [
+                                RightPlayer(
+                                  playerId: playerList[3].id,
+                                  rotate: true,
+                                ),
+                                const SizedBox(height: AppSpacing.xxs),
+                                RightPlayer(
+                                  playerId: playerList[0].id,
+                                  rotate: false,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!_isExpanded)
+                        Center(
+                          child: SizedBox(
+                            width: 70,
+                            height: 70,
+                            child: FloatingActionButton(
+                              onPressed: _toggleExpanded,
+                              backgroundColor: AppColors.primary,
+                              shape: const CircleBorder(),
+                              child: ClipOval(
+                                child: Image.asset(
+                                  'assets/icon/yeti_icon.png',
+                                  color: Colors.white,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                );
-              },
+                    ],
+                  );
+                },
+              ),
             ),
           );
         },
@@ -120,6 +128,7 @@ class LeftPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final trackerSize = DeviceInfoProvider.of(context).isPhone ? 60.0 : 90.0;
     return BlocProvider(
       create: (context) => PlayerBloc(
         playerRepository: context.read<PlayerRepository>(),
@@ -130,7 +139,7 @@ class LeftPlayer extends StatelessWidget {
           child: Row(
             children: [
               SizedBox(
-                width: 90,
+                width: trackerSize,
                 child: TrackerWidgets(
                   rotate: !rotate,
                   playerId: playerId,

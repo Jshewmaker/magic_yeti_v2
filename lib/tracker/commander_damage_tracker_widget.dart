@@ -149,9 +149,6 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
 
-  static const double _defaultSize = 80;
-  static const double _expandedSize = 140;
-
   @override
   void initState() {
     super.initState();
@@ -181,6 +178,10 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
 
   @override
   Widget build(BuildContext context) {
+    final double defaultSize =
+        MediaQuery.sizeOf(context).width > 900 ? 80.0 : 60.0;
+    final double expandedSize =
+        MediaQuery.sizeOf(context).width > 900 ? 140.0 : 120.0;
     return TapRegion(
       onTapOutside: (_) => _handleTapOutside(),
       child: GestureDetector(
@@ -242,10 +243,8 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          width:
-              _animationController.isCompleted ? _expandedSize : _defaultSize,
-          height:
-              _animationController.isCompleted ? _expandedSize : _defaultSize,
+          width: _animationController.isCompleted ? expandedSize : defaultSize,
+          height: _animationController.isCompleted ? expandedSize : defaultSize,
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -253,16 +252,16 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
                 _CommanderImage(
                   targetPlayer: widget.targetPlayer,
                   scale: _animationController.isCompleted
-                      ? _expandedSize
-                      : _defaultSize,
+                      ? expandedSize
+                      : defaultSize,
                   playerColor: widget.player.color,
                 )
               else
                 _PartnerImage(
                   targetPlayer: widget.targetPlayer,
                   scale: _animationController.isCompleted
-                      ? _expandedSize
-                      : _defaultSize,
+                      ? expandedSize
+                      : defaultSize,
                   playerColor: widget.player.color,
                 ),
               _CommanderIcons(animationController: _animationController),
