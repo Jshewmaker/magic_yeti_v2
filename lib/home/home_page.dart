@@ -668,7 +668,6 @@ class DetailsWidget extends StatelessWidget {
             ),
             const Spacer(),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   ' ${l10n.gameId}: $roomId',
