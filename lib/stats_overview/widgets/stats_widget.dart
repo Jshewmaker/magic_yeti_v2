@@ -18,17 +18,20 @@ class StatsWidget extends StatelessWidget {
       children: [
         SizedBox(
           height: 50,
-          width: 50,
+          width: 80,
           child: AutoSizeText(
             stat,
-            style: Theme.of(context).textTheme.headlineMedium,
+            style: Theme.of(context).textTheme.headlineLarge,
             textAlign: TextAlign.center,
             maxLines: 3,
           ),
         ),
         Text(
           title,
-          style: Theme.of(context).textTheme.titleSmall,
+          style: Theme.of(context)
+              .textTheme
+              .titleSmall
+              ?.copyWith(color: Colors.blueGrey),
           textAlign: TextAlign.center,
         ),
       ],

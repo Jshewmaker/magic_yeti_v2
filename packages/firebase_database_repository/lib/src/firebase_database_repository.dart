@@ -72,11 +72,28 @@ class AddMatchToPlayerHistoryException implements Exception {
 }
 
 /// {@template get_game_exception}
-/// Exception thrown when getting a game fails.
+/// Exception thrown when a game is not found.
 /// {@endtemplate}
 class GameNotFoundException implements Exception {
   /// {@macro get_game_exception}
   const GameNotFoundException({
+    required this.message,
+    required this.stackTrace,
+  });
+
+  /// A description of the error.
+  final String message;
+
+  /// The stack trace for the exception.
+  final Object stackTrace;
+}
+
+/// {@template get_game_exception}
+/// Exception thrown when getting a game fails.
+/// {@endtemplate}
+class GetGameException implements Exception {
+  /// {@macro get_game_exception}
+  const GetGameException({
     required this.message,
     required this.stackTrace,
   });
@@ -206,8 +223,8 @@ class FirebaseDatabaseRepository {
           stackTrace: StackTrace.current,
         );
       }
-    } on Exception catch (error, stackTrace) {
-      throw GameNotFoundException(
+    } on FirebaseException catch (error, stackTrace) {
+      throw GetGameException(
         message: error.toString(),
         stackTrace: stackTrace,
       );

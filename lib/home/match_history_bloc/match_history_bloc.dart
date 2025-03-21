@@ -54,6 +54,11 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
     Emitter<MatchHistoryState> emit,
   ) async {
     try {
+      emit(
+        state.copyWith(
+          status: MatchHistoryStatus.loadingHistorySuccess,
+        ),
+      );
       final game = await _databaseRepository.getGame(event.roomId);
       await _databaseRepository.addMatchToPlayerHistory(game, event.playerId);
       emit(
@@ -61,10 +66,18 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
           status: MatchHistoryStatus.loadingHistorySuccess,
         ),
       );
-    } catch (error) {
+    } on GameNotFoundException catch (error) {
+      // Handle game not found exception and stop execution
       emit(
         state.copyWith(
           status: MatchHistoryStatus.gameNotFound,
+          error: error.toString(),
+        ),
+      );
+    } on Exception catch (error) {
+      emit(
+        state.copyWith(
+          status: MatchHistoryStatus.failure,
           error: error.toString(),
         ),
       );

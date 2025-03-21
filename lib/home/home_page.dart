@@ -218,7 +218,8 @@ class AccountWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
         child: !userIsLoggedIn
             ? matchHistoryState.status ==
-                    MatchHistoryStatus.loadingHistorySuccess
+                        MatchHistoryStatus.loadingHistorySuccess ||
+                    matchHistoryState.status == MatchHistoryStatus.gameNotFound
                 ? StatsOverviewWidget(key: ObjectKey(matchHistoryState))
                 : const CircularProgressIndicator()
             : Column(
@@ -414,24 +415,9 @@ class MatchHistoryPanel extends StatelessWidget {
     return BlocListener<MatchHistoryBloc, MatchHistoryState>(
       listener: (context, state) {
         if (state.status == MatchHistoryStatus.gameNotFound) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: AppColors.tertiarySecondary,
-              content: Center(
-                child: Text(
-                  l10n.gameNotFoundError,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.black,
-                      ),
-                ),
-              ),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(
-                bottom: 20,
-                right: 20,
-                left: MediaQuery.of(context).size.width / 2,
-              ),
-            ),
+          showToast(
+            context,
+            Toast.error(message: l10n.gameNotFoundError),
           );
         }
       },
