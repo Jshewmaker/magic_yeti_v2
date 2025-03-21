@@ -1,13 +1,15 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:firebase_database_repository/models/models.dart';
+import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
-import 'package:magic_yeti/home/bloc/match_history_bloc.dart';
+import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
+import 'package:magic_yeti/match_details/match_details.dart';
 import 'package:player_repository/models/player.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -29,7 +31,12 @@ class MatchDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MatchDetailsView(gameId: gameId);
+    return BlocProvider(
+      create: (context) => MatchDetailsBloc(
+        databaseRepository: context.read<FirebaseDatabaseRepository>(),
+      ),
+      child: MatchDetailsView(gameId: gameId),
+    );
   }
 }
 
@@ -53,7 +60,7 @@ class MatchDetailsView extends StatelessWidget {
     );
 
     // Dispatch event to update player ownership
-    context.read<MatchHistoryBloc>().add(
+    context.read<MatchDetailsBloc>().add(
           UpdatePlayerOwnership(
             game: game,
             player: player,
@@ -80,23 +87,16 @@ class MatchDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final game = context.watch<MatchHistoryBloc>().state.games.firstWhere(
-          (game) => game.id == gameId,
-        );
-    final winningPlayer = game.players.firstWhere(
-      (player) => player.id == game.winnerId,
-    );
-    final gameDuration = game.durationInSeconds;
+    // Try to find the game, but handle the case where it might not exist anymore
 
-    return BlocConsumer<MatchHistoryBloc, MatchHistoryState>(
-      listenWhen: (previous, current) =>
-          previous.status != current.status &&
-          current.status == MatchHistoryStatus.failure,
+    return BlocConsumer<MatchDetailsBloc, MatchDetailsState>(
       listener: (context, state) {
-        if (state.status == MatchHistoryStatus.failure) {
+        if (state is MatchDetailsDeleted) {
+          context.go(HomePage.routeName);
+        } else if (state is MatchDetailsError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to save: ${state.error}'),
+              content: Text('Error: ${state.error}'),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 2),
             ),
@@ -104,9 +104,29 @@ class MatchDetailsView extends StatelessWidget {
         }
       },
       builder: (context, state) {
+        final games = context.watch<MatchHistoryBloc>().state.games;
+        final gameExists = games.any((game) => game.id == gameId);
+        if (!gameExists) {
+          return Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.pop(),
+              ),
+            ),
+            body: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        // Now we can safely get the game since we know it exists
+        final game = games.firstWhere((game) => game.id == gameId);
+        final winningPlayer = game.players.firstWhere(
+          (player) => player.id == game.winnerId,
+        );
+        final gameDuration = game.durationInSeconds;
         return Scaffold(
           appBar: AppBar(
-            title: Text(l10n.matchDetailsTitle),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () => context.pop(),
@@ -132,6 +152,7 @@ class MatchDetailsView extends StatelessWidget {
                             winner: winningPlayer,
                             gameDuration: gameDuration,
                             startingPlayerId: game.startingPlayerId,
+                            gameId: gameId,
                           ),
                           const SizedBox(height: 16),
                           MatchStandingsWidget(
@@ -165,12 +186,14 @@ class MatchWinnerWidget extends StatelessWidget {
     required this.winner,
     required this.gameDuration,
     required this.startingPlayerId,
+    required this.gameId,
     super.key,
   });
 
   final Player winner;
   final int gameDuration;
   final String startingPlayerId;
+  final String gameId;
 
   @override
   Widget build(BuildContext context) {
@@ -211,7 +234,8 @@ class MatchWinnerWidget extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             LinkWidget(
-                                uri: winner.commander?.scryFallUrl ?? ''),
+                              uri: winner.commander?.scryFallUrl ?? '',
+                            ),
                           ],
                         ),
                       if (winner.id == startingPlayerId)
@@ -219,6 +243,7 @@ class MatchWinnerWidget extends StatelessWidget {
                     ],
                   ),
                 ),
+                _DeleteMatchButton(gameId: gameId),
               ],
             ),
             const SizedBox(height: 8),
@@ -474,6 +499,70 @@ class MatchMetadataWidget extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _DeleteMatchButton extends StatelessWidget {
+  const _DeleteMatchButton({
+    required this.gameId,
+  });
+
+  final String gameId;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
+      buildWhen: (previous, current) => previous.status != current.status,
+      builder: (context, state) {
+        return IconButton(
+          onPressed: () {
+            _showDeleteConfirmationDialog(context);
+          },
+          icon: const Icon(Icons.delete_outline),
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return BlocProvider.value(
+          value: context.read<MatchDetailsBloc>(),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: const Text('Delete Match'),
+                content: const Text(
+                  'Are you sure you want to delete this match?',
+                ),
+                actions: [
+                  ElevatedButton(
+                    onPressed: () => context.pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  HoldToConfirmButton(
+                    child: const Text('Delete Match'),
+                    onProgressCompleted: () async {
+                      context.read<MatchDetailsBloc>().add(
+                            DeleteMatchEvent(
+                              gameId: gameId,
+                              userId: context.read<AppBloc>().state.user.id,
+                            ),
+                          );
+                      // Just close the dialog and let the BlocConsumer handle navigation
+                      context.pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

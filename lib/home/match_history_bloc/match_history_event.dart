@@ -37,24 +37,3 @@ final class AddMatchToPlayerHistoryEvent extends MatchHistoryEvent {
 final class ClearMatchHistory extends MatchHistoryEvent {
   const ClearMatchHistory();
 }
-
-/// Event to compile match history
-final class CompileMatchHistoryData extends MatchHistoryEvent {
-  const CompileMatchHistoryData();
-}
-
-/// Event to update player ownership in a game
-final class UpdatePlayerOwnership extends MatchHistoryEvent {
-  const UpdatePlayerOwnership({
-    required this.game,
-    required this.player,
-    required this.currentUserFirebaseId,
-  });
-
-  final GameModel game;
-  final Player player;
-  final String currentUserFirebaseId;
-
-  @override
-  List<Object> get props => [game, player, currentUserFirebaseId];
-}

@@ -20,6 +20,23 @@ class SaveGameStatsException implements Exception {
   final Object stackTrace;
 }
 
+/// {@template delete_match_exception}
+/// Exception thrown when deleting a match fails.
+/// {@endtemplate}
+class DeleteMatchException implements Exception {
+  /// {@macro delete_match_exception}
+  const DeleteMatchException({
+    required this.message,
+    required this.stackTrace,
+  });
+
+  /// A description of the error.
+  final String message;
+
+  /// The stack trace for the exception.
+  final Object stackTrace;
+}
+
 /// {@template get_games_exception}
 /// Exception thrown when getting games fails.
 /// {@endtemplate}
@@ -228,6 +245,23 @@ class FirebaseDatabaseRepository {
           .set(game.toJson());
     } on Exception catch (error, stackTrace) {
       throw SaveGameStatsException(
+        message: error.toString(),
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Delete a match from the player's history
+  Future<void> deleteGame(String gameId, String playerId) async {
+    try {
+      await _firebase
+          .collection('users')
+          .doc(playerId)
+          .collection('matches')
+          .doc(gameId)
+          .delete();
+    } on Exception catch (error, stackTrace) {
+      throw DeleteMatchException(
         message: error.toString(),
         stackTrace: stackTrace,
       );

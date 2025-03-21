@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:app_ui/app_ui.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
-import 'package:magic_yeti/home/bloc/match_history_bloc.dart';
+import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
@@ -18,6 +17,7 @@ import 'package:magic_yeti/login/login.dart';
 import 'package:magic_yeti/match_details/view/match_details_page.dart';
 import 'package:magic_yeti/profile/view/profile_page.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
+import 'package:magic_yeti/stats_overview/stats_overview.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class HomePage extends StatefulWidget {
@@ -210,61 +210,17 @@ class AccountWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final userIsLoggedIn =
         context.select((AppBloc bloc) => bloc.state.user.isAnonymous);
-    if (context.select((MatchHistoryBloc bloc) => bloc.state.status) ==
-        MatchHistoryStatus.loadingHistorySuccess) {
-      context.read<MatchHistoryBloc>().add(
-            const CompileMatchHistoryData(),
-          );
-    }
+
     final matchHistoryState = context.watch<MatchHistoryBloc>().state;
     final l10n = context.l10n;
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
         child: !userIsLoggedIn
-            ? GridView.count(
-                crossAxisCount: 3,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 16,
-                children: [
-                  StatsWidget(
-                    title: l10n.winRateTitle,
-                    stat: '${matchHistoryState.winPercentage}%',
-                  ),
-                  StatsWidget(
-                    title: l10n.totalWinsTitle,
-                    stat: matchHistoryState.totalWins.toString(),
-                  ),
-                  StatsWidget(
-                    title: l10n.totalGamesTitle,
-                    stat: matchHistoryState.games.length.toString(),
-                  ),
-                  StatsWidget(
-                    title: l10n.shortestGameTitle,
-                    stat: matchHistoryState.shortestGameDuration,
-                  ),
-                  StatsWidget(
-                    title: l10n.longestGameTitle,
-                    stat: matchHistoryState.longestGameDuration,
-                  ),
-                  StatsWidget(
-                    title: l10n.averagePlacementTitle,
-                    stat: matchHistoryState.averagePlacement.toString(),
-                  ),
-                  StatsWidget(
-                    title: l10n.uniqueCommandersTitle,
-                    stat: matchHistoryState.uniqueCommanderCount.toString(),
-                  ),
-                  StatsWidget(
-                    title: l10n.timesWentFirstTitle,
-                    stat: matchHistoryState.timesWentFirst.toString(),
-                  ),
-                  StatsWidget(
-                    title: l10n.mostPlayedCommanderTitle,
-                    stat: matchHistoryState.mostPlayedCommander,
-                  ),
-                ],
-              )
+            ? matchHistoryState.status ==
+                    MatchHistoryStatus.loadingHistorySuccess
+                ? StatsOverviewWidget(key: ObjectKey(matchHistoryState))
+                : const CircularProgressIndicator()
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -326,40 +282,6 @@ class AccountWidget extends StatelessWidget {
                 ],
               ),
       ),
-    );
-  }
-}
-
-class StatsWidget extends StatelessWidget {
-  const StatsWidget({
-    required this.title,
-    required this.stat,
-    super.key,
-  });
-
-  final String title;
-  final String stat;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 50,
-          width: 100,
-          child: AutoSizeText(
-            stat,
-            style: Theme.of(context).textTheme.headlineMedium,
-            textAlign: TextAlign.center,
-            maxLines: 3,
-          ),
-        ),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleSmall,
-          textAlign: TextAlign.center,
-        ),
-      ],
     );
   }
 }
@@ -523,10 +445,8 @@ class MatchHistoryPanel extends StatelessWidget {
               return Center(
                 child: Text(l10n.matchHistoryLoadError),
               );
-            case MatchHistoryStatus.loadingHistorySuccess:
             case MatchHistoryStatus.gameNotFound:
-            case MatchHistoryStatus.loadingStats:
-            case MatchHistoryStatus.loadingStatsSuccess:
+            case MatchHistoryStatus.loadingHistorySuccess:
               if (state.games.isEmpty) {
                 return Center(
                   child: Text(
@@ -764,7 +684,7 @@ class DetailsWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                SelectableText(
+                Text(
                   ' ${l10n.gameId}: $roomId',
                   style: textStyle.labelLarge?.copyWith(
                     color: Colors.black45,
