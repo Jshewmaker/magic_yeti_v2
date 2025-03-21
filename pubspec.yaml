@@ -1,6 +1,6 @@
 name: magic_yeti
 description: Magic The Gathering Tracking App
-version: 1.0.0+1
+version: 1.1.0+1
 publish_to: none
 
 environment:
@@ -17,6 +17,7 @@ dependencies:
     path: packages/app_ui
   authentication_client:
     path: packages/authentication_client/authentication_client
+  auto_size_text: ^3.0.0
   bloc: ^8.1.4
   bloc_concurrency: ^0.2.5
   cached_network_image: ^3.3.1

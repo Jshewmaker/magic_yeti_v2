@@ -623,6 +623,12 @@ abstract class AppLocalizations {
   /// **'Average\nEDHRec Rank'**
   String get avgEdhRecRankTitle;
 
+  /// Title for most played commander stat
+  ///
+  /// In en, this message translates to:
+  /// **'Most Played\nCommander'**
+  String get mostPlayedCommanderTitle;
+
   /// Text shown for features under construction
   ///
   /// In en, this message translates to:

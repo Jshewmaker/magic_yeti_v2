@@ -564,6 +564,12 @@
     "type": "text",
     "placeholders": {}
   },
+  "mostPlayedCommanderTitle": "Most Played\nCommander",
+  "@mostPlayedCommanderTitle": {
+    "description": "Title for most played commander stat",
+    "type": "text",
+    "placeholders": {}
+  },
   "underConstructionText": "Under Construction",
   "@underConstructionText": {
     "description": "Text shown for features under construction",

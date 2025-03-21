@@ -289,6 +289,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get avgEdhRecRankTitle => 'Average\nEDHRec Rank';
 
   @override
+  String get mostPlayedCommanderTitle => 'Most Played\nCommander';
+
+  @override
   String get underConstructionText => 'Under Construction';
 
   @override

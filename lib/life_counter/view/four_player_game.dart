@@ -166,6 +166,7 @@ class RightPlayer extends StatelessWidget {
   final bool rotate;
   @override
   Widget build(BuildContext context) {
+    final trackerSize = DeviceInfoProvider.of(context).isPhone ? 60.0 : 90.0;
     return BlocProvider(
       create: (context) => PlayerBloc(
         playerRepository: context.read<PlayerRepository>(),
@@ -182,7 +183,7 @@ class RightPlayer extends StatelessWidget {
                 ),
               ),
               SizedBox(
-                width: 90,
+                width: trackerSize,
                 child: TrackerWidgets(
                   rotate: !rotate,
                   playerId: playerId,

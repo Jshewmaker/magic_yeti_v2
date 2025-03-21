@@ -23,7 +23,7 @@ class MatchHistoryState extends Equatable {
     this.longestGameDuration = '0',
     this.averagePlacement = 0,
     this.timesWentFirst = 0,
-    this.avgEdhRecRank = 0,
+    this.mostPlayedCommander = '',
   });
 
   final MatchHistoryStatus status;
@@ -37,7 +37,7 @@ class MatchHistoryState extends Equatable {
   final String longestGameDuration;
   final double averagePlacement;
   final int timesWentFirst;
-  final double avgEdhRecRank;
+  final String mostPlayedCommander;
 
   MatchHistoryState copyWith({
     MatchHistoryStatus? status,
@@ -51,7 +51,7 @@ class MatchHistoryState extends Equatable {
     String? longestGameDuration,
     double? averagePlacement,
     int? timesWentFirst,
-    double? avgEdhRecRank,
+    String? mostPlayedCommander,
   }) {
     return MatchHistoryState(
       status: status ?? this.status,
@@ -65,7 +65,7 @@ class MatchHistoryState extends Equatable {
       longestGameDuration: longestGameDuration ?? this.longestGameDuration,
       averagePlacement: averagePlacement ?? this.averagePlacement,
       timesWentFirst: timesWentFirst ?? this.timesWentFirst,
-      avgEdhRecRank: avgEdhRecRank ?? this.avgEdhRecRank,
+      mostPlayedCommander: mostPlayedCommander ?? this.mostPlayedCommander,
     );
   }
 
@@ -82,6 +82,6 @@ class MatchHistoryState extends Equatable {
         longestGameDuration,
         averagePlacement,
         timesWentFirst,
-        avgEdhRecRank,
+        mostPlayedCommander,
       ];
 }

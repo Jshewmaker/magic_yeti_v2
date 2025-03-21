@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_ui/app_ui.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,7 +38,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     // Use DeviceInfoProvider instead of LayoutBuilder
     final isPhone = DeviceInfoProvider.of(context).isPhone;
-    
+
     // Set preferred orientations for phones
     if (isPhone) {
       SystemChrome.setPreferredOrientations([
@@ -224,6 +225,7 @@ class AccountWidget extends StatelessWidget {
             ? GridView.count(
                 crossAxisCount: 3,
                 crossAxisSpacing: 8,
+                mainAxisSpacing: 16,
                 children: [
                   StatsWidget(
                     title: l10n.winRateTitle,
@@ -258,8 +260,8 @@ class AccountWidget extends StatelessWidget {
                     stat: matchHistoryState.timesWentFirst.toString(),
                   ),
                   StatsWidget(
-                    title: l10n.avgEdhRecRankTitle,
-                    stat: matchHistoryState.avgEdhRecRank.toString(),
+                    title: l10n.mostPlayedCommanderTitle,
+                    stat: matchHistoryState.mostPlayedCommander,
                   ),
                 ],
               )
@@ -342,10 +344,15 @@ class StatsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
-          stat,
-          style: Theme.of(context).textTheme.headlineMedium,
-          textAlign: TextAlign.center,
+        SizedBox(
+          height: 50,
+          width: 100,
+          child: AutoSizeText(
+            stat,
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+            maxLines: 3,
+          ),
         ),
         Text(
           title,

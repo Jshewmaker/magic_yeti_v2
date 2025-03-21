@@ -170,21 +170,26 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
     return timesFirst;
   }
 
-  double _calculateAvgEdhRecRank(
+  String _calculateMostPlayedCommander(
     List<GameModel> games,
     int uniqueCommanderCount,
   ) {
-    if (games.isEmpty) return 0;
+    if (games.isEmpty) return '';
 
-    var totalRecRank = 0;
+    final commanders = <String>[];
     for (final game in games) {
       final player = _findPlayerInGame(game);
-      totalRecRank += player.commander?.edhrecRank ?? 0;
+      commanders.add(player.commander?.name ?? '');
     }
 
-    // Round to 1 decimal place
-    return double.parse(
-        (totalRecRank / uniqueCommanderCount).toStringAsFixed(1));
+    final mostPlayedCommander = commanders.reduce((current, next) {
+      return commanders.where((element) => element == current).length >
+              commanders.where((element) => element == next).length
+          ? current
+          : next;
+    });
+
+    return mostPlayedCommander;
   }
 
   Future<void> _onCompileMatchHistoryData(
@@ -205,7 +210,7 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
       final averagePlacement = _calculateAveragePlacement(games);
       final timesWentFirst = _calculateTimesWentFirst(games);
       final avgEdhRecRank =
-          _calculateAvgEdhRecRank(games, uniqueCommanderCount);
+          _calculateMostPlayedCommander(games, uniqueCommanderCount);
 
       emit(
         state.copyWith(
@@ -217,7 +222,7 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
           longestGameDuration: _formatDuration(longestGameDuration),
           averagePlacement: averagePlacement,
           timesWentFirst: timesWentFirst,
-          avgEdhRecRank: avgEdhRecRank,
+          mostPlayedCommander: avgEdhRecRank,
         ),
       );
     } on Exception catch (e) {

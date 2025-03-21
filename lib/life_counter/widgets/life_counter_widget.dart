@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:magic_yeti/life_counter/bloc/life_change_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
 import 'package:magic_yeti/player/view/customize_player_page.dart';
+import 'package:magic_yeti/timer/widgets/auto_resume_timer_wrapper.dart';
 import 'package:player_repository/player_repository.dart';
 
 class LifeCounterWidget extends StatelessWidget {
@@ -42,11 +43,13 @@ class LifeCounterWidget extends StatelessWidget {
               leftSideTracker: true,
             ),
             _LifeTrackerWidget(lifePoints: player.lifePoints),
-            Row(
-              children: [
-                DecrementLifeWidget(player: player),
-                IncrementLifeWidget(player: player),
-              ],
+            AutoResumeTimerWrapper(
+              child: Row(
+                children: [
+                  DecrementLifeWidget(player: player),
+                  IncrementLifeWidget(player: player),
+                ],
+              ),
             ),
             _PlayerNameWidget(
               name: textController.text,
