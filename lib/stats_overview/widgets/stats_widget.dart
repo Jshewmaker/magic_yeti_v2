@@ -26,13 +26,17 @@ class StatsWidget extends StatelessWidget {
             maxLines: 3,
           ),
         ),
-        Text(
-          title,
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall
-              ?.copyWith(color: Colors.blueGrey),
-          textAlign: TextAlign.center,
+        SizedBox(
+          height: 50,
+          width: 80,
+          child: AutoSizeText(
+            title,
+            style: Theme.of(context)
+                .textTheme
+                .titleSmall
+                ?.copyWith(color: Colors.blueGrey),
+            textAlign: TextAlign.center,
+          ),
         ),
       ],
     );

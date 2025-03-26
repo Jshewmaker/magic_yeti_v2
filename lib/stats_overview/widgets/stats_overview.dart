@@ -29,8 +29,8 @@ class StatsOverviewWidget extends StatelessWidget {
           }
           if (state is StatsOverviewLoaded) {
             return GridView.count(
-              physics: const ClampingScrollPhysics(),
-              crossAxisSpacing: 100,
+              crossAxisSpacing: 50,
+              childAspectRatio: .6,
               mainAxisSpacing: 10,
               crossAxisCount: 3,
               children: [

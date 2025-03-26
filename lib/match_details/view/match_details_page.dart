@@ -553,7 +553,7 @@ class _DeleteMatchButton extends StatelessWidget {
                               userId: context.read<AppBloc>().state.user.id,
                             ),
                           );
-                      // Just close the dialog and let the BlocConsumer handle navigation
+
                       context.pop();
                     },
                   ),
