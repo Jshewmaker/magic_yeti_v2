@@ -294,9 +294,9 @@
     "type": "text",
     "placeholders": {}
   },
-  "playerNameColumnHeader": "Player Name",
-  "@playerNameColumnHeader": {
-    "description": "Column header for player name in players list",
+  "playerColumnHeader": "Player",
+  "@playerColumnHeader": {
+    "description": "Column header for player in players list",
     "type": "text",
     "placeholders": {}
   },

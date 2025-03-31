@@ -389,11 +389,11 @@ abstract class AppLocalizations {
   /// **'Commander'**
   String get commanderColumnHeader;
 
-  /// Column header for player name in players list
+  /// Column header for player in players list
   ///
   /// In en, this message translates to:
-  /// **'Player Name'**
-  String get playerNameColumnHeader;
+  /// **'Player'**
+  String get playerColumnHeader;
 
   /// Button text for claiming a player
   ///

@@ -162,7 +162,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commanderColumnHeader => 'Commander';
 
   @override
-  String get playerNameColumnHeader => 'Player Name';
+  String get playerColumnHeader => 'Player';
 
   @override
   String get thisIsMe => 'This is me';

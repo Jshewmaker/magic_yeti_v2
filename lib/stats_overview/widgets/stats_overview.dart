@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/stats_overview/stats_overview.dart';
@@ -12,6 +13,7 @@ class StatsOverviewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
     return BlocProvider(
       create: (context) => StatsOverviewBloc()
         ..add(
@@ -30,7 +32,7 @@ class StatsOverviewWidget extends StatelessWidget {
           if (state is StatsOverviewLoaded) {
             return GridView.count(
               crossAxisSpacing: 50,
-              childAspectRatio: .6,
+              childAspectRatio: isPhone ? .8 : 1.2,
               mainAxisSpacing: 10,
               crossAxisCount: 3,
               children: [

@@ -1,11 +1,13 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
@@ -44,6 +46,65 @@ class MatchDetailsView extends StatelessWidget {
   const MatchDetailsView({
     required this.gameId,
     super.key,
+  });
+
+  final String gameId;
+
+  @override
+  Widget build(BuildContext context) {
+    // Use DeviceInfoProvider to determine if the device is a phone
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
+
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+    ]);
+
+    return BlocConsumer<MatchDetailsBloc, MatchDetailsState>(
+      listener: (context, state) {
+        if (state is MatchDetailsDeleted) {
+          context.go(HomePage.routeName);
+        } else if (state is MatchDetailsError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${state.error}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        final games = context.watch<MatchHistoryBloc>().state.games;
+        final gameExists = games.any((game) => game.id == gameId);
+        if (!gameExists) {
+          return Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.pop(),
+              ),
+            ),
+            body: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        // Return the appropriate view based on device type
+        return isPhone
+            ? _PhoneMatchDetailsView(gameId: gameId)
+            : _TabletMatchDetailsView(gameId: gameId);
+      },
+    );
+  }
+}
+
+class _PhoneMatchDetailsView extends StatelessWidget {
+  const _PhoneMatchDetailsView({
+    required this.gameId,
   });
 
   final String gameId;
@@ -87,96 +148,166 @@ class MatchDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    // Try to find the game, but handle the case where it might not exist anymore
+    final games = context.watch<MatchHistoryBloc>().state.games;
+    final game = games.firstWhere((game) => game.id == gameId);
+    final winningPlayer = game.players.firstWhere(
+      (player) => player.id == game.winnerId,
+    );
+    final gameDuration = game.durationInSeconds;
 
-    return BlocConsumer<MatchDetailsBloc, MatchDetailsState>(
-      listener: (context, state) {
-        if (state is MatchDetailsDeleted) {
-          context.go(HomePage.routeName);
-        } else if (state is MatchDetailsError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${state.error}'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-      },
-      builder: (context, state) {
-        final games = context.watch<MatchHistoryBloc>().state.games;
-        final gameExists = games.any((game) => game.id == gameId);
-        if (!gameExists) {
-          return Scaffold(
-            appBar: AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => context.pop(),
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(l10n.matchDetailsHeading),
+        actions: [
+          _DeleteMatchButton(gameId: gameId),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Winner card
+              MatchWinnerWidget(
+                winner: winningPlayer,
+                gameDuration: gameDuration,
+                startingPlayerId: game.startingPlayerId,
+                gameId: gameId,
               ),
-            ),
-            body: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-        // Now we can safely get the game since we know it exists
-        final game = games.firstWhere((game) => game.id == gameId);
-        final winningPlayer = game.players.firstWhere(
-          (player) => player.id == game.winnerId,
-        );
-        final gameDuration = game.durationInSeconds;
-        return Scaffold(
-          appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
-            ),
-          ),
-          body: CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.matchDetailsHeading,
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                          const SizedBox(height: 16),
-                          MatchWinnerWidget(
-                            winner: winningPlayer,
-                            gameDuration: gameDuration,
-                            startingPlayerId: game.startingPlayerId,
-                            gameId: gameId,
-                          ),
-                          const SizedBox(height: 16),
-                          MatchStandingsWidget(
-                            players: game.players,
-                            winner: winningPlayer,
-                            currentUserFirebaseId: game.hostId,
-                            startingPlayerId: game.startingPlayerId,
-                            onSelectPlayer: (player) =>
-                                _handlePlayerSelection(context, player),
-                          ),
-                          const SizedBox(height: 16),
-                          MatchMetadataWidget(
-                            game: game,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ]),
-                ),
+              const SizedBox(height: 16),
+              // Players standings
+              MatchStandingsWidget(
+                players: game.players,
+                winner: winningPlayer,
+                currentUserFirebaseId: game.hostId,
+                startingPlayerId: game.startingPlayerId,
+                onSelectPlayer: (player) =>
+                    _handlePlayerSelection(context, player),
+              ),
+              const SizedBox(height: 16),
+              // Match metadata
+              MatchMetadataWidget(
+                game: game,
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TabletMatchDetailsView extends StatelessWidget {
+  const _TabletMatchDetailsView({
+    required this.gameId,
+  });
+
+  final String gameId;
+
+  void _handlePlayerSelection(BuildContext context, Player player) {
+    final currentUserFirebaseId = context.read<AppBloc>().state.user.id;
+    final game = context.read<MatchHistoryBloc>().state.games.firstWhere(
+          (game) => game.id == gameId,
         );
-      },
+    // Find the currently assigned player, if any
+    final currentPlayer = game.players.firstWhere(
+      (p) => p.firebaseId == currentUserFirebaseId,
+      orElse: () => player,
+    );
+
+    // Dispatch event to update player ownership
+    context.read<MatchDetailsBloc>().add(
+          UpdatePlayerOwnership(
+            game: game,
+            player: player,
+            currentUserFirebaseId: currentUserFirebaseId,
+          ),
+        );
+
+    // Show a confirmation snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: currentPlayer.id != player.id
+            ? Text(
+                context.l10n.changedPlayerMessage(
+                  currentPlayer.name,
+                  player.name,
+                ),
+              )
+            : Text(context.l10n.wasPlayerMessage(player.name)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final games = context.watch<MatchHistoryBloc>().state.games;
+    final game = games.firstWhere((game) => game.id == gameId);
+    final winningPlayer = game.players.firstWhere(
+      (player) => player.id == game.winnerId,
+    );
+    final gameDuration = game.durationInSeconds;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        actions: [
+          _DeleteMatchButton(gameId: gameId),
+        ],
+      ),
+      body: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.matchDetailsHeading,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 16),
+                      MatchWinnerWidget(
+                        winner: winningPlayer,
+                        gameDuration: gameDuration,
+                        startingPlayerId: game.startingPlayerId,
+                        gameId: gameId,
+                      ),
+                      const SizedBox(height: 16),
+                      MatchStandingsWidget(
+                        players: game.players,
+                        winner: winningPlayer,
+                        currentUserFirebaseId: game.hostId,
+                        startingPlayerId: game.startingPlayerId,
+                        onSelectPlayer: (player) =>
+                            _handlePlayerSelection(context, player),
+                      ),
+                      const SizedBox(height: 16),
+                      MatchMetadataWidget(
+                        game: game,
+                      ),
+                    ],
+                  ),
+                ),
+              ]),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -243,7 +374,6 @@ class MatchWinnerWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                _DeleteMatchButton(gameId: gameId),
               ],
             ),
             const SizedBox(height: 8),
@@ -327,65 +457,107 @@ class MatchStandingsWidget extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize:
+              MainAxisSize.min, // Prevent Column from expanding infinitely
           children: [
-            Text(
-              context.l10n.playersHeading,
-              style: Theme.of(context).textTheme.titleLarge,
+            // Header row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Placement header
+                Expanded(
+                  child: Text(
+                    context.l10n.placementColumnHeader,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Achievement',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                  ),
+                ),
+                // Player name and commander header
+                Expanded(
+                  child: Text(
+                    context.l10n.playerColumnHeader,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 60,
-                    child: Text(
-                      context.l10n.placementColumnHeader,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  SizedBox(
-                    width: 80,
-                    child: Text(
-                      context.l10n.commanderColumnHeader,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                    ),
-                  ),
-                  const SizedBox(width: 30),
-                  Expanded(
-                    child: Text(
-                      context.l10n.playerNameColumnHeader,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
+            const Divider(),
+            // Player rows
             ...players.map(
-              (player) => ListTile(
-                titleAlignment: ListTileTitleAlignment.top,
-                leading: Row(
-                  mainAxisSize: MainAxisSize.min,
+              (player) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      width: 50,
+                    // Placement number
+                    Expanded(
                       child: Text(
                         _getOrdinalNumber(player.placement),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
-                    const SizedBox(width: 40),
+                    Expanded(
+                      flex: 2,
+                      child: Wrap(
+                        spacing: 8,
+                        children: [
+                          if (player.firebaseId == currentUserFirebaseId)
+                            const Tooltip(
+                              triggerMode: TooltipTriggerMode.tap,
+                              message: 'You',
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          if (player.id == winner.id)
+                            const Tooltip(
+                              triggerMode: TooltipTriggerMode.tap,
+                              message: 'Winner',
+                              child: Icon(
+                                Icons.emoji_events,
+                                color: Colors.amber,
+                                size: 16,
+                              ),
+                            ),
+                          if (player.id == startingPlayerId)
+                            const Tooltip(
+                              triggerMode: TooltipTriggerMode.tap,
+                              message: 'Went First',
+                              child: FaIcon(
+                                FontAwesomeIcons.one,
+                                color: Colors.green,
+                                size: 16,
+                              ),
+                            ),
+                          if (player.firebaseId != currentUserFirebaseId)
+                            const Tooltip(
+                              triggerMode: TooltipTriggerMode.tap,
+                              message: 'Went First',
+                              child: FaIcon(
+                                FontAwesomeIcons.userPlus,
+                                color: Colors.grey,
+                                size: 16,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                     CircleAvatar(
                       backgroundImage:
                           player.commander?.imageUrl.isNotEmpty ?? false
@@ -393,68 +565,29 @@ class MatchStandingsWidget extends StatelessWidget {
                               : null,
                       backgroundColor: Color(player.color),
                     ),
-                  ],
-                ),
-                title: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(width: 40),
-                    Text(player.name),
-                  ],
-                ),
-                subtitle: player.commander?.name == null
-                    ? const SizedBox.shrink()
-                    : Row(
+                    const SizedBox(width: 16),
+
+                    // Player info and icons
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(width: 40),
-                          Text(player.commander?.name ?? ''),
-                          LinkWidget(uri: player.commander?.scryFallUrl ?? ''),
+                          // Player name
+                          Row(
+                            children: [
+                              Text(
+                                player.name,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ],
+                          ),
+                          // Commander name and link
+                          if (player.commander?.name != null)
+                            LinkWidget(
+                                uri: player.commander?.scryFallUrl ?? ''),
                         ],
                       ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (player.firebaseId == currentUserFirebaseId)
-                      const Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: Tooltip(
-                          triggerMode: TooltipTriggerMode.tap,
-                          message: 'You',
-                          child: Icon(
-                            Icons.person,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ),
-                    if (player.id == winner.id)
-                      const Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: Tooltip(
-                          triggerMode: TooltipTriggerMode.tap,
-                          message: 'Won',
-                          child: Icon(
-                            Icons.emoji_events,
-                            color: Colors.amber,
-                          ),
-                        ),
-                      ),
-                    if (player.id == startingPlayerId)
-                      const Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: Tooltip(
-                          triggerMode: TooltipTriggerMode.tap,
-                          message: 'Went First',
-                          child: FaIcon(
-                            FontAwesomeIcons.one,
-                            color: Colors.green,
-                          ),
-                        ),
-                      ),
-                    if (player.firebaseId != currentUserFirebaseId)
-                      TextButton(
-                        onPressed: () => onSelectPlayer(player),
-                        child: Text(l10n.linkToMyAccount),
-                      ),
+                    ),
                   ],
                 ),
               ),
