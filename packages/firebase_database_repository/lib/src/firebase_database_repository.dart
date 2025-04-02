@@ -315,4 +315,150 @@ class FirebaseDatabaseRepository {
       );
     }
   }
+
+  /// Adds a friend request to the Firestore database.
+  ///
+  /// @param senderId The ID of the user sending the request.
+  /// @param receiverId The ID of the user receiving the request.
+  /// @returns Future<void>
+  /// @throws Exception if the request cannot be added.
+  Future<void> addFriendRequest(
+      String senderId, String senderName, String receiverId) async {
+    try {
+      await _firebase.collection('FriendRequests').add({
+        'senderId': senderId,
+        'senderName': senderName,
+        'receiverId': receiverId,
+        'status': 'pending',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Failed to add friend request: $e');
+    }
+  }
+
+  /// Accepts a friend request by updating its status in the Firestore database.
+  ///
+  /// @param requestId The ID of the friend request to accept.
+  /// @returns Future<void>
+  /// @throws Exception if the request cannot be updated.
+  Future<void> acceptFriendRequest(String requestId) async {
+    try {
+      await _firebase.collection('FriendRequests').doc(requestId).update({
+        'status': 'accepted',
+      });
+    } catch (e) {
+      throw Exception('Failed to accept friend request: $e');
+    }
+  }
+
+  /// Removes a friend from the Firestore database.
+  ///
+  /// @param userId The ID of the user whose friend is being removed.
+  /// @param friendId The ID of the friend to remove.
+  /// @returns Future<void>
+  /// @throws Exception if the friend cannot be removed.
+  Future<void> removeFriend(String userId, String friendId) async {
+    try {
+      final QuerySnapshot snapshot = await _firebase
+          .collection('Friends')
+          .where('userId', isEqualTo: userId)
+          .where('friendId', isEqualTo: friendId)
+          .get();
+
+      for (final doc in snapshot.docs) {
+        await doc.reference.delete();
+      }
+    } catch (e) {
+      throw Exception('Failed to remove friend: $e');
+    }
+  }
+
+  /// Retrieves the list of friends for a given user.
+  ///
+  /// @param userId The ID of the user whose friends are being retrieved.
+  /// @returns Future<List<String>> A list of friend IDs.
+  /// @throws Exception if the friends cannot be retrieved.
+  Future<List<FriendModel>> getFriends(String userId) async {
+    try {
+      final QuerySnapshot snapshot = await _firebase
+          .collection('Friends')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      return snapshot.docs
+          .map((doc) =>
+              FriendModel.fromJson(doc.data()! as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to retrieve friends: $e');
+    }
+  }
+
+  /// Searches for users by username or email.
+  ///
+  /// @param searchTerm The term to search for in usernames or emails.
+  /// @returns Future<List<Map<String, dynamic>>> A list of user data maps.
+  /// @throws Exception if the search fails.
+  Future<List<UserProfileModel>> searchUsers(String searchTerm) async {
+    try {
+      final QuerySnapshot usernameSnapshot = await _firebase
+          .collection('Users')
+          .where('username', isEqualTo: searchTerm)
+          .get();
+
+      final QuerySnapshot emailSnapshot = await _firebase
+          .collection('Users')
+          .where('email', isEqualTo: searchTerm)
+          .get();
+
+      final users = <UserProfileModel>[];
+
+      for (final doc in usernameSnapshot.docs) {
+        users.add(doc.data()! as UserProfileModel);
+      }
+
+      for (final doc in emailSnapshot.docs) {
+        users.add(doc.data()! as UserProfileModel);
+      }
+
+      return users;
+    } catch (e) {
+      throw Exception('Failed to search users: $e');
+    }
+  }
+
+  /// Retrieves all incoming friend requests for a given user.
+  ///
+  /// @param userId The ID of the user whose incoming friend requests are being retrieved.
+  /// @returns Future<List<FriendRequestModel>> A list of friend request data.
+  /// @throws Exception if the friend requests cannot be retrieved.
+  Future<List<FriendRequestModel>> getFriendRequests(String userId) async {
+    try {
+      final QuerySnapshot snapshot = await _firebase
+          .collection('FriendRequests')
+          .where('receiverId', isEqualTo: userId)
+          .where('status', isEqualTo: 'pending')
+          .get();
+
+      return snapshot.docs
+          .map((doc) => doc.data()! as FriendRequestModel)
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to retrieve friend requests: $e');
+    }
+  }
+
+  /// Declines a friend request by removing it from the Firestore database.
+  ///
+  /// @param requestId The ID of the friend request to decline.
+  /// @returns Future<void>
+  /// @throws Exception if the request cannot be removed.
+  Future<void> declineFriendRequest(String requestId) async {
+    try {
+      await _firebase.collection('FriendRequests').doc(requestId).delete();
+    } catch (e) {
+      throw Exception('Failed to decline friend request: $e');
+    }
+  }
 }
