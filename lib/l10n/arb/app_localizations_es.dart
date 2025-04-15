@@ -296,4 +296,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get comingSoonText => 'Feature Coming Soon!';
+
+  @override
+  String get achievementColumnHeader => 'Achievement';
+
+  @override
+  String get youTooltip => 'You';
+
+  @override
+  String get wentFirstTooltip => 'Went First';
+
+  @override
+  String get deleteMatchDialogTitle => 'Delete Match';
+
+  @override
+  String get deleteMatchDialogContent => 'Are you sure you want to delete this match?';
+
+  @override
+  String get cancelButtonLabel => 'Cancel';
+
+  @override
+  String get deleteMatchButtonLabel => 'Delete Match';
+
+  @override
+  String errorSnackbarMessage(Object error) {
+    return 'Error: $error';
+  }
 }

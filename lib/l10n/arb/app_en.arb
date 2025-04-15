@@ -582,5 +582,20 @@
     "type": "text",
     "placeholders": {}
   }
-  
+  ,
+  "achievementColumnHeader": "Achievement",
+  "youTooltip": "You",
+  "wentFirstTooltip": "Went First",
+  "deleteMatchDialogTitle": "Delete Match",
+  "deleteMatchDialogContent": "Are you sure you want to delete this match?",
+  "cancelButtonLabel": "Cancel",
+  "deleteMatchButtonLabel": "Delete Match",
+  "errorSnackbarMessage": "Error: {error}",
+  "@errorSnackbarMessage": {
+    "description": "Snackbar error message with error details",
+    "placeholders": {
+      "error": {}
+    }
+  }
 }
+

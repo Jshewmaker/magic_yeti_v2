@@ -69,7 +69,7 @@ class MatchDetailsView extends StatelessWidget {
         } else if (state is MatchDetailsError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${state.error}'),
+              content: Text(context.l10n.errorSnackbarMessage(state.error)),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 2),
             ),
@@ -479,7 +479,7 @@ class MatchStandingsWidget extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    'Achievement',
+                    context.l10n.achievementColumnHeader,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: Theme.of(context).colorScheme.secondary,
                         ),
@@ -513,45 +513,37 @@ class MatchStandingsWidget extends StatelessWidget {
                     ),
                     Expanded(
                       flex: 2,
-                      child: Wrap(
+                      child: Row(
                         spacing: 8,
                         children: [
-                          if (player.firebaseId == currentUserFirebaseId)
-                            const Tooltip(
-                              triggerMode: TooltipTriggerMode.tap,
-                              message: 'You',
-                              child: Icon(
-                                Icons.person,
-                                color: Colors.blue,
+                          if (player.firebaseId != currentUserFirebaseId)
+                            IconButton(
+                              onPressed: () => onSelectPlayer(player),
+                              icon: const FaIcon(
+                                FontAwesomeIcons.userPlus,
+                                color: Colors.grey,
+                                size: 16,
                               ),
                             ),
-                          if (player.id == winner.id)
-                            const Tooltip(
+                          if (player.firebaseId == currentUserFirebaseId)
+                            Tooltip(
                               triggerMode: TooltipTriggerMode.tap,
-                              message: 'Winner',
-                              child: Icon(
-                                Icons.emoji_events,
-                                color: Colors.amber,
-                                size: 16,
+                              message: l10n.youTooltip,
+                              child: const IconButton(
+                                icon: Icon(
+                                  Icons.person,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: null,
                               ),
                             ),
                           if (player.id == startingPlayerId)
-                            const Tooltip(
+                            Tooltip(
                               triggerMode: TooltipTriggerMode.tap,
-                              message: 'Went First',
-                              child: FaIcon(
+                              message: l10n.wentFirstTooltip,
+                              child: const FaIcon(
                                 FontAwesomeIcons.one,
                                 color: Colors.green,
-                                size: 16,
-                              ),
-                            ),
-                          if (player.firebaseId != currentUserFirebaseId)
-                            const Tooltip(
-                              triggerMode: TooltipTriggerMode.tap,
-                              message: 'Went First',
-                              child: FaIcon(
-                                FontAwesomeIcons.userPlus,
-                                color: Colors.grey,
                                 size: 16,
                               ),
                             ),
@@ -668,17 +660,17 @@ class _DeleteMatchButton extends StatelessWidget {
           child: StatefulBuilder(
             builder: (context, setState) {
               return AlertDialog(
-                title: const Text('Delete Match'),
-                content: const Text(
-                  'Are you sure you want to delete this match?',
+                title: Text(context.l10n.deleteMatchDialogTitle),
+                content: Text(
+                  context.l10n.deleteMatchDialogContent,
                 ),
                 actions: [
                   ElevatedButton(
                     onPressed: () => context.pop(),
-                    child: const Text('Cancel'),
+                    child: Text(context.l10n.cancelButtonLabel),
                   ),
                   HoldToConfirmButton(
-                    child: const Text('Delete Match'),
+                    child: Text(context.l10n.deleteMatchButtonLabel),
                     onProgressCompleted: () async {
                       context.read<MatchDetailsBloc>().add(
                             DeleteMatchEvent(

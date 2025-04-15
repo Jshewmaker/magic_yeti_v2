@@ -640,6 +640,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Feature Coming Soon!'**
   String get comingSoonText;
+
+  /// No description provided for @achievementColumnHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievement'**
+  String get achievementColumnHeader;
+
+  /// No description provided for @youTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get youTooltip;
+
+  /// No description provided for @wentFirstTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Went First'**
+  String get wentFirstTooltip;
+
+  /// No description provided for @deleteMatchDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Match'**
+  String get deleteMatchDialogTitle;
+
+  /// No description provided for @deleteMatchDialogContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this match?'**
+  String get deleteMatchDialogContent;
+
+  /// No description provided for @cancelButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelButtonLabel;
+
+  /// No description provided for @deleteMatchButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Match'**
+  String get deleteMatchButtonLabel;
+
+  /// Snackbar error message with error details
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorSnackbarMessage(Object error);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
