@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
+import 'package:firebase_database_repository/helpers/timestamp_converter.dart';
 import 'package:json_annotation/json_annotation.dart';
+// ignore: directives_ordering
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 part 'friend_request_model.g.dart';
 
@@ -18,6 +21,7 @@ part 'friend_request_model.g.dart';
 /// - Ensure that all fields are properly validated before using this model
 /// {@endtemplate}
 @JsonSerializable(explicitToJson: true)
+@TimestampConverter()
 class FriendRequestModel extends Equatable {
   /// Constructor for FriendRequestModel.
   ///
@@ -27,7 +31,7 @@ class FriendRequestModel extends Equatable {
   /// @param status The current status of the friend request (e.g., 'pending', 'accepted').
   /// @param timestamp The time when the request was created.
   const FriendRequestModel({
-    required this.requestId,
+    required this.id,
     required this.senderId,
     required this.receiverId,
     required this.senderName,
@@ -43,7 +47,7 @@ class FriendRequestModel extends Equatable {
   Map<String, dynamic> toJson() => _$FriendRequestModelToJson(this);
 
   /// The unique identifier for the friend request.
-  final String requestId;
+  final String id;
 
   /// The ID of the user sending the request.
   final String senderId;
@@ -58,12 +62,13 @@ class FriendRequestModel extends Equatable {
   final String status;
 
   /// The time when the request was created.
+  @TimestampConverter()
   final DateTime timestamp;
 
   /// Creates a copy of this FriendRequestModel with the given fields replaced with the
   /// new values.
   FriendRequestModel copyWith({
-    String? requestId,
+    String? id,
     String? senderId,
     String? receiverId,
     String? senderName,
@@ -71,7 +76,7 @@ class FriendRequestModel extends Equatable {
     DateTime? timestamp,
   }) {
     return FriendRequestModel(
-      requestId: requestId ?? this.requestId,
+      id: id ?? this.id,
       senderId: senderId ?? this.senderId,
       receiverId: receiverId ?? this.receiverId,
       senderName: senderName ?? this.senderName,
@@ -82,7 +87,7 @@ class FriendRequestModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        requestId,
+        id,
         senderId,
         receiverId,
         senderName,

@@ -149,6 +149,9 @@ class FirebaseDatabaseRepository {
 
   final FirebaseFirestore _firebase;
 
+  CollectionReference get _friendCollection =>
+      _firebase.collection('friendRequests');
+
   /// Check if a game ID already exists
   Future<bool> checkIfGameIdExists(String gameId) async {
     try {
@@ -323,9 +326,16 @@ class FirebaseDatabaseRepository {
   /// @returns Future<void>
   /// @throws Exception if the request cannot be added.
   Future<void> addFriendRequest(
-      String senderId, String senderName, String receiverId) async {
+    String senderId,
+    String senderName,
+    String receiverId,
+  ) async {
     try {
-      await _firebase.collection('FriendRequests').add({
+      // Generate a new document reference, which creates a unique ID
+      final newRequestRef = _friendCollection.doc();
+      final documentId = newRequestRef.id;
+      await newRequestRef.set({
+        'id': documentId,
         'senderId': senderId,
         'senderName': senderName,
         'receiverId': receiverId,
@@ -342,11 +352,16 @@ class FirebaseDatabaseRepository {
   /// @param requestId The ID of the friend request to accept.
   /// @returns Future<void>
   /// @throws Exception if the request cannot be updated.
-  Future<void> acceptFriendRequest(String requestId) async {
+  Future<void> acceptFriendRequest(
+    FriendRequestModel request,
+    String userId,
+  ) async {
     try {
-      await _firebase.collection('FriendRequests').doc(requestId).update({
-        'status': 'accepted',
+      await _firebase.collection('friends').doc(userId).set({
+        'id': userId,
+        'friends': FieldValue.arrayUnion([request.senderId]),
       });
+      await _friendCollection.doc(request.id).delete();
     } catch (e) {
       throw Exception('Failed to accept friend request: $e');
     }
@@ -360,8 +375,7 @@ class FirebaseDatabaseRepository {
   /// @throws Exception if the friend cannot be removed.
   Future<void> removeFriend(String userId, String friendId) async {
     try {
-      final QuerySnapshot snapshot = await _firebase
-          .collection('Friends')
+      final snapshot = await _friendCollection
           .where('userId', isEqualTo: userId)
           .where('friendId', isEqualTo: friendId)
           .get();
@@ -381,15 +395,17 @@ class FirebaseDatabaseRepository {
   /// @throws Exception if the friends cannot be retrieved.
   Future<List<FriendModel>> getFriends(String userId) async {
     try {
-      final QuerySnapshot snapshot = await _firebase
-          .collection('Friends')
-          .where('userId', isEqualTo: userId)
-          .get();
-
-      return snapshot.docs
-          .map((doc) =>
-              FriendModel.fromJson(doc.data()! as Map<String, dynamic>))
-          .toList();
+      final snapshot = await _firebase.collection('friends').doc(userId).get();
+      if (snapshot.exists) {
+        return snapshot
+            .data()!
+            .entries
+            .map((friendId) =>
+                FriendModel.fromJson(friendId as Map<String, dynamic>))
+            .toList();
+      } else {
+        return [];
+      }
     } catch (e) {
       throw Exception('Failed to retrieve friends: $e');
     }
@@ -403,23 +419,25 @@ class FirebaseDatabaseRepository {
   Future<List<UserProfileModel>> searchUsers(String searchTerm) async {
     try {
       final QuerySnapshot usernameSnapshot = await _firebase
-          .collection('Users')
+          .collection('users')
           .where('username', isEqualTo: searchTerm)
           .get();
 
       final QuerySnapshot emailSnapshot = await _firebase
-          .collection('Users')
+          .collection('users')
           .where('email', isEqualTo: searchTerm)
           .get();
 
       final users = <UserProfileModel>[];
 
       for (final doc in usernameSnapshot.docs) {
-        users.add(doc.data()! as UserProfileModel);
+        users.add(
+            UserProfileModel.fromJson(doc.data()! as Map<String, dynamic>));
       }
 
       for (final doc in emailSnapshot.docs) {
-        users.add(doc.data()! as UserProfileModel);
+        users.add(
+            UserProfileModel.fromJson(doc.data()! as Map<String, dynamic>));
       }
 
       return users;
@@ -435,14 +453,14 @@ class FirebaseDatabaseRepository {
   /// @throws Exception if the friend requests cannot be retrieved.
   Future<List<FriendRequestModel>> getFriendRequests(String userId) async {
     try {
-      final QuerySnapshot snapshot = await _firebase
-          .collection('FriendRequests')
+      final snapshot = await _friendCollection
           .where('receiverId', isEqualTo: userId)
           .where('status', isEqualTo: 'pending')
           .get();
 
       return snapshot.docs
-          .map((doc) => doc.data()! as FriendRequestModel)
+          .map((doc) =>
+              FriendRequestModel.fromJson(doc.data()! as Map<String, dynamic>))
           .toList();
     } catch (e) {
       throw Exception('Failed to retrieve friend requests: $e');
@@ -456,7 +474,7 @@ class FirebaseDatabaseRepository {
   /// @throws Exception if the request cannot be removed.
   Future<void> declineFriendRequest(String requestId) async {
     try {
-      await _firebase.collection('FriendRequests').doc(requestId).delete();
+      await _friendCollection.doc(requestId).delete();
     } catch (e) {
       throw Exception('Failed to decline friend request: $e');
     }

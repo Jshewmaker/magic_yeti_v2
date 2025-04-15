@@ -300,6 +300,18 @@
     "type": "text",
     "placeholders": {}
   },
+  "friendsTitle": "Friends",
+  "@friendsTitle": {
+    "description": "Title for the friends section",
+    "type": "text",
+    "placeholders": {}
+  },
+  "friendRequestsTitle": "Friend Requests",
+  "@friendRequestsTitle": {
+    "description": "Title for the friend requests section",
+    "type": "text",
+    "placeholders": {}
+  },
   "thisIsMe": "This is me",
   "@thisIsMe": {
     "description": "Button text for claiming a player",

@@ -1,7 +1,10 @@
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/friends_list/search_user/bloc/search_bloc.dart';
+import 'package:magic_yeti/home/home_page.dart';
 
 /// This file implements the user search functionality for the friends list feature.
 /// It allows users to search for other users by username or email.
@@ -21,11 +24,22 @@ import 'package:magic_yeti/friends_list/search_user/bloc/search_bloc.dart';
 class SearchUserPage extends StatelessWidget {
   const SearchUserPage({super.key});
 
+  factory SearchUserPage.pageBuilder(_, __) {
+    return const SearchUserPage(key: Key('search_user_page'));
+  }
+
+  static const routeName = 'searchUser';
+  static const routePath = '/searchUser';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Search Users'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go(HomePage.routeName),
+        ),
       ),
       body: BlocProvider(
         create: (context) => SearchBloc(
@@ -79,6 +93,15 @@ class SearchUserFormState extends State<SearchUserForm> {
                     return ListTile(
                       title: Text(user.username ?? ''),
                       subtitle: Text(user.email ?? ''),
+                      onTap: () {
+                        BlocProvider.of<SearchBloc>(context).add(
+                          AddFriendRequest(
+                            context.read<AppBloc>().state.user.id,
+                            user.username ?? '',
+                            user.id,
+                          ),
+                        );
+                      },
                     );
                   },
                 );

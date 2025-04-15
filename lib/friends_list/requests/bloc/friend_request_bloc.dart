@@ -40,7 +40,7 @@ class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
     Emitter<FriendRequestState> emit,
   ) async {
     try {
-      await repository.acceptFriendRequest(event.request.requestId);
+      await repository.acceptFriendRequest(event.request, event.userId);
       add(LoadFriendRequests(event.request.senderId));
     } catch (e) {
       emit(const FriendRequestError('Failed to accept friend request'));
@@ -52,7 +52,7 @@ class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
     Emitter<FriendRequestState> emit,
   ) async {
     try {
-      await repository.declineFriendRequest(event.request.requestId);
+      await repository.declineFriendRequest(event.request.id);
       add(LoadFriendRequests(event.request.senderId));
     } catch (e) {
       emit(const FriendRequestError('Failed to decline friend request'));

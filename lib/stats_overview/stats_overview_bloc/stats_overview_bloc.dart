@@ -90,15 +90,18 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
     int uniqueCommanderCount,
     String userId,
   ) {
-    if (games.isEmpty) return '';
+    if (games.isEmpty) return 'No games';
 
     final commanders = <String>[];
     for (final game in games) {
       final player = _findPlayerInGame(game, userId);
+      if (player.commander == null) return 'No commanders';
       commanders.add(player.commander?.name ?? '');
     }
-    commanders.removeWhere((commander) => commander.isEmpty);
+    commanders
+        .removeWhere((commander) => commander.isEmpty || commander == 'null');
     final mostPlayedCommander = commanders.reduce((current, next) {
+      if (commanders.isEmpty) return 'No commanders';
       return commanders.where((element) => element == current).length >
               commanders.where((element) => element == next).length
           ? current

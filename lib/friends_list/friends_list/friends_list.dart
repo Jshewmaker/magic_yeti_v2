@@ -1,5 +1,4 @@
 import 'package:firebase_database_repository/firebase_database_repository.dart';
-import 'package:firebase_database_repository/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
@@ -20,16 +19,13 @@ import 'package:magic_yeti/friends_list/friends_list/bloc/friend_list_bloc.dart'
 /// - Handles network errors gracefully
 /// - Ensures real-time updates using Firestore sync
 
-class FriendsListPage extends StatelessWidget {
-  const FriendsListPage({super.key});
+class FriendsList extends StatelessWidget {
+  const FriendsList({super.key});
 
   @override
   Widget build(BuildContext context) {
     final userId = context.read<AppBloc>().state.user.id;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Friends List'),
-      ),
       body: BlocProvider(
         create: (context) => FriendBloc(
           repository: context.read<FirebaseDatabaseRepository>(),
@@ -51,20 +47,22 @@ class FriendsListView extends StatelessWidget {
         if (state is FriendsLoading) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is FriendsLoaded) {
-          return ListView.builder(
-            itemCount: state.friends.length,
-            itemBuilder: (context, index) {
-              final friend = state.friends[index];
-              return ListTile(
-                title: Text(friend.username),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () =>
-                      _confirmRemoveFriend(context, friend, userId),
-                ),
-              );
-            },
-          );
+          return state.friends.isEmpty
+              ? const Center(child: Text('No friends found'))
+              : ListView.builder(
+                  itemCount: state.friends.length,
+                  itemBuilder: (context, index) {
+                    final friend = state.friends[index];
+                    return ListTile(
+                      title: Text(friend.username),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () =>
+                            _confirmRemoveFriend(context, friend, userId),
+                      ),
+                    );
+                  },
+                );
         } else if (state is FriendsError) {
           return const Center(child: Text('Failed to load friends'));
         }

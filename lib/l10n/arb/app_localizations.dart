@@ -395,6 +395,18 @@ abstract class AppLocalizations {
   /// **'Player'**
   String get playerColumnHeader;
 
+  /// Title for the friends section
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get friendsTitle;
+
+  /// Title for the friend requests section
+  ///
+  /// In en, this message translates to:
+  /// **'Friend Requests'**
+  String get friendRequestsTitle;
+
   /// Button text for claiming a player
   ///
   /// In en, this message translates to:

@@ -24,17 +24,37 @@ part 'search_state.dart';
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc({required this.repository}) : super(SearchInitial()) {
     on<SearchUsers>(_onSearchUsers);
+    on<AddFriendRequest>(_onAddFriendRequest);
   }
   final FirebaseDatabaseRepository repository;
 
   Future<void> _onSearchUsers(
-      SearchUsers event, Emitter<SearchState> emit) async {
+    SearchUsers event,
+    Emitter<SearchState> emit,
+  ) async {
     emit(SearchLoading());
     try {
       final users = await repository.searchUsers(event.query);
       emit(SearchLoaded(users));
     } catch (e) {
       emit(SearchError('Failed to fetch users: $e'));
+    }
+  }
+
+  Future<void> _onAddFriendRequest(
+    AddFriendRequest event,
+    Emitter<SearchState> emit,
+  ) async {
+    emit(SearchLoading());
+    try {
+      await repository.addFriendRequest(
+        event.senderId,
+        event.senderName,
+        event.receiverId,
+      );
+      emit(const SearchLoaded([]));
+    } catch (e) {
+      emit(SearchError('Failed to add friend request: $e'));
     }
   }
 }

@@ -8,20 +8,21 @@ part of 'friend_request_model.dart';
 
 FriendRequestModel _$FriendRequestModelFromJson(Map<String, dynamic> json) =>
     FriendRequestModel(
-      requestId: json['requestId'] as String,
+      id: json['id'] as String,
       senderId: json['senderId'] as String,
       receiverId: json['receiverId'] as String,
       senderName: json['senderName'] as String,
       status: json['status'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      timestamp:
+          const TimestampConverter().fromJson(json['timestamp'] as Timestamp),
     );
 
 Map<String, dynamic> _$FriendRequestModelToJson(FriendRequestModel instance) =>
     <String, dynamic>{
-      'requestId': instance.requestId,
+      'id': instance.id,
       'senderId': instance.senderId,
       'receiverId': instance.receiverId,
       'senderName': instance.senderName,
       'status': instance.status,
-      'timestamp': instance.timestamp.toIso8601String(),
+      'timestamp': const TimestampConverter().toJson(instance.timestamp),
     };
