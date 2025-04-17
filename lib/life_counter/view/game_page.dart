@@ -26,24 +26,19 @@ class GamePage extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return BlocProvider(
-      create: (context) => TimerBloc()..add(const TimerStartEvent()),
-      child: BlocListener<GameBloc, GameState>(
-        listener: (context, state) {
-          if (state.status == GameStatus.finished) {
-            context.read<TimerBloc>().add(const TimerPauseEvent());
-            final gameLength = context.read<TimerBloc>().state.elapsedSeconds;
-            context
-                .read<GameBloc>()
-                .add(GameUpdateTimerEvent(gameLength: gameLength));
-            context.read<TimerBloc>().add(const TimerResetEvent());
-            context.read<TimerBloc>().add(const TimerPauseEvent());
-            context.go(GameOverPage.routePath);
-          }
-        },
-        child:
-            playerCount == 2 ? const TwoPlayerGame() : const FourPlayerGame(),
-      ),
+    return BlocListener<GameBloc, GameState>(
+      listener: (context, state) {
+        if (state.status == GameStatus.finished) {
+          context.read<TimerBloc>().add(const TimerPauseEvent());
+          final gameLength = context.read<TimerBloc>().state.elapsedSeconds;
+          context
+              .read<GameBloc>()
+              .add(GameUpdateTimerEvent(gameLength: gameLength));
+
+          context.go(GameOverPage.routePath);
+        }
+      },
+      child: playerCount == 2 ? const TwoPlayerGame() : const FourPlayerGame(),
     );
   }
 }

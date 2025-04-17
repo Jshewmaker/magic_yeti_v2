@@ -18,6 +18,7 @@ import 'package:magic_yeti/match_details/view/match_details_page.dart';
 import 'package:magic_yeti/profile/view/profile_page.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
 import 'package:magic_yeti/stats_overview/stats_overview.dart';
+import 'package:magic_yeti/timer/bloc/timer_bloc.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class HomePage extends StatefulWidget {
@@ -393,6 +394,8 @@ class GameModeButtons extends StatelessWidget {
             startingLifePoints: lifePoints,
           ),
         );
+
+    context.read<TimerBloc>().add(const TimerStartEvent());
     context.go(GamePage.routePath);
   }
 }

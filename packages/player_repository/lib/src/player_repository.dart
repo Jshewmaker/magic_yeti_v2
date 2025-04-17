@@ -37,8 +37,6 @@ class PlayerRepository {
   ///
   /// [player] The player to update or add.
   void updatePlayer(Player player) {
-    print('Updating player ${player.opponents![0].damages}');
-
     final index = _players.indexWhere((p) => p.id == player.id);
     if (index == -1) {
       throw StateError(

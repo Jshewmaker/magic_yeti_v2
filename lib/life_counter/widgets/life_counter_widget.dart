@@ -2,6 +2,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/life_counter/bloc/life_change_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
 import 'package:magic_yeti/player/view/customize_player_page.dart';
@@ -23,51 +24,54 @@ class LifeCounterWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final player = context.watch<PlayerBloc>().state.player;
     textController.text = player.name;
-    return ClipRRect(
-      borderRadius: leftSideTracker
-          ? const BorderRadius.only(
-              topRight: Radius.circular(20),
-              bottomRight: Radius.circular(20),
-            )
-          : const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              bottomLeft: Radius.circular(20),
-            ),
-      child: RotatedBox(
-        quarterTurns: rotate ? 2 : 0,
-        child: Stack(
-          children: [
-            BackgroundWidget(
-              player: player,
-              rotate: rotate,
-              leftSideTracker: true,
-            ),
-            _LifeTrackerWidget(lifePoints: player.lifePoints),
-            AutoResumeTimerWrapper(
-              child: Row(
-                children: [
-                  DecrementLifeWidget(player: player),
-                  IncrementLifeWidget(player: player),
-                ],
+    return BlocProvider(
+      create: (context) => LifeChangeBloc(),
+      child: ClipRRect(
+        borderRadius: leftSideTracker
+            ? const BorderRadius.only(
+                topRight: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+              )
+            : const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
               ),
-            ),
-            _PlayerNameWidget(
-              name: textController.text,
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<PlayerBloc>(),
-                      child: CustomizePlayerPage(
-                        playerId: player.id,
+        child: RotatedBox(
+          quarterTurns: rotate ? 2 : 0,
+          child: Stack(
+            children: [
+              BackgroundWidget(
+                player: player,
+                rotate: rotate,
+                leftSideTracker: true,
+              ),
+              _LifeTrackerWidget(lifePoints: player.lifePoints),
+              AutoResumeTimerWrapper(
+                child: Row(
+                  children: [
+                    DecrementLifeWidget(player: player),
+                    IncrementLifeWidget(player: player),
+                  ],
+                ),
+              ),
+              _PlayerNameWidget(
+                name: textController.text,
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => BlocProvider.value(
+                        value: context.read<PlayerBloc>(),
+                        child: CustomizePlayerPage(
+                          playerId: player.id,
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
-          ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -104,6 +108,8 @@ class _IncrementLifeWidgetState extends State<IncrementLifeWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final lifeChange = context.read<LifeChangeBloc>().state.change;
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
     return Expanded(
       key: const ValueKey(
         'life_counter_widget_increment',
@@ -133,7 +139,21 @@ class _IncrementLifeWidgetState extends State<IncrementLifeWidget> {
             ),
           ),
           duration: const Duration(milliseconds: 50),
-          child: const SizedBox.expand(),
+          child: SizedBox.expand(
+            child: Padding(
+              padding:
+                  isPhone ? const EdgeInsets.all(8) : const EdgeInsets.all(64),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (lifeChange != null && lifeChange > 0)
+                    const _LifeChangesWidget(),
+                  const SizedBox(width: 8),
+                  const FaIcon(FontAwesomeIcons.plus, size: 36),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -170,6 +190,8 @@ class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final lifeChange = context.read<LifeChangeBloc>().state.change;
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
     return Expanded(
       key: const ValueKey(
         'life_counter_widget_decrement',
@@ -194,15 +216,28 @@ class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
         onLongPressEnd: (_) => context.read<PlayerBloc>().add(
               const PlayerStopDecrement(),
             ),
-        child: AnimatedContainer(
-          decoration: BoxDecoration(
-            color: _isTapped ? Colors.white.withAlpha(32) : Colors.transparent,
-            borderRadius: const BorderRadius.all(
-              Radius.circular(20),
+        child: Padding(
+          padding: isPhone ? const EdgeInsets.all(8) : const EdgeInsets.all(64),
+          child: AnimatedContainer(
+            decoration: BoxDecoration(
+              color:
+                  _isTapped ? Colors.white.withAlpha(32) : Colors.transparent,
+              borderRadius: const BorderRadius.all(
+                Radius.circular(20),
+              ),
+            ),
+            duration: const Duration(milliseconds: 50),
+            child: SizedBox.expand(
+              child: Row(
+                children: [
+                  const FaIcon(FontAwesomeIcons.minus, size: 36),
+                  const SizedBox(width: 8),
+                  if (lifeChange != null && lifeChange < 0)
+                    const _LifeChangesWidget(),
+                ],
+              ),
             ),
           ),
-          duration: const Duration(milliseconds: 50),
-          child: const SizedBox.expand(),
         ),
       ),
     );
@@ -218,44 +253,32 @@ class _LifeTrackerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => LifeChangeBloc(),
-      child: BlocConsumer<PlayerBloc, PlayerState>(
-        listener: (context, state) {
-          if (state.status == PlayerStatus.lifeTotalUpdated) {
-            context.read<LifeChangeBloc>().add(
-                  LifePointsChanged(
-                    previousLifePoints: lifePoints,
-                    newLifePoints: state.player.lifePoints,
-                  ),
-                );
-          }
-        },
-        builder: (context, state) => Stack(
-          alignment: Alignment.center,
-          fit: StackFit.expand,
-          children: [
-            if (state.player.state.isEliminated)
-              const Center(
-                child: FaIcon(
-                  FontAwesomeIcons.skullCrossbones,
-                  size: 96,
-                  color: AppColors.black,
+    return BlocConsumer<PlayerBloc, PlayerState>(
+      listener: (context, state) {
+        if (state.status == PlayerStatus.lifeTotalUpdated) {
+          context.read<LifeChangeBloc>().add(
+                LifePointsChanged(
+                  previousLifePoints: lifePoints,
+                  newLifePoints: state.player.lifePoints,
                 ),
-              )
-            else
-              _LifeText(player: state.player),
-            const Positioned(
-              left: 400,
-              child: FaIcon(FontAwesomeIcons.plus, size: 36),
-            ),
-            const Positioned(
-              right: 400,
-              child: FaIcon(FontAwesomeIcons.minus, size: 36),
-            ),
-            const _LifeChangesWidget(),
-          ],
-        ),
+              );
+        }
+      },
+      builder: (context, state) => Stack(
+        alignment: Alignment.center,
+        fit: StackFit.expand,
+        children: [
+          if (state.player.state.isEliminated)
+            const Center(
+              child: FaIcon(
+                FontAwesomeIcons.skullCrossbones,
+                size: 96,
+                color: AppColors.black,
+              ),
+            )
+          else
+            _LifeText(player: state.player),
+        ],
       ),
     );
   }
@@ -270,11 +293,15 @@ class _LifeText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
     return Center(
-      child: StrokeText(
-        text: '${player.lifePoints}',
-        fontSize: 96,
-        color: AppColors.white,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: StrokeText(
+          text: '${player.lifePoints}',
+          fontSize: isPhone ? 48 : 180,
+          color: AppColors.white,
+        ),
       ),
     );
   }
@@ -291,13 +318,7 @@ class _LifeChangesWidget extends StatelessWidget {
         if (change == null || change == 0) return const SizedBox();
 
         return Center(
-          child: Transform.translate(
-            offset: Offset(
-              change > 0 ? 140 : -140,
-              2,
-            ),
-            child: _LifePointChangeAnimation(change: change),
-          ),
+          child: _LifePointChangeAnimation(change: change),
         );
       },
     );
@@ -378,7 +399,7 @@ class _LifePointChangeAnimationState extends State<_LifePointChangeAnimation>
       opacity: _opacityAnimation,
       child: StrokeText(
         text: '${widget.change.abs()}',
-        fontSize: 48,
+        fontSize: 64,
         color: AppColors.white,
       ),
     );

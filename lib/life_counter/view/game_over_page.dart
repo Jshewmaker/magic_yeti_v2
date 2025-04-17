@@ -11,6 +11,7 @@ import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/bloc/game_over_bloc.dart';
 import 'package:magic_yeti/life_counter/view/game_page.dart';
+import 'package:magic_yeti/timer/bloc/timer_bloc.dart';
 import 'package:player_repository/models/player.dart';
 import 'package:player_repository/player_repository.dart';
 
@@ -51,6 +52,14 @@ class GameOverView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.gameOverTitle),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go(GamePage.routePath);
+            context.read<TimerBloc>().add(const TimerStartEvent());
+            context.read<GameBloc>().add(const GameResumeEvent());
+          },
+        ),
       ),
       body: BlocBuilder<GameOverBloc, GameOverState>(
         builder: (context, state) {
@@ -160,6 +169,7 @@ class ButtonsWidget extends StatelessWidget {
                           );
 
                       context.read<GameBloc>().add(const GameResetEvent());
+                      context.read<TimerBloc>().add(const TimerStartEvent());
                       context.go(GamePage.routePath);
                     },
               child: Text(

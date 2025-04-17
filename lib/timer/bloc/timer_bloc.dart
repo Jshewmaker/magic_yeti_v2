@@ -33,7 +33,7 @@ class TimerBloc extends Bloc<TimerEvent, TimerState> {
     emit(
       state.copyWith(
         status: TimerStatus.running,
-        elapsedSeconds: 0,
+        elapsedSeconds: state.elapsedSeconds,
         startTime: DateTime.now(),
       ),
     );

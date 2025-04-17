@@ -9,6 +9,7 @@ import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
+import 'package:magic_yeti/timer/bloc/timer_bloc.dart';
 import 'package:player_repository/player_repository.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 import 'package:user_repository/user_repository.dart';
@@ -68,6 +69,9 @@ class App extends StatelessWidget {
             )..add(
                 LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
               ),
+          ),
+          BlocProvider(
+            create: (context) => TimerBloc(),
           ),
         ],
         child: const AppView(),

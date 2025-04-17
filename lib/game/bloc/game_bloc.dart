@@ -193,7 +193,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameFinishEvent event,
     Emitter<GameState> emit,
   ) async {
-    emit(state.copyWith(status: GameStatus.loading));
+    emit(state.copyWith(status: GameStatus.finished));
 
     final updateWinner = event.winner.copyWith(
       placement: const Value(1),
@@ -229,7 +229,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final alivePlayers =
         event.players.where((p) => p.state == PlayerModelState.active).toList();
     if (alivePlayers.length <= 1 && state.status == GameStatus.running) {
-      emit(state.copyWith(status: GameStatus.finished));
       add(GameFinishEvent(winner: alivePlayers.first));
     }
   }
