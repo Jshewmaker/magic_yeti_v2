@@ -7,6 +7,14 @@ abstract class GameEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+/// Event to request restoring the previous game state (undo game over)
+class GameRestoreRequested extends GameEvent {
+  const GameRestoreRequested();
+
+  @override
+  List<Object?> get props => [];
+}
+
 final class CreateGameEvent extends GameEvent {
   const CreateGameEvent({
     required this.numberOfPlayers,

@@ -7,6 +7,7 @@ import 'package:firebase_authentication_client/firebase_authentication_client.da
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:magic_yeti/app/app.dart';
 import 'package:magic_yeti/bootstrap.dart';
+import 'package:player_repository/player_repository.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 import 'package:user_repository/user_repository.dart';
 
@@ -14,7 +15,7 @@ void main() {
   bootstrap(
     (FirebaseFirestore firebaseFirestore) async {
       final authenticationClient = FirebaseAuthenticationClient();
-
+      final playerRepository = PlayerRepository();
       final firebaseDatabaseRepository = FirebaseDatabaseRepository(
         firebase: FirebaseFirestore.instance,
       );
@@ -26,12 +27,14 @@ void main() {
       final scryfallRepository = ScryfallRepository();
       final user = await userRepository.user.first;
       final appConfigRepository = FakeAppConfigRepository();
+      playerRepository.init();
       return App(
         userRepository: userRepository,
         user: user,
         firebaseDatabaseRepository: firebaseDatabaseRepository,
         scryfallRepository: scryfallRepository,
         appConfigRepository: appConfigRepository,
+        playerRepository: playerRepository,
       );
     },
   );

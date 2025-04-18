@@ -322,4 +322,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String errorSnackbarMessage(Object error) {
     return 'Error: $error';
   }
+
+  @override
+  String get undoGameOverButtonLabel => 'Undo / Restore';
+
+  @override
+  String get gameRestoredMessage => 'Previous game restored!';
 }

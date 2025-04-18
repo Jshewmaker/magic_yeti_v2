@@ -216,18 +216,18 @@ class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
         onLongPressEnd: (_) => context.read<PlayerBloc>().add(
               const PlayerStopDecrement(),
             ),
-        child: Padding(
-          padding: isPhone ? const EdgeInsets.all(8) : const EdgeInsets.all(64),
-          child: AnimatedContainer(
-            decoration: BoxDecoration(
-              color:
-                  _isTapped ? Colors.white.withAlpha(32) : Colors.transparent,
-              borderRadius: const BorderRadius.all(
-                Radius.circular(20),
-              ),
+        child: AnimatedContainer(
+          decoration: BoxDecoration(
+            color: _isTapped ? Colors.white.withAlpha(32) : Colors.transparent,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(20),
             ),
-            duration: const Duration(milliseconds: 50),
-            child: SizedBox.expand(
+          ),
+          duration: const Duration(milliseconds: 50),
+          child: SizedBox.expand(
+            child: Padding(
+              padding:
+                  isPhone ? const EdgeInsets.all(8) : const EdgeInsets.all(64),
               child: Row(
                 children: [
                   const FaIcon(FontAwesomeIcons.minus, size: 36),

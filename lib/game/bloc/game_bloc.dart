@@ -12,6 +12,7 @@ part 'game_event.dart';
 part 'game_state.dart';
 
 class GameBloc extends Bloc<GameEvent, GameState> {
+  // ... existing constructor and fields ...
   GameBloc({
     required PlayerRepository playerRepository,
     required FirebaseDatabaseRepository database,
@@ -26,6 +27,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<GameFinishEvent>(_onGameFinish);
     on<GameUpdateTimerEvent>(_onUpdateTimer);
     on<PlayerRepositoryUpdateEvent>(_repositoryUpdated);
+    on<GameRestoreRequested>(_onGameRestoreRequested);
 
     // Subscribe to player updates and emit them immediately
     _playerRepository.players.listen((players) {
@@ -189,24 +191,36 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(state.copyWith(elapsedSeconds: event.gameLength));
   }
 
+  Future<void> _onGameRestoreRequested(
+    GameRestoreRequested event,
+    Emitter<GameState> emit,
+  ) async {
+    final restored = _playerRepository.restorePreviousGameState();
+    if (restored) {
+      // Emit restored state as running, clear winner/error
+      emit(state.copyWith(
+        status: GameStatus.running,
+        playerList: _playerRepository.getPlayers(),
+        winner: null,
+        error: null,
+      ));
+      // Dispatch TimerStartEvent to TimerBloc
+      // (Assumes context or a callback is available; see note below)
+      // context.read<TimerBloc>().add(const TimerStartEvent());
+      // If context is not available here, trigger from UI after BlocListener
+    }
+    // else do nothing if no snapshot
+  }
+
   Future<void> _onGameFinish(
     GameFinishEvent event,
     Emitter<GameState> emit,
   ) async {
     emit(state.copyWith(status: GameStatus.finished));
 
-    final updateWinner = event.winner.copyWith(
-      placement: const Value(1),
-      lifePoints: 0,
-      state: PlayerModelState.eliminated,
-      timeOfDeath: Value(DateTime.now().millisecondsSinceEpoch),
-    );
-
-    _playerRepository.updatePlayer(updateWinner);
-
     final gameModel = GameModel(
       roomId: await generateShortGameId(),
-      winnerId: updateWinner.id,
+      winnerId: event.winner.id,
       players: state.playerList,
       startTime: state.startTime ?? DateTime.now(),
       endTime: DateTime.now(),
@@ -228,8 +242,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     // Then check for game-ending condition
     final alivePlayers =
         event.players.where((p) => p.state == PlayerModelState.active).toList();
-    if (alivePlayers.length <= 1 && state.status == GameStatus.running) {
-      add(GameFinishEvent(winner: alivePlayers.first));
+    if (alivePlayers.isEmpty && state.status == GameStatus.running) {
+      add(GameFinishEvent(
+          winner: event.players.firstWhere((p) => p.placement == 1)));
     }
   }
 

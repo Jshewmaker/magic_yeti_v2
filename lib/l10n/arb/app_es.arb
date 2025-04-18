@@ -10,5 +10,13 @@
     "gameModeTitle": "Modo de Juego",
     "statsTitle": "Tus Estadísticas",
     "matchHistoryLoadError": "Error al cargar el historial de partidas",
-    "noMatchHistoryAvailable": "No hay historial de partidas disponible"
+    "noMatchHistoryAvailable": "No hay historial de partidas disponible",
+    "undoGameOverButtonLabel": "Deshacer / Restaurar",
+    "@undoGameOverButtonLabel": {
+        "description": "Etiqueta del botón para restaurar el estado previo del juego en la página de Fin de Juego"
+    },
+    "gameRestoredMessage": "¡Juego anterior restaurado!",
+    "@gameRestoredMessage": {
+        "description": "Mensaje de snackbar mostrado cuando se restaura correctamente un estado previo del juego desde la página de Fin de Juego"
+    }
 }

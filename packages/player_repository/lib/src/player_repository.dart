@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:player_repository/models/player.dart';
+import 'package:player_repository/models/game_snapshot.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// {@template player_repository}
@@ -18,6 +19,17 @@ class PlayerRepository {
   /// {@macro player_repository}
   PlayerRepository();
 
+  /// Initializes the repository and starts listening for game end events.
+  void init() {
+    _playerController.stream.listen(checkIfGameFinished);
+  }
+
+  /// Returns true if there is a previous game state that can be restored.
+  bool get canRestoreGame => _previousGameSnapshot != null;
+
+  /// Stores the previous game state snapshot for undo/restore functionality.
+  GameSnapshot? _previousGameSnapshot;
+
   /// Internal stream controller for managing player list updates.
   final StreamController<List<Player>> _playerController =
       BehaviorSubject<List<Player>>();
@@ -30,6 +42,34 @@ class PlayerRepository {
   /// Provides real-time updates whenever the player list changes.
   Stream<List<Player>> get players => _playerController.stream;
 
+  /// Checks if the game has finished and updates the game state accordingly.
+  ///
+  /// This method is called whenever the player list changes and determines
+  /// if the game has ended (only one active player remaining).
+  /// If the game has finished, it takes a snapshot of the game state
+  /// and declares the winner.
+  void checkIfGameFinished(List<Player> players) {
+    final numberOfPlayersEliminated =
+        players.where((p) => p.state == PlayerModelState.eliminated).length;
+    // Take a snapshot of the game state
+    if (numberOfPlayersEliminated == (players.length - 2)) {
+      _snapshotGameState();
+    }
+
+    // If only one player is left, declare them the winner
+    if ((players.length - numberOfPlayersEliminated) == 1) {
+      final winner =
+          players.firstWhere((p) => p.state == PlayerModelState.active);
+      final updatedWinner = winner.copyWith(
+        placement: const Value(1),
+        state: PlayerModelState.eliminated,
+        timeOfDeath: Value(DateTime.now().millisecondsSinceEpoch),
+      );
+      _players[players.indexOf(winner)] = updatedWinner;
+      _playerController.add(_players);
+    }
+  }
+
   /// Updates an existing player or adds a new player to the repository.
   ///
   /// If a player with the same ID exists, it will be replaced.
@@ -37,12 +77,16 @@ class PlayerRepository {
   ///
   /// [player] The player to update or add.
   void updatePlayer(Player player) {
+    // Check if this update will cause the game to end (only one active player left)
+    final updatedPlayer = _checkPlayerDeath(player);
+
     final index = _players.indexWhere((p) => p.id == player.id);
     if (index == -1) {
       throw StateError(
-          'Cannot update non-existent player with ID: ${player.id}');
+        'Cannot update non-existent player with ID: ${player.id}',
+      );
     }
-    final updatedPlayer = _checkPlayerDeath(player);
+
     _players[index] = updatedPlayer;
     _playerController.add(_players);
   }
@@ -59,6 +103,28 @@ class PlayerRepository {
     }
     _players.add(player);
     _playerController.add(_players);
+  }
+
+  /// Takes a snapshot of the current game state for undo/restore functionality.
+  void _snapshotGameState() {
+    _previousGameSnapshot = GameSnapshot(
+      players: _players.map((p) => p.copyWith()).toList(),
+    );
+  }
+
+  /// Restores the previous game state snapshot, if available.
+  /// Returns true if restoration was successful, false otherwise.
+  bool restorePreviousGameState() {
+    if (_previousGameSnapshot == null) return false;
+    _players
+      ..clear()
+      ..addAll(
+        _previousGameSnapshot!.players.map((p) => p.copyWith()).toList(),
+      );
+
+    _playerController.add(_players);
+    _previousGameSnapshot = null;
+    return true;
   }
 
   /// Checks if a player's life points have reached 0 or less and records their

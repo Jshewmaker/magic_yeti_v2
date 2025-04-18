@@ -20,32 +20,33 @@ class App extends StatelessWidget {
     required AppConfigRepository appConfigRepository,
     required UserRepository userRepository,
     required ScryfallRepository scryfallRepository,
+    required PlayerRepository playerRepository,
     required User user,
     super.key,
   })  : _appConfigRepository = appConfigRepository,
         _userRepository = userRepository,
         _scryfallRepository = scryfallRepository,
         _firebaseDatabaseRepository = firebaseDatabaseRepository,
+        _playerRepository = playerRepository,
         _user = user;
 
   final FirebaseDatabaseRepository _firebaseDatabaseRepository;
   final ScryfallRepository _scryfallRepository;
   final AppConfigRepository _appConfigRepository;
+  final PlayerRepository _playerRepository;
   final UserRepository _userRepository;
 
   final User _user;
 
   @override
   Widget build(BuildContext context) {
-    final playerRepository = PlayerRepository();
-
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: _appConfigRepository),
         RepositoryProvider.value(value: _scryfallRepository),
         RepositoryProvider.value(value: _firebaseDatabaseRepository),
         RepositoryProvider.value(value: _userRepository),
-        RepositoryProvider.value(value: playerRepository),
+        RepositoryProvider.value(value: _playerRepository),
         RepositoryProvider.value(value: _user),
       ],
       child: MultiBlocProvider(
@@ -59,7 +60,7 @@ class App extends StatelessWidget {
           ),
           BlocProvider(
             create: (context) => GameBloc(
-              playerRepository: playerRepository,
+              playerRepository: _playerRepository,
               database: context.read<FirebaseDatabaseRepository>(),
             ),
           ),

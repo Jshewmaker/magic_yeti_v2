@@ -48,7 +48,8 @@ class GameOverView extends StatelessWidget {
 
     final gameModel = context.watch<GameBloc>().state.gameModel;
     if (gameModel == null) return const CircularProgressIndicator();
-
+    // Restore/Undo button (only if canRestoreGame is true)
+    final canRestoreGame = context.read<PlayerRepository>().canRestoreGame;
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.gameOverTitle),
@@ -66,44 +67,78 @@ class GameOverView extends StatelessWidget {
           final players = state.standings;
           final winner = players.first;
 
-          return CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    Padding(
+          return Column(
+            children: [
+              if (canRestoreGame)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: FilledButton.icon(
+                    icon: const Icon(Icons.undo, color: Colors.white),
+                    label: Text(l10n.undoGameOverButtonLabel),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      minimumSize: const Size.fromHeight(48),
+                      textStyle: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    onPressed: () {
+                      context
+                          .read<GameBloc>()
+                          .add(const GameRestoreRequested());
+                      context.read<TimerBloc>().add(const TimerStartEvent());
+                      // Optionally show a snackbar or navigate
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.gameRestoredMessage)),
+                      );
+                    },
+                  ),
+                ),
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
+                    SliverPadding(
                       padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.matchOverview,
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                          const SizedBox(height: 16),
-                          WinnerWidget(
-                            winner: winner,
-                          ),
-                        ],
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate(
+                          [
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.matchOverview,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  WinnerWidget(
+                                    winner: winner,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                DraggableStandingsWidget(
+                                  gameOverState: state,
+                                ),
+                                QuestionWidget(
+                                  gameOverState: state,
+                                  players: players,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            const ButtonsWidget(),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        DraggableStandingsWidget(
-                          gameOverState: state,
-                        ),
-                        QuestionWidget(
-                          gameOverState: state,
-                          players: players,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const ButtonsWidget(),
-                  ]),
+                  ],
                 ),
               ),
             ],

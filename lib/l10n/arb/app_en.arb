@@ -596,6 +596,14 @@
     "placeholders": {
       "error": {}
     }
+  },
+  "undoGameOverButtonLabel": "Undo / Restore",
+  "@undoGameOverButtonLabel": {
+    "description": "Button label for restoring the previous game state on the Game Over page"
+  },
+  "gameRestoredMessage": "Previous game restored!",
+  "@gameRestoredMessage": {
+    "description": "Snackbar message shown when a previous game state is successfully restored from the Game Over page"
   }
 }
 

@@ -688,6 +688,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error: {error}'**
   String errorSnackbarMessage(Object error);
+
+  /// Button label for restoring the previous game state on the Game Over page
+  ///
+  /// In en, this message translates to:
+  /// **'Undo / Restore'**
+  String get undoGameOverButtonLabel;
+
+  /// Snackbar message shown when a previous game state is successfully restored from the Game Over page
+  ///
+  /// In en, this message translates to:
+  /// **'Previous game restored!'**
+  String get gameRestoredMessage;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
