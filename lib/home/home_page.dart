@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/app/utils/device_info_provider.dart';
+import 'package:magic_yeti/friends_list/friends_list_page.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
@@ -64,7 +66,12 @@ class _TabletView extends StatelessWidget {
           Expanded(
             child: Column(
               children: [
-                SectionHeader(title: l10n.matchHistoryTitle),
+                SectionHeader(
+                  title: l10n.matchHistoryTitle,
+                  onMorePressed: () => kDebugMode
+                      ? context.push(FriendsListPage.routePath)
+                      : null,
+                ),
                 const Expanded(
                   child: MatchHistoryPanel(),
                 ),
@@ -926,6 +933,13 @@ class _PhoneView extends StatelessWidget {
             indicatorColor: AppColors.tertiary,
             labelColor: AppColors.onSurfaceVariant,
           ),
+          actions: [
+            IconButton(
+              onPressed: () =>
+                  kDebugMode ? context.push(FriendsListPage.routePath) : null,
+              icon: const Icon(Icons.person),
+            ),
+          ],
         ),
         body: const TabBarView(
           children: [

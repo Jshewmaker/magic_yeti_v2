@@ -11,9 +11,20 @@ import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/login/login.dart';
 import 'package:magic_yeti/reset_password/reset_password.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
+import 'package:magic_yeti/app/utils/device_info_provider.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
+    return isPhone ? const _PhoneLoginView() : const _TabletLoginView();
+  }
+}
+
+class _TabletLoginView extends StatelessWidget {
+  const _TabletLoginView();
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +65,52 @@ class LoginView extends StatelessWidget {
                 child: Image.asset(
                   'assets/icon/icon.png',
                   fit: BoxFit.fitWidth,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PhoneLoginView extends StatelessWidget {
+  const _PhoneLoginView();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go(HomePage.routeName),
+        ),
+      ),
+      body: BlocListener<LoginBloc, LoginState>(
+        listener: (context, state) {
+          if (state.status.isSuccess) {
+            context.go(HomePage.routeName);
+          }
+          if (state.status.isFailure) {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(content: Text(l10n.authenticationFailure)),
+              );
+          }
+        },
+        child: SafeArea(
+          minimum: const EdgeInsets.all(AppSpacing.xlg),
+          child: ScrollableColumn(
+            children: [
+              const _LoginContent(),
+              const _LoginActions(),
+              Expanded(
+                child: Image.asset(
+                  'assets/icon/icon.png',
+                  fit: BoxFit.cover,
                 ),
               ),
             ],

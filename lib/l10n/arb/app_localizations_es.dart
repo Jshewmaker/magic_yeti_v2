@@ -165,6 +165,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get playerColumnHeader => 'Player';
 
   @override
+  String get friendsTitle => 'Friends';
+
+  @override
+  String get friendRequestsTitle => 'Friend Requests';
+
+  @override
   String get thisIsMe => 'This is me';
 
   @override
