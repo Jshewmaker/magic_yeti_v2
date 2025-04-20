@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -66,7 +67,9 @@ class _TabletView extends StatelessWidget {
               children: [
                 SectionHeader(
                   title: l10n.matchHistoryTitle,
-                  onMorePressed: () => context.push(FriendsListPage.routePath),
+                  onMorePressed: () => kDebugMode
+                      ? context.push(FriendsListPage.routePath)
+                      : null,
                 ),
                 const Expanded(
                   child: MatchHistoryPanel(),
@@ -929,7 +932,8 @@ class _PhoneView extends StatelessWidget {
           ),
           actions: [
             IconButton(
-              onPressed: () => context.push(FriendsListPage.routePath),
+              onPressed: () =>
+                  kDebugMode ? context.push(FriendsListPage.routePath) : null,
               icon: const Icon(Icons.person),
             ),
           ],

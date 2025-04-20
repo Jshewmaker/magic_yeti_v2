@@ -18,6 +18,7 @@ void main() {
       final firebaseDatabaseRepository = FirebaseDatabaseRepository(
         firebase: FirebaseFirestore.instance,
       );
+
       final userRepository = UserRepository(
         authenticationClient: authenticationClient,
         firebaseDatabaseRepository: firebaseDatabaseRepository,
