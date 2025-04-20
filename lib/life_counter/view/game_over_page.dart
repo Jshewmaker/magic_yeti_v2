@@ -12,7 +12,6 @@ import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/bloc/game_over_bloc.dart';
 import 'package:magic_yeti/life_counter/view/game_page.dart';
 import 'package:magic_yeti/timer/bloc/timer_bloc.dart';
-import 'package:player_repository/models/player.dart';
 import 'package:player_repository/player_repository.dart';
 
 class GameOverPage extends StatelessWidget {
@@ -53,14 +52,22 @@ class GameOverView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.gameOverTitle),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.go(GamePage.routePath);
-            context.read<TimerBloc>().add(const TimerStartEvent());
-            context.read<GameBloc>().add(const GameResumeEvent());
-          },
-        ),
+        leading: canRestoreGame
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  context.read<TimerBloc>().add(const TimerStartEvent());
+                  context.read<GameBloc>()
+                    ..add(const GameRestoreRequested())
+                    ..add(const GameResumeEvent());
+                  // Optionally show a snackbar or navigate
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.gameRestoredMessage)),
+                  );
+                  context.go(GamePage.routePath);
+                },
+              )
+            : null,
       ),
       body: BlocBuilder<GameOverBloc, GameOverState>(
         builder: (context, state) {
@@ -69,30 +76,6 @@ class GameOverView extends StatelessWidget {
 
           return Column(
             children: [
-              if (canRestoreGame)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: FilledButton.icon(
-                    icon: const Icon(Icons.undo, color: Colors.white),
-                    label: Text(l10n.undoGameOverButtonLabel),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                      minimumSize: const Size.fromHeight(48),
-                      textStyle: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    onPressed: () {
-                      context
-                          .read<GameBloc>()
-                          .add(const GameRestoreRequested());
-                      context.read<TimerBloc>().add(const TimerStartEvent());
-                      // Optionally show a snackbar or navigate
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.gameRestoredMessage)),
-                      );
-                    },
-                  ),
-                ),
               Expanded(
                 child: CustomScrollView(
                   slivers: [

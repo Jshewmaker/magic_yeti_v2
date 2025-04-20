@@ -338,13 +338,23 @@ class MatchWinnerWidget extends StatelessWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  backgroundImage:
-                      winner.commander?.imageUrl.isNotEmpty ?? false
-                          ? NetworkImage(winner.commander!.imageUrl)
-                          : null,
-                  backgroundColor: Color(winner.color),
-                  radius: 50,
+                GestureDetector(
+                  onTap: () async {
+                    final url = Uri.parse(
+                      winner.commander?.scryFallUrl ?? '',
+                    );
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url);
+                    }
+                  },
+                  child: CircleAvatar(
+                    backgroundImage:
+                        winner.commander?.imageUrl.isNotEmpty ?? false
+                            ? NetworkImage(winner.commander!.imageUrl)
+                            : null,
+                    backgroundColor: Color(winner.color),
+                    radius: 50,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -363,9 +373,6 @@ class MatchWinnerWidget extends StatelessWidget {
                                 winner.commander?.name ?? '',
                               ),
                               style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            LinkWidget(
-                              uri: winner.commander?.scryFallUrl ?? '',
                             ),
                           ],
                         ),
@@ -388,33 +395,6 @@ class MatchWinnerWidget extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class LinkWidget extends StatelessWidget {
-  const LinkWidget({
-    this.uri = '',
-    super.key,
-  });
-
-  final String uri;
-
-  @override
-  Widget build(BuildContext context) {
-    return uri.isEmpty
-        ? const SizedBox.shrink()
-        : IconButton(
-            icon: const Icon(Icons.link, color: AppColors.neutral60),
-            onPressed: () async {
-              final url = Uri.parse(
-                uri,
-              );
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url);
-              }
-            },
-            tooltip: context.l10n.viewOnScryfall,
-          );
   }
 }
 
@@ -550,12 +530,22 @@ class MatchStandingsWidget extends StatelessWidget {
                         ],
                       ),
                     ),
-                    CircleAvatar(
-                      backgroundImage:
-                          player.commander?.imageUrl.isNotEmpty ?? false
-                              ? NetworkImage(player.commander!.imageUrl)
-                              : null,
-                      backgroundColor: Color(player.color),
+                    GestureDetector(
+                      child: CircleAvatar(
+                        backgroundImage:
+                            player.commander?.imageUrl.isNotEmpty ?? false
+                                ? NetworkImage(player.commander!.imageUrl)
+                                : null,
+                        backgroundColor: Color(player.color),
+                      ),
+                      onTap: () async {
+                        final url = Uri.parse(
+                          player.commander?.scryFallUrl ?? '',
+                        );
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        }
+                      },
                     ),
                     const SizedBox(width: 16),
 
@@ -574,9 +564,6 @@ class MatchStandingsWidget extends StatelessWidget {
                             ],
                           ),
                           // Commander name and link
-                          if (player.commander?.name != null)
-                            LinkWidget(
-                                uri: player.commander?.scryFallUrl ?? ''),
                         ],
                       ),
                     ),

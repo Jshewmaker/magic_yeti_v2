@@ -67,24 +67,40 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
     return ValueListenableBuilder<bool>(
       valueListenable: rotationController,
       builder: (context, isRotated, child) {
-        return Scaffold(
-          resizeToAvoidBottomInset: true,
-          appBar: AppBar(
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.screen_rotation),
-                onPressed: toggleRotation,
+        return BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
+          builder: (context, state) {
+            return Scaffold(
+              resizeToAvoidBottomInset: true,
+              appBar: AppBar(
+                actionsPadding: const EdgeInsets.fromLTRB(0, 0, 16, 0),
+                actions: [
+                  ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green),
+                      onPressed: () {
+                        context.read<PlayerBloc>().add(
+                              UpdatePlayerInfoEvent(
+                                playerName: textController.text,
+                                commander: state.commander,
+                                partner:
+                                    state.hasPartner ? state.partner : null,
+                                playerId: widget.playerId,
+                                firebaseId: state.isAccountOwner
+                                    ? context.read<AppBloc>().state.user.id
+                                    : null,
+                              ),
+                            );
+
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Save')),
+                ],
               ),
-            ],
-          ),
-          body: SingleChildScrollView(
-            controller: scrollController,
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xxlg),
-              child: BlocBuilder<PlayerCustomizationBloc,
-                  PlayerCustomizationState>(
-                builder: (context, state) {
-                  return Column(
+              body: SingleChildScrollView(
+                controller: scrollController,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xxlg),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SizedBox(
@@ -102,6 +118,10 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
                                       : player.partner?.imageUrl,
                               playerColor: player.color,
                             ),
+                            // IconButton(
+                            //   icon: const Icon(Icons.screen_rotation),
+                            //   onPressed: toggleRotation,
+                            // ),
                             const SizedBox(width: AppSpacing.md),
                             Expanded(
                               child: Column(
@@ -143,11 +163,11 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
                         scrollController: scrollController,
                       ),
                     ],
-                  );
-                },
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
