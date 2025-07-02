@@ -187,6 +187,7 @@ class ButtonsWidget extends StatelessWidget {
                           );
 
                       context.read<GameBloc>().add(const GameResetEvent());
+                      context.read<TimerBloc>().add(const TimerResetEvent());
                       context.read<TimerBloc>().add(const TimerStartEvent());
                       context.go(GamePage.routePath);
                     },
@@ -398,8 +399,7 @@ class WinnerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gameDuration =
-        context.watch<GameOverBloc>().state.gameModel?.durationInSeconds;
+    final gameDuration = context.watch<TimerBloc>().state.elapsedSeconds;
     final l10n = context.l10n;
     return Row(
       children: [
