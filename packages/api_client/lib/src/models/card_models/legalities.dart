@@ -5,7 +5,11 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'legalities.g.dart';
 
-@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
+@JsonSerializable(
+  explicitToJson: true,
+  fieldRename: FieldRename.snake,
+  includeIfNull: true,
+)
 class Legalities extends Equatable {
   const Legalities({
     required this.standard,
@@ -13,7 +17,7 @@ class Legalities extends Equatable {
     required this.historic,
     required this.gladiator,
     required this.pioneer,
-    required this.explorer,
+    required this.timeless,
     required this.modern,
     required this.legacy,
     required this.pauper,
@@ -41,7 +45,7 @@ class Legalities extends Equatable {
   final String historic;
   final String gladiator;
   final String pioneer;
-  final String explorer;
+  final String timeless;
   final String modern;
   final String legacy;
   final String pauper;
@@ -65,7 +69,7 @@ class Legalities extends Equatable {
         historic,
         gladiator,
         pioneer,
-        explorer,
+        timeless,
         modern,
         legacy,
         pauper,
