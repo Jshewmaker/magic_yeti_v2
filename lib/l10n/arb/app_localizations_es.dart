@@ -45,7 +45,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get passwordInputLabelText => 'Password';
 
   @override
-  String get resetPasswordSubmitText => 'If an account is registered with the provided email, we will send a link to reset your password';
+  String get resetPasswordSubmitText =>
+      'If an account is registered with the provided email, we will send a link to reset your password';
 
   @override
   String get resetPasswordTitle => 'Reset Password';
@@ -87,7 +88,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get resultsTabTimeline => 'Timeline';
 
   @override
-  String get navigationDialogText => 'Are you sure you want to go to the home page? The current game progress will be lost.';
+  String get navigationDialogText =>
+      'Are you sure you want to go to the home page? The current game progress will be lost.';
 
   @override
   String get exitGameDialogText => 'Exit Game?';
@@ -113,7 +115,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get saveButtonText => 'Save';
 
   @override
-  String get accountOwnershipLinkText => '¡Vincula este jugador a tu cuenta para saber qué comandante eres!';
+  String get accountOwnershipLinkText =>
+      '¡Vincula este jugador a tu cuenta para saber qué comandante eres!';
 
   @override
   String get accountOwnershipTitle => 'Este es mi comandante';
@@ -201,10 +204,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get statsTitle => 'Tus Estadísticas';
 
   @override
-  String get matchHistoryLoadError => 'Error al cargar el historial de partidas';
+  String get matchHistoryLoadError =>
+      'Error al cargar el historial de partidas';
 
   @override
-  String get noMatchHistoryAvailable => 'No hay historial de partidas disponible';
+  String get noMatchHistoryAvailable =>
+      'No hay historial de partidas disponible';
 
   @override
   String get gameOverTitle => 'Game Over';
@@ -233,7 +238,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get whoWentFirst => 'Who went first:';
 
   @override
-  String get accountOwner => 'Please select the account owner from the list to sync the game stats to their account:';
+  String get accountOwner =>
+      'Please select the account owner from the list to sync the game stats to their account:';
 
   @override
   String get cancel => 'Cancel';
@@ -316,7 +322,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get deleteMatchDialogTitle => 'Delete Match';
 
   @override
-  String get deleteMatchDialogContent => 'Are you sure you want to delete this match?';
+  String get deleteMatchDialogContent =>
+      'Are you sure you want to delete this match?';
 
   @override
   String get cancelButtonLabel => 'Cancel';

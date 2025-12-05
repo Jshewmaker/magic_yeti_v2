@@ -95,7 +95,7 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
     final commanders = <String>[];
     for (final game in games) {
       final player = _findPlayerInGame(game, userId);
-      if (player.commander == null) return 'No commanders';
+      if (player.commander == null) continue;
       commanders.add(player.commander?.name ?? '');
     }
     commanders

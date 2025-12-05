@@ -45,7 +45,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwordInputLabelText => 'Password';
 
   @override
-  String get resetPasswordSubmitText => 'If an account is registered with the provided email, we will send a link to reset your password';
+  String get resetPasswordSubmitText =>
+      'If an account is registered with the provided email, we will send a link to reset your password';
 
   @override
   String get resetPasswordTitle => 'Reset Password';
@@ -87,7 +88,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resultsTabTimeline => 'Timeline';
 
   @override
-  String get navigationDialogText => 'Are you sure you want to go to the home page? The current game progress will be lost.';
+  String get navigationDialogText =>
+      'Are you sure you want to go to the home page? The current game progress will be lost.';
 
   @override
   String get exitGameDialogText => 'Exit Game?';
@@ -113,7 +115,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveButtonText => 'Save';
 
   @override
-  String get accountOwnershipLinkText => 'Link this player to your account so we know which commander you are!';
+  String get accountOwnershipLinkText =>
+      'Link this player to your account so we know which commander you are!';
 
   @override
   String get accountOwnershipTitle => 'This is my commander';
@@ -233,7 +236,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whoWentFirst => 'Who went first:';
 
   @override
-  String get accountOwner => 'Please select the account owner from the list to sync the game stats to their account:';
+  String get accountOwner =>
+      'Please select the account owner from the list to sync the game stats to their account:';
 
   @override
   String get cancel => 'Cancel';
@@ -316,7 +320,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteMatchDialogTitle => 'Delete Match';
 
   @override
-  String get deleteMatchDialogContent => 'Are you sure you want to delete this match?';
+  String get deleteMatchDialogContent =>
+      'Are you sure you want to delete this match?';
 
   @override
   String get cancelButtonLabel => 'Cancel';
