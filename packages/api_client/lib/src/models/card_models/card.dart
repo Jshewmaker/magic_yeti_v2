@@ -120,7 +120,7 @@ class MagicCard extends Equatable {
   final String? power;
   final List<String>? producedMana;
   final String? toughness;
-  final String typeLine;
+  final String? typeLine;
   final String? oracleText;
   final List<String>? colors;
   final List<String>? colorIndicator;

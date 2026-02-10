@@ -61,7 +61,7 @@ MagicCard _$MagicCardFromJson(Map<String, dynamic> json) => MagicCard(
           ? null
           : ImageURIs.fromJson(json['image_uris'] as Map<String, dynamic>),
       manaCost: json['mana_cost'] as String?,
-      typeLine: json['type_line'] as String,
+      typeLine: json['type_line'] as String?,
       oracleText: json['oracle_text'] as String?,
       colors:
           (json['colors'] as List<dynamic>?)?.map((e) => e as String).toList(),
