@@ -428,7 +428,7 @@ class WinnerWidget extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
-              _formatDuration(gameDuration ?? 0),
+              _formatDuration(gameDuration),
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ],

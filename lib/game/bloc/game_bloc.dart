@@ -150,14 +150,18 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     try {
       for (final player in _players) {
         final opponents = state.playerList
-            .map((p) => Opponent(
-                  playerId: p.id,
-                  damages: [
-                    CommanderDamage(
-                        damageType: DamageType.commander, amount: 0),
-                    CommanderDamage(damageType: DamageType.partner, amount: 0),
-                  ],
-                ))
+            .map(
+              (p) => Opponent(
+                playerId: p.id,
+                damages: [
+                  CommanderDamage(
+                    damageType: DamageType.commander,
+                    amount: 0,
+                  ),
+                  CommanderDamage(damageType: DamageType.partner, amount: 0),
+                ],
+              ),
+            )
             .toList();
 
         final resetPlayer = player.copyWith(
@@ -198,12 +202,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final restored = _playerRepository.restorePreviousGameState();
     if (restored) {
       // Emit restored state as running, clear winner/error
-      emit(state.copyWith(
-        status: GameStatus.running,
-        playerList: _playerRepository.getPlayers(),
-        winner: null,
-        error: null,
-      ));
+      emit(
+        state.copyWith(
+          status: GameStatus.running,
+          playerList: _playerRepository.getPlayers(),
+        ),
+      );
       // Dispatch TimerStartEvent to TimerBloc
       // (Assumes context or a callback is available; see note below)
       // context.read<TimerBloc>().add(const TimerStartEvent());
@@ -243,8 +247,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final alivePlayers =
         event.players.where((p) => p.state == PlayerModelState.active).toList();
     if (alivePlayers.isEmpty && state.status == GameStatus.running) {
-      add(GameFinishEvent(
-          winner: event.players.firstWhere((p) => p.placement == 1)));
+      add(
+        GameFinishEvent(
+          winner: event.players.firstWhere((p) => p.placement == 1),
+        ),
+      );
     }
   }
 

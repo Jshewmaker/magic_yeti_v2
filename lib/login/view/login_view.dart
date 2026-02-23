@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_inputs/form_inputs.dart';
 import 'package:go_router/go_router.dart';
+import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/login/login.dart';
 import 'package:magic_yeti/reset_password/reset_password.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
-import 'package:magic_yeti/app/utils/device_info_provider.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});

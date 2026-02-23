@@ -37,7 +37,10 @@ class PlayerCustomizationBloc
       );
 
       final filteredCards = cardList.data
-          .where((card) => card.typeLine.toLowerCase().contains('legendary'))
+          .where(
+            (card) =>
+                card.typeLine?.toLowerCase().contains('legendary') ?? false,
+          )
           .toList();
       emit(
         state.copyWith(
@@ -88,7 +91,10 @@ class PlayerCustomizationBloc
   ) {
     final cardList = event.showOnlyLegendary
         ? state.cardList?.data
-            .where((card) => card.typeLine.toLowerCase().contains('legendary'))
+            .where(
+              (card) =>
+                  card.typeLine?.toLowerCase().contains('legendary') ?? false,
+            )
             .toList()
         : state.cardList?.data ?? [];
 

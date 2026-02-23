@@ -9,7 +9,6 @@ import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/home/home_page.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/login/login.dart';
-import 'package:magic_yeti/onboarding/onboarding.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
 
 class SignUpForm extends StatelessWidget {
