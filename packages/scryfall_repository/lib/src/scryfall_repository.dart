@@ -29,9 +29,25 @@ class ScryfallRepository {
     final cards = await _apiClient.getCardFullText(cardName);
     cards.data.removeWhere(
       (element) =>
-          element.imageStatus == 'missing' || element.imageUris == null,
+          element.imageStatus == 'missing' && element.imageUris == null,
     );
 
-    return cards;
+    final normalizedData = cards.data.map((card) {
+      if (card.imageUris == null) {
+        final faceImageUris = card.cardFaces?.first.imageUris;
+        if (faceImageUris != null) {
+          return card.copyWith(imageUris: faceImageUris);
+        }
+      }
+      return card;
+    }).toList();
+
+    return SearchCards(
+      object: cards.object,
+      totalCards: cards.totalCards,
+      hasMore: cards.hasMore,
+      nextPage: cards.nextPage,
+      data: normalizedData,
+    );
   }
 }

@@ -241,7 +241,9 @@ class _SelectCommanderWidgetState extends State<SelectCommanderWidget> {
                         children: [
                           Expanded(
                             child: Image.network(
-                              card?.imageUris?.normal ?? '',
+                              card?.imageUris?.normal ??
+                                  card?.cardFaces?.first.imageUris?.normal ??
+                                  '',
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   const ColoredBox(

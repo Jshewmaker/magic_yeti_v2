@@ -7,10 +7,10 @@ part of 'purchase_uris.dart';
 // **************************************************************************
 
 PurchaseURIs _$PurchaseURIsFromJson(Map<String, dynamic> json) => PurchaseURIs(
-      tcgplayer: json['tcgplayer'] as String,
-      cardhoarder: json['cardhoarder'] as String,
-      cardmarket: json['cardmarket'] as String,
-    );
+  tcgplayer: json['tcgplayer'] as String,
+  cardhoarder: json['cardhoarder'] as String,
+  cardmarket: json['cardmarket'] as String,
+);
 
 Map<String, dynamic> _$PurchaseURIsToJson(PurchaseURIs instance) =>
     <String, dynamic>{

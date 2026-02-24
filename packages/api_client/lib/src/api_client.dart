@@ -44,7 +44,6 @@ class ApiClient {
   Future<SearchCards> getCardFullText(String cardName) async {
     final queryParameters = {
       'unique': 'art',
-      'order': 'name',
       'q': cardName,
     };
     final request = _baseUrl.replace(
@@ -53,11 +52,17 @@ class ApiClient {
     );
 
     try {
-      final response = await _httpClient.get(request);
+      final response = await _httpClient.get(
+        request,
+        headers: {
+          'User-Agent': 'Magic Yeti/1.0',
+          'Accept': 'application/json',
+        },
+      );
 
       if (response.statusCode != 200) {
         throw ApiClientError(
-          error: '${response.statusCode}',
+          error: '${response.statusCode} - ${response.body}',
           stackTrace: StackTrace.current,
         );
       }

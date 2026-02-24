@@ -49,7 +49,7 @@ class PlayerCustomizationBloc
           filteredCards: filteredCards,
         ),
       );
-    } catch (e) {
+    } on Exception catch (_) {
       emit(
         state.copyWith(
           status: PlayerCustomizationStatus.failure,
