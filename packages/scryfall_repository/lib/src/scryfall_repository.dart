@@ -1,38 +1,45 @@
 import 'package:api_client/api_client.dart';
+import 'package:scryfall_bulk_client/scryfall_bulk_client.dart';
 
 /// {@template scryfall_repository}
 /// Repository for Scryfall API
 /// {@endtemplate}
 class ScryfallRepository {
   /// {@macro scryfall_repository}
-  ScryfallRepository({ApiClient? apiClient})
+  ScryfallRepository({ApiClient? apiClient, ScryfallBulkClient? bulkClient})
       : _apiClient =
-            apiClient ?? ApiClient(baseUrl: 'https://api.scryfall.com');
+            apiClient ?? ApiClient(baseUrl: 'https://api.scryfall.com'),
+        _bulkClient = bulkClient ?? ScryfallBulkClient();
 
   final ApiClient _apiClient;
+  final ScryfallBulkClient _bulkClient;
 
-  /// Retrieves full text search results for a specific card name from Scryfall API.
+  /// Retrieves full text search results for a specific card name.
   ///
-  /// This method performs a full-text search for a card and filters out cards with:
-  /// - Missing image status
-  /// - Null image URIs
+  /// Searches the local bulk data asset first. If no results are found,
+  /// falls back to the Scryfall API.
   ///
-  /// [cardName] The name of the card to search for.
-  ///
-  /// Returns a [SearchCards] object containing filtered card results.
-  ///
-  /// Filters out cards that do not have valid images to ensure only
-  /// displayable cards are returned.
-  ///
-  /// Throws an exception if the API call fails or network issues occur.
+  /// Filters out cards with missing images and normalizes double-faced card
+  /// image URIs before returning.
   Future<SearchCards> getCardFullText({required String cardName}) async {
-    final cards = await _apiClient.getCardFullText(cardName);
-    cards.data.removeWhere(
-      (element) =>
-          element.imageStatus == 'missing' && element.imageUris == null,
-    );
+    final localResults = await _bulkClient.searchCards(cardName);
+    if (localResults.data.isNotEmpty) {
+      return _normalizeCards(localResults);
+    }
 
-    final normalizedData = cards.data.map((card) {
+    final apiResults = await _apiClient.getCardFullText(cardName);
+    return _normalizeCards(apiResults);
+  }
+
+  SearchCards _normalizeCards(SearchCards cards) {
+    final filtered = cards.data
+        .where(
+          (card) =>
+              !(card.imageStatus == 'missing' && card.imageUris == null),
+        )
+        .toList();
+
+    final normalizedData = filtered.map((card) {
       if (card.imageUris == null) {
         final faceImageUris = card.cardFaces?.first.imageUris;
         if (faceImageUris != null) {
@@ -44,7 +51,7 @@ class ScryfallRepository {
 
     return SearchCards(
       object: cards.object,
-      totalCards: cards.totalCards,
+      totalCards: normalizedData.length,
       hasMore: cards.hasMore,
       nextPage: cards.nextPage,
       data: normalizedData,

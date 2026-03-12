@@ -14,3 +14,5 @@ dev_dependencies:
 dependencies:
   api_client:
     path: ../api_client
+  scryfall_bulk_client:
+    path: ../scryfall_bulk_client

@@ -1,0 +1,23 @@
+name: scryfall_bulk_client
+description: Dart package for scryfalls bulk data
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ^3.10.3
+
+dependencies:
+  api_client:
+    path: ../api_client
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mocktail: ^1.0.4
+  very_good_analysis: ^10.1.0
+
+flutter:
+  assets:
+    - assets/cards/
