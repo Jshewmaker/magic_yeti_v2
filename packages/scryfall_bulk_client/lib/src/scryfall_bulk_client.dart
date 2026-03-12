@@ -32,6 +32,19 @@ class ScryfallBulkClient {
     return _cachedCards!;
   }
 
+  /// Finds a card by exact name (case-insensitive) and returns its oracle ID.
+  ///
+  /// Returns `null` if no card matches the exact name.
+  Future<String?> getOracleIdByName(String cardName) async {
+    final cards = await _loadCards();
+    final lowerName = cardName.toLowerCase();
+    final match = cards.cast<MagicCard?>().firstWhere(
+          (card) => card!.name.toLowerCase() == lowerName,
+          orElse: () => null,
+        );
+    return match?.oracleId;
+  }
+
   /// Searches the local bulk data for cards whose name contains [query].
   ///
   /// Returns a [SearchCards] object compatible with the rest of the data layer.

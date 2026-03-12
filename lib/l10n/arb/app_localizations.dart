@@ -644,6 +644,66 @@ abstract class AppLocalizations {
   /// **'Most Played\nCommander'**
   String get mostPlayedCommanderTitle;
 
+  /// Title for average game duration stat
+  ///
+  /// In en, this message translates to:
+  /// **'Average\nGame Duration'**
+  String get averageGameDurationTitle;
+
+  /// Title for win rate when going first stat
+  ///
+  /// In en, this message translates to:
+  /// **'Win Rate\nWhen First'**
+  String get winRateWhenFirstTitle;
+
+  /// Title for highest win rate commander stat
+  ///
+  /// In en, this message translates to:
+  /// **'Best\nCommander'**
+  String get bestCommanderTitle;
+
+  /// Title for current win/loss streak stat
+  ///
+  /// In en, this message translates to:
+  /// **'Current\nStreak'**
+  String get currentStreakTitle;
+
+  /// Title for most common opponent stat
+  ///
+  /// In en, this message translates to:
+  /// **'Most Common\nOpponent'**
+  String get mostCommonOpponentTitle;
+
+  /// Title for nemesis stat - opponent who beats you most
+  ///
+  /// In en, this message translates to:
+  /// **'Nemesis'**
+  String get nemesisTitle;
+
+  /// Title for average commander damage taken per game
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Commander\nDamage Taken'**
+  String get avgCommanderDamageTakenTitle;
+
+  /// Title for times eliminated by 21+ commander damage
+  ///
+  /// In en, this message translates to:
+  /// **'Killed by\nCommander Dmg'**
+  String get timesKilledByCommanderTitle;
+
+  /// Title for best win rate by exact color identity combination
+  ///
+  /// In en, this message translates to:
+  /// **'Best Color\nCombo'**
+  String get bestColorComboTitle;
+
+  /// Title for best win rate by individual color
+  ///
+  /// In en, this message translates to:
+  /// **'Best Single\nColor'**
+  String get bestSingleColorTitle;
+
   /// Text shown for features under construction
   ///
   /// In en, this message translates to:

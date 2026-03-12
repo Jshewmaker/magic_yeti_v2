@@ -17,6 +17,7 @@ class Commander extends Equatable {
     required this.manaCost,
     required this.oracleText,
     required this.artist,
+    this.oracleId,
     this.typeLine,
     this.scryFallUrl = '',
     this.colorIdentity,
@@ -28,6 +29,9 @@ class Commander extends Equatable {
   /// Creates a Commander from JSON map
   factory Commander.fromJson(Map<String, dynamic> json) =>
       _$CommanderFromJson(json);
+
+  /// Scryfall oracle ID — consistent across all reprints/artworks of a card
+  final String? oracleId;
 
   /// The name of the commander card
   final String name;
@@ -75,6 +79,7 @@ class Commander extends Equatable {
   /// Creates a copy of this Commander with the given fields replaced with the
   /// new values
   Commander copyWith({
+    String? oracleId,
     String? name,
     List<String>? colors,
     List<String>? colorIdentity,
@@ -90,6 +95,7 @@ class Commander extends Equatable {
     String? artist,
   }) {
     return Commander(
+      oracleId: oracleId ?? this.oracleId,
       name: name ?? this.name,
       colors: colors ?? this.colors,
       colorIdentity: colorIdentity ?? this.colorIdentity,
@@ -108,6 +114,7 @@ class Commander extends Equatable {
 
   @override
   List<Object?> get props => [
+        oracleId,
         name,
         colors,
         colorIdentity,

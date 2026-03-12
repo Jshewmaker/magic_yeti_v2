@@ -14,6 +14,13 @@ class ScryfallRepository {
   final ApiClient _apiClient;
   final ScryfallBulkClient _bulkClient;
 
+  /// Looks up the oracle ID for a commander name using the local bulk data.
+  ///
+  /// Returns `null` if the card is not found.
+  Future<String?> getOracleIdByName(String cardName) async {
+    return _bulkClient.getOracleIdByName(cardName);
+  }
+
   /// Retrieves full text search results for a specific card name.
   ///
   /// Searches the local bulk data asset first. If no results are found,

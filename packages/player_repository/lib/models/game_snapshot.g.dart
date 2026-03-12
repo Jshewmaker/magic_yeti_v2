@@ -7,10 +7,10 @@ part of 'game_snapshot.dart';
 // **************************************************************************
 
 GameSnapshot _$GameSnapshotFromJson(Map<String, dynamic> json) => GameSnapshot(
-      players: (json['players'] as List<dynamic>)
-          .map((e) => Player.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
+  players: (json['players'] as List<dynamic>)
+      .map((e) => Player.fromJson(e as Map<String, dynamic>))
+      .toList(),
+);
 
 Map<String, dynamic> _$GameSnapshotToJson(GameSnapshot instance) =>
     <String, dynamic>{

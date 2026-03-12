@@ -23,6 +23,16 @@ final class StatsOverviewLoaded extends StatsOverviewState {
     required this.averagePlacement,
     required this.timesWentFirst,
     required this.mostPlayedCommander,
+    required this.averageGameDuration,
+    required this.winRateWhenFirst,
+    required this.bestCommander,
+    required this.currentStreak,
+    required this.mostCommonOpponent,
+    required this.nemesis,
+    required this.avgCommanderDamageTaken,
+    required this.timesKilledByCommander,
+    required this.bestColorCombo,
+    required this.bestSingleColor,
   });
 
   final String userId;
@@ -35,6 +45,16 @@ final class StatsOverviewLoaded extends StatsOverviewState {
   final double averagePlacement;
   final int timesWentFirst;
   final String mostPlayedCommander;
+  final String averageGameDuration;
+  final String winRateWhenFirst;
+  final String bestCommander;
+  final String currentStreak;
+  final String mostCommonOpponent;
+  final String nemesis;
+  final String avgCommanderDamageTaken;
+  final int timesKilledByCommander;
+  final String bestColorCombo;
+  final String bestSingleColor;
 
   @override
   List<Object> get props => [
@@ -48,6 +68,16 @@ final class StatsOverviewLoaded extends StatsOverviewState {
         averagePlacement,
         timesWentFirst,
         mostPlayedCommander,
+        averageGameDuration,
+        winRateWhenFirst,
+        bestCommander,
+        currentStreak,
+        mostCommonOpponent,
+        nemesis,
+        avgCommanderDamageTaken,
+        timesKilledByCommander,
+        bestColorCombo,
+        bestSingleColor,
       ];
 }
 

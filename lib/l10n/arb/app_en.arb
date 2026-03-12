@@ -582,6 +582,66 @@
     "type": "text",
     "placeholders": {}
   },
+  "averageGameDurationTitle": "Average\nGame Duration",
+  "@averageGameDurationTitle": {
+    "description": "Title for average game duration stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "winRateWhenFirstTitle": "Win Rate\nWhen First",
+  "@winRateWhenFirstTitle": {
+    "description": "Title for win rate when going first stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "bestCommanderTitle": "Best\nCommander",
+  "@bestCommanderTitle": {
+    "description": "Title for highest win rate commander stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "currentStreakTitle": "Current\nStreak",
+  "@currentStreakTitle": {
+    "description": "Title for current win/loss streak stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "mostCommonOpponentTitle": "Most Common\nOpponent",
+  "@mostCommonOpponentTitle": {
+    "description": "Title for most common opponent stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "nemesisTitle": "Nemesis",
+  "@nemesisTitle": {
+    "description": "Title for nemesis stat - opponent who beats you most",
+    "type": "text",
+    "placeholders": {}
+  },
+  "avgCommanderDamageTakenTitle": "Avg Commander\nDamage Taken",
+  "@avgCommanderDamageTakenTitle": {
+    "description": "Title for average commander damage taken per game",
+    "type": "text",
+    "placeholders": {}
+  },
+  "timesKilledByCommanderTitle": "Killed by\nCommander Dmg",
+  "@timesKilledByCommanderTitle": {
+    "description": "Title for times eliminated by 21+ commander damage",
+    "type": "text",
+    "placeholders": {}
+  },
+  "bestColorComboTitle": "Best Color\nCombo",
+  "@bestColorComboTitle": {
+    "description": "Title for best win rate by exact color identity combination",
+    "type": "text",
+    "placeholders": {}
+  },
+  "bestSingleColorTitle": "Best Single\nColor",
+  "@bestSingleColorTitle": {
+    "description": "Title for best win rate by individual color",
+    "type": "text",
+    "placeholders": {}
+  },
   "underConstructionText": "Under Construction",
   "@underConstructionText": {
     "description": "Text shown for features under construction",

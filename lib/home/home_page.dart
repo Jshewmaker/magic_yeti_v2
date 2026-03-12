@@ -108,11 +108,11 @@ class _TabletView extends StatelessWidget {
                     onPressed: () {
                       if (roomId.isNotEmpty) {
                         context.read<MatchHistoryBloc>().add(
-                              AddMatchToPlayerHistoryEvent(
-                                roomId: roomId.toUpperCase(),
-                                playerId: context.read<AppBloc>().state.user.id,
-                              ),
-                            );
+                          AddMatchToPlayerHistoryEvent(
+                            roomId: roomId.toUpperCase(),
+                            playerId: context.read<AppBloc>().state.user.id,
+                          ),
+                        );
                         Navigator.pop(context);
                       }
                     },
@@ -157,9 +157,9 @@ class SectionHeader extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: AppColors.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+            ),
             textAlign: TextAlign.center,
           ),
           if (onMorePressed != null)
@@ -216,8 +216,9 @@ class AccountWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userIsLoggedIn =
-        context.select((AppBloc bloc) => bloc.state.user.isAnonymous);
+    final userIsLoggedIn = context.select(
+      (AppBloc bloc) => bloc.state.user.isAnonymous,
+    );
 
     final matchHistoryState = context.watch<MatchHistoryBloc>().state;
     final l10n = context.l10n;
@@ -226,10 +227,11 @@ class AccountWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
         child: !userIsLoggedIn
             ? matchHistoryState.status ==
-                        MatchHistoryStatus.loadingHistorySuccess ||
-                    matchHistoryState.status == MatchHistoryStatus.gameNotFound
-                ? StatsOverviewWidget(key: ObjectKey(matchHistoryState))
-                : const CircularProgressIndicator()
+                          MatchHistoryStatus.loadingHistorySuccess ||
+                      matchHistoryState.status ==
+                          MatchHistoryStatus.gameNotFound
+                  ? StatsOverviewWidget(key: ObjectKey(matchHistoryState))
+                  : const CircularProgressIndicator()
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -250,9 +252,7 @@ class AccountWidget extends StatelessWidget {
                       child: Center(
                         child: Text(
                           l10n.loginButtonText,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
+                          style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(
                                 color: Colors.white,
                               ),
@@ -278,9 +278,7 @@ class AccountWidget extends StatelessWidget {
                       child: Center(
                         child: Text(
                           l10n.signUpAppBarTitle,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
+                          style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(
                                 color: Colors.white,
                               ),
@@ -337,9 +335,7 @@ class GameModeButtons extends StatelessWidget {
                   children: [
                     Text(
                       l10n.numberOfPlayers(2),
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
+                      style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(
                             color: AppColors.secondary.withValues(alpha: 0.2),
                             fontWeight: FontWeight.bold,
@@ -380,9 +376,9 @@ class GameModeButtons extends StatelessWidget {
                 child: Text(
                   l10n.numberOfPlayers(4),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -396,11 +392,11 @@ class GameModeButtons extends StatelessWidget {
     unawaited(WakelockPlus.enable());
 
     context.read<GameBloc>().add(
-          CreateGameEvent(
-            numberOfPlayers: players,
-            startingLifePoints: lifePoints,
-          ),
-        );
+      CreateGameEvent(
+        numberOfPlayers: players,
+        startingLifePoints: lifePoints,
+      ),
+    );
 
     context.read<TimerBloc>().add(const TimerStartEvent());
     context.go(GamePage.routePath);
@@ -418,9 +414,9 @@ class MatchHistoryPanel extends StatelessWidget {
     if (appState.status != AppStatus.authenticated) {
       context.read<MatchHistoryBloc>().add(const ClearMatchHistory());
     } else {
-      context
-          .read<MatchHistoryBloc>()
-          .add(LoadMatchHistory(userId: appState.user.id));
+      context.read<MatchHistoryBloc>().add(
+        LoadMatchHistory(userId: appState.user.id),
+      );
     }
     return BlocListener<MatchHistoryBloc, MatchHistoryState>(
       listener: (context, state) {
@@ -459,77 +455,76 @@ class MatchHistoryPanel extends StatelessWidget {
                     (player) => player.id == game.winnerId,
                   );
                   return CustomListItem(
-                    wonGame: winningPlayer.firebaseId ==
+                    wonGame:
+                        winningPlayer.firebaseId ==
                         context.read<AppBloc>().state.user.id,
-                    thumbnail: (winningPlayer.commander?.imageUrl.isEmpty ??
-                            false)
+                    thumbnail:
+                        (winningPlayer.commander?.imageUrl.isEmpty ?? false)
                         ? Container(
-                            color: Color(winningPlayer.color)
-                                .withValues(alpha: .8),
+                            color: Color(
+                              winningPlayer.color,
+                            ).withValues(alpha: .8),
                           )
                         : winningPlayer.partner?.imageUrl == null
-                            ? Image.network(
-                                fit: BoxFit.cover,
-                                winningPlayer.commander?.imageUrl ?? '',
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Container(
-                                  color: Color(winningPlayer.color)
-                                      .withValues(alpha: .8),
+                        ? Image.network(
+                            fit: BoxFit.cover,
+                            winningPlayer.commander?.imageUrl ?? '',
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  color: Color(
+                                    winningPlayer.color,
+                                  ).withValues(alpha: .8),
                                 ),
-                              )
-                            : Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(
-                                    child: Image.network(
-                                      winningPlayer.commander?.imageUrl ?? '',
-                                      fit: BoxFit.fitHeight,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Container(
-                                          decoration: BoxDecoration(
-                                            color: Color(winningPlayer.color)
-                                                .withValues(
+                          )
+                        : Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: Image.network(
+                                  winningPlayer.commander?.imageUrl ?? '',
+                                  fit: BoxFit.fitHeight,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        color: Color(winningPlayer.color)
+                                            .withValues(
                                               alpha:
                                                   winningPlayer.lifePoints <= 0
-                                                      ? .3
-                                                      : 1,
+                                                  ? .3
+                                                  : 1,
                                             ),
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                              Radius.circular(20),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Image.network(
-                                      winningPlayer.partner?.imageUrl ?? '',
-                                      fit: BoxFit.fitHeight,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Container(
-                                          decoration: BoxDecoration(
-                                            color: Color(winningPlayer.color)
-                                                .withValues(
-                                              alpha:
-                                                  winningPlayer.lifePoints <= 0
-                                                      ? .3
-                                                      : 1,
-                                            ),
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                              Radius.circular(20),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ],
+                                        borderRadius: const BorderRadius.all(
+                                          Radius.circular(20),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
+                              Expanded(
+                                child: Image.network(
+                                  winningPlayer.partner?.imageUrl ?? '',
+                                  fit: BoxFit.fitHeight,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        color: Color(winningPlayer.color)
+                                            .withValues(
+                                              alpha:
+                                                  winningPlayer.lifePoints <= 0
+                                                  ? .3
+                                                  : 1,
+                                            ),
+                                        borderRadius: const BorderRadius.all(
+                                          Radius.circular(20),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
                     playerName: winningPlayer.name,
                     commanderName: winningPlayer.commander?.name ?? '',
                     gameLength: Duration(seconds: game.durationInSeconds),
@@ -583,7 +578,7 @@ class CustomListItem extends StatelessWidget {
       child: Card(
         color: wonGame
             ? AppColors.winner.withValues(alpha: .6)
-            : AppColors.onSurfaceVariant,
+            : AppColors.tertiary,
         child: SizedBox(
           height: 160,
           child: Row(
@@ -754,10 +749,11 @@ class LosersWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Sort players by placement, excluding the winner (placement 1)
-    final runnerUps = game.players
-        .where((player) => player.placement > 1 && player.placement <= 4)
-        .toList()
-      ..sort((a, b) => a.placement.compareTo(b.placement));
+    final runnerUps =
+        game.players
+            .where((player) => player.placement > 1 && player.placement <= 4)
+            .toList()
+          ..sort((a, b) => a.placement.compareTo(b.placement));
 
     return SizedBox(
       width: 50,
@@ -779,8 +775,9 @@ class LosersWidget extends StatelessWidget {
                             player.commander?.imageUrl ?? '',
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
-                                color:
-                                    Color(player.color).withValues(alpha: .8),
+                                color: Color(
+                                  player.color,
+                                ).withValues(alpha: .8),
                               );
                             },
                           )
@@ -795,8 +792,9 @@ class LosersWidget extends StatelessWidget {
                                     return Container(
                                       decoration: BoxDecoration(
                                         color: Color(player.color).withValues(
-                                          alpha:
-                                              player.lifePoints <= 0 ? .3 : 1,
+                                          alpha: player.lifePoints <= 0
+                                              ? .3
+                                              : 1,
                                         ),
                                         borderRadius: const BorderRadius.all(
                                           Radius.circular(20),
@@ -814,8 +812,9 @@ class LosersWidget extends StatelessWidget {
                                     return Container(
                                       decoration: BoxDecoration(
                                         color: Color(player.color).withValues(
-                                          alpha:
-                                              player.lifePoints <= 0 ? .3 : 1,
+                                          alpha: player.lifePoints <= 0
+                                              ? .3
+                                              : 1,
                                         ),
                                         borderRadius: const BorderRadius.all(
                                           Radius.circular(20),
@@ -921,9 +920,9 @@ class _PhoneView extends StatelessWidget {
           title: Text(
             'Magic Yeti',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: AppColors.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           bottom: TabBar(
             tabs: [
@@ -975,12 +974,11 @@ class _PhoneView extends StatelessWidget {
                       onPressed: () {
                         if (roomId.isNotEmpty) {
                           context.read<MatchHistoryBloc>().add(
-                                AddMatchToPlayerHistoryEvent(
-                                  roomId: roomId.toUpperCase(),
-                                  playerId:
-                                      context.read<AppBloc>().state.user.id,
-                                ),
-                              );
+                            AddMatchToPlayerHistoryEvent(
+                              roomId: roomId.toUpperCase(),
+                              playerId: context.read<AppBloc>().state.user.id,
+                            ),
+                          );
                           Navigator.pop(context);
                         }
                       },

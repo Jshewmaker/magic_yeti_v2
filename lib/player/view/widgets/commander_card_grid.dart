@@ -132,6 +132,7 @@ class _CardGridSliver extends StatelessWidget {
     );
 
     final commander = Commander(
+      oracleId: card.oracleId,
       name: card.name,
       typeLine: card.typeLine ?? '',
       scryFallUrl: card.scryfallUri,

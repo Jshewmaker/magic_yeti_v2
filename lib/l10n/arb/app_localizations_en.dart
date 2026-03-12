@@ -302,6 +302,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mostPlayedCommanderTitle => 'Most Played\nCommander';
 
   @override
+  String get averageGameDurationTitle => 'Average\nGame Duration';
+
+  @override
+  String get winRateWhenFirstTitle => 'Win Rate\nWhen First';
+
+  @override
+  String get bestCommanderTitle => 'Best\nCommander';
+
+  @override
+  String get currentStreakTitle => 'Current\nStreak';
+
+  @override
+  String get mostCommonOpponentTitle => 'Most Common\nOpponent';
+
+  @override
+  String get nemesisTitle => 'Nemesis';
+
+  @override
+  String get avgCommanderDamageTakenTitle => 'Avg Commander\nDamage Taken';
+
+  @override
+  String get timesKilledByCommanderTitle => 'Killed by\nCommander Dmg';
+
+  @override
+  String get bestColorComboTitle => 'Best Color\nCombo';
+
+  @override
+  String get bestSingleColorTitle => 'Best Single\nColor';
+
+  @override
   String get underConstructionText => 'Under Construction';
 
   @override
