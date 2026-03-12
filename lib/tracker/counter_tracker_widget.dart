@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/tracker/counter_bloc/counter_bloc.dart';
+import 'package:magic_yeti/tracker/tracker_sizes.dart';
 
 class CounterTrackerWidget extends StatelessWidget {
   const CounterTrackerWidget({
@@ -12,7 +13,9 @@ class CounterTrackerWidget extends StatelessWidget {
   final Icon icon;
   @override
   Widget build(BuildContext context) {
-    final trackerSize = DeviceInfoProvider.of(context).isPhone ? 60.0 : 90.0;
+    final sizes = TrackerSizes.fromDevice(
+      isPhone: DeviceInfoProvider.of(context).isPhone,
+    );
     return BlocProvider(
       create: (context) => CounterBloc(),
       child: BlocBuilder<CounterBloc, CounterState>(
@@ -25,8 +28,8 @@ class CounterTrackerWidget extends StatelessWidget {
             onLongPressUp: () =>
                 context.read<CounterBloc>().add(CounterStopDecrementing()),
             child: Container(
-              height: trackerSize,
-              width: trackerSize,
+              height: sizes.tileSize,
+              width: sizes.tileSize,
               padding: const EdgeInsets.only(top: 10),
               color: AppColors.neutral60.withValues(alpha: .2),
               child: Stack(
@@ -35,7 +38,7 @@ class CounterTrackerWidget extends StatelessWidget {
                   icon,
                   StrokeText(
                     text: state.counter.toString(),
-                    fontSize: 28,
+                    fontSize: sizes.textSize,
                     color: AppColors.white,
                   ),
                 ],

@@ -39,7 +39,9 @@ class TrackerWidgets extends StatelessWidget {
     );
 
     final players = context.read<GameBloc>().state.playerList;
-    final trackerSize = DeviceInfoProvider.of(context).isPhone ? 60.0 : 90.0;
+    final sizes = TrackerSizes.fromDevice(
+      isPhone: DeviceInfoProvider.of(context).isPhone,
+    );
     return BlocProvider(
       create: (context) => TrackerBloc(),
       child: BlocBuilder<TrackerBloc, TrackerState>(
@@ -54,26 +56,17 @@ class TrackerWidgets extends StatelessWidget {
           return RotatedBox(
             quarterTurns: rotate ? 0 : 2,
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               decoration: BoxDecoration(
-                color: Colors.transparent.withValues(alpha: .8),
-                borderRadius:
-                    (leftSideTracker && rotate) || (!leftSideTracker && !rotate)
-                        ? const BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            bottomLeft: Radius.circular(20),
-                          )
-                        : const BorderRadius.only(
-                            topRight: Radius.circular(20),
-                            bottomRight: Radius.circular(20),
-                          ),
+                color: Colors.black.withValues(alpha: .8),
               ),
               child: ListView(
+                scrollDirection: Axis.horizontal,
                 children: [
                   if (players.length > 2)
                     ...players.map(
                       (player) {
-                        return Column(
+                        return Row(
                           children: [
                             CommanderDamageTracker(
                               player: player,
@@ -81,65 +74,66 @@ class TrackerWidgets extends StatelessWidget {
                               playerId: playerId,
                             ),
                             const SizedBox(
-                              height: AppSpacing.xs,
+                              width: AppSpacing.xs,
                             ),
                           ],
                         );
                       },
                     ),
                   ...state.icons.map(
-                    (icon) => Column(
+                    (icon) => Row(
                       children: [
-                        Dismissible(
-                          onDismissed: (_) => context
-                              .read<TrackerBloc>()
-                              .add(RemoveTrackerIcon(icon)),
-                          key: Key('$icon'),
-                          child: ClipRRect(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(10)),
-                            child: CounterTrackerWidget(
-                              icon: Icon(
-                                icon,
-                                size: 40,
-                                color: AppColors.white.withValues(alpha: .5),
-                              ),
+                        ClipRRect(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(10),
+                          ),
+                          child: CounterTrackerWidget(
+                            icon: Icon(
+                              icon,
+                              size: sizes.iconSize,
+                              color: AppColors.white.withValues(alpha: .5),
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          height: AppSpacing.xs,
-                        ),
+                        const SizedBox(width: AppSpacing.xs),
                       ],
                     ),
                   ),
-                  Column(
+                  Row(
                     children: [
                       ClipRRect(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(10)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(10),
+                        ),
                         child: Container(
-                          width: trackerSize,
-                          height: trackerSize,
+                          width: sizes.tileSize,
+                          height: sizes.tileSize,
                           color: AppColors.white.withValues(alpha: .5),
                           child: IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               FontAwesomeIcons.plus,
                               color: AppColors.white,
+                              size: sizes.buttonIconSize,
                             ),
                             onPressed: () async {
-                              final icon = await _dialogBuilder(context);
-                              if (icon != null) {
-                                context
-                                    .read<TrackerBloc>()
-                                    .add(AddTrackerIcon(icon));
+                              final result = await _dialogBuilder(
+                                context,
+                                state.icons,
+                              );
+                              if (result != null && context.mounted) {
+                                final (isAdd, icon) = result;
+                                context.read<TrackerBloc>().add(
+                                  isAdd
+                                      ? AddTrackerIcon(icon)
+                                      : RemoveTrackerIcon(icon),
+                                );
                               }
                             },
                           ),
                         ),
                       ),
                       const SizedBox(
-                        height: AppSpacing.xs,
+                        width: AppSpacing.xs,
                       ),
                     ],
                   ),
@@ -152,42 +146,65 @@ class TrackerWidgets extends StatelessWidget {
     );
   }
 
-  Future<IconData?> _dialogBuilder(BuildContext context) {
-    return showDialog<IconData>(
+  Future<(bool, IconData)?> _dialogBuilder(
+    BuildContext context,
+    List<IconData> currentIcons,
+  ) {
+    return showDialog<(bool, IconData)>(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return Dialog(
           child: SizedBox(
             height: 300,
             width: 500,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Tap an icon to add it to the tracker.',
-                  style: TextStyle(color: AppColors.white),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Text(
+                    'Select a tracker to add or remove',
+                    style: TextStyle(color: AppColors.white),
+                  ),
                 ),
                 Expanded(
                   child: GridView.count(
                     crossAxisCount: 5,
                     children: [
                       ...iconMap.entries.map(
-                        (entry) => Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: FaIcon(entry.key),
-                              onPressed: () =>
-                                  Navigator.pop(context, entry.key),
-                            ),
-                            Text(
-                              entry.value,
-                              style: const TextStyle(
-                                color: AppColors.white,
-                                fontSize: 12,
+                        (entry) {
+                          final isActive = currentIcons.contains(entry.key);
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                style: isActive
+                                    ? IconButton.styleFrom(
+                                        backgroundColor: AppColors.white
+                                            .withValues(alpha: .2),
+                                      )
+                                    : null,
+                                icon: FaIcon(
+                                  entry.key,
+                                  color: isActive
+                                      ? AppColors.green
+                                      : AppColors.white,
+                                ),
+                                onPressed: () => Navigator.pop(
+                                  context,
+                                  (!isActive, entry.key),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                              Text(
+                                entry.value,
+                                style: const TextStyle(
+                                  color: AppColors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),

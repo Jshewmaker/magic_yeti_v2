@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/player/bloc/player_bloc.dart';
+import 'package:magic_yeti/tracker/tracker_sizes.dart';
 import 'package:player_repository/models/models.dart';
 
-class CommanderDamageTracker extends StatefulWidget {
+class CommanderDamageTracker extends StatelessWidget {
   const CommanderDamageTracker({
     required this.playerId,
     required this.player,
@@ -18,108 +21,75 @@ class CommanderDamageTracker extends StatefulWidget {
   final Player player;
 
   @override
-  State<CommanderDamageTracker> createState() => _CommanderDamageTrackerState();
-}
-
-class _CommanderDamageTrackerState extends State<CommanderDamageTracker> {
-  /// Builds the commander damage tracker widget with proper state management.
-  ///
-  /// This implementation uses a specialized selector pattern to ensure the widget
-  /// rebuilds correctly when nested state changes occur. Here's why this is necessary:
-  ///
-  /// 1. The Problem:
-  ///    - When using lists in Dart, modifying list contents doesn't change the list reference
-  ///    - Simple selectors only detect reference changes, not content changes
-  ///    - This means changes to damage amounts wouldn't trigger rebuilds
-  ///
-  /// 2. The Solution:
-  ///    - We create a tuple containing both the opponent and their damage amounts
-  ///    - By including damage amounts as a separate list, we force Flutter to compare values
-  ///    - Any change to damage amounts creates a new list, triggering a rebuild
-  ///
-  /// 3. Performance:
-  ///    - This approach is efficient as it only rebuilds when damage values actually change
-  ///    - The map operation on damages is lightweight and only runs during selection
-  ///
-  /// This widget will rebuild when:
-  ///   - Commander damage changes
-  ///   - Partner damage changes
-  ///   - The opponent's commander changes
-  ///   - The opponent's partner changes
-  @override
   Widget build(BuildContext context) {
-    // Watch for changes in the opponent's damage by including the damage amounts
-    // in the selector
+    // Selector includes damage amounts to force rebuild when values change.
     final opponent = context.select<PlayerBloc, (Opponent, List<int>)>(
       (bloc) {
         final opp = bloc.state.player.opponents!.firstWhere(
-          (opponent) => opponent.playerId == widget.commanderPlayerId,
+          (o) => o.playerId == commanderPlayerId,
         );
-        // Include damage amounts in the selector to force rebuild when they change
-        final damageAmounts = opp.damages.map((d) => d.amount).toList();
-        return (opp, damageAmounts);
+        return (opp, opp.damages.map((d) => d.amount).toList());
       },
     ).$1;
 
-    // Watch for changes in the commander and partner of the target player
     final targetPlayer = context.select<GameBloc, Player>(
       (bloc) => bloc.state.playerList.firstWhere(
-        (player) => player.id == widget.commanderPlayerId,
+        (p) => p.id == commanderPlayerId,
       ),
     );
 
-    final damageMap =
-        opponent.damages.fold<Map<DamageType, int>>({}, (map, damage) {
-      map[damage.damageType] = damage.amount;
-      return map;
-    });
+    final damageMap = opponent.damages.fold<Map<DamageType, int>>(
+      {},
+      (map, damage) => map..[damage.damageType] = damage.amount,
+    );
 
-    final commanderDamage = damageMap[DamageType.commander];
-    final partnerDamage = damageMap[DamageType.partner];
+    final commanderDamage = damageMap[DamageType.commander] ?? 0;
+    final partnerDamage = damageMap[DamageType.partner] ?? 0;
+    final hasPartner = targetPlayer.partner?.imageUrl.isNotEmpty ?? false;
 
-    return targetPlayer.partner?.imageUrl.isNotEmpty ?? false
-        ? Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Color(targetPlayer.color),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(10),
-                ),
+    if (!hasPartner) {
+      return CommanderDamageButton(
+        playerId: playerId,
+        commanderPlayerId: commanderPlayerId,
+        player: player,
+        targetPlayer: targetPlayer,
+        commanderDamage: commanderDamage,
+        damageType: DamageType.commander,
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 5),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Color(targetPlayer.color),
+          borderRadius: const BorderRadius.all(Radius.circular(10)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            children: [
+              CommanderDamageButton(
+                playerId: playerId,
+                commanderPlayerId: commanderPlayerId,
+                player: player,
+                targetPlayer: targetPlayer,
+                commanderDamage: commanderDamage,
+                damageType: DamageType.commander,
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    CommanderDamageButton(
-                      playerId: widget.playerId,
-                      commanderPlayerId: widget.commanderPlayerId,
-                      player: widget.player,
-                      targetPlayer: targetPlayer,
-                      commanderDamage: commanderDamage ?? 0,
-                      damageType: DamageType.commander,
-                    ),
-                    CommanderDamageButton(
-                      playerId: widget.playerId,
-                      commanderPlayerId: widget.commanderPlayerId,
-                      player: widget.player,
-                      targetPlayer: targetPlayer,
-                      commanderDamage: partnerDamage ?? 0,
-                      damageType: DamageType.partner,
-                    ),
-                  ],
-                ),
+              CommanderDamageButton(
+                playerId: playerId,
+                commanderPlayerId: commanderPlayerId,
+                player: player,
+                targetPlayer: targetPlayer,
+                commanderDamage: partnerDamage,
+                damageType: DamageType.partner,
               ),
-            ),
-          )
-        : CommanderDamageButton(
-            playerId: widget.playerId,
-            commanderPlayerId: widget.commanderPlayerId,
-            player: widget.player,
-            targetPlayer: targetPlayer,
-            commanderDamage: commanderDamage ?? 0,
-            damageType: DamageType.commander,
-          );
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -148,6 +118,7 @@ class CommanderDamageButton extends StatefulWidget {
 class _CommanderDamageButtonState extends State<CommanderDamageButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
+  Offset? _tapDownPosition;
 
   @override
   void initState() {
@@ -172,102 +143,87 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
 
   void _handleTapOutside() {
     if (_animationController.isCompleted) {
-      _animationController.reverse();
+      unawaited(_animationController.reverse());
     }
+  }
+
+  void _increment() {
+    context.read<PlayerBloc>()
+      ..add(
+        UpdatePlayerLifeEvent(decrement: true, playerId: widget.playerId),
+      )
+      ..add(
+        PlayerCommanderDamageIncremented(
+          commanderId: widget.commanderPlayerId,
+          damageType: widget.damageType,
+        ),
+      );
+  }
+
+  void _decrement() {
+    context.read<PlayerBloc>()
+      ..add(
+        UpdatePlayerLifeEvent(decrement: false, playerId: widget.playerId),
+      )
+      ..add(
+        PlayerCommanderDamageDecremented(
+          commanderId: widget.commanderPlayerId,
+          damageType: widget.damageType,
+        ),
+      );
+  }
+
+  bool _isRightHalf(Offset localPosition) {
+    final box = context.findRenderObject()! as RenderBox;
+    return localPosition.dx > box.size.width / 2;
   }
 
   @override
   Widget build(BuildContext context) {
-    final double defaultSize =
-        MediaQuery.sizeOf(context).width > 900 ? 80.0 : 60.0;
-    final double expandedSize =
-        MediaQuery.sizeOf(context).width > 900 ? 140.0 : 120.0;
+    final sizes = TrackerSizes.fromDevice(
+      isPhone: MediaQuery.sizeOf(context).width <= 900,
+    );
+    final isExpanded = _animationController.isCompleted;
+    final size = isExpanded ? sizes.expandedTileSize : sizes.tileSize;
+
     return TapRegion(
       onTapOutside: (_) => _handleTapOutside(),
       child: GestureDetector(
+        onTapDown: (details) => _tapDownPosition = details.localPosition,
         onTap: () {
-          if (!_animationController.isCompleted) {
-            context.read<PlayerBloc>().add(
-                  UpdatePlayerLifeEvent(
-                    decrement: true,
-                    playerId: widget.playerId,
-                  ),
-                );
-            context.read<PlayerBloc>().add(
-                  PlayerCommanderDamageIncremented(
-                    commanderId: widget.commanderPlayerId,
-                    damageType: widget.damageType,
-                  ),
-                );
-          }
+          if (isExpanded || _tapDownPosition == null) return;
+          _isRightHalf(_tapDownPosition!) ? _increment() : _decrement();
         },
-        onLongPressStart: (details) {
-          if (!_animationController.isCompleted) {
-            _animationController.forward();
-          }
+        onLongPressStart: (_) {
+          if (!isExpanded) unawaited(_animationController.forward());
         },
         onLongPressDown: (details) {
-          if (_animationController.isCompleted) {
-            final box = context.findRenderObject()! as RenderBox;
-            final localPosition = box.globalToLocal(details.globalPosition);
-            final isTopHalf = localPosition.dy < box.size.height / 2;
-
-            if (isTopHalf) {
-              context.read<PlayerBloc>().add(
-                    UpdatePlayerLifeEvent(
-                      decrement: true,
-                      playerId: widget.playerId,
-                    ),
-                  );
-              context.read<PlayerBloc>().add(
-                    PlayerCommanderDamageIncremented(
-                      commanderId: widget.commanderPlayerId,
-                      damageType: widget.damageType,
-                    ),
-                  );
-            } else {
-              context.read<PlayerBloc>().add(
-                    UpdatePlayerLifeEvent(
-                      decrement: false,
-                      playerId: widget.playerId,
-                    ),
-                  );
-              context.read<PlayerBloc>().add(
-                    PlayerCommanderDamageDecremented(
-                      commanderId: widget.commanderPlayerId,
-                      damageType: widget.damageType,
-                    ),
-                  );
-            }
-          }
+          if (!isExpanded) return;
+          _isRightHalf(details.localPosition) ? _increment() : _decrement();
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          width: _animationController.isCompleted ? expandedSize : defaultSize,
-          height: _animationController.isCompleted ? expandedSize : defaultSize,
+          width: size,
+          height: size,
           child: Stack(
             alignment: Alignment.center,
             children: [
               if (widget.damageType == DamageType.commander)
                 _CommanderImage(
                   targetPlayer: widget.targetPlayer,
-                  scale: _animationController.isCompleted
-                      ? expandedSize
-                      : defaultSize,
+                  scale: size,
                   playerColor: widget.player.color,
                 )
               else
                 _PartnerImage(
                   targetPlayer: widget.targetPlayer,
-                  scale: _animationController.isCompleted
-                      ? expandedSize
-                      : defaultSize,
+                  scale: size,
                   playerColor: widget.player.color,
                 ),
               _CommanderIcons(animationController: _animationController),
               StrokeText(
                 text: widget.commanderDamage.toString(),
-                fontSize: 28,
+                fontSize: sizes.textSize,
                 color: AppColors.white,
               ),
             ],
@@ -284,6 +240,7 @@ class _CommanderImage extends StatelessWidget {
     required this.scale,
     required this.playerColor,
   });
+
   final Player targetPlayer;
   final double scale;
   final int playerColor;
@@ -302,14 +259,12 @@ class _CommanderImage extends StatelessWidget {
               targetPlayer.commander?.imageUrl ?? '',
               width: scale,
               height: scale,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: Color(playerColor).withValues(alpha: 0.8),
-                  width: scale,
-                  height: scale,
-                );
-              },
               fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => Container(
+                color: Color(playerColor).withValues(alpha: 0.8),
+                width: scale,
+                height: scale,
+              ),
             ),
     );
   }
@@ -321,6 +276,7 @@ class _PartnerImage extends StatelessWidget {
     required this.scale,
     required this.playerColor,
   });
+
   final Player targetPlayer;
   final double scale;
   final int playerColor;
@@ -339,43 +295,39 @@ class _PartnerImage extends StatelessWidget {
               targetPlayer.partner?.imageUrl ?? '',
               width: scale,
               height: scale,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: Color(playerColor),
-                  width: scale,
-                  height: scale,
-                );
-              },
               fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => Container(
+                color: Color(playerColor),
+                width: scale,
+                height: scale,
+              ),
             ),
     );
   }
 }
 
 class _CommanderIcons extends StatelessWidget {
-  const _CommanderIcons({
-    required this.animationController,
-  });
+  const _CommanderIcons({required this.animationController});
+
   final AnimationController animationController;
 
   @override
   Widget build(BuildContext context) {
-    return animationController.isCompleted
-        ? Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(
-                Icons.add,
-                color: AppColors.white.withValues(alpha: 0.8),
-                size: 24,
-              ),
-              Icon(
-                Icons.remove,
-                color: AppColors.white.withValues(alpha: 0.8),
-                size: 24,
-              ),
-            ],
-          )
-        : const SizedBox.shrink();
+    if (!animationController.isCompleted) return const SizedBox.shrink();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Icon(
+          Icons.remove,
+          color: AppColors.white.withValues(alpha: 0.8),
+          size: 24,
+        ),
+        Icon(
+          Icons.add,
+          color: AppColors.white.withValues(alpha: 0.8),
+          size: 24,
+        ),
+      ],
+    );
   }
 }

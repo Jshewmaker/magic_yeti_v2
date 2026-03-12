@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -64,6 +66,7 @@ class LifeCounterWidget extends StatelessWidget {
                         value: context.read<PlayerBloc>(),
                         child: CustomizePlayerPage(
                           playerId: player.id,
+                          isRotated: rotate,
                         ),
                       ),
                     ),
@@ -376,15 +379,14 @@ class _LifePointChangeAnimationState extends State<_LifePointChangeAnimation>
     );
 
     _lastChange = widget.change;
-    _controller
-      ..forward()
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          context.read<LifeChangeBloc>().add(
-                const LifePointChangeCompleted(),
-              );
-        }
-      });
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        context.read<LifeChangeBloc>().add(
+              const LifePointChangeCompleted(),
+            );
+      }
+    });
+    unawaited(_controller.forward());
   }
 
   @override

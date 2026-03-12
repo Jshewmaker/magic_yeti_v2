@@ -1,3 +1,3 @@
-export 'commander_image_widget.dart';
-export 'player_name_input_widget.dart';
-export 'select_commander_widget.dart';
+// Shared player widgets (used across multiple player feature screens).
+// Page-specific widgets for the customize player page live in
+// lib/player/view/widgets/
