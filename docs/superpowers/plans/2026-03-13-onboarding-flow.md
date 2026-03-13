@@ -629,7 +629,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     OnboardingProfileImagePicked event,
     Emitter<OnboardingState> emit,
   ) {
-    emit(state.copyWith(profileImagePath: () => event.imagePath));
+    emit(
+      state.copyWith(
+        profileImagePath: () =>
+            event.imagePath.isEmpty ? null : event.imagePath,
+      ),
+    );
   }
 
   Future<void> _onSubmitted(
@@ -1117,15 +1122,12 @@ class _ProfilePictureStep extends StatelessWidget {
           previous.existingImageUrl != current.existingImageUrl ||
           previous.username != current.username,
       builder: (context, state) {
-        final hasImage = state.profileImagePath != null ||
-            (state.existingImageUrl != null &&
-                state.existingImageUrl!.isNotEmpty);
         return _StepLayout(
           header: 'Add a Profile Picture',
           explanation:
               'Help your friends recognize you. This is optional — '
               'you can always add one later in your profile.',
-          buttonText: hasImage ? 'Next' : 'Next',
+          buttonText: 'Next',
           child: Column(
             children: [
               const SizedBox(height: 24),
@@ -1168,18 +1170,22 @@ class _ProfilePictureStep extends StatelessWidget {
                   ),
                 ),
               ),
-              if (!hasImage) ...[
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () => context
-                      .read<OnboardingBloc>()
-                      .add(const OnboardingStepNext()),
-                  child: const Text(
-                    'Skip for now',
-                    style: TextStyle(color: AppColors.neutral60),
-                  ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  // Clear any selected image and advance
+                  context.read<OnboardingBloc>().add(
+                        const OnboardingProfileImagePicked(''),
+                      );
+                  context.read<OnboardingBloc>().add(
+                        const OnboardingStepNext(),
+                      );
+                },
+                child: const Text(
+                  'Skip for now',
+                  style: TextStyle(color: AppColors.neutral60),
                 ),
-              ],
+              ),
             ],
           ),
         );
