@@ -21,6 +21,7 @@ class UserProfileModel extends Equatable {
     this.imageUrl,
     this.friendCode,
     this.pin,
+    this.onboardingComplete = false,
   });
 
   /// Factory constructor for a [UserProfileModel] from a JSON map
@@ -63,6 +64,9 @@ class UserProfileModel extends Equatable {
   /// SHA-256 hashed 4-digit PIN for identity verification
   final String? pin;
 
+  /// Whether the user has completed the onboarding flow
+  final bool onboardingComplete;
+
   /// An unauthenticated user.
   static const empty = UserProfileModel(id: '');
 
@@ -79,6 +83,7 @@ class UserProfileModel extends Equatable {
     String? imageUrl,
     String? friendCode,
     String? pin,
+    bool? onboardingComplete,
   }) =>
       UserProfileModel(
         id: id ?? this.id,
@@ -92,6 +97,7 @@ class UserProfileModel extends Equatable {
         isAnonymous: isAnonymous ?? this.isAnonymous,
         friendCode: friendCode ?? this.friendCode,
         pin: pin ?? this.pin,
+        onboardingComplete: onboardingComplete ?? this.onboardingComplete,
       );
 
   @override
@@ -107,5 +113,6 @@ class UserProfileModel extends Equatable {
         imageUrl,
         friendCode,
         pin,
+        onboardingComplete,
       ];
 }

@@ -19,6 +19,7 @@ UserProfileModel _$UserProfileModelFromJson(Map<String, dynamic> json) =>
       imageUrl: json['imageUrl'] as String?,
       friendCode: json['friendCode'] as String?,
       pin: json['pin'] as String?,
+      onboardingComplete: json['onboardingComplete'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$UserProfileModelToJson(UserProfileModel instance) =>
@@ -34,4 +35,5 @@ Map<String, dynamic> _$UserProfileModelToJson(UserProfileModel instance) =>
       'imageUrl': instance.imageUrl,
       'friendCode': instance.friendCode,
       'pin': instance.pin,
+      'onboardingComplete': instance.onboardingComplete,
     };
