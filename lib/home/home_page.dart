@@ -38,6 +38,120 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
+  void initState() {
+    super.initState();
+    unawaited(_ensureFriendCode());
+  }
+
+  Future<void> _ensureFriendCode() async {
+    final appState = context.read<AppBloc>().state;
+    if (appState.status != AppStatus.authenticated) return;
+
+    final db = context.read<FirebaseDatabaseRepository>();
+    final user = appState.user;
+
+    // Ensure a full profile document exists with a friend code
+    await db.ensureUserProfile(
+      UserProfileModel(
+        id: user.id,
+        email: user.email,
+        username: user.name,
+        imageUrl: user.photo,
+        isNewUser: false,
+        isAnonymous: false,
+      ),
+    );
+    if (!mounted) return;
+
+    final needsPin = !await db.hasPin(user.id);
+    if (!mounted || !needsPin) return;
+
+    _showPinSetupDialog();
+  }
+
+  void _showPinSetupDialog() {
+    final pinController = TextEditingController();
+    final db = context.read<FirebaseDatabaseRepository>();
+    final userId = context.read<AppBloc>().state.user.id;
+    final l10n = context.l10n;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            return AlertDialog(
+              backgroundColor: AppColors.surface,
+              title: Text(
+                l10n.setYourPinTitle,
+                style: const TextStyle(color: AppColors.white),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    l10n.setYourPinDescription,
+                    style: const TextStyle(color: AppColors.neutral60),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: pinController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 4,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      letterSpacing: 8,
+                      color: AppColors.white,
+                    ),
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      enabledBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.neutral60),
+                      ),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.tertiary),
+                      ),
+                      counterText: '',
+                      errorText: pinController.text.isNotEmpty &&
+                              pinController.text.length < 4
+                          ? 'PIN must be 4 digits'
+                          : null,
+                      errorStyle: const TextStyle(color: AppColors.red),
+                    ),
+                    onChanged: (_) => setDialogState(() {}),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text(
+                    l10n.cancelTextButton,
+                    style: const TextStyle(color: AppColors.neutral60),
+                  ),
+                ),
+                FilledButton(
+                  onPressed: pinController.text.length == 4
+                      ? () async {
+                          await db.setPin(userId, pinController.text);
+                          if (dialogContext.mounted) {
+                            Navigator.pop(dialogContext);
+                          }
+                        }
+                      : null,
+                  child: Text(l10n.savePinButtonText),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ).then((_) => pinController.dispose());
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Use DeviceInfoProvider instead of LayoutBuilder
     final isPhone = DeviceInfoProvider.of(context).isPhone;
