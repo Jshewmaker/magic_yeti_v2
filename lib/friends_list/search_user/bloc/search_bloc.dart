@@ -5,39 +5,36 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 part 'search_event.dart';
 part 'search_state.dart';
 
-/// This file implements the Bloc pattern for managing the state of user search functionality.
-/// It handles the search logic, including loading, success, and error states using the FirebaseDatabaseRepository.
+/// Bloc for managing the state of user search functionality.
 ///
-/// Key features:
-/// - Event-driven architecture for search actions
-/// - State management for search results and errors
-/// - Integration with FirebaseDatabaseRepository for data fetching
-///
-/// @dependencies
-/// - FirebaseDatabaseRepository: Used for querying user data
-/// - Flutter Bloc: Used for managing state
-///
-/// @notes
-/// - Implements robust error handling for network issues
-/// - Ensures real-time updates using the repository
+/// Handles search logic, including loading, success, and error states
+/// using the [FirebaseDatabaseRepository].
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchBloc({required this.repository}) : super(SearchInitial()) {
-    on<SearchUsers>(_onSearchUsers);
+    on<SearchByFriendCode>(_onSearchByFriendCode);
     on<AddFriendRequest>(_onAddFriendRequest);
   }
   final FirebaseDatabaseRepository repository;
 
-  Future<void> _onSearchUsers(
-    SearchUsers event,
+  Future<void> _onSearchByFriendCode(
+    SearchByFriendCode event,
     Emitter<SearchState> emit,
   ) async {
     emit(SearchLoading());
     try {
-      final users = await repository.searchUsers(event.query);
-      emit(SearchLoaded(users));
-    } catch (e) {
-      emit(SearchError('Failed to fetch users: $e'));
+      final user = await repository.searchByFriendCode(event.friendCode);
+      if (user != null) {
+        final status = await repository.checkRelationshipStatus(
+          event.currentUserId,
+          user.id,
+        );
+        emit(SearchLoaded([user], status));
+      } else {
+        emit(const SearchLoaded([], RelationshipStatus.none));
+      }
+    } on Exception catch (e) {
+      emit(SearchError('Failed to search by friend code: $e'));
     }
   }
 
@@ -45,15 +42,19 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     AddFriendRequest event,
     Emitter<SearchState> emit,
   ) async {
-    emit(SearchLoading());
+    // Preserve current users from state for re-display
+    final currentUsers = state is SearchLoaded
+        ? (state as SearchLoaded).users
+        : <UserProfileModel>[];
+
     try {
-      await repository.addFriendRequest(
+      final result = await repository.addFriendRequest(
         event.senderId,
         event.senderName,
         event.receiverId,
       );
-      emit(const SearchLoaded([]));
-    } catch (e) {
+      emit(FriendRequestSent(result, currentUsers));
+    } on Exception catch (e) {
       emit(SearchError('Failed to add friend request: $e'));
     }
   }

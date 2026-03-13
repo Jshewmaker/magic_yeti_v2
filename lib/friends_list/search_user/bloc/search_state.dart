@@ -12,11 +12,21 @@ class SearchInitial extends SearchState {}
 class SearchLoading extends SearchState {}
 
 class SearchLoaded extends SearchState {
-  const SearchLoaded(this.users);
+  const SearchLoaded(this.users, this.relationshipStatus);
+  final List<UserProfileModel> users;
+  final RelationshipStatus relationshipStatus;
+
+  @override
+  List<Object> get props => [users, relationshipStatus];
+}
+
+class FriendRequestSent extends SearchState {
+  const FriendRequestSent(this.result, this.users);
+  final FriendRequestResult result;
   final List<UserProfileModel> users;
 
   @override
-  List<Object> get props => [users];
+  List<Object> get props => [result, users];
 }
 
 class SearchError extends SearchState {

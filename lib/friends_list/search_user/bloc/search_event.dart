@@ -7,12 +7,13 @@ sealed class SearchEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class SearchUsers extends SearchEvent {
-  const SearchUsers(this.query);
-  final String query;
+class SearchByFriendCode extends SearchEvent {
+  const SearchByFriendCode(this.friendCode, this.currentUserId);
+  final String friendCode;
+  final String currentUserId;
 
   @override
-  List<Object> get props => [query];
+  List<Object> get props => [friendCode, currentUserId];
 }
 
 class AddFriendRequest extends SearchEvent {
