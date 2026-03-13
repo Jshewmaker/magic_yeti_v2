@@ -46,7 +46,14 @@ class FriendBloc extends Bloc<FriendEvent, FriendState> {
   ) async {
     try {
       await repository.removeFriend(event.userId, event.friendId);
-      add(LoadFriends(event.userId)); // Reload friends after removal
+      // Remove friend from in-memory list
+      if (state is FriendsLoaded) {
+        final updated = (state as FriendsLoaded)
+            .friends
+            .where((f) => f.userId != event.friendId)
+            .toList();
+        emit(FriendsLoaded(updated));
+      }
     } catch (e) {
       emit(FriendsError('Failed to remove friend: $e'));
     }
