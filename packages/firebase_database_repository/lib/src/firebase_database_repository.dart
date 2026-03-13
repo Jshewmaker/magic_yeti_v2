@@ -322,32 +322,71 @@ class FirebaseDatabaseRepository {
     }
   }
 
-  /// Adds a friend request to the Firestore database.
+  /// Adds a friend request with guards against duplicates, self-requests,
+  /// and existing friendships.
   ///
-  /// @param senderId The ID of the user sending the request.
-  /// @param receiverId The ID of the user receiving the request.
-  /// @returns Future<void>
-  /// @throws Exception if the request cannot be added.
-  Future<void> addFriendRequest(
+  /// Returns [FriendRequestResult] indicating what happened:
+  /// - [FriendRequestResult.sent] — request created
+  /// - [FriendRequestResult.autoAccepted] — mutual request, now friends
+  /// - [FriendRequestResult.alreadyFriends] — already friends
+  /// - [FriendRequestResult.alreadyPending] — request already exists
+  /// - [FriendRequestResult.self] — cannot add yourself
+  Future<FriendRequestResult> addFriendRequest(
     String senderId,
     String senderName,
     String receiverId,
   ) async {
-    try {
-      // Generate a new document reference, which creates a unique ID
-      final newRequestRef = _friendCollection.doc();
-      final documentId = newRequestRef.id;
-      await newRequestRef.set({
-        'id': documentId,
-        'senderId': senderId,
-        'senderName': senderName,
-        'receiverId': receiverId,
-        'status': 'pending',
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      throw Exception('Failed to add friend request: $e');
+    // Guard: self-request
+    if (senderId == receiverId) return FriendRequestResult.self;
+
+    // Guard: already friends
+    final friendDoc = await _firebase
+        .collection('friends')
+        .doc(senderId)
+        .collection('friendList')
+        .doc(receiverId)
+        .get();
+    if (friendDoc.exists) return FriendRequestResult.alreadyFriends;
+
+    // Guard: pending request already sent
+    final existingSent = await _friendCollection
+        .where('senderId', isEqualTo: senderId)
+        .where('receiverId', isEqualTo: receiverId)
+        .where('status', isEqualTo: 'pending')
+        .limit(1)
+        .get();
+    if (existingSent.docs.isNotEmpty) {
+      return FriendRequestResult.alreadyPending;
     }
+
+    // Guard: reverse request exists — auto-accept
+    final reverseRequest = await _friendCollection
+        .where('senderId', isEqualTo: receiverId)
+        .where('receiverId', isEqualTo: senderId)
+        .where('status', isEqualTo: 'pending')
+        .limit(1)
+        .get();
+    if (reverseRequest.docs.isNotEmpty) {
+      final reverseDoc = reverseRequest.docs.first;
+      final reverseModel = FriendRequestModel.fromJson(
+        reverseDoc.data()! as Map<String, dynamic>,
+      );
+      await acceptFriendRequest(reverseModel, senderId);
+      return FriendRequestResult.autoAccepted;
+    }
+
+    // All clear — create the request
+    final newRequestRef = _friendCollection.doc();
+    final documentId = newRequestRef.id;
+    await newRequestRef.set({
+      'id': documentId,
+      'senderId': senderId,
+      'senderName': senderName,
+      'receiverId': receiverId,
+      'status': 'pending',
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+    return FriendRequestResult.sent;
   }
 
   /// Accepts a friend request by updating its status in the Firestore database.
