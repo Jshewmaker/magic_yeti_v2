@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_database_repository/models/models.dart';
 
 /// {@template save_game_stats_exception}
@@ -357,55 +360,94 @@ class FirebaseDatabaseRepository {
     String userId,
   ) async {
     try {
-      await _firebase.collection('friends').doc(userId).set({
-        'id': userId,
-        'friends': FieldValue.arrayUnion([request.senderId]),
-      });
-      await _friendCollection.doc(request.id).delete();
+      final senderDoc =
+          await _firebase.collection('users').doc(request.senderId).get();
+      final receiverDoc =
+          await _firebase.collection('users').doc(userId).get();
+
+      final senderData = senderDoc.data();
+      final receiverData = receiverDoc.data();
+
+      // Build friend models from profile data with safe fallbacks
+      final senderFriend = FriendModel(
+        userId: request.senderId,
+        username: senderData?['username'] as String? ??
+            request.senderName,
+        profilePictureUrl:
+            senderData?['imageUrl'] as String? ?? '',
+        friendCode: senderData?['friendCode'] as String?,
+      );
+
+      final receiverFriend = FriendModel(
+        userId: userId,
+        username: receiverData?['username'] as String? ?? '',
+        profilePictureUrl:
+            receiverData?['imageUrl'] as String? ?? '',
+        friendCode: receiverData?['friendCode'] as String?,
+      );
+
+      // Write both sides of the friendship in a batch
+      final batch = _firebase.batch();
+
+      batch.set(
+        _firebase
+            .collection('friends')
+            .doc(userId)
+            .collection('friendList')
+            .doc(request.senderId),
+        senderFriend.toJson(),
+      );
+
+      batch.set(
+        _firebase
+            .collection('friends')
+            .doc(request.senderId)
+            .collection('friendList')
+            .doc(userId),
+        receiverFriend.toJson(),
+      );
+
+      batch.delete(_friendCollection.doc(request.id));
+
+      await batch.commit();
     } catch (e) {
       throw Exception('Failed to accept friend request: $e');
     }
   }
 
-  /// Removes a friend from the Firestore database.
-  ///
-  /// @param userId The ID of the user whose friend is being removed.
-  /// @param friendId The ID of the friend to remove.
-  /// @returns Future<void>
-  /// @throws Exception if the friend cannot be removed.
+  /// Removes a friend from both users' friend lists.
   Future<void> removeFriend(String userId, String friendId) async {
     try {
-      final snapshot = await _friendCollection
-          .where('userId', isEqualTo: userId)
-          .where('friendId', isEqualTo: friendId)
-          .get();
+      await _firebase
+          .collection('friends')
+          .doc(userId)
+          .collection('friendList')
+          .doc(friendId)
+          .delete();
 
-      for (final doc in snapshot.docs) {
-        await doc.reference.delete();
-      }
+      await _firebase
+          .collection('friends')
+          .doc(friendId)
+          .collection('friendList')
+          .doc(userId)
+          .delete();
     } catch (e) {
       throw Exception('Failed to remove friend: $e');
     }
   }
 
   /// Retrieves the list of friends for a given user.
-  ///
-  /// @param userId The ID of the user whose friends are being retrieved.
-  /// @returns Future<List<String>> A list of friend IDs.
-  /// @throws Exception if the friends cannot be retrieved.
   Future<List<FriendModel>> getFriends(String userId) async {
     try {
-      final snapshot = await _firebase.collection('friends').doc(userId).get();
-      if (snapshot.exists) {
-        return snapshot
-            .data()!
-            .entries
-            .map((friendId) =>
-                FriendModel.fromJson(friendId as Map<String, dynamic>))
-            .toList();
-      } else {
-        return [];
-      }
+      final snapshot = await _firebase
+          .collection('friends')
+          .doc(userId)
+          .collection('friendList')
+          .get();
+
+      return snapshot.docs
+          .map((doc) => FriendModel.fromJson(doc.data()))
+          .toList();
     } catch (e) {
       throw Exception('Failed to retrieve friends: $e');
     }
@@ -477,6 +519,196 @@ class FirebaseDatabaseRepository {
       await _friendCollection.doc(requestId).delete();
     } catch (e) {
       throw Exception('Failed to decline friend request: $e');
+    }
+  }
+
+  /// Generates a unique friend code in the format "YETI-XXXX".
+  ///
+  /// Checks for uniqueness against existing codes in the database.
+  /// Retries up to 10 times if a collision is found.
+  Future<String> generateUniqueFriendCode() async {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random.secure();
+    const maxAttempts = 10;
+
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      final code = String.fromCharCodes(
+        Iterable.generate(
+          4,
+          (_) => chars.codeUnitAt(random.nextInt(chars.length)),
+        ),
+      );
+      final friendCode = 'YETI-$code';
+
+      final existing = await _firebase
+          .collection('users')
+          .where('friendCode', isEqualTo: friendCode)
+          .limit(1)
+          .get();
+
+      if (existing.docs.isEmpty) {
+        return friendCode;
+      }
+    }
+
+    throw Exception('Failed to generate unique friend code after $maxAttempts '
+        'attempts');
+  }
+
+  /// Searches for a user by their friend code.
+  ///
+  /// Returns the matching [UserProfileModel] or `null` if not found.
+  Future<UserProfileModel?> searchByFriendCode(String friendCode) async {
+    try {
+      final snapshot = await _firebase
+          .collection('users')
+          .where('friendCode', isEqualTo: friendCode.toUpperCase().trim())
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isEmpty) return null;
+
+      return UserProfileModel.fromJson(snapshot.docs.first.data());
+    } catch (e) {
+      throw Exception('Failed to search by friend code: $e');
+    }
+  }
+
+  /// Checks the relationship status between two users.
+  ///
+  /// Returns [RelationshipStatus] indicating the current state:
+  /// self, friends, pendingSent, pendingReceived, or none.
+  Future<RelationshipStatus> checkRelationshipStatus(
+    String currentUserId,
+    String otherUserId,
+  ) async {
+    if (currentUserId == otherUserId) return RelationshipStatus.self;
+
+    // Check if already friends
+    final friendDoc = await _firebase
+        .collection('friends')
+        .doc(currentUserId)
+        .collection('friendList')
+        .doc(otherUserId)
+        .get();
+    if (friendDoc.exists) return RelationshipStatus.friends;
+
+    // Check if current user sent a pending request
+    final sentRequest = await _friendCollection
+        .where('senderId', isEqualTo: currentUserId)
+        .where('receiverId', isEqualTo: otherUserId)
+        .where('status', isEqualTo: 'pending')
+        .limit(1)
+        .get();
+    if (sentRequest.docs.isNotEmpty) return RelationshipStatus.pendingSent;
+
+    // Check if other user sent a pending request
+    final receivedRequest = await _friendCollection
+        .where('senderId', isEqualTo: otherUserId)
+        .where('receiverId', isEqualTo: currentUserId)
+        .where('status', isEqualTo: 'pending')
+        .limit(1)
+        .get();
+    if (receivedRequest.docs.isNotEmpty) {
+      return RelationshipStatus.pendingReceived;
+    }
+
+    return RelationshipStatus.none;
+  }
+
+  /// Hashes a 4-digit PIN using SHA-256.
+  static String hashPin(String pin) {
+    final bytes = utf8.encode(pin);
+    return sha256.convert(bytes).toString();
+  }
+
+  /// Validates a PIN against a user's stored hash.
+  ///
+  /// Returns `true` if the PIN matches.
+  Future<bool> validatePin(String userId, String pin) async {
+    try {
+      final doc = await _firebase.collection('users').doc(userId).get();
+      if (!doc.exists) return false;
+
+      final storedHash = doc.data()?['pin'] as String?;
+      if (storedHash == null) return false;
+
+      return storedHash == hashPin(pin);
+    } catch (e) {
+      throw Exception('Failed to validate PIN: $e');
+    }
+  }
+
+  /// Syncs a completed game to all authenticated players' match histories.
+  ///
+  /// Saves the [GameModel] to `users/{firebaseId}/matches/{gameId}` for
+  /// each unique Firebase ID in [playerFirebaseIds].
+  Future<void> syncGameToPlayers(
+    GameModel game,
+    List<String> playerFirebaseIds,
+  ) async {
+    final uniqueIds = playerFirebaseIds.toSet();
+    final futures = uniqueIds.map(
+      (id) => addMatchToPlayerHistory(game, id),
+    );
+    await Future.wait(futures);
+  }
+
+  /// Ensures a user profile document exists with a friend code.
+  ///
+  /// If the profile doesn't exist, creates it from the provided
+  /// [UserProfileModel]. If it exists but is missing a friend code,
+  /// generates and adds one. Returns the current friend code.
+  Future<String?> ensureUserProfile(UserProfileModel profile) async {
+    try {
+      final doc =
+          await _firebase.collection('users').doc(profile.id).get();
+
+      if (!doc.exists) {
+        // No profile at all — create a full one with friend code
+        final friendCode = await generateUniqueFriendCode();
+        await _firebase.collection('users').doc(profile.id).set(
+              profile.copyWith(friendCode: friendCode).toJson(),
+            );
+        return friendCode;
+      }
+
+      final data = doc.data()!;
+      final existingCode = data['friendCode'] as String?;
+      if (existingCode != null) return existingCode;
+
+      // Profile exists but no friend code — add one
+      final friendCode = await generateUniqueFriendCode();
+      await _firebase.collection('users').doc(profile.id).set(
+        {'friendCode': friendCode},
+        SetOptions(merge: true),
+      );
+      return friendCode;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Checks whether a user has set their PIN.
+  Future<bool> hasPin(String userId) async {
+    try {
+      final doc = await _firebase.collection('users').doc(userId).get();
+      if (!doc.exists) return false;
+      return doc.data()?['pin'] != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Sets a user's PIN (hashed).
+  Future<void> setPin(String userId, String pin) async {
+    try {
+      await _firebase.collection('users').doc(userId).set(
+        {'pin': hashPin(pin)},
+        SetOptions(merge: true),
+      );
+    } catch (e) {
+      throw Exception('Failed to set PIN: $e');
     }
   }
 }
