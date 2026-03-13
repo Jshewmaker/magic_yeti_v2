@@ -1,3 +1,4 @@
+import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -53,31 +54,69 @@ class FriendRequestView extends StatelessWidget {
         if (state is FriendRequestLoading) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is FriendRequestLoaded) {
+          if (state.requests.isEmpty) {
+            return const Center(
+              child: Text(
+                'No pending requests',
+                style: TextStyle(color: AppColors.onSurfaceVariant),
+              ),
+            );
+          }
           return ListView.builder(
             itemCount: state.requests.length,
             itemBuilder: (context, index) {
               final request = state.requests[index];
               return ListTile(
-                title: Text(request.senderName),
-                subtitle: Text('Request from: ${request.senderName}'),
+                leading: CircleAvatar(
+                  backgroundColor: AppColors.tertiary,
+                  child: Text(
+                    request.senderName.isNotEmpty
+                        ? request.senderName[0].toUpperCase()
+                        : '?',
+                    style: const TextStyle(
+                      color: AppColors.white,
+                    ),
+                  ),
+                ),
+                title: Text(
+                  request.senderName,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                  ),
+                ),
+                subtitle: const Text(
+                  'Wants to be your friend',
+                  style: TextStyle(
+                    color: AppColors.neutral60,
+                  ),
+                ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.check),
+                      icon: const Icon(
+                        Icons.check_circle,
+                        color: AppColors.green,
+                      ),
                       onPressed: () {
-                        final userId = context.read<AppBloc>().state.user.id;
-                        context
-                            .read<FriendRequestBloc>()
-                            .add(AcceptFriendRequest(request, userId));
+                        final userId =
+                            context.read<AppBloc>().state.user.id;
+                        context.read<FriendRequestBloc>().add(
+                              AcceptFriendRequest(request, userId),
+                            );
                       },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(
+                        Icons.cancel,
+                        color: AppColors.red,
+                      ),
                       onPressed: () {
-                        context
-                            .read<FriendRequestBloc>()
-                            .add(DeclineFriendRequest(request));
+                        final userId =
+                            context.read<AppBloc>().state.user.id;
+                        context.read<FriendRequestBloc>().add(
+                              DeclineFriendRequest(request, userId),
+                            );
                       },
                     ),
                   ],
@@ -87,9 +126,15 @@ class FriendRequestView extends StatelessWidget {
           );
         } else if (state is FriendRequestError) {
           return Center(
-              child: Text('Failed to load requests: ${state.message}'));
+            child: Text(
+              'Failed to load requests: ${state.message}',
+              style: const TextStyle(
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+          );
         }
-        return Container();
+        return const SizedBox.shrink();
       },
     );
   }

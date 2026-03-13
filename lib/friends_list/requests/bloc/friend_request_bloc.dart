@@ -41,7 +41,14 @@ class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
   ) async {
     try {
       await repository.acceptFriendRequest(event.request, event.userId);
-      add(LoadFriendRequests(event.request.senderId));
+      // Remove accepted request from in-memory list
+      if (state is FriendRequestLoaded) {
+        final updated = (state as FriendRequestLoaded)
+            .requests
+            .where((r) => r.id != event.request.id)
+            .toList();
+        emit(FriendRequestLoaded(updated));
+      }
     } catch (e) {
       emit(const FriendRequestError('Failed to accept friend request'));
     }
@@ -53,7 +60,14 @@ class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
   ) async {
     try {
       await repository.declineFriendRequest(event.request.id);
-      add(LoadFriendRequests(event.request.senderId));
+      // Remove declined request from in-memory list
+      if (state is FriendRequestLoaded) {
+        final updated = (state as FriendRequestLoaded)
+            .requests
+            .where((r) => r.id != event.request.id)
+            .toList();
+        emit(FriendRequestLoaded(updated));
+      }
     } catch (e) {
       emit(const FriendRequestError('Failed to decline friend request'));
     }

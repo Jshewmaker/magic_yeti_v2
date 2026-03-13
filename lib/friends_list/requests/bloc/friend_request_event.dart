@@ -36,9 +36,10 @@ class AcceptFriendRequest extends FriendRequestEvent {
 }
 
 class DeclineFriendRequest extends FriendRequestEvent {
-  const DeclineFriendRequest(this.request);
+  const DeclineFriendRequest(this.request, this.userId);
   final FriendRequestModel request;
+  final String userId;
 
   @override
-  List<Object> get props => [request];
+  List<Object> get props => [request, userId];
 }
