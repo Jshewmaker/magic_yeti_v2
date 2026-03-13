@@ -676,6 +676,100 @@
   "gameRestoredMessage": "Previous game restored!",
   "@gameRestoredMessage": {
     "description": "Snackbar message shown when a previous game state is successfully restored from the Game Over page"
+  },
+  "pinInputLabel": "4-Digit PIN",
+  "@pinInputLabel": {
+    "description": "Label for PIN input field"
+  },
+  "pinInputHelper": "Confirms your identity when friends add you to a game",
+  "@pinInputHelper": {
+    "description": "Helper text for PIN input field"
+  },
+  "pinInputError": "Must be 4 digits",
+  "@pinInputError": {
+    "description": "Error text when PIN is invalid"
+  },
+  "findFriendsTitle": "Find Friends",
+  "@findFriendsTitle": {
+    "description": "Title for the friend search page"
+  },
+  "friendCodeSearchHint": "Enter friend code (e.g. YETI-A3F9)",
+  "@friendCodeSearchHint": {
+    "description": "Hint text for friend code search input"
+  },
+  "friendRequestSentMessage": "Friend request sent!",
+  "@friendRequestSentMessage": {
+    "description": "Message shown after sending a friend request"
+  },
+  "noUserFoundMessage": "No user found with that code.",
+  "@noUserFoundMessage": {
+    "description": "Message shown when friend code search returns no results"
+  },
+  "friendCodeSearchPrompt": "Enter a friend code to find players.",
+  "@friendCodeSearchPrompt": {
+    "description": "Prompt shown on the friend search page before searching"
+  },
+  "selectFriendLabel": "Select a friend",
+  "@selectFriendLabel": {
+    "description": "Label above friend selection chips on customize player page"
+  },
+  "linkedToFriend": "Linked to {name}",
+  "@linkedToFriend": {
+    "description": "Text shown when a friend is linked to a player slot",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clearButtonText": "Clear",
+  "@clearButtonText": {
+    "description": "Button text to clear friend selection"
+  },
+  "verifyFriendTitle": "Verify {name}",
+  "@verifyFriendTitle": {
+    "description": "Title for the PIN verification dialog",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "enterPinPrompt": "Enter their 4-digit PIN to confirm identity.",
+  "@enterPinPrompt": {
+    "description": "Prompt in the PIN verification dialog"
+  },
+  "verifyButtonText": "Verify",
+  "@verifyButtonText": {
+    "description": "Button text to verify PIN"
+  },
+  "friendCodeLabel": "Friend Code",
+  "@friendCodeLabel": {
+    "description": "Label for the friend code display on profile page"
+  },
+  "copyFriendCodeTooltip": "Copy friend code",
+  "@copyFriendCodeTooltip": {
+    "description": "Tooltip for the copy friend code button"
+  },
+  "friendCodeCopiedMessage": "Friend code copied!",
+  "@friendCodeCopiedMessage": {
+    "description": "Snackbar message shown when friend code is copied"
+  },
+  "setYourPinTitle": "Set Your PIN",
+  "@setYourPinTitle": {
+    "description": "Title for the PIN setup dialog shown to existing users"
+  },
+  "setYourPinDescription": "Set a 4-digit PIN so friends can verify your identity when adding you to a game.",
+  "@setYourPinDescription": {
+    "description": "Description in the PIN setup dialog"
+  },
+  "savePinButtonText": "Save PIN",
+  "@savePinButtonText": {
+    "description": "Button text to save PIN in setup dialog"
+  },
+  "addFriendButtonText": "Add",
+  "@addFriendButtonText": {
+    "description": "Button text to send a friend request"
   }
 }
 

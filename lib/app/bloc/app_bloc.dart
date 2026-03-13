@@ -104,11 +104,16 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       case AppStatus.anonymous:
       case AppStatus.unauthenticated:
       case AppStatus.onboardingRequired:
-        return event.user == User.unauthenticated
-            ? emit(const AppState.unauthenticated())
-            : event.user.isAnonymous
-                ? emit(AppState.anonymous(event.user))
-                : emit(AppState.authenticated(event.user));
+        if (event.user == User.unauthenticated) {
+          return emit(const AppState.unauthenticated());
+        }
+        if (event.user.isAnonymous) {
+          return emit(AppState.anonymous(event.user));
+        }
+        if (event.user.isNewUser) {
+          return emit(AppState.onboardingRequired(event.user));
+        }
+        return emit(AppState.authenticated(event.user));
     }
   }
 

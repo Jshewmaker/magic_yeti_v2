@@ -19,6 +19,8 @@ class UserProfileModel extends Equatable {
     this.lastName,
     this.bio,
     this.imageUrl,
+    this.friendCode,
+    this.pin,
   });
 
   /// Factory constructor for a [UserProfileModel] from a JSON map
@@ -55,6 +57,12 @@ class UserProfileModel extends Equatable {
   /// Image URL of the user
   final String? imageUrl;
 
+  /// Unique friend code for discovery (e.g. "YETI-A3F9")
+  final String? friendCode;
+
+  /// SHA-256 hashed 4-digit PIN for identity verification
+  final String? pin;
+
   /// An unauthenticated user.
   static const empty = UserProfileModel(id: '');
 
@@ -69,6 +77,8 @@ class UserProfileModel extends Equatable {
     String? lastName,
     String? bio,
     String? imageUrl,
+    String? friendCode,
+    String? pin,
   }) =>
       UserProfileModel(
         id: id ?? this.id,
@@ -80,6 +90,8 @@ class UserProfileModel extends Equatable {
         imageUrl: imageUrl ?? this.imageUrl,
         isNewUser: isNewUser ?? this.isNewUser,
         isAnonymous: isAnonymous ?? this.isAnonymous,
+        friendCode: friendCode ?? this.friendCode,
+        pin: pin ?? this.pin,
       );
 
   @override
@@ -93,5 +105,7 @@ class UserProfileModel extends Equatable {
         lastName,
         bio,
         imageUrl,
+        friendCode,
+        pin,
       ];
 }

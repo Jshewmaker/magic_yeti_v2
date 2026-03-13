@@ -775,6 +775,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Previous game restored!'**
   String get gameRestoredMessage;
+
+  /// Label for PIN input field
+  ///
+  /// In en, this message translates to:
+  /// **'4-Digit PIN'**
+  String get pinInputLabel;
+
+  /// Helper text for PIN input field
+  ///
+  /// In en, this message translates to:
+  /// **'Confirms your identity when friends add you to a game'**
+  String get pinInputHelper;
+
+  /// Error text when PIN is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Must be 4 digits'**
+  String get pinInputError;
+
+  /// Title for the friend search page
+  ///
+  /// In en, this message translates to:
+  /// **'Find Friends'**
+  String get findFriendsTitle;
+
+  /// Hint text for friend code search input
+  ///
+  /// In en, this message translates to:
+  /// **'Enter friend code (e.g. YETI-A3F9)'**
+  String get friendCodeSearchHint;
+
+  /// Message shown after sending a friend request
+  ///
+  /// In en, this message translates to:
+  /// **'Friend request sent!'**
+  String get friendRequestSentMessage;
+
+  /// Message shown when friend code search returns no results
+  ///
+  /// In en, this message translates to:
+  /// **'No user found with that code.'**
+  String get noUserFoundMessage;
+
+  /// Prompt shown on the friend search page before searching
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a friend code to find players.'**
+  String get friendCodeSearchPrompt;
+
+  /// Label above friend selection chips on customize player page
+  ///
+  /// In en, this message translates to:
+  /// **'Select a friend'**
+  String get selectFriendLabel;
+
+  /// Text shown when a friend is linked to a player slot
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to {name}'**
+  String linkedToFriend(String name);
+
+  /// Button text to clear friend selection
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearButtonText;
+
+  /// Title for the PIN verification dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Verify {name}'**
+  String verifyFriendTitle(String name);
+
+  /// Prompt in the PIN verification dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Enter their 4-digit PIN to confirm identity.'**
+  String get enterPinPrompt;
+
+  /// Button text to verify PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get verifyButtonText;
+
+  /// Label for the friend code display on profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Friend Code'**
+  String get friendCodeLabel;
+
+  /// Tooltip for the copy friend code button
+  ///
+  /// In en, this message translates to:
+  /// **'Copy friend code'**
+  String get copyFriendCodeTooltip;
+
+  /// Snackbar message shown when friend code is copied
+  ///
+  /// In en, this message translates to:
+  /// **'Friend code copied!'**
+  String get friendCodeCopiedMessage;
+
+  /// Title for the PIN setup dialog shown to existing users
+  ///
+  /// In en, this message translates to:
+  /// **'Set Your PIN'**
+  String get setYourPinTitle;
+
+  /// Description in the PIN setup dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Set a 4-digit PIN so friends can verify your identity when adding you to a game.'**
+  String get setYourPinDescription;
+
+  /// Button text to save PIN in setup dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Save PIN'**
+  String get savePinButtonText;
+
+  /// Button text to send a friend request
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get addFriendButtonText;
 }
 
 class _AppLocalizationsDelegate

@@ -1,6 +1,7 @@
 import 'package:api_client/api_client.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:player_repository/player_repository.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 
@@ -9,8 +10,11 @@ part 'player_customization_state.dart';
 
 class PlayerCustomizationBloc
     extends Bloc<PlayerCustomizationEvent, PlayerCustomizationState> {
-  PlayerCustomizationBloc({required ScryfallRepository scryfallRepository})
-      : _scryfallRepository = scryfallRepository,
+  PlayerCustomizationBloc({
+    required ScryfallRepository scryfallRepository,
+    required FirebaseDatabaseRepository firebaseDatabaseRepository,
+  })  : _scryfallRepository = scryfallRepository,
+        _firebaseDatabaseRepository = firebaseDatabaseRepository,
         super(const PlayerCustomizationState()) {
     on<CardListRequested>(_cardListRequested);
     on<UpdatePlayerCommander>(updatePlayerCommander);
@@ -18,9 +22,13 @@ class PlayerCustomizationBloc
     on<UpdateCommanderFilters>(_onUpdateCommanderFilters);
     on<UpdatePartnerSelection>(_onUpdatePartnerSelection);
     on<ClearCardList>(_onClearCardList);
+    on<SelectFriend>(_onSelectFriend);
+    on<ClearFriend>(_onClearFriend);
+    on<ValidatePin>(_onValidatePin);
   }
 
   final ScryfallRepository _scryfallRepository;
+  final FirebaseDatabaseRepository _firebaseDatabaseRepository;
 
   Future<void> _cardListRequested(
     CardListRequested event,
@@ -116,5 +124,51 @@ class PlayerCustomizationBloc
         selectingPartner: event.selectingPartner,
       ),
     );
+  }
+
+  void _onSelectFriend(
+    SelectFriend event,
+    Emitter<PlayerCustomizationState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        selectedFriend: event.friend,
+        pinValidated: false,
+        pinError: '',
+      ),
+    );
+  }
+
+  void _onClearFriend(
+    ClearFriend event,
+    Emitter<PlayerCustomizationState> emit,
+  ) {
+    emit(
+      state.copyWithClearedFriend(),
+    );
+  }
+
+  Future<void> _onValidatePin(
+    ValidatePin event,
+    Emitter<PlayerCustomizationState> emit,
+  ) async {
+    try {
+      final isValid = await _firebaseDatabaseRepository.validatePin(
+        event.friendUserId,
+        event.pin,
+      );
+      if (isValid) {
+        emit(state.copyWith(pinValidated: true, pinError: ''));
+      } else {
+        emit(state.copyWith(pinValidated: false, pinError: 'Incorrect PIN'));
+      }
+    } on Exception catch (_) {
+      emit(
+        state.copyWith(
+          pinValidated: false,
+          pinError: 'Failed to validate PIN',
+        ),
+      );
+    }
   }
 }

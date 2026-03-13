@@ -18,5 +18,26 @@
     "gameRestoredMessage": "¡Juego anterior restaurado!",
     "@gameRestoredMessage": {
         "description": "Mensaje de snackbar mostrado cuando se restaura correctamente un estado previo del juego desde la página de Fin de Juego"
-    }
+    },
+    "pinInputLabel": "PIN de 4 dígitos",
+    "pinInputHelper": "Confirma tu identidad cuando amigos te agregan a una partida",
+    "pinInputError": "Debe ser de 4 dígitos",
+    "findFriendsTitle": "Buscar Amigos",
+    "friendCodeSearchHint": "Ingresa código de amigo (ej. YETI-A3F9)",
+    "friendRequestSentMessage": "¡Solicitud de amistad enviada!",
+    "noUserFoundMessage": "No se encontró usuario con ese código.",
+    "friendCodeSearchPrompt": "Ingresa un código de amigo para buscar jugadores.",
+    "selectFriendLabel": "Seleccionar un amigo",
+    "linkedToFriend": "Vinculado a {name}",
+    "clearButtonText": "Limpiar",
+    "verifyFriendTitle": "Verificar {name}",
+    "enterPinPrompt": "Ingresa su PIN de 4 dígitos para confirmar identidad.",
+    "verifyButtonText": "Verificar",
+    "friendCodeLabel": "Código de Amigo",
+    "copyFriendCodeTooltip": "Copiar código de amigo",
+    "friendCodeCopiedMessage": "¡Código de amigo copiado!",
+    "setYourPinTitle": "Configura tu PIN",
+    "setYourPinDescription": "Configura un PIN de 4 dígitos para que tus amigos puedan verificar tu identidad al agregarte a una partida.",
+    "savePinButtonText": "Guardar PIN",
+    "addFriendButtonText": "Agregar"
 }

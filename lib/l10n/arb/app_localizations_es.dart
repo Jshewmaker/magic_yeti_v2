@@ -371,4 +371,75 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gameRestoredMessage => '¡Juego anterior restaurado!';
+
+  @override
+  String get pinInputLabel => 'PIN de 4 dígitos';
+
+  @override
+  String get pinInputHelper =>
+      'Confirma tu identidad cuando amigos te agregan a una partida';
+
+  @override
+  String get pinInputError => 'Debe ser de 4 dígitos';
+
+  @override
+  String get findFriendsTitle => 'Buscar Amigos';
+
+  @override
+  String get friendCodeSearchHint => 'Ingresa código de amigo (ej. YETI-A3F9)';
+
+  @override
+  String get friendRequestSentMessage => '¡Solicitud de amistad enviada!';
+
+  @override
+  String get noUserFoundMessage => 'No se encontró usuario con ese código.';
+
+  @override
+  String get friendCodeSearchPrompt =>
+      'Ingresa un código de amigo para buscar jugadores.';
+
+  @override
+  String get selectFriendLabel => 'Seleccionar un amigo';
+
+  @override
+  String linkedToFriend(String name) {
+    return 'Vinculado a $name';
+  }
+
+  @override
+  String get clearButtonText => 'Limpiar';
+
+  @override
+  String verifyFriendTitle(String name) {
+    return 'Verificar $name';
+  }
+
+  @override
+  String get enterPinPrompt =>
+      'Ingresa su PIN de 4 dígitos para confirmar identidad.';
+
+  @override
+  String get verifyButtonText => 'Verificar';
+
+  @override
+  String get friendCodeLabel => 'Código de Amigo';
+
+  @override
+  String get copyFriendCodeTooltip => 'Copiar código de amigo';
+
+  @override
+  String get friendCodeCopiedMessage => '¡Código de amigo copiado!';
+
+  @override
+  String get setYourPinTitle => 'Configura tu PIN';
+
+  @override
+  String get setYourPinDescription =>
+      'Configura un PIN de 4 dígitos para que tus amigos puedan verificar tu identidad al agregarte a una partida.';
+
+  @override
+  String get savePinButtonText => 'Guardar PIN';
+
+  @override
+  String get addFriendButtonText => 'Agregar';
 }

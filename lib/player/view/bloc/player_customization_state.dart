@@ -19,6 +19,9 @@ class PlayerCustomizationState extends Equatable {
     this.showOnlyLegendary = true,
     this.hasPartner = false,
     this.selectingPartner = false,
+    this.selectedFriend,
+    this.pinValidated = false,
+    this.pinError = '',
   });
 
   final PlayerCustomizationStatus status;
@@ -31,6 +34,9 @@ class PlayerCustomizationState extends Equatable {
   final bool showOnlyLegendary;
   final bool hasPartner;
   final bool selectingPartner;
+  final FriendModel? selectedFriend;
+  final bool pinValidated;
+  final String pinError;
 
   @override
   List<Object?> get props => [
@@ -44,6 +50,9 @@ class PlayerCustomizationState extends Equatable {
         showOnlyLegendary,
         hasPartner,
         selectingPartner,
+        selectedFriend,
+        pinValidated,
+        pinError,
       ];
 
   PlayerCustomizationState copyWith({
@@ -57,6 +66,9 @@ class PlayerCustomizationState extends Equatable {
     bool? showOnlyLegendary,
     bool? hasPartner,
     bool? selectingPartner,
+    FriendModel? selectedFriend,
+    bool? pinValidated,
+    String? pinError,
   }) {
     return PlayerCustomizationState(
       status: status ?? this.status,
@@ -69,6 +81,24 @@ class PlayerCustomizationState extends Equatable {
       showOnlyLegendary: showOnlyLegendary ?? this.showOnlyLegendary,
       hasPartner: hasPartner ?? this.hasPartner,
       selectingPartner: selectingPartner ?? this.selectingPartner,
+      selectedFriend: selectedFriend ?? this.selectedFriend,
+      pinValidated: pinValidated ?? this.pinValidated,
+      pinError: pinError ?? this.pinError,
+    );
+  }
+
+  PlayerCustomizationState copyWithClearedFriend() {
+    return PlayerCustomizationState(
+      status: status,
+      name: name,
+      commander: commander,
+      partner: partner,
+      cardList: cardList,
+      magicCardList: magicCardList,
+      isAccountOwner: isAccountOwner,
+      showOnlyLegendary: showOnlyLegendary,
+      hasPartner: hasPartner,
+      selectingPartner: selectingPartner,
     );
   }
 }

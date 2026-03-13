@@ -9,6 +9,7 @@ class PlayerNameRow extends StatelessWidget {
     required this.showOnlyLegendary,
     required this.hasPartner,
     this.focusNode,
+    this.isReadOnly = false,
     super.key,
   });
 
@@ -16,6 +17,7 @@ class PlayerNameRow extends StatelessWidget {
   final FocusNode? focusNode;
   final bool showOnlyLegendary;
   final bool hasPartner;
+  final bool isReadOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +32,7 @@ class PlayerNameRow extends StatelessWidget {
             child: TextField(
               controller: textController,
               focusNode: focusNode,
+              readOnly: isReadOnly,
               textInputAction: TextInputAction.done,
               onSubmitted: (_) => FocusScope.of(context).unfocus(),
               decoration: InputDecoration(

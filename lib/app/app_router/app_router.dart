@@ -149,16 +149,16 @@ class AppRouter {
           builder: SignUpPage.pageBuilder,
         ),
       ],
-      // redirect: (context, state) {
-      //   final status = appBloc.state.status;
+      redirect: (context, state) {
+        final status = appBloc.state.status;
 
-      //   if (status != _currentStatus) {
-      //     _currentStatus = status;
-      //     return _currentStatus.route;
-      //   }
+        if (status != _currentStatus) {
+          _currentStatus = status;
+          return _currentStatus.route;
+        }
 
-      //   return null;
-      // },
+        return null;
+      },
     );
   }
 }

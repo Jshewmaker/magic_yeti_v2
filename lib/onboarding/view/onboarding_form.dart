@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_inputs/form_inputs.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/onboarding/onboarding.dart';
 
 class OnboardingForm extends StatelessWidget {
@@ -32,6 +33,8 @@ class OnboardingForm extends StatelessWidget {
           _WelcomeText(),
           SizedBox(height: AppSpacing.lg),
           _UsernameInput(),
+          SizedBox(height: AppSpacing.xs),
+          _PinInput(),
           SizedBox(height: AppSpacing.xs),
           _FirstNameInput(),
           SizedBox(height: AppSpacing.xs),
@@ -90,6 +93,30 @@ class _UsernameInput extends StatelessWidget {
         labelText: 'Username',
         helperText: '',
         errorText: username.displayError != null ? 'Invalid username' : null,
+      ),
+    );
+  }
+}
+
+class _PinInput extends StatelessWidget {
+  const _PinInput();
+
+  @override
+  Widget build(BuildContext context) {
+    final pin =
+        context.select((OnboardingBloc bloc) => bloc.state.pin);
+    return TextField(
+      key: const Key('onboardingForm_pinInput_textField'),
+      onChanged: (pin) {
+        context.read<OnboardingBloc>().add(OnboardingPinChanged(pin));
+      },
+      keyboardType: TextInputType.number,
+      maxLength: 4,
+      decoration: InputDecoration(
+        labelText: context.l10n.pinInputLabel,
+        helperText: context.l10n.pinInputHelper,
+        errorText:
+            pin.displayError != null ? context.l10n.pinInputError : null,
       ),
     );
   }

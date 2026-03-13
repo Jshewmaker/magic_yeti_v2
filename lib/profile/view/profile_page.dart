@@ -1,10 +1,12 @@
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hold_to_confirm_button/hold_to_confirm_button.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/profile/bloc/profile_bloc.dart';
 import 'package:user_repository/user_repository.dart';
 
@@ -143,6 +145,10 @@ class ProfileView extends StatelessWidget {
                                   .add(ProfileEmailChanged(value)),
                             ),
                             const SizedBox(height: 20),
+                            _FriendCodeSection(
+                              userId: state.userProfile.id,
+                            ),
+                            const SizedBox(height: 20),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -265,6 +271,69 @@ class _SignOutButton extends StatelessWidget {
         },
         child: const Text('Sign Out'),
       ),
+    );
+  }
+}
+
+class _FriendCodeSection extends StatelessWidget {
+  const _FriendCodeSection({required this.userId});
+
+  final String userId;
+
+  @override
+  Widget build(BuildContext context) {
+    final db = context.read<FirebaseDatabaseRepository>();
+    return StreamBuilder<UserProfileModel>(
+      stream: db.getUserProfile(userId),
+      builder: (context, snapshot) {
+        final friendCode = snapshot.data?.friendCode;
+        if (friendCode == null) return const SizedBox.shrink();
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const Icon(Icons.badge_outlined),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.l10n.friendCodeLabel,
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                    Text(
+                      friendCode,
+                      style:
+                          Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.copy),
+                  tooltip: context.l10n.copyFriendCodeTooltip,
+                  onPressed: () {
+                    Clipboard.setData(
+                      ClipboardData(text: friendCode),
+                    );
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            context.l10n.friendCodeCopiedMessage,
+                          ),
+                        ),
+                      );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -63,3 +63,26 @@ final class UpdatePartnerSelection extends PlayerCustomizationEvent {
   @override
   List<Object> get props => [selectingPartner];
 }
+
+final class SelectFriend extends PlayerCustomizationEvent {
+  const SelectFriend({required this.friend});
+
+  final FriendModel friend;
+
+  @override
+  List<Object> get props => [friend];
+}
+
+final class ClearFriend extends PlayerCustomizationEvent {
+  const ClearFriend();
+}
+
+final class ValidatePin extends PlayerCustomizationEvent {
+  const ValidatePin({required this.pin, required this.friendUserId});
+
+  final String pin;
+  final String friendUserId;
+
+  @override
+  List<Object> get props => [pin, friendUserId];
+}

@@ -28,6 +28,7 @@ class FriendModel extends Equatable {
     required this.userId,
     required this.username,
     required this.profilePictureUrl,
+    this.friendCode,
   });
 
   /// Converts a Firestore document snapshot to a FriendModel.
@@ -46,10 +47,14 @@ class FriendModel extends Equatable {
   /// The URL of the friend's profile picture.
   final String profilePictureUrl;
 
+  /// The friend's unique friend code (e.g. "YETI-A3F9")
+  final String? friendCode;
+
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
         userId,
         username,
         profilePictureUrl,
+        friendCode,
       ];
 }

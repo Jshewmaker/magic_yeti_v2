@@ -14,6 +14,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         _userProfile = userProfile,
         super(const OnboardingState()) {
     on<OnboardingUsernameChanged>(_onUsernameChanged);
+    on<OnboardingPinChanged>(_onPinChanged);
     on<OnboardingFirstNameChanged>(_onFirstNameChanged);
     on<OnboardingLastNameChanged>(_onLastNameChanged);
     on<OnboardingBioChanged>(_onBioChanged);
@@ -31,7 +32,20 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(
       state.copyWith(
         username: username,
-        isValid: Formz.validate([username]),
+        isValid: Formz.validate([username, state.pin]),
+      ),
+    );
+  }
+
+  void _onPinChanged(
+    OnboardingPinChanged event,
+    Emitter<OnboardingState> emit,
+  ) {
+    final pin = Pin.dirty(event.pin);
+    emit(
+      state.copyWith(
+        pin: pin,
+        isValid: Formz.validate([state.username, pin]),
       ),
     );
   }
@@ -64,6 +78,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     if (!state.isValid) return;
     emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
     try {
+      final friendCode =
+          await _firebaseDatabaseRepository.generateUniqueFriendCode();
+      final hashedPin =
+          FirebaseDatabaseRepository.hashPin(state.pin.value);
       await _firebaseDatabaseRepository.updateUserProfile(
         _userProfile.id,
         _userProfile.copyWith(
@@ -72,6 +90,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
           lastName: state.lastName,
           bio: state.bio,
           isNewUser: false,
+          friendCode: friendCode,
+          pin: hashedPin,
         ),
       );
       emit(state.copyWith(status: FormzSubmissionStatus.success));
