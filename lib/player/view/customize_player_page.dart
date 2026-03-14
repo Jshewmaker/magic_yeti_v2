@@ -436,7 +436,7 @@ class _FriendSection extends StatelessWidget {
             ),
           );
         },
-      ).then((_) => pinController.dispose()),
+      ),
     );
   }
 }
