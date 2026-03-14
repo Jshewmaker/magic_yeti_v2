@@ -55,6 +55,7 @@ class App extends StatelessWidget {
             create: (_) => AppBloc(
               appConfigRepository: _appConfigRepository,
               userRepository: _userRepository,
+              firebaseDatabaseRepository: _firebaseDatabaseRepository,
               user: _user,
             ),
           ),
