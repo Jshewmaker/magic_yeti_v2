@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:form_inputs/form_inputs.dart';
+import 'package:image_picker/image_picker.dart';
 
 part 'onboarding_event.dart';
 part 'onboarding_state.dart';
@@ -9,45 +10,46 @@ part 'onboarding_state.dart';
 class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   OnboardingBloc({
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
-    required UserProfileModel userProfile,
+    UserProfileModel? existingProfile,
   })  : _firebaseDatabaseRepository = firebaseDatabaseRepository,
-        _userProfile = userProfile,
-        super(const OnboardingState()) {
+        super(
+          OnboardingState(
+            username: existingProfile?.username != null &&
+                    existingProfile!.username!.isNotEmpty
+                ? Username.dirty(existingProfile.username!)
+                : const Username.pure(),
+            firstName: existingProfile?.firstName ?? '',
+            lastName: existingProfile?.lastName ?? '',
+            bio: existingProfile?.bio ?? '',
+            existingPinHash: existingProfile?.pin,
+            existingImageUrl: existingProfile?.imageUrl,
+          ),
+        ) {
     on<OnboardingUsernameChanged>(_onUsernameChanged);
     on<OnboardingPinChanged>(_onPinChanged);
     on<OnboardingFirstNameChanged>(_onFirstNameChanged);
     on<OnboardingLastNameChanged>(_onLastNameChanged);
     on<OnboardingBioChanged>(_onBioChanged);
+    on<OnboardingStepNext>(_onStepNext);
+    on<OnboardingStepBack>(_onStepBack);
+    on<OnboardingProfileImagePicked>(_onProfileImagePicked);
     on<OnboardingSubmitted>(_onSubmitted);
   }
 
   final FirebaseDatabaseRepository _firebaseDatabaseRepository;
-  final UserProfileModel _userProfile;
 
   void _onUsernameChanged(
     OnboardingUsernameChanged event,
     Emitter<OnboardingState> emit,
   ) {
-    final username = Username.dirty(event.username);
-    emit(
-      state.copyWith(
-        username: username,
-        isValid: Formz.validate([username, state.pin]),
-      ),
-    );
+    emit(state.copyWith(username: Username.dirty(event.username)));
   }
 
   void _onPinChanged(
     OnboardingPinChanged event,
     Emitter<OnboardingState> emit,
   ) {
-    final pin = Pin.dirty(event.pin);
-    emit(
-      state.copyWith(
-        pin: pin,
-        isValid: Formz.validate([state.username, pin]),
-      ),
-    );
+    emit(state.copyWith(pin: Pin.dirty(event.pin)));
   }
 
   void _onFirstNameChanged(
@@ -71,31 +73,81 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(state.copyWith(bio: event.bio));
   }
 
+  void _onStepNext(
+    OnboardingStepNext event,
+    Emitter<OnboardingState> emit,
+  ) {
+    if (state.isStepValid && state.currentStep < 3) {
+      emit(state.copyWith(currentStep: state.currentStep + 1));
+    }
+  }
+
+  void _onStepBack(
+    OnboardingStepBack event,
+    Emitter<OnboardingState> emit,
+  ) {
+    if (state.currentStep > 0) {
+      emit(state.copyWith(currentStep: state.currentStep - 1));
+    }
+  }
+
+  void _onProfileImagePicked(
+    OnboardingProfileImagePicked event,
+    Emitter<OnboardingState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        profileImagePath: () =>
+            event.imagePath.isEmpty ? null : event.imagePath,
+      ),
+    );
+  }
+
   Future<void> _onSubmitted(
     OnboardingSubmitted event,
     Emitter<OnboardingState> emit,
   ) async {
-    if (!state.isValid) return;
     emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
     try {
-      final friendCode =
+      // Upload profile picture if selected
+      String? imageUrl = state.existingImageUrl;
+      if (state.profileImagePath != null) {
+        final file = XFile(state.profileImagePath!);
+        final bytes = await file.readAsBytes();
+        imageUrl = await _firebaseDatabaseRepository.uploadProfilePicture(
+          event.userId,
+          bytes,
+        );
+      }
+
+      // Generate friend code if not already present
+      final existingProfile = await _firebaseDatabaseRepository
+          .getUserProfileOnce(event.userId);
+      final friendCode = existingProfile?.friendCode ??
           await _firebaseDatabaseRepository.generateUniqueFriendCode();
-      final hashedPin =
-          FirebaseDatabaseRepository.hashPin(state.pin.value);
+
+      // Hash PIN — use new PIN if entered, otherwise keep existing
+      final pinHash = state.pin.value.isNotEmpty
+          ? FirebaseDatabaseRepository.hashPin(state.pin.value)
+          : state.existingPinHash ?? '';
+
       await _firebaseDatabaseRepository.updateUserProfile(
-        _userProfile.id,
-        _userProfile.copyWith(
+        event.userId,
+        UserProfileModel(
+          id: event.userId,
+          email: existingProfile?.email,
           username: state.username.value,
           firstName: state.firstName,
           lastName: state.lastName,
           bio: state.bio,
-          isNewUser: false,
+          imageUrl: imageUrl,
           friendCode: friendCode,
-          pin: hashedPin,
+          pin: pinHash,
+          onboardingComplete: true,
         ),
       );
       emit(state.copyWith(status: FormzSubmissionStatus.success));
-    } catch (_) {
+    } on Exception catch (_) {
       emit(state.copyWith(status: FormzSubmissionStatus.failure));
     }
   }
