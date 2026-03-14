@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_database_repository/models/models.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 /// {@template save_game_stats_exception}
 /// Exception thrown when saving game stats fails.
@@ -317,6 +319,47 @@ class FirebaseDatabaseRepository {
     } on Exception catch (error, stackTrace) {
       throw GetUserProfileException(
         message: error.toString(),
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Get a user's profile as a one-shot Future.
+  /// Returns null if the document does not exist.
+  Future<UserProfileModel?> getUserProfileOnce(String userId) async {
+    try {
+      final doc =
+          await _firebase.collection('users').doc(userId).get();
+      if (!doc.exists || doc.data() == null) return null;
+      return UserProfileModel.fromJson(doc.data()!);
+    } on Exception catch (error, stackTrace) {
+      throw GetUserProfileException(
+        message: error.toString(),
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Upload a profile picture to Firebase Storage.
+  /// Accepts raw image bytes for cross-platform compatibility.
+  /// Returns the download URL.
+  Future<String> uploadProfilePicture(
+    String userId,
+    Uint8List imageBytes,
+  ) async {
+    try {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('profile_pictures')
+          .child('$userId.jpg');
+      await storageRef.putData(
+        imageBytes,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+      return storageRef.getDownloadURL();
+    } on Exception catch (error, stackTrace) {
+      throw UpdateUserProfileException(
+        message: 'Failed to upload profile picture: $error',
         stackTrace: stackTrace,
       );
     }
