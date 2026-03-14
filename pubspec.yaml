@@ -42,8 +42,8 @@ dependencies:
   form_inputs:
     path: packages/form_inputs
   go_router: ^14.0.2
-  image_picker: ^1.1.2
   hold_to_confirm_button: ^0.0.2
+  image_picker: ^1.1.2
   intl: ^0.20.2
   json_annotation: ^4.9.0
   player_repository:
