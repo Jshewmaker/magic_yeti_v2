@@ -287,7 +287,8 @@ class _FriendSection extends StatelessWidget {
               shrinkWrap: true,
               physics: const ClampingScrollPhysics(),
               itemCount: friends.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              separatorBuilder: (_, _) =>
+                  const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, index) {
                 final friend = friends[index];
                 final isSelected = isLinked &&
@@ -295,7 +296,9 @@ class _FriendSection extends StatelessWidget {
                 return _FriendTile(
                   friend: friend,
                   isSelected: isSelected,
-                  onTap: () => _showPinDialog(context, friend),
+                  onTap: isSelected
+                      ? null
+                      : () => _showPinDialog(context, friend),
                 );
               },
             ),
@@ -447,13 +450,13 @@ class _FriendTile extends StatelessWidget {
 
   final FriendModel friend;
   final bool isSelected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppSpacing.md),
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
@@ -461,7 +464,7 @@ class _FriendTile extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppSpacing.md),
           border: isSelected
               ? Border.all(color: AppColors.tertiary, width: 2)
               : null,
@@ -474,6 +477,7 @@ class _FriendTile extends StatelessWidget {
                 radius: 18,
                 backgroundColor: AppColors.tertiary,
                 backgroundImage: NetworkImage(friend.profilePictureUrl),
+                onBackgroundImageError: (_, _) {},
               )
             else
               CircleAvatar(

@@ -133,7 +133,6 @@ class PlayerCustomizationBloc
     emit(
       state.copyWith(
         selectedFriend: event.friend,
-        pinValidated: true,
         pinError: '',
       ),
     );
