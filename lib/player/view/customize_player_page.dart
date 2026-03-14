@@ -463,11 +463,14 @@ class _FriendTile extends StatelessWidget {
           vertical: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppColors.surface.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(AppSpacing.md),
-          border: isSelected
-              ? Border.all(color: AppColors.tertiary, width: 2)
-              : null,
+          border: Border.all(
+            color: isSelected
+                ? AppColors.tertiary
+                : AppColors.neutral60.withValues(alpha: 0.3),
+            width: isSelected ? 2 : 1,
+          ),
         ),
         child: Row(
           children: [
