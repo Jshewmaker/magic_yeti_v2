@@ -182,6 +182,8 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
                           hasPartner: state.hasPartner,
                           isReadOnly: state.selectedFriend != null &&
                               state.pinValidated,
+                          isLinkedToFriend: state.selectedFriend != null &&
+                              state.pinValidated,
                         ),
                       ),
                       if (state.hasPartner) ...[

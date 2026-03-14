@@ -10,6 +10,7 @@ class PlayerNameRow extends StatelessWidget {
     required this.hasPartner,
     this.focusNode,
     this.isReadOnly = false,
+    this.isLinkedToFriend = false,
     super.key,
   });
 
@@ -18,6 +19,7 @@ class PlayerNameRow extends StatelessWidget {
   final bool showOnlyLegendary;
   final bool hasPartner;
   final bool isReadOnly;
+  final bool isLinkedToFriend;
 
   @override
   Widget build(BuildContext context) {
@@ -37,8 +39,12 @@ class PlayerNameRow extends StatelessWidget {
               onSubmitted: (_) => FocusScope.of(context).unfocus(),
               decoration: InputDecoration(
                 hintText: 'Player name',
-                prefixIcon:
-                    const Icon(Icons.edit, color: AppColors.neutral60),
+                prefixIcon: Icon(
+                  isLinkedToFriend ? Icons.link : Icons.edit,
+                  color: isLinkedToFriend
+                      ? AppColors.green
+                      : AppColors.neutral60,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.sm),
                 ),
