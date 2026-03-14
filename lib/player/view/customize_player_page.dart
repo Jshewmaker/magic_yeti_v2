@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
@@ -170,7 +172,7 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
                         child: SizedBox(height: AppSpacing.xxxlg * 2),
                       ),
                       SliverToBoxAdapter(
-                        child: _FriendSelectionSection(
+                        child: _FriendSection(
                           nameController: _nameController,
                         ),
                       ),
@@ -224,8 +226,8 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
   }
 }
 
-class _FriendSelectionSection extends StatelessWidget {
-  const _FriendSelectionSection({required this.nameController});
+class _FriendSection extends StatelessWidget {
+  const _FriendSection({required this.nameController});
 
   final TextEditingController nameController;
 
@@ -233,68 +235,67 @@ class _FriendSelectionSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final customState = context.watch<PlayerCustomizationBloc>().state;
     final friendState = context.watch<FriendBloc>().state;
-    final selectedFriend = customState.selectedFriend;
+    final isLinked =
+        customState.selectedFriend != null && customState.pinValidated;
 
-    if (selectedFriend != null && customState.pinValidated) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xlg),
-        child: Row(
-          children: [
-            const Icon(Icons.person, color: AppColors.green),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              context.l10n.linkedToFriend(selectedFriend.username),
-              style: const TextStyle(color: AppColors.green),
-            ),
-            const Spacer(),
-            TextButton(
-              onPressed: () {
-                context
-                    .read<PlayerCustomizationBloc>()
-                    .add(const ClearFriend());
-                nameController.clear();
-              },
-              child: Text(context.l10n.clearButtonText),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (friendState is! FriendsLoaded || friendState.friends.isEmpty) {
+    // Hide section if no friends loaded and no friend selected
+    final hasFriends =
+        friendState is FriendsLoaded && friendState.friends.isNotEmpty;
+    if (!hasFriends && !isLinked) {
       return const SizedBox.shrink();
     }
+
+    final friends =
+        friendState is FriendsLoaded ? friendState.friends : <FriendModel>[];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xlg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.l10n.selectFriendLabel,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.neutral60,
-            ),
+          // Section header with optional Clear button
+          Row(
+            children: [
+              Text(
+                context.l10n.selectFriendLabel,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.neutral60,
+                ),
+              ),
+              const Spacer(),
+              if (isLinked)
+                TextButton(
+                  onPressed: () {
+                    context
+                        .read<PlayerCustomizationBloc>()
+                        .add(const ClearFriend());
+                    nameController.clear();
+                  },
+                  child: Text(
+                    context.l10n.clearButtonText,
+                    style: const TextStyle(color: AppColors.neutral60),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: AppSpacing.xs),
-          SizedBox(
-            height: 40,
+          // Friend list
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 160),
             child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: friendState.friends.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(width: AppSpacing.xs),
+              shrinkWrap: true,
+              physics: const ClampingScrollPhysics(),
+              itemCount: friends.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
-                final friend = friendState.friends[index];
-                return ActionChip(
-                  avatar: const Icon(Icons.person, size: 18),
-                  label: Text(friend.username),
-                  onPressed: () => _showPinDialog(
-                    context,
-                    friend,
-                    nameController,
-                  ),
+                final friend = friends[index];
+                final isSelected = isLinked &&
+                    customState.selectedFriend?.userId == friend.userId;
+                return _FriendTile(
+                  friend: friend,
+                  isSelected: isSelected,
+                  onTap: () => _showPinDialog(context, friend),
                 );
               },
             ),
@@ -305,69 +306,208 @@ class _FriendSelectionSection extends StatelessWidget {
     );
   }
 
-  void _showPinDialog(
-    BuildContext context,
-    FriendModel friend,
-    TextEditingController nameController,
-  ) {
+  void _showPinDialog(BuildContext context, FriendModel friend) {
     final pinController = TextEditingController();
     final bloc = context.read<PlayerCustomizationBloc>();
-
     final l10n = context.l10n;
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(l10n.verifyFriendTitle(friend.username)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(l10n.enterPinPrompt),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: pinController,
-                keyboardType: TextInputType.number,
-                maxLength: 4,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 24,
-                  letterSpacing: 8,
-                ),
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  counterText: '',
+
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return BlocProvider.value(
+            value: bloc,
+            child: BlocListener<PlayerCustomizationBloc,
+                PlayerCustomizationState>(
+              listenWhen: (previous, current) =>
+                  previous.pinValidated != current.pinValidated ||
+                  previous.pinError != current.pinError,
+              listener: (listenerContext, state) {
+                if (state.pinValidated) {
+                  // PIN succeeded — select friend, populate name, close
+                  bloc.add(SelectFriend(friend: friend));
+                  nameController.text = friend.username;
+                  Navigator.pop(listenerContext);
+                }
+                // pinError is shown reactively via the StatefulBuilder below
+              },
+              child: StatefulBuilder(
+                builder: (dialogContext, setDialogState) {
+                  return AlertDialog(
+                    backgroundColor: AppColors.surface,
+                    title: Text(
+                      l10n.verifyFriendTitle(friend.username),
+                      style: const TextStyle(color: AppColors.white),
+                    ),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          l10n.enterPinPrompt,
+                          style:
+                              const TextStyle(color: AppColors.neutral60),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        BlocBuilder<PlayerCustomizationBloc,
+                            PlayerCustomizationState>(
+                          buildWhen: (previous, current) =>
+                              previous.pinError != current.pinError,
+                          builder: (context, state) {
+                            return TextField(
+                              controller: pinController,
+                              keyboardType: TextInputType.number,
+                              maxLength: 4,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                letterSpacing: 8,
+                                color: AppColors.white,
+                              ),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: AppColors.surface,
+                                counterText: '',
+                                enabledBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: AppColors.neutral60,
+                                  ),
+                                ),
+                                focusedBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: AppColors.tertiary,
+                                  ),
+                                ),
+                                errorBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: AppColors.red,
+                                  ),
+                                ),
+                                focusedErrorBorder:
+                                    const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: AppColors.red,
+                                  ),
+                                ),
+                                errorText: state.pinError.isNotEmpty
+                                    ? state.pinError
+                                    : null,
+                                errorStyle: const TextStyle(
+                                  color: AppColors.red,
+                                ),
+                              ),
+                              onChanged: (_) => setDialogState(() {}),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: Text(
+                          l10n.cancelTextButton,
+                          style:
+                              const TextStyle(color: AppColors.neutral60),
+                        ),
+                      ),
+                      FilledButton(
+                        onPressed: pinController.text.length == 4
+                            ? () {
+                                bloc.add(
+                                  ValidatePin(
+                                    pin: pinController.text,
+                                    friendUserId: friend.userId,
+                                  ),
+                                );
+                              }
+                            : null,
+                        child: Text(l10n.verifyButtonText),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      ).then((_) => pinController.dispose()),
+    );
+  }
+}
+
+class _FriendTile extends StatelessWidget {
+  const _FriendTile({
+    required this.friend,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final FriendModel friend;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: isSelected
+              ? Border.all(color: AppColors.tertiary, width: 2)
+              : null,
+        ),
+        child: Row(
+          children: [
+            // Profile picture or first-letter fallback
+            if (friend.profilePictureUrl.isNotEmpty)
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.tertiary,
+                backgroundImage: NetworkImage(friend.profilePictureUrl),
+              )
+            else
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.tertiary,
+                child: Text(
+                  friend.username.isNotEmpty
+                      ? friend.username[0].toUpperCase()
+                      : '?',
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(l10n.cancelTextButton),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Text(
+                friend.username,
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 16,
+                ),
+              ),
             ),
-            FilledButton(
-              onPressed: () async {
-                final pin = pinController.text;
-                if (pin.length != 4) return;
-
-                bloc
-                  ..add(SelectFriend(friend: friend))
-                  ..add(
-                    ValidatePin(
-                      pin: pin,
-                      friendUserId: friend.userId,
-                    ),
-                  );
-
-                nameController.text = friend.username;
-                Navigator.pop(dialogContext);
-              },
-              child: Text(l10n.verifyButtonText),
-            ),
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: AppColors.green,
+                size: 20,
+              ),
           ],
-        );
-      },
-    ).then((_) => pinController.dispose());
+        ),
+      ),
+    );
   }
 }
