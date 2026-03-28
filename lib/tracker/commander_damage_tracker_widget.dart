@@ -313,18 +313,34 @@ class _CommanderIcons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!animationController.isCompleted) return const SizedBox.shrink();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
       children: [
-        Icon(
-          Icons.remove,
-          color: AppColors.white.withValues(alpha: 0.8),
-          size: 24,
+        Expanded(
+          child: Center(
+            child: Icon(
+              Icons.add,
+              color: AppColors.white.withValues(alpha: 0.8),
+              size: 24,
+            ),
+          ),
         ),
-        Icon(
-          Icons.add,
-          color: AppColors.white.withValues(alpha: 0.8),
-          size: 24,
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.4),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(10),
+                bottomRight: Radius.circular(10),
+              ),
+            ),
+            child: Center(
+              child: Icon(
+                Icons.remove,
+                color: AppColors.white.withValues(alpha: 0.8),
+                size: 24,
+              ),
+            ),
+          ),
         ),
       ],
     );

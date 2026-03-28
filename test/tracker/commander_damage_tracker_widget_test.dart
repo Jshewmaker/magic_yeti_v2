@@ -288,4 +288,38 @@ void main() {
       },
     );
   });
+
+  group('CommanderDamageButton expanded state', () {
+    testWidgets(
+      'long press expands tile and shows minus icon',
+      (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            playerBloc: mockPlayerBloc,
+            gameBloc: mockGameBloc,
+            child: CommanderDamageButton(
+              playerId: 'owner',
+              commanderPlayerId: 'target-1',
+              player: ownerPlayer,
+              targetPlayer: commanderPlayer,
+              commanderDamage: 3,
+              damageType: DamageType.commander,
+            ),
+          ),
+        );
+
+        // Verify minus icon is not shown initially
+        expect(find.byIcon(Icons.remove), findsNothing);
+
+        // Long press to expand
+        await tester.longPress(find.byType(CommanderDamageButton));
+        await tester.pumpAndSettle();
+
+        // Minus icon should now be visible
+        expect(find.byIcon(Icons.remove), findsOneWidget);
+        // Plus icon should also be visible
+        expect(find.byIcon(Icons.add), findsOneWidget);
+      },
+    );
+  });
 }
