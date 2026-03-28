@@ -120,8 +120,6 @@ class CommanderDamageButton extends StatefulWidget {
 class _CommanderDamageButtonState extends State<CommanderDamageButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
-  Offset? _tapDownPosition;
-
   @override
   void initState() {
     super.initState();
@@ -175,9 +173,9 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
       );
   }
 
-  bool _isRightHalf(Offset localPosition) {
+  bool _isTopHalf(Offset localPosition) {
     final box = context.findRenderObject()! as RenderBox;
-    return localPosition.dx > box.size.width / 2;
+    return localPosition.dy < box.size.height / 2;
   }
 
   @override
@@ -191,17 +189,16 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
     return TapRegion(
       onTapOutside: (_) => _handleTapOutside(),
       child: GestureDetector(
-        onTapDown: (details) => _tapDownPosition = details.localPosition,
         onTap: () {
-          if (isExpanded || _tapDownPosition == null) return;
-          _isRightHalf(_tapDownPosition!) ? _increment() : _decrement();
+          if (isExpanded) return;
+          _increment();
         },
         onLongPressStart: (_) {
           if (!isExpanded) unawaited(_animationController.forward());
         },
         onLongPressDown: (details) {
           if (!isExpanded) return;
-          _isRightHalf(details.localPosition) ? _increment() : _decrement();
+          _isTopHalf(details.localPosition) ? _increment() : _decrement();
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),

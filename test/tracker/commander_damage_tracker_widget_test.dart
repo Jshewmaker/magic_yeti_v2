@@ -201,4 +201,91 @@ void main() {
       },
     );
   });
+
+  group('CommanderDamageButton tap behavior', () {
+    testWidgets(
+      'tap anywhere on tile increments damage',
+      (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            playerBloc: mockPlayerBloc,
+            gameBloc: mockGameBloc,
+            child: CommanderDamageButton(
+              playerId: 'owner',
+              commanderPlayerId: 'target-1',
+              player: ownerPlayer,
+              targetPlayer: commanderPlayer,
+              commanderDamage: 3,
+              damageType: DamageType.commander,
+            ),
+          ),
+        );
+
+        // Tap the center of the tile (not specifically right half)
+        await tester.tap(find.byType(CommanderDamageButton));
+        await tester.pumpAndSettle();
+
+        verify(
+          () => mockPlayerBloc.add(
+            const UpdatePlayerLifeEvent(
+              decrement: true,
+              playerId: 'owner',
+            ),
+          ),
+        ).called(1);
+        verify(
+          () => mockPlayerBloc.add(
+            const PlayerCommanderDamageIncremented(
+              commanderId: 'target-1',
+              damageType: DamageType.commander,
+            ),
+          ),
+        ).called(1);
+      },
+    );
+
+    testWidgets(
+      'tap on left half of tile also increments (no longer decrements)',
+      (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            playerBloc: mockPlayerBloc,
+            gameBloc: mockGameBloc,
+            child: CommanderDamageButton(
+              playerId: 'owner',
+              commanderPlayerId: 'target-1',
+              player: ownerPlayer,
+              targetPlayer: commanderPlayer,
+              commanderDamage: 3,
+              damageType: DamageType.commander,
+            ),
+          ),
+        );
+
+        // Tap the left side of the tile
+        final buttonFinder = find.byType(CommanderDamageButton);
+        final topLeft = tester.getTopLeft(buttonFinder);
+        await tester.tapAt(topLeft + const Offset(5, 50));
+        await tester.pumpAndSettle();
+
+        // Should increment, NOT decrement
+        verify(
+          () => mockPlayerBloc.add(
+            const PlayerCommanderDamageIncremented(
+              commanderId: 'target-1',
+              damageType: DamageType.commander,
+            ),
+          ),
+        ).called(1);
+        verifyNever(
+          () => mockPlayerBloc.add(
+            const PlayerCommanderDamageDecremented(
+              commanderId: 'target-1',
+              damageType: DamageType.commander,
+            ),
+          ),
+        );
+      },
+    );
+  });
 }
