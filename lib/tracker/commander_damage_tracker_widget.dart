@@ -67,7 +67,8 @@ class CommanderDamageTracker extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: Column(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               CommanderDamageButton(
                 playerId: playerId,
@@ -77,6 +78,7 @@ class CommanderDamageTracker extends StatelessWidget {
                 commanderDamage: commanderDamage,
                 damageType: DamageType.commander,
               ),
+              const SizedBox(width: 4),
               CommanderDamageButton(
                 playerId: playerId,
                 commanderPlayerId: commanderPlayerId,
