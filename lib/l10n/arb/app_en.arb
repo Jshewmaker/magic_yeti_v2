@@ -770,6 +770,38 @@
   "addFriendButtonText": "Add",
   "@addFriendButtonText": {
     "description": "Button text to send a friend request"
+  },
+  "editMatchTooltip": "Edit match",
+  "@editMatchTooltip": {
+    "description": "Tooltip for the edit action on the match details screen"
+  },
+  "saveButtonLabel": "Save",
+  "@saveButtonLabel": {
+    "description": "Label for the save action while editing a match"
+  },
+  "playerNameLabel": "Player name",
+  "@playerNameLabel": {
+    "description": "Label for the player name field while editing a match"
+  },
+  "addPartnerLabel": "Add partner",
+  "@addPartnerLabel": {
+    "description": "Action to add a partner commander while editing a match"
+  },
+  "removePartnerTooltip": "Remove partner",
+  "@removePartnerTooltip": {
+    "description": "Tooltip to remove a partner commander while editing a match"
+  },
+  "selectCommanderTitle": "Select Commander",
+  "@selectCommanderTitle": {
+    "description": "Title for the commander picker"
+  },
+  "selectPartnerTitle": "Select Partner",
+  "@selectPartnerTitle": {
+    "description": "Title for the partner commander picker"
+  },
+  "matchUpdatedMessage": "Match updated",
+  "@matchUpdatedMessage": {
+    "description": "Snackbar confirmation shown after saving match edits"
   }
 }
 
