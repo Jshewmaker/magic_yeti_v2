@@ -33,10 +33,20 @@ class MatchDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => MatchDetailsBloc(
-        databaseRepository: context.read<FirebaseDatabaseRepository>(),
-      ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => MatchDetailsBloc(
+            databaseRepository: context.read<FirebaseDatabaseRepository>(),
+          ),
+        ),
+        BlocProvider(
+          create: (context) => MatchEditCubit(
+            databaseRepository: context.read<FirebaseDatabaseRepository>(),
+            currentUserId: context.read<AppBloc>().state.user.id,
+          ),
+        ),
+      ],
       child: MatchDetailsView(gameId: gameId),
     );
   }
@@ -62,42 +72,64 @@ class MatchDetailsView extends StatelessWidget {
       DeviceOrientation.landscapeLeft,
     ]);
 
-    return BlocConsumer<MatchDetailsBloc, MatchDetailsState>(
+    return BlocListener<MatchEditCubit, MatchEditState>(
+      listenWhen: (prev, curr) => prev.status != curr.status,
       listener: (context, state) {
-        if (state is MatchDetailsDeleted) {
-          context.go(HomePage.routeName);
-        } else if (state is MatchDetailsError) {
+        if (state.status == MatchEditStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(context.l10n.errorSnackbarMessage(state.error)),
+              content: Text(context.l10n.matchUpdatedMessage),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        } else if (state.status == MatchEditStatus.error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text(context.l10n.errorSnackbarMessage(state.errorMessage)),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 2),
             ),
           );
         }
       },
-      builder: (context, state) {
-        final games = context.watch<MatchHistoryBloc>().state.games;
-        final gameExists = games.any((game) => game.id == gameId);
-        if (!gameExists) {
-          return Scaffold(
-            appBar: AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => context.pop(),
+      child: BlocConsumer<MatchDetailsBloc, MatchDetailsState>(
+        listener: (context, state) {
+          if (state is MatchDetailsDeleted) {
+            context.go(HomePage.routeName);
+          } else if (state is MatchDetailsError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.l10n.errorSnackbarMessage(state.error)),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 2),
               ),
-            ),
-            body: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
+            );
+          }
+        },
+        builder: (context, state) {
+          final games = context.watch<MatchHistoryBloc>().state.games;
+          final gameExists = games.any((game) => game.id == gameId);
+          if (!gameExists) {
+            return Scaffold(
+              appBar: AppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => context.pop(),
+                ),
+              ),
+              body: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
 
-        // Return the appropriate view based on device type
-        return isPhone
-            ? _PhoneMatchDetailsView(gameId: gameId)
-            : _TabletMatchDetailsView(gameId: gameId);
-      },
+          // Return the appropriate view based on device type
+          return isPhone
+              ? _PhoneMatchDetailsView(gameId: gameId)
+              : _TabletMatchDetailsView(gameId: gameId);
+        },
+      ),
     );
   }
 }
@@ -163,40 +195,48 @@ class _PhoneMatchDetailsView extends StatelessWidget {
         ),
         title: Text(l10n.matchDetailsHeading),
         actions: [
-          _DeleteMatchButton(gameId: gameId),
+          MatchDetailsAppBarActions(
+            game: game,
+            deleteAction: _DeleteMatchButton(gameId: gameId),
+          ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Winner card
-              MatchWinnerWidget(
-                winner: winningPlayer,
-                gameDuration: gameDuration,
-                startingPlayerId: game.startingPlayerId,
-                gameId: gameId,
+      body: BlocBuilder<MatchEditCubit, MatchEditState>(
+        builder: (context, editState) {
+          if (editState.isEditing) {
+            return const SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: MatchEditPlayersList(),
+            );
+          }
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  MatchWinnerWidget(
+                    winner: winningPlayer,
+                    gameDuration: gameDuration,
+                    startingPlayerId: game.startingPlayerId,
+                    gameId: gameId,
+                  ),
+                  const SizedBox(height: 16),
+                  MatchStandingsWidget(
+                    players: game.players,
+                    winner: winningPlayer,
+                    currentUserFirebaseId: game.hostId,
+                    startingPlayerId: game.startingPlayerId,
+                    onSelectPlayer: (player) =>
+                        _handlePlayerSelection(context, player),
+                  ),
+                  const SizedBox(height: 16),
+                  MatchMetadataWidget(game: game),
+                ],
               ),
-              const SizedBox(height: 16),
-              // Players standings
-              MatchStandingsWidget(
-                players: game.players,
-                winner: winningPlayer,
-                currentUserFirebaseId: game.hostId,
-                startingPlayerId: game.startingPlayerId,
-                onSelectPlayer: (player) =>
-                    _handlePlayerSelection(context, player),
-              ),
-              const SizedBox(height: 16),
-              // Match metadata
-              MatchMetadataWidget(
-                game: game,
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -262,51 +302,68 @@ class _TabletMatchDetailsView extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
         actions: [
-          _DeleteMatchButton(gameId: gameId),
-        ],
-      ),
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.matchDetailsHeading,
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 16),
-                      MatchWinnerWidget(
-                        winner: winningPlayer,
-                        gameDuration: gameDuration,
-                        startingPlayerId: game.startingPlayerId,
-                        gameId: gameId,
-                      ),
-                      const SizedBox(height: 16),
-                      MatchStandingsWidget(
-                        players: game.players,
-                        winner: winningPlayer,
-                        currentUserFirebaseId: game.hostId,
-                        startingPlayerId: game.startingPlayerId,
-                        onSelectPlayer: (player) =>
-                            _handlePlayerSelection(context, player),
-                      ),
-                      const SizedBox(height: 16),
-                      MatchMetadataWidget(
-                        game: game,
-                      ),
-                    ],
-                  ),
-                ),
-              ]),
-            ),
+          MatchDetailsAppBarActions(
+            game: game,
+            deleteAction: _DeleteMatchButton(gameId: gameId),
           ),
         ],
+      ),
+      body: BlocBuilder<MatchEditCubit, MatchEditState>(
+        builder: (context, editState) {
+          if (editState.isEditing) {
+            return const CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.all(16),
+                  sliver: SliverToBoxAdapter(child: MatchEditPlayersList()),
+                ),
+              ],
+            );
+          }
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.matchDetailsHeading,
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          const SizedBox(height: 16),
+                          MatchWinnerWidget(
+                            winner: winningPlayer,
+                            gameDuration: gameDuration,
+                            startingPlayerId: game.startingPlayerId,
+                            gameId: gameId,
+                          ),
+                          const SizedBox(height: 16),
+                          MatchStandingsWidget(
+                            players: game.players,
+                            winner: winningPlayer,
+                            currentUserFirebaseId: game.hostId,
+                            startingPlayerId: game.startingPlayerId,
+                            onSelectPlayer: (player) =>
+                                _handlePlayerSelection(context, player),
+                          ),
+                          const SizedBox(height: 16),
+                          MatchMetadataWidget(
+                            game: game,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
