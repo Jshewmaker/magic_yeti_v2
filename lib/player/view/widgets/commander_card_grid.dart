@@ -4,10 +4,10 @@ import 'package:api_client/api_client.dart';
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:magic_yeti/app/utils/commander_mapper.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/player/view/bloc/player_customization_bloc.dart';
-import 'package:player_repository/player_repository.dart';
 
 /// A sliver that renders commander search results lazily as the user scrolls.
 class CommanderCardGrid extends StatelessWidget {
@@ -130,22 +130,7 @@ class _CardGridSliver extends StatelessWidget {
       ),
     );
 
-    final commander = Commander(
-      oracleId: card.oracleId,
-      name: card.name,
-      typeLine: card.typeLine ?? '',
-      scryFallUrl: card.scryfallUri,
-      edhrecRank: card.edhrecRank,
-      artist: card.artist ?? '',
-      colors: card.colors ?? [],
-      colorIdentity: card.colorIdentity,
-      cardType: card.typeLine ?? '',
-      imageUrl: card.imageUris?.artCrop ?? '',
-      manaCost: card.manaCost ?? '',
-      oracleText: card.oracleText ?? '',
-      power: card.power,
-      toughness: card.toughness,
-    );
+    final commander = magicCardToCommander(card);
 
     context.read<PlayerCustomizationBloc>().add(
       selectingPartner
