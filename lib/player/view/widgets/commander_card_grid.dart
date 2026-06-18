@@ -100,10 +100,9 @@ class _PartnerSelectionBanner extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Text(
             'Selecting partner commander',
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: AppColors.white),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.white),
           ),
         ],
       ),
@@ -149,10 +148,10 @@ class _CardGridSliver extends StatelessWidget {
     );
 
     context.read<PlayerCustomizationBloc>().add(
-          selectingPartner
-              ? UpdatePlayerCommander(partner: commander)
-              : UpdatePlayerCommander(commander: commander),
-        );
+      selectingPartner
+          ? UpdatePlayerCommander(partner: commander)
+          : UpdatePlayerCommander(commander: commander),
+    );
   }
 
   @override
@@ -192,9 +191,8 @@ class _CardGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = card.imageUris?.normal ??
-        card.cardFaces?.first.imageUris?.normal ??
-        '';
+    final imageUrl =
+        card.imageUris?.normal ?? card.cardFaces?.first.imageUris?.normal ?? '';
 
     return GestureDetector(
       onTap: onTap,
@@ -211,28 +209,9 @@ class _CardGridItem extends StatelessWidget {
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       const ColoredBox(
-                    color: AppColors.neutral60,
-                    child: Center(child: Icon(Icons.broken_image)),
-                  ),
-                ),
-              ),
-              ColoredBox(
-                color: AppColors.primary,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xs,
-                    vertical: AppSpacing.xs,
-                  ),
-                  child: Text(
-                    card.name,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                        color: AppColors.neutral60,
+                        child: Center(child: Icon(Icons.broken_image)),
+                      ),
                 ),
               ),
             ],

@@ -31,6 +31,19 @@
       "args": ["--flavor", "production", "--target", "lib/main_production.dart"]
     },
     {
+      "name": "Launch production (release)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_production.dart",
+      "flutterMode": "release",
+      "args": [
+        "--flavor",
+        "production",
+        "--target",
+        "lib/main_production.dart"
+      ]
+    },
+    {
       "name": "Launch UI Gallery",
       "request": "launch",
       "type": "dart",
