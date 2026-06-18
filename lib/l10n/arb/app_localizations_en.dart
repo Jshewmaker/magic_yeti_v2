@@ -438,4 +438,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addFriendButtonText => 'Add';
+
+  @override
+  String get editMatchTooltip => 'Edit match';
+
+  @override
+  String get saveButtonLabel => 'Save';
+
+  @override
+  String get playerNameLabel => 'Player name';
+
+  @override
+  String get addPartnerLabel => 'Add partner';
+
+  @override
+  String get removePartnerTooltip => 'Remove partner';
+
+  @override
+  String get selectCommanderTitle => 'Select Commander';
+
+  @override
+  String get selectPartnerTitle => 'Select Partner';
+
+  @override
+  String get matchUpdatedMessage => 'Match updated';
 }

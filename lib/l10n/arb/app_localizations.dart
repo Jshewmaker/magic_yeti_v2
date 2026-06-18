@@ -901,6 +901,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add'**
   String get addFriendButtonText;
+
+  /// Tooltip for the edit action on the match details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Edit match'**
+  String get editMatchTooltip;
+
+  /// Label for the save action while editing a match
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveButtonLabel;
+
+  /// Label for the player name field while editing a match
+  ///
+  /// In en, this message translates to:
+  /// **'Player name'**
+  String get playerNameLabel;
+
+  /// Action to add a partner commander while editing a match
+  ///
+  /// In en, this message translates to:
+  /// **'Add partner'**
+  String get addPartnerLabel;
+
+  /// Tooltip to remove a partner commander while editing a match
+  ///
+  /// In en, this message translates to:
+  /// **'Remove partner'**
+  String get removePartnerTooltip;
+
+  /// Title for the commander picker
+  ///
+  /// In en, this message translates to:
+  /// **'Select Commander'**
+  String get selectCommanderTitle;
+
+  /// Title for the partner commander picker
+  ///
+  /// In en, this message translates to:
+  /// **'Select Partner'**
+  String get selectPartnerTitle;
+
+  /// Snackbar confirmation shown after saving match edits
+  ///
+  /// In en, this message translates to:
+  /// **'Match updated'**
+  String get matchUpdatedMessage;
 }
 
 class _AppLocalizationsDelegate

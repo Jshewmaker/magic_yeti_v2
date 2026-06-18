@@ -39,5 +39,37 @@
     "setYourPinTitle": "Configura tu PIN",
     "setYourPinDescription": "Configura un PIN de 4 dígitos para que tus amigos puedan verificar tu identidad al agregarte a una partida.",
     "savePinButtonText": "Guardar PIN",
-    "addFriendButtonText": "Agregar"
+    "addFriendButtonText": "Agregar",
+    "editMatchTooltip": "Editar partida",
+    "@editMatchTooltip": {
+      "description": "Tooltip for the edit action on the match details screen"
+    },
+    "saveButtonLabel": "Guardar",
+    "@saveButtonLabel": {
+      "description": "Label for the save action while editing a match"
+    },
+    "playerNameLabel": "Nombre del jugador",
+    "@playerNameLabel": {
+      "description": "Label for the player name field while editing a match"
+    },
+    "addPartnerLabel": "Agregar compañero",
+    "@addPartnerLabel": {
+      "description": "Action to add a partner commander while editing a match"
+    },
+    "removePartnerTooltip": "Quitar compañero",
+    "@removePartnerTooltip": {
+      "description": "Tooltip to remove a partner commander while editing a match"
+    },
+    "selectCommanderTitle": "Seleccionar comandante",
+    "@selectCommanderTitle": {
+      "description": "Title for the commander picker"
+    },
+    "selectPartnerTitle": "Seleccionar compañero",
+    "@selectPartnerTitle": {
+      "description": "Title for the partner commander picker"
+    },
+    "matchUpdatedMessage": "Partida actualizada",
+    "@matchUpdatedMessage": {
+      "description": "Snackbar confirmation shown after saving match edits"
+    }
 }
