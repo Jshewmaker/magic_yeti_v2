@@ -1,6 +1,6 @@
 name: magic_yeti
 description: Magic The Gathering Tracking App
-version: 1.4.0+0
+version: 1.4.1+0
 publish_to: none
 
 environment:
