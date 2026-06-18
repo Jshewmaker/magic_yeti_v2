@@ -608,4 +608,28 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get blockedUsersLoadFailedError =>
       'No se pudo cargar tu lista de bloqueados. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get editMatchTooltip => 'Editar partida';
+
+  @override
+  String get saveButtonLabel => 'Guardar';
+
+  @override
+  String get playerNameLabel => 'Nombre del jugador';
+
+  @override
+  String get addPartnerLabel => 'Agregar compañero';
+
+  @override
+  String get removePartnerTooltip => 'Quitar compañero';
+
+  @override
+  String get selectCommanderTitle => 'Seleccionar comandante';
+
+  @override
+  String get selectPartnerTitle => 'Seleccionar compañero';
+
+  @override
+  String get matchUpdatedMessage => 'Partida actualizada';
 }
