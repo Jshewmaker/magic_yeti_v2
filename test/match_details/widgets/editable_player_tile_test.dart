@@ -98,4 +98,21 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('remove-partner-p1')));
     expect(removed, isTrue);
   });
+
+  testWidgets('tapping an existing partner avatar calls onTapPartner',
+      (tester) async {
+    var tapped = false;
+    await tester.pumpApp(
+      EditablePlayerTile(
+        player: _player(partner: _commander),
+        onNameChanged: (_) {},
+        onTapCommander: () {},
+        onTapPartner: () => tapped = true,
+        onRemovePartner: () {},
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('edit-partner-p1')));
+    expect(tapped, isTrue);
+  });
 }
