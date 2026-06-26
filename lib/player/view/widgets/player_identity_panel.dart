@@ -27,6 +27,7 @@ class PlayerIdentityPanel extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
@@ -71,7 +72,7 @@ class PlayerIdentityPanel extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               _SecondCardSummary(state: state),
-              const Spacer(),
+              const SizedBox(height: AppSpacing.lg),
               TrackingPreview(
                 damageClocks: state.damageClocks,
                 colorIdentity: state.colorIdentity,
