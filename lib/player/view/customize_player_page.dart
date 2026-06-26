@@ -17,12 +17,10 @@ import 'package:scryfall_repository/scryfall_repository.dart';
 class CustomizePlayerPage extends StatelessWidget {
   const CustomizePlayerPage({
     required this.playerId,
-    this.isRotated = false,
     super.key,
   });
 
   final String playerId;
-  final bool isRotated;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +40,7 @@ class CustomizePlayerPage extends StatelessWidget {
           )..add(LoadFriends(userId)),
         ),
       ],
-      child: CustomizePlayerView(playerId: playerId, isRotated: isRotated),
+      child: CustomizePlayerView(playerId: playerId),
     );
   }
 }
@@ -50,12 +48,10 @@ class CustomizePlayerPage extends StatelessWidget {
 class CustomizePlayerView extends StatefulWidget {
   const CustomizePlayerView({
     required this.playerId,
-    this.isRotated = false,
     super.key,
   });
 
   final String playerId;
-  final bool isRotated;
 
   @override
   State<CustomizePlayerView> createState() => _CustomizePlayerViewState();
@@ -131,9 +127,7 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
         final partner = state.hasPartner
             ? (state.partner ?? player.partner)
             : null;
-        return RotatedBox(
-          quarterTurns: widget.isRotated ? 2 : 0,
-          child: Scaffold(
+        return Scaffold(
             backgroundColor: Colors.transparent,
             extendBodyBehindAppBar: true,
             appBar: AppBar(
@@ -219,8 +213,7 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
                 ),
               ],
             ),
-          ),
-        );
+          );
       },
     );
   }

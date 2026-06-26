@@ -66,7 +66,6 @@ class LifeCounterWidget extends StatelessWidget {
                         value: context.read<PlayerBloc>(),
                         child: CustomizePlayerPage(
                           playerId: player.id,
-                          isRotated: rotate,
                         ),
                       ),
                     ),
