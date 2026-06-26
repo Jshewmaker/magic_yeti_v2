@@ -42,7 +42,7 @@ class _CommanderPickerPanelState extends State<CommanderPickerPanel> {
   Widget build(BuildContext context) {
     return BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
       builder: (context, state) {
-        final tab = _tab ??= _defaultTab(state);
+        final tab = _tab ?? _defaultTab(state);
 
         return Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -77,7 +77,7 @@ class _CommanderPickerPanelState extends State<CommanderPickerPanel> {
                   state.partner == null &&
                   state.background == null)
                 _SecondCardBanner(pairing: state.availablePairing),
-              if (state.selectingSecondCard) _SelectingSecondCardBanner(),
+              if (state.selectingSecondCard) const _SelectingSecondCardBanner(),
               if (tab == _PickerTab.search) ...[
                 const SizedBox(height: AppSpacing.sm),
                 CommanderSearchBar(
@@ -199,6 +199,8 @@ class _SecondCardBanner extends StatelessWidget {
 }
 
 class _SelectingSecondCardBanner extends StatelessWidget {
+  const _SelectingSecondCardBanner();
+
   @override
   Widget build(BuildContext context) {
     return Container(
