@@ -12,20 +12,22 @@ void main() {
         artist: 'Artist',
       );
 
-  Player base() => Player(
+  Player base() => const Player(
         id: 'p1',
         name: 'Sarah',
         playerNumber: 0,
         lifePoints: 40,
         color: 0xFF378ADD,
-        opponents: const [],
+        opponents: [],
         placement: 1,
         timeOfDeath: 1000,
       );
 
   group('Player.background', () {
     test('defaults to null and round-trips through JSON', () {
-      final withBg = base().copyWith(background: () => commander('Cult of Rakdos'));
+      final withBg = base().copyWith(
+        background: () => commander('Cult of Rakdos'),
+      );
       final restored = Player.fromJson(withBg.toJson());
       expect(restored.background?.name, 'Cult of Rakdos');
     });
