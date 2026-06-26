@@ -8,16 +8,21 @@ class CommanderSearchBar extends StatelessWidget {
   const CommanderSearchBar({
     required this.textController,
     required this.selectingPartner,
+    this.searchBackgrounds = false,
     super.key,
   });
 
   final TextEditingController textController;
   final bool selectingPartner;
+  final bool searchBackgrounds;
 
   void _search(BuildContext context) {
     FocusScope.of(context).unfocus();
     context.read<PlayerCustomizationBloc>().add(
-          CardListRequested(cardName: textController.text),
+          CardListRequested(
+            cardName: textController.text,
+            searchBackgrounds: searchBackgrounds,
+          ),
         );
   }
 

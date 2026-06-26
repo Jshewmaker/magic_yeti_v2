@@ -2,6 +2,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/utils/commander_mapper.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/player/view/bloc/player_customization_bloc.dart';
 import 'package:magic_yeti/player/view/widgets/commander_card.dart';
 import 'package:magic_yeti/player/view/widgets/commander_search_bar.dart';
@@ -83,6 +84,8 @@ class _CommanderPickerPanelState extends State<CommanderPickerPanel> {
                 CommanderSearchBar(
                   textController: widget.searchController,
                   selectingPartner: state.selectingSecondCard,
+                  searchBackgrounds: state.selectingSecondCard &&
+                      state.availablePairing == CommanderPairing.background,
                 ),
               ],
               const SizedBox(height: AppSpacing.sm),
@@ -115,6 +118,14 @@ class _CommanderPickerPanelState extends State<CommanderPickerPanel> {
     if (state.status == PlayerCustomizationStatus.loading) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.white),
+      );
+    }
+    if (state.status == PlayerCustomizationStatus.failure) {
+      return Center(
+        child: Text(
+          context.l10n.somethingWentWrong,
+          style: const TextStyle(color: AppColors.neutral60),
+        ),
       );
     }
     if (commanders.isEmpty) {
