@@ -96,6 +96,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       commander: event.commander,
       name: event.playerName,
       partner: () => event.partner,
+      background: () => event.background,
       firebaseId: () => event.firebaseId,
     );
 
