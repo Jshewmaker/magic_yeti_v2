@@ -64,5 +64,35 @@ void main() {
       final r = SharedPreferencesCommanderLibraryRepository(prefs);
       expect(await r.getRecents(), isEmpty);
     });
+
+    test('dedup falls back to name when oracleId is null', () async {
+      await repo.addRecent(commander('Proxied Card'));
+      await repo.addRecent(commander('Other', oracleId: 'x'));
+      await repo.addRecent(commander('Proxied Card'));
+      final recents = await repo.getRecents();
+      expect(recents.map((c) => c.name), ['Proxied Card', 'Other']);
+    });
+  });
+
+  group('favorites', () {
+    test('toggle adds then removes, reporting new state', () async {
+      final atraxa = commander('Atraxa', oracleId: 'a');
+      expect(await repo.isFavorite(atraxa), isFalse);
+
+      expect(await repo.toggleFavorite(atraxa), isTrue);
+      expect(await repo.isFavorite(atraxa), isTrue);
+      expect((await repo.getFavorites()).single.name, 'Atraxa');
+
+      expect(await repo.toggleFavorite(atraxa), isFalse);
+      expect(await repo.isFavorite(atraxa), isFalse);
+      expect(await repo.getFavorites(), isEmpty);
+    });
+
+    test('favorites are independent of recents', () async {
+      await repo.addRecent(commander('Yuriko', oracleId: 'y'));
+      await repo.toggleFavorite(commander('Atraxa', oracleId: 'a'));
+      expect((await repo.getRecents()).single.name, 'Yuriko');
+      expect((await repo.getFavorites()).single.name, 'Atraxa');
+    });
   });
 }
