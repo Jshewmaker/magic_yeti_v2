@@ -130,4 +130,70 @@ void main() {
       expect(b.state.favorites.single.oracleId, 'fav');
     },
   );
+
+  blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+    'LibraryRequested loads recents and favorites into state',
+    build: build,
+    setUp: () {
+      library.recents.add(cmdr(name: 'Rec', oracleId: 'r'));
+      library.favorites.add(cmdr(name: 'Fav', oracleId: 'f'));
+    },
+    act: (b) => b.add(const LibraryRequested()),
+    verify: (b) {
+      expect(b.state.recents.single.name, 'Rec');
+      expect(b.state.favorites.single.name, 'Fav');
+      expect(b.state.favoriteIds.contains('f'), isTrue);
+    },
+  );
+
+  blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+    'CommanderSelected clears a previously selected partner and background',
+    build: build,
+    seed: () => PlayerCustomizationState(
+      commander: cmdr(name: 'Old', oracleId: 'old'),
+      partner: cmdr(name: 'P', oracleId: 'p'),
+      background: cmdr(name: 'B', oracleId: 'b'),
+      availablePairing: CommanderPairing.partner,
+    ),
+    act: (b) => b.add(CommanderSelected(cmdr(name: 'New', oracleId: 'new'))),
+    verify: (b) {
+      expect(b.state.commander?.name, 'New');
+      expect(b.state.partner, isNull);
+      expect(b.state.background, isNull);
+      expect(b.state.damageClocks, 1);
+    },
+  );
+
+  blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+    'SecondCardSelected (background pairing) records the card as a recent',
+    build: build,
+    seed: () => PlayerCustomizationState(
+      commander: cmdr(
+        name: 'Cmd',
+        oracleId: 'c',
+        oracleText: 'Choose a Background',
+      ),
+      availablePairing: CommanderPairing.background,
+    ),
+    act: (b) => b.add(SecondCardSelected(cmdr(name: 'Cult', oracleId: 'cult'))),
+    verify: (b) {
+      expect(b.state.background?.name, 'Cult');
+      expect(library.recents.first.name, 'Cult');
+    },
+  );
+
+  blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+    'SecondCardCleared clears both partner and background',
+    build: build,
+    seed: () => PlayerCustomizationState(
+      commander: cmdr(name: 'Cmd', oracleId: 'c'),
+      partner: cmdr(name: 'P', oracleId: 'p'),
+      availablePairing: CommanderPairing.partner,
+    ),
+    act: (b) => b.add(const SecondCardCleared()),
+    verify: (b) {
+      expect(b.state.partner, isNull);
+      expect(b.state.background, isNull);
+    },
+  );
 }
