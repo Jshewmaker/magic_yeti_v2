@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/commander_library/commander_library_repository.dart';
 import 'package:magic_yeti/friends_list/friends_list/bloc/friend_list_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/player/player.dart';
@@ -32,7 +33,9 @@ class CustomizePlayerPage extends StatelessWidget {
             scryfallRepository: context.read<ScryfallRepository>(),
             firebaseDatabaseRepository:
                 context.read<FirebaseDatabaseRepository>(),
-          ),
+            commanderLibraryRepository:
+                context.read<CommanderLibraryRepository>(),
+          )..add(const LibraryRequested()),
         ),
         BlocProvider(
           create: (context) => FriendBloc(
@@ -60,7 +63,6 @@ class CustomizePlayerView extends StatefulWidget {
 class _CustomizePlayerViewState extends State<CustomizePlayerView> {
   late final TextEditingController _nameController;
   late final TextEditingController _searchController;
-  final _scrollController = ScrollController();
   final _nameFocusNode = FocusNode();
 
   @override
@@ -90,7 +92,6 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
   void dispose() {
     _nameController.dispose();
     _searchController.dispose();
-    _scrollController.dispose();
     _nameFocusNode.dispose();
     super.dispose();
   }
@@ -107,7 +108,8 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
       UpdatePlayerInfoEvent(
         playerName: _nameController.text,
         commander: state.commander,
-        partner: state.hasPartner ? state.partner : null,
+        partner: state.partner,
+        background: state.background,
         playerId: widget.playerId,
         firebaseId: firebaseId,
       ),
@@ -124,97 +126,85 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
     return BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
       builder: (context, state) {
         final commander = state.commander ?? player.commander;
-        final partner = state.hasPartner
-            ? (state.partner ?? player.partner)
-            : null;
         return Scaffold(
+          backgroundColor: Colors.transparent,
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
             backgroundColor: Colors.transparent,
-            extendBodyBehindAppBar: true,
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              actionsPadding: const EdgeInsets.only(right: AppSpacing.lg),
-              actions: [
-                FilledButton.icon(
-                  icon: const Icon(Icons.check, size: 18),
-                  label: const Text('Save'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.green,
-                    foregroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.sm),
-                    ),
-                  ),
-                  onPressed: () => _save(context, state),
-                ),
-              ],
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.pop(context),
             ),
-            body: Stack(
-              fit: StackFit.expand,
-              children: [
-                CommanderHeroBanner(
-                  commander: commander,
-                  partner: partner,
-                  playerColor: player.color,
-                ),
-                ColoredBox(color: AppColors.black.withValues(alpha: 0.2)),
-                SafeArea(
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    slivers: [
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: AppSpacing.xxxlg * 2),
-                      ),
-                      SliverToBoxAdapter(
-                        child: _FriendSection(
-                          nameController: _nameController,
-                        ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: PlayerNameRow(
-                          textController: _nameController,
-                          focusNode: _nameFocusNode,
-                          showOnlyLegendary: state.showOnlyLegendary,
-                          hasPartner: state.hasPartner,
-                          isReadOnly: state.selectedFriend != null &&
-                              state.pinValidated,
-                          isLinkedToFriend: state.selectedFriend != null &&
-                              state.pinValidated,
-                        ),
-                      ),
-                      if (state.hasPartner) ...[
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: AppSpacing.xs),
-                        ),
-                        SliverToBoxAdapter(
-                          child: CommanderSlotSelector(
-                            selectingPartner: state.selectingPartner,
-                            searchTextController: _searchController,
+          ),
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              CommanderHeroBanner(
+                commander: commander,
+                partner: state.partner,
+                background: state.background,
+                playerColor: player.color,
+              ),
+              ColoredBox(color: AppColors.black.withValues(alpha: 0.45)),
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        flex: 39,
+                        child: _Panel(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                _FriendSection(nameController: _nameController),
+                                PlayerIdentityPanel(
+                                  nameController: _nameController,
+                                  nameFocusNode: _nameFocusNode,
+                                  playerColor: player.color,
+                                  onSave: () => _save(context, state),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ],
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: AppSpacing.sm),
                       ),
-                      SliverToBoxAdapter(
-                        child: CommanderSearchBar(
-                          textController: _searchController,
-                          selectingPartner: state.selectingPartner,
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        flex: 61,
+                        child: _Panel(
+                          child: CommanderPickerPanel(
+                            searchController: _searchController,
+                          ),
                         ),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: AppSpacing.sm),
-                      ),
-                      CommanderCardGrid(
-                        scrollController: _scrollController,
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          );
+              ),
+            ],
+          ),
+        );
       },
+    );
+  }
+}
+
+class _Panel extends StatelessWidget {
+  const _Panel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(AppSpacing.md),
+      ),
+      child: child,
     );
   }
 }
