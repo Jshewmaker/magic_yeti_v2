@@ -24,6 +24,7 @@ class Commander extends Equatable {
     this.edhrecRank,
     this.power,
     this.toughness,
+    this.keywords = const [],
   });
 
   /// Creates a Commander from JSON map
@@ -73,6 +74,12 @@ class Commander extends Equatable {
   /// Toughness (for creatures)
   final String? toughness;
 
+  /// Scryfall keyword abilities (e.g. 'Partner', 'Friends forever').
+  /// Used to auto-detect pairing capability. Defaults to empty for
+  /// commanders persisted before this field existed.
+  @JsonKey(defaultValue: <String>[])
+  final List<String> keywords;
+
   /// Converts the commander to a JSON map
   Map<String, dynamic> toJson() => _$CommanderToJson(this);
 
@@ -93,6 +100,7 @@ class Commander extends Equatable {
     String? power,
     String? toughness,
     String? artist,
+    List<String>? keywords,
   }) {
     return Commander(
       oracleId: oracleId ?? this.oracleId,
@@ -109,6 +117,7 @@ class Commander extends Equatable {
       power: power ?? this.power,
       toughness: toughness ?? this.toughness,
       artist: artist ?? this.artist,
+      keywords: keywords ?? this.keywords,
     );
   }
 
@@ -128,5 +137,6 @@ class Commander extends Equatable {
         power,
         toughness,
         artist,
+        keywords,
       ];
 }
