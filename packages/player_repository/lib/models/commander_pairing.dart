@@ -26,7 +26,7 @@ CommanderPairing commanderPairingFor(Commander commander) {
   final keywords = commander.keywords.map((k) => k.toLowerCase()).toList();
   final oracle = commander.oracleText.toLowerCase();
 
-  final isBackground = keywords.any((k) => k.contains('background')) ||
+  final isBackground = keywords.any((k) => k.contains('choose a background')) ||
       oracle.contains('choose a background');
   if (isBackground) return CommanderPairing.background;
 

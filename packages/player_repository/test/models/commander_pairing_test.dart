@@ -67,5 +67,21 @@ void main() {
         CommanderPairing.partner,
       );
     });
+
+    test('background takes priority over a partner keyword', () {
+      expect(
+        commanderPairingFor(
+          commander(keywords: ['Partner'], oracleText: 'Choose a Background'),
+        ),
+        CommanderPairing.background,
+      );
+    });
+
+    test('Choose a Background (keyword) => background', () {
+      expect(
+        commanderPairingFor(commander(keywords: ['Choose a Background'])),
+        CommanderPairing.background,
+      );
+    });
   });
 }
