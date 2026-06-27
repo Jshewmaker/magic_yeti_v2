@@ -9,6 +9,5 @@
 /// No-op on web, where the browser supplies its own User-Agent.
 library;
 
-// ignore: conditional_uri_does_not_exist
 export 'scryfall_user_agent_stub.dart'
     if (dart.library.io) 'scryfall_user_agent_io.dart';
