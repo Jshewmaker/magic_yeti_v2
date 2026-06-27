@@ -21,6 +21,9 @@ Player _$PlayerFromJson(Map<String, dynamic> json) => Player(
   partner: json['partner'] == null
       ? null
       : Commander.fromJson(json['partner'] as Map<String, dynamic>),
+  background: json['background'] == null
+      ? null
+      : Commander.fromJson(json['background'] as Map<String, dynamic>),
   firebaseId: json['firebaseId'] as String?,
   state:
       $enumDecodeNullable(_$PlayerModelStateEnumMap, json['state']) ??
@@ -35,6 +38,7 @@ Map<String, dynamic> _$PlayerToJson(Player instance) => <String, dynamic>{
   'name': instance.name,
   'commander': instance.commander?.toJson(),
   'partner': instance.partner?.toJson(),
+  'background': instance.background?.toJson(),
   'playerNumber': instance.playerNumber,
   'lifePoints': instance.lifePoints,
   'color': instance.color,

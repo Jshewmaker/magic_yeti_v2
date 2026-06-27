@@ -2,6 +2,7 @@ import 'package:api_client/api_client.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
+import 'package:magic_yeti/commander_library/commander_library_repository.dart';
 import 'package:player_repository/player_repository.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 
@@ -13,14 +14,21 @@ class PlayerCustomizationBloc
   PlayerCustomizationBloc({
     required ScryfallRepository scryfallRepository,
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
+    required CommanderLibraryRepository commanderLibraryRepository,
   })  : _scryfallRepository = scryfallRepository,
         _firebaseDatabaseRepository = firebaseDatabaseRepository,
+        _library = commanderLibraryRepository,
         super(const PlayerCustomizationState()) {
+    on<LibraryRequested>(_onLibraryRequested);
     on<CardListRequested>(_cardListRequested);
-    on<UpdatePlayerCommander>(updatePlayerCommander);
+    on<CommanderSelected>(_onCommanderSelected);
+    on<SecondCardSelected>(_onSecondCardSelected);
+    on<StartSelectingSecondCard>(_onStartSelectingSecondCard);
+    on<CancelSelectingSecondCard>(_onCancelSelectingSecondCard);
+    on<SecondCardCleared>(_onSecondCardCleared);
+    on<CommanderFavoriteToggled>(_onFavoriteToggled);
     on<UpdateAccountOwnership>(_onUpdateAccountOwnership);
     on<UpdateCommanderFilters>(_onUpdateCommanderFilters);
-    on<UpdatePartnerSelection>(_onUpdatePartnerSelection);
     on<ClearCardList>(_onClearCardList);
     on<SelectFriend>(_onSelectFriend);
     on<ClearFriend>(_onClearFriend);
@@ -29,27 +37,39 @@ class PlayerCustomizationBloc
 
   final ScryfallRepository _scryfallRepository;
   final FirebaseDatabaseRepository _firebaseDatabaseRepository;
+  final CommanderLibraryRepository _library;
+
+  String _id(Commander c) => c.oracleId ?? c.name;
+
+  Future<void> _onLibraryRequested(
+    LibraryRequested event,
+    Emitter<PlayerCustomizationState> emit,
+  ) async {
+    final recents = await _library.getRecents();
+    final favorites = await _library.getFavorites();
+    emit(
+      state.copyWith(
+        recents: recents,
+        favorites: favorites,
+        favoriteIds: favorites.map(_id).toSet(),
+      ),
+    );
+  }
 
   Future<void> _cardListRequested(
     CardListRequested event,
     Emitter<PlayerCustomizationState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        status: PlayerCustomizationStatus.loading,
-      ),
-    );
+    emit(state.copyWith(status: PlayerCustomizationStatus.loading));
     try {
       final cardList = await _scryfallRepository.getCardFullText(
         cardName: event.cardName,
       );
-
-      final filteredCards = cardList.data
-          .where(
-            (card) =>
-                card.typeLine?.toLowerCase().contains('legendary') ?? false,
-          )
-          .toList();
+      final filteredCards = cardList.data.where((card) {
+        final type = card.typeLine?.toLowerCase() ?? '';
+        if (event.searchBackgrounds) return type.contains('background');
+        return type.contains('legendary');
+      }).toList();
       emit(
         state.copyWith(
           status: PlayerCustomizationStatus.success,
@@ -58,23 +78,89 @@ class PlayerCustomizationBloc
         ),
       );
     } on Exception catch (_) {
-      emit(
-        state.copyWith(
-          status: PlayerCustomizationStatus.failure,
-        ),
-      );
+      emit(state.copyWith(status: PlayerCustomizationStatus.failure));
     }
   }
 
-  Future<void> updatePlayerCommander(
-    UpdatePlayerCommander event,
+  Future<void> _onCommanderSelected(
+    CommanderSelected event,
     Emitter<PlayerCustomizationState> emit,
   ) async {
+    await _library.addRecent(event.commander);
+    final recents = await _library.getRecents();
     emit(
       state.copyWith(
         status: PlayerCustomizationStatus.success,
-        commander: event.commander,
-        partner: event.partner,
+        commander: () => event.commander,
+        partner: () => null,
+        background: () => null,
+        availablePairing: commanderPairingFor(event.commander),
+        selectingSecondCard: false,
+        recents: recents,
+      ),
+    );
+  }
+
+  Future<void> _onSecondCardSelected(
+    SecondCardSelected event,
+    Emitter<PlayerCustomizationState> emit,
+  ) async {
+    await _library.addRecent(event.card);
+    final recents = await _library.getRecents();
+    final isBackground = state.availablePairing == CommanderPairing.background;
+    emit(
+      state.copyWith(
+        status: PlayerCustomizationStatus.success,
+        partner: () => isBackground ? state.partner : event.card,
+        background: () => isBackground ? event.card : state.background,
+        selectingSecondCard: false,
+        recents: recents,
+      ),
+    );
+  }
+
+  void _onStartSelectingSecondCard(
+    StartSelectingSecondCard event,
+    Emitter<PlayerCustomizationState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        selectingSecondCard: true,
+        filteredCards: [],
+      ),
+    );
+  }
+
+  void _onCancelSelectingSecondCard(
+    CancelSelectingSecondCard event,
+    Emitter<PlayerCustomizationState> emit,
+  ) {
+    emit(state.copyWith(selectingSecondCard: false));
+  }
+
+  void _onSecondCardCleared(
+    SecondCardCleared event,
+    Emitter<PlayerCustomizationState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        partner: () => null,
+        background: () => null,
+        selectingSecondCard: false,
+      ),
+    );
+  }
+
+  Future<void> _onFavoriteToggled(
+    CommanderFavoriteToggled event,
+    Emitter<PlayerCustomizationState> emit,
+  ) async {
+    await _library.toggleFavorite(event.commander);
+    final favorites = await _library.getFavorites();
+    emit(
+      state.copyWith(
+        favorites: favorites,
+        favoriteIds: favorites.map(_id).toSet(),
       ),
     );
   }
@@ -97,7 +183,7 @@ class PlayerCustomizationBloc
     UpdateCommanderFilters event,
     Emitter<PlayerCustomizationState> emit,
   ) {
-    final cardList = event.showOnlyLegendary
+    final cards = event.showOnlyLegendary
         ? state.cardList?.data
             .where(
               (card) =>
@@ -105,23 +191,10 @@ class PlayerCustomizationBloc
             )
             .toList()
         : state.cardList?.data ?? [];
-
     emit(
       state.copyWith(
         showOnlyLegendary: event.showOnlyLegendary,
-        hasPartner: event.hasPartner,
-        filteredCards: cardList,
-      ),
-    );
-  }
-
-  void _onUpdatePartnerSelection(
-    UpdatePartnerSelection event,
-    Emitter<PlayerCustomizationState> emit,
-  ) {
-    emit(
-      state.copyWith(
-        selectingPartner: event.selectingPartner,
+        filteredCards: cards,
       ),
     );
   }
@@ -130,21 +203,14 @@ class PlayerCustomizationBloc
     SelectFriend event,
     Emitter<PlayerCustomizationState> emit,
   ) {
-    emit(
-      state.copyWith(
-        selectedFriend: event.friend,
-        pinError: '',
-      ),
-    );
+    emit(state.copyWith(selectedFriend: event.friend, pinError: ''));
   }
 
   void _onClearFriend(
     ClearFriend event,
     Emitter<PlayerCustomizationState> emit,
   ) {
-    emit(
-      state.copyWithClearedFriend(),
-    );
+    emit(state.copyWithClearedFriend());
   }
 
   Future<void> _onValidatePin(

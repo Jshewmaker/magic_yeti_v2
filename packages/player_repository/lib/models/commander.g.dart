@@ -23,6 +23,9 @@ Commander _$CommanderFromJson(Map<String, dynamic> json) => Commander(
   edhrecRank: (json['edhrecRank'] as num?)?.toInt(),
   power: json['power'] as String?,
   toughness: json['toughness'] as String?,
+  keywords:
+      (json['keywords'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      [],
 );
 
 Map<String, dynamic> _$CommanderToJson(Commander instance) => <String, dynamic>{
@@ -40,4 +43,5 @@ Map<String, dynamic> _$CommanderToJson(Commander instance) => <String, dynamic>{
   'power': ?instance.power,
   'artist': ?instance.artist,
   'toughness': ?instance.toughness,
+  'keywords': instance.keywords,
 };

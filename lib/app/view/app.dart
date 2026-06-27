@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/app_router/app_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/app/utils/device_info_provider.dart';
+import 'package:magic_yeti/commander_library/commander_library_repository.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
@@ -21,6 +22,7 @@ class App extends StatelessWidget {
     required UserRepository userRepository,
     required ScryfallRepository scryfallRepository,
     required PlayerRepository playerRepository,
+    required CommanderLibraryRepository commanderLibraryRepository,
     required User user,
     super.key,
   })  : _appConfigRepository = appConfigRepository,
@@ -28,12 +30,14 @@ class App extends StatelessWidget {
         _scryfallRepository = scryfallRepository,
         _firebaseDatabaseRepository = firebaseDatabaseRepository,
         _playerRepository = playerRepository,
+        _commanderLibraryRepository = commanderLibraryRepository,
         _user = user;
 
   final FirebaseDatabaseRepository _firebaseDatabaseRepository;
   final ScryfallRepository _scryfallRepository;
   final AppConfigRepository _appConfigRepository;
   final PlayerRepository _playerRepository;
+  final CommanderLibraryRepository _commanderLibraryRepository;
   final UserRepository _userRepository;
 
   final User _user;
@@ -47,6 +51,7 @@ class App extends StatelessWidget {
         RepositoryProvider.value(value: _firebaseDatabaseRepository),
         RepositoryProvider.value(value: _userRepository),
         RepositoryProvider.value(value: _playerRepository),
+        RepositoryProvider.value(value: _commanderLibraryRepository),
         RepositoryProvider.value(value: _user),
       ],
       child: MultiBlocProvider(

@@ -67,7 +67,8 @@ class CommanderDamageTracker extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: Column(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               CommanderDamageButton(
                 playerId: playerId,
@@ -77,6 +78,7 @@ class CommanderDamageTracker extends StatelessWidget {
                 commanderDamage: commanderDamage,
                 damageType: DamageType.commander,
               ),
+              const SizedBox(width: 4),
               CommanderDamageButton(
                 playerId: playerId,
                 commanderPlayerId: commanderPlayerId,
@@ -118,8 +120,6 @@ class CommanderDamageButton extends StatefulWidget {
 class _CommanderDamageButtonState extends State<CommanderDamageButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
-  Offset? _tapDownPosition;
-
   @override
   void initState() {
     super.initState();
@@ -173,9 +173,9 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
       );
   }
 
-  bool _isRightHalf(Offset localPosition) {
+  bool _isTopHalf(Offset localPosition) {
     final box = context.findRenderObject()! as RenderBox;
-    return localPosition.dx > box.size.width / 2;
+    return localPosition.dy < box.size.height / 2;
   }
 
   @override
@@ -189,17 +189,16 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
     return TapRegion(
       onTapOutside: (_) => _handleTapOutside(),
       child: GestureDetector(
-        onTapDown: (details) => _tapDownPosition = details.localPosition,
         onTap: () {
-          if (isExpanded || _tapDownPosition == null) return;
-          _isRightHalf(_tapDownPosition!) ? _increment() : _decrement();
+          if (isExpanded) return;
+          _increment();
         },
         onLongPressStart: (_) {
           if (!isExpanded) unawaited(_animationController.forward());
         },
         onLongPressDown: (details) {
           if (!isExpanded) return;
-          _isRightHalf(details.localPosition) ? _increment() : _decrement();
+          _isTopHalf(details.localPosition) ? _increment() : _decrement();
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -314,18 +313,34 @@ class _CommanderIcons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!animationController.isCompleted) return const SizedBox.shrink();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
       children: [
-        Icon(
-          Icons.remove,
-          color: AppColors.white.withValues(alpha: 0.8),
-          size: 24,
+        Expanded(
+          child: Center(
+            child: Icon(
+              Icons.add,
+              color: AppColors.white.withValues(alpha: 0.8),
+              size: 24,
+            ),
+          ),
         ),
-        Icon(
-          Icons.add,
-          color: AppColors.white.withValues(alpha: 0.8),
-          size: 24,
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.4),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(10),
+                bottomRight: Radius.circular(10),
+              ),
+            ),
+            child: Center(
+              child: Icon(
+                Icons.remove,
+                color: AppColors.white.withValues(alpha: 0.8),
+                size: 24,
+              ),
+            ),
+          ),
         ),
       ],
     );

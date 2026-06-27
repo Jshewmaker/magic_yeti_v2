@@ -37,6 +37,7 @@ class Player extends Equatable {
     required this.opponents,
     this.commander,
     this.partner,
+    this.background,
     this.firebaseId,
     this.state = PlayerModelState.eliminated,
     int? placement,
@@ -59,8 +60,13 @@ class Player extends Equatable {
   /// The player's commander card.
   final Commander? commander;
 
-  /// The commander's partner card.
+  /// The commander's partner card (a second *attacking* commander). Drives a
+  /// separate commander-damage clock.
   final Commander? partner;
+
+  /// A non-attacking second card (a Background enchantment). Contributes to
+  /// color identity and art only — never a commander-damage clock.
+  final Commander? background;
 
   /// The player's assigned number in the game.
   final int playerNumber;
@@ -108,6 +114,7 @@ class Player extends Equatable {
     String? name,
     Commander? commander,
     Commander? Function()? partner,
+    Commander? Function()? background,
     int? playerNumber,
     int? lifePoints,
     int? color,
@@ -124,6 +131,7 @@ class Player extends Equatable {
       color: color ?? this.color,
       commander: commander ?? this.commander,
       partner: partner != null ? partner() : this.partner,
+      background: background != null ? background() : this.background,
       playerNumber: playerNumber ?? this.playerNumber,
       lifePoints: lifePoints ?? this.lifePoints,
       state: state ?? this.state,
@@ -143,6 +151,7 @@ class Player extends Equatable {
         color,
         commander,
         partner,
+        background,
         playerNumber,
         lifePoints,
         state,

@@ -7,29 +7,36 @@ class CommanderHeroBanner extends StatelessWidget {
     required this.playerColor,
     this.commander,
     this.partner,
+    this.background,
     super.key,
   });
 
   final Commander? commander;
   final Commander? partner;
+  final Commander? background;
   final int playerColor;
 
   @override
   Widget build(BuildContext context) {
     final hasCommander = commander?.imageUrl.isNotEmpty ?? false;
-    final hasPartner = partner?.imageUrl.isNotEmpty ?? false;
+    final secondCard = partner ?? background;
+    final hasSecond = secondCard?.imageUrl.isNotEmpty ?? false;
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        _buildBackground(hasCommander, hasPartner),
+        _buildBackground(hasCommander, hasSecond, secondCard),
         _buildGradientOverlay(),
-        _buildNameOverlay(context, hasCommander, hasPartner),
+        _buildNameOverlay(context, hasCommander, hasSecond, secondCard),
       ],
     );
   }
 
-  Widget _buildBackground(bool hasCommander, bool hasPartner) {
+  Widget _buildBackground(
+    bool hasCommander,
+    bool hasSecond,
+    Commander? secondCard,
+  ) {
     if (!hasCommander) {
       return ColoredBox(
         color: Color(playerColor).withAlpha(80),
@@ -39,11 +46,11 @@ class CommanderHeroBanner extends StatelessWidget {
       );
     }
 
-    if (hasPartner) {
+    if (hasSecond) {
       return Row(
         children: [
           Expanded(child: _ArtCropImage(url: commander!.imageUrl)),
-          Expanded(child: _ArtCropImage(url: partner!.imageUrl)),
+          Expanded(child: _ArtCropImage(url: secondCard!.imageUrl)),
         ],
       );
     }
@@ -75,7 +82,8 @@ class CommanderHeroBanner extends StatelessWidget {
   Widget _buildNameOverlay(
     BuildContext context,
     bool hasCommander,
-    bool hasPartner,
+    bool hasSecond,
+    Commander? secondCard,
   ) {
     if (!hasCommander) return const SizedBox.shrink();
 
@@ -101,7 +109,7 @@ class CommanderHeroBanner extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          if (hasPartner) ...[
+          if (hasSecond) ...[
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
               child: Text(
@@ -114,7 +122,7 @@ class CommanderHeroBanner extends StatelessWidget {
             ),
             Flexible(
               child: Text(
-                partner!.name,
+                secondCard!.name,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.white,
                   fontWeight: FontWeight.bold,

@@ -15,6 +15,7 @@ class UpdatePlayerInfoEvent extends PlayerEvent {
     this.playerName,
     this.commander,
     this.partner,
+    this.background,
     this.firebaseId,
   });
 
@@ -22,6 +23,7 @@ class UpdatePlayerInfoEvent extends PlayerEvent {
   final String? playerName;
   final String playerId;
   final Commander? partner;
+  final Commander? background;
   final String? firebaseId;
 }
 

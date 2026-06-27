@@ -7,30 +7,67 @@ sealed class PlayerCustomizationEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-final class CardListRequested extends PlayerCustomizationEvent {
-  const CardListRequested({required this.cardName});
-
-  final String cardName;
-
-  @override
-  List<Object> get props => [cardName];
+/// Loads device recents + favorites into state.
+final class LibraryRequested extends PlayerCustomizationEvent {
+  const LibraryRequested();
 }
 
-final class UpdatePlayerCommander extends PlayerCustomizationEvent {
-  const UpdatePlayerCommander({this.commander, this.partner});
+final class CardListRequested extends PlayerCustomizationEvent {
+  const CardListRequested({
+    required this.cardName,
+    this.searchBackgrounds = false,
+  });
 
-  final Commander? commander;
-  final Commander? partner;
+  final String cardName;
+  final bool searchBackgrounds;
 
   @override
-  List<Object?> get props => [commander, partner];
+  List<Object> get props => [cardName, searchBackgrounds];
+}
+
+/// User picked a primary commander.
+final class CommanderSelected extends PlayerCustomizationEvent {
+  const CommanderSelected(this.commander);
+
+  final Commander commander;
+
+  @override
+  List<Object?> get props => [commander];
+}
+
+/// User picked the second card (partner or background, per availablePairing).
+final class SecondCardSelected extends PlayerCustomizationEvent {
+  const SecondCardSelected(this.card);
+
+  final Commander card;
+
+  @override
+  List<Object?> get props => [card];
+}
+
+final class StartSelectingSecondCard extends PlayerCustomizationEvent {
+  const StartSelectingSecondCard();
+}
+
+final class CancelSelectingSecondCard extends PlayerCustomizationEvent {
+  const CancelSelectingSecondCard();
+}
+
+final class SecondCardCleared extends PlayerCustomizationEvent {
+  const SecondCardCleared();
+}
+
+final class CommanderFavoriteToggled extends PlayerCustomizationEvent {
+  const CommanderFavoriteToggled(this.commander);
+
+  final Commander commander;
+
+  @override
+  List<Object?> get props => [commander];
 }
 
 final class ClearCardList extends PlayerCustomizationEvent {
   const ClearCardList();
-
-  @override
-  List<Object> get props => [];
 }
 
 final class UpdateAccountOwnership extends PlayerCustomizationEvent {
@@ -43,25 +80,12 @@ final class UpdateAccountOwnership extends PlayerCustomizationEvent {
 }
 
 final class UpdateCommanderFilters extends PlayerCustomizationEvent {
-  const UpdateCommanderFilters({
-    required this.showOnlyLegendary,
-    required this.hasPartner,
-  });
+  const UpdateCommanderFilters({required this.showOnlyLegendary});
 
   final bool showOnlyLegendary;
-  final bool hasPartner;
 
   @override
-  List<Object> get props => [showOnlyLegendary, hasPartner];
-}
-
-final class UpdatePartnerSelection extends PlayerCustomizationEvent {
-  const UpdatePartnerSelection({required this.selectingPartner});
-
-  final bool selectingPartner;
-
-  @override
-  List<Object> get props => [selectingPartner];
+  List<Object> get props => [showOnlyLegendary];
 }
 
 final class SelectFriend extends PlayerCustomizationEvent {
