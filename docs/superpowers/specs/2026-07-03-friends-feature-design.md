@@ -59,11 +59,17 @@ never have to log in on the host's device.
    proof of identity than 4 digits.
 6. Synced match-history copies are immutable snapshots: host edits/deletes do not
    propagate; unfriending/blocking does not remove already-synced games.
+7. Architecture: keep direct Firestore reads/writes/streams wherever security rules can
+   express the check (social graph, PIN set, all reads); Cloud Functions only where rules
+   cannot — secret comparison + rate limiting (`validatePin`), guaranteed fan-out
+   (`onGameCreated`), post-deletion cleanup (`onUserDeleted`), and search-time block
+   hiding (`searchByFriendCode`).
 
 ## Goals
 
 - Enforce name + PIN for all users (new and legacy) with one unskippable path.
-- Move every cross-user operation server-side; lock Firestore rules down to match.
+- Keep Firebase's direct-read/write/stream strengths everywhere rules can secure them;
+  reserve Cloud Functions for what rules cannot express. Lock rules down to match.
 - Rate-limit and scope PIN validation so the rail actually holds.
 - Ship full blocking (hidden from search, requests refused, unselectable in games).
 - Finish the profile page (PIN change, friend code share, blocked users).
@@ -77,12 +83,22 @@ never have to log in on the host's device.
 - Trusted devices / "remember this device" PIN skips
 - Editing or retracting synced games across accounts
 
-## Architecture: clients read, functions write
+## Architecture: direct Firestore wherever rules can express it; functions only where they can't
 
-Anything that touches another user's data moves into Cloud Functions (TypeScript, in a new
-`functions/` directory, developed against the Firebase emulator suite). Clients keep reading
-via streams/queries; social-graph mutations, PIN checks, and game fan-out become callables
-or triggers. `firestore.rules` is added to the repo and wired into `firebase.json`.
+Firebase's strengths — direct low-latency reads, offline-queued writes, realtime streams —
+are kept everywhere security rules can express the required check. The enabling structural
+change is **deterministic friend-request doc IDs** (`friendRequests/{senderId}_{receiverId}`):
+rules can't run queries, but they can `exists()`/`get()` known paths, which makes
+pending/declined/blocked preconditions and cross-user edge writes all rules-expressible.
+The existing client-side repository logic (batch writes for accept/remove, etc.) is largely
+retained and hardened, not ported to a server.
+
+Cloud Functions (TypeScript, new `functions/` directory, developed against the Firebase
+emulator suite) are reserved for the three jobs rules physically cannot do: comparing a
+secret the caller must never read (`validatePin`), guaranteed server-side fan-out
+(`onGameCreated`), and cleanup after the client is gone (`onUserDeleted`) — plus one
+judgment call (`searchByFriendCode`, see below). `firestore.rules` is added to the repo
+and wired into `firebase.json`.
 
 ### Data model changes
 
@@ -92,44 +108,71 @@ or triggers. `firestore.rules` is added to the repo and wired into `firebase.jso
 | `users/{uid}/private/credentials` | **New.** `{ pinHash, salt, updatedAt }`. Salted SHA-256 for new PINs; legacy hashes carried over unsalted (`salt: null`) until the user changes their PIN. Owner-only rules; functions read via Admin SDK |
 | `users/{uid}/blocks/{blockedUid}` | **New.** `{ blockedAt, username, imageUrl }` (denormalized for the management UI). Owner-readable; function-write-only |
 | `pinAttempts/{callerUid}_{targetUid}` | **New.** `{ failCount, lockedUntil, updatedAt }`. No client access; function-only |
-| `friendRequests/{id}` | `status` gains `declined`; declined docs are retained (they power re-send suppression) instead of being deleted |
+| `friendRequests/{senderId}_{receiverId}` | **Doc IDs become deterministic** (one migration-free change: new requests use the new ID scheme; legacy random-ID pending requests are honored by accept/decline until drained). `status` gains `declined`; declined docs are retained (they power re-send suppression) instead of being deleted |
 | `games/{docId}`, `Player.firebaseId`, `GameModel` | Unchanged |
+
+### Direct Firestore operations (client + rules)
+
+These stay as direct client calls — fast, offline-queued, stream-capable — secured by
+rules using deterministic doc IDs:
+
+- **`sendFriendRequest`**: client checks the reverse-direction doc first (mutual →
+  auto-accept path) and its own prior doc (`declined` → silently no-op, UI shows "sent").
+  Rules allow create only when: `senderId == request.auth.uid`, doc ID matches
+  `{senderId}_{receiverId}`, no block exists in either direction
+  (`exists(users/{receiverId}/blocks/{senderId})` etc.), and the doc doesn't already exist.
+- **`acceptFriendRequest`**: existing client batch write (both friendship edges + request
+  deletion). Rules allow writing yourself onto another user's `friendList` only when a
+  matching pending request exists at the deterministic path; only the receiver may accept.
+- **`declineFriendRequest`**: receiver updates `status` to `declined` (doc retained for
+  re-send suppression). Only the receiver may decline; senders cannot update or re-create.
+- **`removeFriend`**: existing two-edge batch delete. Rules: you may always delete your own
+  `friendList` docs, and you may always delete *yourself* from someone else's `friendList`.
+- **`blockUser` / `unblockUser`**: client batch — write/delete own block doc (owner-only
+  path), remove friendship edges both ways (covered by the remove rules), delete/suppress
+  requests both ways. A partially-failed batch is self-healing: the block doc alone is the
+  security boundary; edge cleanup can be retried.
+- **`setPin`**: client salts + hashes locally (it knows the plaintext anyway) and writes
+  its own `private/credentials` doc (owner-only rules).
+- **All reads and realtime streams**: friends list, requests, match history, game-code
+  lookup — unchanged direct queries/streams scoped by rules.
+
+**Accepted tradeoff:** a rules denial surfaces as `permission-denied`, so a technically
+savvy blocked user could distinguish "blocked" from "ignored" by inspecting error codes.
+Accepted at this threat model; a function-mediated send that fakes success is the future
+escape hatch if it ever matters.
 
 ### Cloud Functions
 
-All callables require an authenticated, non-anonymous caller and return typed error codes
-(`unauthenticated`, `permission-denied`, `failed-precondition`, `resource-exhausted`, `not-found`).
+Reserved for what rules cannot do. Callables require an authenticated, non-anonymous
+caller and return typed error codes (`unauthenticated`, `permission-denied`,
+`failed-precondition`, `resource-exhausted`, `not-found`).
 
-1. **`validatePin({ targetUserId, pin })` → `{ valid }`**
-   Preconditions: caller is a friend of target (checked server-side — strangers can't
-   attempt); target not currently locked out for this caller. Reads
-   `private/credentials`, falling back to the legacy `users/{uid}.pin` field for
-   not-yet-migrated accounts. On failure increments `pinAttempts`; **5 failures → 15-minute
-   lockout** for that caller→target pair (`resource-exhausted`, with `lockedUntil` in
+1. **`validatePin({ targetUserId, pin })` → `{ valid }`** — *the irreducible function*:
+   compares a submitted PIN against a hash the caller must never be able to read, with
+   server-side rate limiting rules can't count. Preconditions: caller is a friend of
+   target (strangers can't attempt); target not currently locked out for this caller.
+   Reads `private/credentials`, falling back to the legacy `users/{uid}.pin` field for
+   not-yet-migrated accounts. On failure increments `pinAttempts`; **5 failures →
+   15-minute lockout** per caller→target pair (`resource-exhausted`, `lockedUntil` in
    details). Success resets the counter.
-2. **`searchByFriendCode({ code })` → profile summary or not-found**
-   Replaces the client-side Firestore query. Returns not-found when either party has
-   blocked the other. Response carries only public profile fields + relationship status.
-3. **`sendFriendRequest({ receiverId })` → result enum**
-   Moves existing logic server-side: self-check, already-friends, pending, mutual
-   auto-accept — plus: refuses when blocked in either direction (`permission-denied`
-   disguised as `sent` to avoid leaking block status), and when a `declined` request from
-   this sender exists, silently no-ops returning `sent` (receiver never sees it again).
-4. **`acceptFriendRequest({ requestId })` / `declineFriendRequest({ requestId })` /
-   `removeFriend({ friendId })`**
-   Server-side ports of the existing batch writes. Decline sets `status: 'declined'`
-   (doc retained). Only the request's receiver may accept/decline.
-5. **`blockUser({ targetUid })` / `unblockUser({ targetUid })`**
-   Block atomically: removes friendship edges both ways, deletes pending requests both
-   ways, writes the block doc. Unblock removes the block doc only (no auto re-friend).
-6. **Trigger `onGameCreated` (`games/{docId}` create)**
-   Reads `players[].firebaseId`, dedupes, writes the game to each linked player's
-   `users/{id}/matches/{docId}` (host included). Idempotent (doc id = game id), retries
-   enabled. Replaces the client-side `syncGameToPlayers` call.
-7. **Trigger `onUserDeleted` (Auth delete)**
-   Cleans up: profile + private subcollections, friend edges both directions, pending
-   requests both directions, block docs both directions. Games and other players' match
-   copies persist (it's their history too).
+2. **`searchByFriendCode({ code })` → profile summary or not-found** — *judgment call*:
+   rules can't filter query results, so hiding blocked users from search requires a
+   server-side lookup. Search is a cold, deliberate path where callable latency is
+   invisible. Returns not-found when either party has blocked the other; response carries
+   only public profile fields + relationship status. (Fallback if we ever regret it:
+   direct query + request-level block enforcement, with the profile card visible to
+   holders of your exact code.)
+3. **Trigger `onGameCreated` (`games/{docId}` create)** — *right tool, no latency cost*:
+   one client write (`games/`) instead of N cross-user writes from a device at a kitchen
+   table; the server guarantees delivery with retries, and rules can deny all cross-user
+   `matches` writes. Reads `players[].firebaseId`, dedupes, writes the game to each linked
+   player's `users/{id}/matches/{docId}` (host included). Idempotent (doc id = game id).
+   Replaces the client-side `syncGameToPlayers` call.
+4. **Trigger `onUserDeleted` (Auth delete)** — runs after the client is gone. Cleans up:
+   profile + private subcollections, friend edges both directions, requests both
+   directions, block docs both directions. Games and other players' match copies persist
+   (it's their history too).
 
 ### Firestore rules summary
 
@@ -137,19 +180,19 @@ All callables require an authenticated, non-anonymous caller and return typed er
 |---|---|---|
 | `users/{uid}` | any signed-in user | owner only |
 | `users/{uid}/private/**` | owner only | owner only (functions bypass) |
-| `users/{uid}/blocks/**` | owner only | functions only |
+| `users/{uid}/blocks/**` | owner only | owner only (create/delete own block docs) |
 | `users/{uid}/matches/**` | owner only | owner only (covers game-code import; fan-out via functions) |
 | `games/{id}` | any signed-in user (game-code lookup) | create: any signed-in; update/delete: `hostId` only |
-| `friends/{uid}/friendList/**` | owner only | functions only |
-| `friendRequests/{id}` | sender or receiver | functions only |
+| `friends/{uid}/friendList/{fid}` | owner only | owner: delete always, create when a matching pending request exists; non-owner: may create/delete only the doc keyed by *their own* uid, create gated on the matching pending request |
+| `friendRequests/{sid}_{rid}` | sender or receiver | create: sender, deterministic ID, no block either direction, doc must not exist; update: receiver only (`pending → declined`); delete: sender (cancel) or receiver (accept) |
 | `pinAttempts/**` | none | functions only |
 
 ### PIN migration (lazy)
 
 On login, the client moves its **own** `pin` field into `private/credentials` and clears
-the profile field, setting `hasPin: true`. This is the **only** direct client write to
-`private/credentials`; all new/changed PINs go through the `setPin` callable, which salts
-and hashes server-side. The migration runs inside the AppBloc profile load, **before**
+the profile field, setting `hasPin: true`. Both migration and `setPin` are direct
+owner-only writes; the client salts + hashes locally (it holds the plaintext PIN in that
+moment anyway). The migration runs inside the AppBloc profile load, **before**
 completeness is evaluated, and completeness treats a legacy non-empty `pin` field as
 having a PIN — so already-PIN'd legacy users are never bounced into onboarding. Friends
 who haven't logged in since the update stay selectable because `validatePin` falls back to
@@ -166,12 +209,13 @@ retired.
 2. **Onboarding** (`lib/onboarding/bloc/onboarding_bloc.dart`): seed `existingPinHash`
    as null when the stored value is empty (closes the empty-PIN loophole); submit writes
    the PIN to `private/credentials` + `hasPin` instead of the profile field.
-3. **Repository** (`firebase_database_repository`): `searchByFriendCode`,
-   `addFriendRequest`, `acceptFriendRequest`, `declineFriendRequest`, `removeFriend`,
-   `validatePin`, `setPin` become callable invocations (`setPin` salts + hashes
-   server-side); new `blockUser`/`unblockUser`/
-   `getBlockedUsers`; `syncGameToPlayers` deleted. BLoC events/states are unchanged
-   except where noted.
+3. **Repository** (`firebase_database_repository`): only `validatePin` and
+   `searchByFriendCode` become callable invocations. `addFriendRequest`,
+   `acceptFriendRequest`, `declineFriendRequest`, `removeFriend` keep their direct
+   Firestore implementations, updated for deterministic request IDs and declined-doc
+   retention; `setPin` writes salted hash to `private/credentials`; new
+   `blockUser`/`unblockUser`/`getBlockedUsers` (direct); `syncGameToPlayers` deleted.
+   BLoC events/states are unchanged except where noted.
 4. **Customize player page**: PIN dialog gains lockout and offline states ("try again in
    N minutes" / "PIN check needs a connection"); selecting a friend already linked to
    another slot in this game is prevented at selection; anonymous host sees a
@@ -195,17 +239,22 @@ retired.
 - PIN dialog distinguishes wrong PIN, lockout (shows remaining minutes), and offline.
 - Game save: host's `games/` write is the only client-critical path; fan-out failures
   retry server-side and never block the game-over screen.
-- Blocked interactions never reveal block status (requests appear "sent"; search returns
-  not-found).
+- Blocked interactions don't reveal block status in the UI (requests appear "sent";
+  search returns not-found). Known limit: rules denials are `permission-denied` at the
+  wire level — accepted at this threat model (see Architecture).
 
 ## Testing
 
 - **Bloc tests** for every changed bloc (AppBloc gate matrix incl. legacy/empty-PIN cases,
   onboarding, customization PIN states, game-over guard, profile submit, block flows).
 - **Repository tests** with a faked functions client (success, each error code, offline).
-- **Functions tests** against the Firebase emulator: PIN validation incl. rate limiting,
-  friendship precondition, legacy-hash fallback; request lifecycle incl. declined
-  suppression and block refusal; fan-out idempotency; deletion cleanup.
+- **Rules tests** (`@firebase/rules-unit-testing` against the emulator) — first-class,
+  since rules now carry the social-graph invariants: request create/update/delete matrix
+  (deterministic IDs, block gating, declined immutability), friendship edge writes,
+  cross-user `matches` write denial, private-doc isolation.
+- **Functions tests** against the emulator: PIN validation incl. rate limiting, friendship
+  precondition, legacy-hash fallback; search block-hiding; fan-out idempotency; deletion
+  cleanup.
 - **Widget tests**: PIN dialog states, friend section anonymous state, game-over picker
   exclusions, blocked-users screen.
 - **Manual integration pass**: sign up → code + PIN → add friend → block/unblock → link in
@@ -221,9 +270,11 @@ Each phase is independently shippable:
    PIN calls switch over.
 2. **Legacy enforcement** — AppBloc gate extension, `isComplete`, empty-PIN fix.
 3. **Game sync** — `onGameCreated` fan-out, remove client fan-out, game-over picker guard.
-4. **Social graph callables** — request/accept/decline/remove moved server-side, declined
-   suppression.
-5. **Blocking** — block/unblock callables, search callable, block UI + management screen.
+4. **Social graph hardening** — deterministic request IDs (with legacy-pending handling),
+   declined suppression, rules for the request lifecycle and friendship edge writes;
+   repository updates stay client-side.
+5. **Blocking** — block docs + client batch cleanup, `searchByFriendCode` callable, block
+   gating in rules, block UI + management screen.
 6. **Profile completion** — ProfileBloc submit, PIN change, friend code share.
 7. **Cleanup** — `onUserDeleted`, rewrite `docs/friends_feature_plan.md`, l10n sweep,
    remove deprecated `pin` field path once migration fallback is retired.
