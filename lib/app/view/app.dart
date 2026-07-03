@@ -65,6 +65,7 @@ class App extends StatelessWidget {
             ),
           ),
           BlocProvider(
+            lazy: false,
             create: (context) => GameBloc(
               playerRepository: _playerRepository,
               database: context.read<FirebaseDatabaseRepository>(),
@@ -78,6 +79,7 @@ class App extends StatelessWidget {
               ),
           ),
           BlocProvider(
+            lazy: false,
             create: (context) => TimerBloc(),
           ),
         ],
