@@ -1,5 +1,10 @@
 # Friends List Feature — Implementation Plan
 
+> **⚠️ SUPERSEDED (2026-07-03):** Most items below are already implemented on `main`
+> (friend codes, PIN, friend selection on the customize player page, post-game sync,
+> onboarding gating). The current design for the remaining hardening & completion work
+> lives at [`docs/superpowers/specs/2026-07-03-friends-feature-design.md`](superpowers/specs/2026-07-03-friends-feature-design.md).
+
 ## Overview
 
 Enable authenticated users to add friends via a short friend code, manage friend requests, and select friends as players when setting up a game. When a game ends, match history syncs to every authenticated player's profile — not just the host's.
