@@ -138,3 +138,9 @@ test('target without any PIN yields failed-precondition', async () => {
     wrapped({ data: { targetUserId: 'target', pin: '0742' }, auth: callerAuth }),
   ).rejects.toMatchObject({ code: 'failed-precondition' });
 });
+
+test('targetUserId containing a slash is rejected', async () => {
+  await expect(
+    wrapped({ data: { targetUserId: 'a/b', pin: '0742' }, auth: callerAuth }),
+  ).rejects.toMatchObject({ code: 'invalid-argument' });
+});

@@ -31,6 +31,9 @@ export const validatePin = onCall<ValidatePinRequest>(async (request) => {
   if (typeof targetUserId !== 'string' || targetUserId.length === 0) {
     throw new HttpsError('invalid-argument', 'targetUserId is required.');
   }
+  if (targetUserId.includes('/')) {
+    throw new HttpsError('invalid-argument', 'targetUserId is malformed.');
+  }
   if (typeof pin !== 'string' || !/^\d{4}$/.test(pin)) {
     throw new HttpsError('invalid-argument', 'pin must be exactly 4 digits.');
   }
@@ -46,33 +49,38 @@ export const validatePin = onCall<ValidatePinRequest>(async (request) => {
     throw new HttpsError('permission-denied', 'Caller is not a friend of the target.');
   }
 
-  // Load stored credentials: private doc first, legacy profile field fallback.
-  let stored: StoredCredentials | null = null;
-  const credentials = await db
-    .doc(`users/${targetUserId}/private/credentials`)
-    .get();
-  if (credentials.exists) {
-    const data = credentials.data()!;
-    stored = {
-      pinHash: data.pinHash as string,
-      salt: (data.salt as string | null) ?? null,
-    };
-  } else {
-    const profile = await db.doc(`users/${targetUserId}`).get();
-    const legacyHash = profile.data()?.pin as string | undefined;
-    if (legacyHash != null && legacyHash.length > 0) {
-      stored = { pinHash: legacyHash, salt: null };
-    }
-  }
-  if (stored === null) {
-    throw new HttpsError('failed-precondition', 'Target user has no PIN set.');
-  }
-
+  const credentialsRef = db.doc(`users/${targetUserId}/private/credentials`);
+  const legacyProfileRef = db.doc(`users/${targetUserId}`);
   const attemptsRef = db.doc(`pinAttempts/${callerUid}_${targetUserId}`);
 
   return db.runTransaction(async (tx) => {
-    const now = Date.now();
+    // All transactional reads must happen before any writes.
+    const credentials = await tx.get(credentialsRef);
+    const legacyProfile = credentials.exists
+      ? null
+      : await tx.get(legacyProfileRef);
     const attemptsSnap = await tx.get(attemptsRef);
+
+    const now = Date.now();
+
+    // Load stored credentials: private doc first, legacy profile field fallback.
+    let stored: StoredCredentials | null = null;
+    if (credentials.exists) {
+      const data = credentials.data()!;
+      stored = {
+        pinHash: data.pinHash as string,
+        salt: (data.salt as string | null) ?? null,
+      };
+    } else {
+      const legacyHash = legacyProfile?.data()?.pin as string | undefined;
+      if (legacyHash != null && legacyHash.length > 0) {
+        stored = { pinHash: legacyHash, salt: null };
+      }
+    }
+    if (stored === null) {
+      throw new HttpsError('failed-precondition', 'Target user has no PIN set.');
+    }
+
     const state: AttemptState | null = attemptsSnap.exists
       ? {
           failCount: attemptsSnap.data()!.failCount as number,
@@ -88,7 +96,7 @@ export const validatePin = onCall<ValidatePinRequest>(async (request) => {
       });
     }
 
-    if (checkPin(stored!, pin)) {
+    if (checkPin(stored, pin)) {
       if (attemptsSnap.exists) {
         tx.delete(attemptsRef);
       }
