@@ -854,7 +854,24 @@ class FirebaseDatabaseRepository {
       final profile = await profileRef.get();
       if (!profile.exists) return;
       final legacyHash = profile.data()?['pin'] as String?;
-      if (legacyHash == null || legacyHash.isEmpty) return;
+      if (legacyHash == null || legacyHash.isEmpty) {
+        // Self-heal: an old-version client's full-doc profile write can
+        // wipe the hasPin flag after migration already ran. If the
+        // credentials doc exists but the flag is missing, repair it so
+        // the completeness gate does not bounce a PIN-holding user back
+        // into onboarding.
+        if (profile.data()?['hasPin'] != true) {
+          final credentials = await _credentialsDoc(userId).get();
+          if (credentials.exists) {
+            unawaited(
+              profileRef
+                  .set({'hasPin': true}, SetOptions(merge: true))
+                  .catchError((Object _) {}),
+            );
+          }
+        }
+        return;
+      }
 
       final credentials = await _credentialsDoc(userId).get();
       final batch = _firebase.batch();

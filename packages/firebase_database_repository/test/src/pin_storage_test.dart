@@ -104,6 +104,30 @@ void main() {
       expect(profile.data()!.containsKey('pin'), isFalse);
       expect(profile.data()!['hasPin'], isTrue);
     });
+
+    test('repairs a wiped hasPin flag when credentials exist', () async {
+      await firestore.doc('users/u1/private/credentials').set({
+        'pinHash': 'saltedHash',
+        'salt': 'realsalt',
+      });
+      // Old-version client full-doc write wiped the flag and has no pin field.
+      await firestore.collection('users').doc('u1').set({'username': 'j'});
+
+      await repository.migrateLegacyPin('u1');
+      await Future<void>.delayed(Duration.zero);
+
+      final profile = await firestore.doc('users/u1').get();
+      expect(profile.data()!['hasPin'], isTrue);
+    });
+
+    test('does not create credentials or set hasPin for a user with none',
+        () async {
+      await firestore.collection('users').doc('u1').set({'username': 'j'});
+      await repository.migrateLegacyPin('u1');
+      await Future<void>.delayed(Duration.zero);
+      final profile = await firestore.doc('users/u1').get();
+      expect(profile.data()!.containsKey('hasPin'), isFalse);
+    });
   });
 
   group('hasPin', () {
