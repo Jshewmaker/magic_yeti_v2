@@ -89,7 +89,7 @@ class BlockedUsersView extends StatelessWidget {
           } else if (state is BlockedUsersError) {
             return Center(
               child: Text(
-                state.message,
+                l10n.blockedUsersLoadFailedError,
                 style: const TextStyle(color: AppColors.onSurfaceVariant),
               ),
             );

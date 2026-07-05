@@ -424,7 +424,7 @@ class _ChangePinSectionState extends State<_ChangePinSection> {
                               .read<ProfileBloc>()
                               .add(const ProfilePinSubmitted())
                           : null,
-                      child: const Text('Save'),
+                      child: Text(context.l10n.saveButtonText),
                     );
                   },
                 ),

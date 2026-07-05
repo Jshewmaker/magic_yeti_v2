@@ -63,5 +63,10 @@
     "profileSavedMessage": "Perfil guardado",
     "profileSaveFailedMessage": "No se pudo guardar tu perfil. Inténtalo de nuevo.",
     "signInToLinkFriends": "Inicia sesión para vincular amigos a los jugadores.",
-    "signInToSearchFriends": "Inicia sesión para agregar amigos."
+    "signInToSearchFriends": "Inicia sesión para agregar amigos.",
+    "removeFriendAction": "Eliminar",
+    "removeFriendConfirmTitle": "¿Eliminar a {name}?",
+    "removeFriendConfirmBody": "No se le notificará. Pueden agregarse de nuevo en cualquier momento.",
+    "onboardingSaveFailedMessage": "No se pudo guardar el perfil. Inténtalo de nuevo.",
+    "blockedUsersLoadFailedError": "No se pudo cargar tu lista de bloqueados. Revisa tu conexión e inténtalo de nuevo."
 }

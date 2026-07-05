@@ -1045,6 +1045,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in to add friends.'**
   String get signInToSearchFriends;
+
+  /// Action label to remove a friend
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeFriendAction;
+
+  /// Title for the remove-friend confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String removeFriendConfirmTitle(String name);
+
+  /// Body copy for the remove-friend confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'They won\'t be notified. You can add each other again anytime.'**
+  String get removeFriendConfirmBody;
+
+  /// Snackbar error shown when submitting the onboarding form fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save profile. Please try again.'**
+  String get onboardingSaveFailedMessage;
+
+  /// Error message shown when the blocked-users page fails to load or update
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your blocked list. Check your connection and try again.'**
+  String get blockedUsersLoadFailedError;
 }
 
 class _AppLocalizationsDelegate

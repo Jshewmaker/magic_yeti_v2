@@ -891,6 +891,32 @@
   "signInToSearchFriends": "Sign in to add friends.",
   "@signInToSearchFriends": {
     "description": "Placeholder shown instead of the search field on the find-friends page when the user is anonymous"
+  },
+  "removeFriendAction": "Remove",
+  "@removeFriendAction": {
+    "description": "Action label to remove a friend"
+  },
+  "removeFriendConfirmTitle": "Remove {name}?",
+  "@removeFriendConfirmTitle": {
+    "description": "Title for the remove-friend confirmation dialog",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "removeFriendConfirmBody": "They won't be notified. You can add each other again anytime.",
+  "@removeFriendConfirmBody": {
+    "description": "Body copy for the remove-friend confirmation dialog"
+  },
+  "onboardingSaveFailedMessage": "Failed to save profile. Please try again.",
+  "@onboardingSaveFailedMessage": {
+    "description": "Snackbar error shown when submitting the onboarding form fails"
+  },
+  "blockedUsersLoadFailedError": "Couldn't load your blocked list. Check your connection and try again.",
+  "@blockedUsersLoadFailedError": {
+    "description": "Error message shown when the blocked-users page fails to load or update"
   }
 }
 

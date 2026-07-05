@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/friends_list/friends_list/bloc/friend_list_bloc.dart';
 import 'package:magic_yeti/friends_list/friends_list/friends_list.dart';
+import 'package:magic_yeti/l10n/arb/app_localizations.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:user_repository/user_repository.dart';
 
@@ -85,6 +86,32 @@ void main() {
             ),
           ),
         ),
+      ).called(1);
+    });
+
+    testWidgets(
+        'confirming Remove renders localized dialog copy and dispatches '
+        'RemoveFriend', (tester) async {
+      await pumpFriendsList(tester);
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(FriendsListView)),
+      );
+      expect(find.text(l10n.removeFriendConfirmTitle('Bob')), findsOneWidget);
+      expect(find.text(l10n.removeFriendConfirmBody), findsOneWidget);
+      expect(find.text(l10n.cancelTextButton), findsOneWidget);
+
+      // Confirmation dialog action button (also labelled "Remove").
+      await tester.tap(find.text('Remove').last);
+      await tester.pumpAndSettle();
+
+      verify(
+        () => friendBloc.add(const RemoveFriend('alice', 'bob')),
       ).called(1);
     });
   });

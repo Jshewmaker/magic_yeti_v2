@@ -531,4 +531,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signInToSearchFriends => 'Sign in to add friends.';
+
+  @override
+  String get removeFriendAction => 'Remove';
+
+  @override
+  String removeFriendConfirmTitle(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String get removeFriendConfirmBody =>
+      'They won\'t be notified. You can add each other again anytime.';
+
+  @override
+  String get onboardingSaveFailedMessage =>
+      'Failed to save profile. Please try again.';
+
+  @override
+  String get blockedUsersLoadFailedError =>
+      'Couldn\'t load your blocked list. Check your connection and try again.';
 }

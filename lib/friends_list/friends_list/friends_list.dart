@@ -66,15 +66,15 @@ class FriendsListView extends StatelessWidget {
                   onSelected: (action) {
                     switch (action) {
                       case _FriendCardAction.remove:
-                        _confirmRemoveFriend(context, friend, userId);
+                        _confirmRemoveFriend(context, friend, userId, l10n);
                       case _FriendCardAction.block:
                         _confirmBlockFriend(context, friend, userId, l10n);
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: _FriendCardAction.remove,
-                      child: Text('Remove'),
+                      child: Text(l10n.removeFriendAction),
                     ),
                     PopupMenuItem(
                       value: _FriendCardAction.block,
@@ -107,43 +107,44 @@ class FriendsListView extends StatelessWidget {
     BuildContext context,
     FriendModel friend,
     String userId,
+    AppLocalizations l10n,
   ) {
     unawaited(
       showDialog<void>(
         context: context,
         builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: AppColors.surface,
-          title: const Text(
-            'Remove Friend',
-            style: TextStyle(color: AppColors.white),
-          ),
-          content: Text(
-            'Are you sure you want to remove ${friend.username}?',
-            style: const TextStyle(color: AppColors.neutral60),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: AppColors.neutral60),
-              ),
-              onPressed: () => Navigator.of(dialogContext).pop(),
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: Text(
+              l10n.removeFriendConfirmTitle(friend.username),
+              style: const TextStyle(color: AppColors.white),
             ),
-            TextButton(
-              child: const Text(
-                'Remove',
-                style: TextStyle(color: AppColors.red),
-              ),
-              onPressed: () {
-                context
-                    .read<FriendBloc>()
-                    .add(RemoveFriend(userId, friend.userId));
-                Navigator.of(dialogContext).pop();
-              },
+            content: Text(
+              l10n.removeFriendConfirmBody,
+              style: const TextStyle(color: AppColors.neutral60),
             ),
-          ],
-        );
+            actions: <Widget>[
+              TextButton(
+                child: Text(
+                  l10n.cancelTextButton,
+                  style: const TextStyle(color: AppColors.neutral60),
+                ),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+              ),
+              TextButton(
+                child: Text(
+                  l10n.removeFriendAction,
+                  style: const TextStyle(color: AppColors.red),
+                ),
+                onPressed: () {
+                  context
+                      .read<FriendBloc>()
+                      .add(RemoveFriend(userId, friend.userId));
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+            ],
+          );
         },
       ),
     );

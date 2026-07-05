@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_inputs/form_inputs.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/onboarding/onboarding.dart';
 
 class OnboardingForm extends StatefulWidget {
@@ -53,10 +54,8 @@ class _OnboardingFormState extends State<OnboardingForm> {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Failed to save profile. Please try again.',
-                ),
+              SnackBar(
+                content: Text(context.l10n.onboardingSaveFailedMessage),
                 backgroundColor: AppColors.red,
               ),
             );
