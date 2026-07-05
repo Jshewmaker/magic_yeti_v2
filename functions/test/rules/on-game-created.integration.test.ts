@@ -87,3 +87,32 @@ test('malformed firebaseId values are skipped without throwing', async () => {
   );
   expect((await db.doc('users/ok-user/matches/g1').get()).exists).toBe(true);
 });
+
+test('ids containing a slash are skipped, others still fan out', async () => {
+  await fireWith(
+    gameDoc({
+      hostId: 'users/alice',
+      players: [
+        { id: 'p1', firebaseId: 'x/y' },
+        { id: 'p2', firebaseId: 'ok-user' },
+      ],
+    }),
+  );
+  expect((await db.doc('users/ok-user/matches/g1').get()).exists).toBe(true);
+  const all = await db.collectionGroup('matches').get();
+  expect(all.size).toBe(1);
+});
+
+test('non-array players field writes only the host copy', async () => {
+  await fireWith(gameDoc({ players: 'corrupt' }));
+  const all = await db.collectionGroup('matches').get();
+  expect(all.size).toBe(1);
+  expect((await db.doc('users/host/matches/g1').get()).exists).toBe(true);
+});
+
+test('missing hostId key with valid players still fans out to players', async () => {
+  const data = gameDoc({ players: [{ id: 'p1', firebaseId: 'friend1' }] });
+  delete (data as Record<string, unknown>).hostId;
+  await fireWith(data);
+  expect((await db.doc('users/friend1/matches/g1').get()).exists).toBe(true);
+});

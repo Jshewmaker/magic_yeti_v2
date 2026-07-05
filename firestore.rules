@@ -34,7 +34,11 @@ service cloud.firestore {
     }
 
     match /games/{gameId} {
-      allow read, create: if signedIn();
+      allow read: if signedIn();
+      // Creator must be the host they claim — the trigger fans the doc out
+      // to hostId's match history, so a forged hostId would inject games
+      // into another user's history.
+      allow create: if signedIn() && request.resource.data.hostId == request.auth.uid;
       allow update, delete: if signedIn() && resource.data.hostId == request.auth.uid;
     }
 

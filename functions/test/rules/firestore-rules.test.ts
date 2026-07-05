@@ -95,11 +95,13 @@ describe('matches', () => {
 });
 
 describe('games', () => {
-  test('signed-in users can create and read games', async () => {
+  test('signed-in user can create a game they host; foreign hostId denied', async () => {
     await assertSucceeds(
-      setDoc(doc(alice(), 'games/g1'), { hostId: 'alice', roomId: 'AB2C' }),
+      setDoc(doc(alice(), 'games/g10'), { hostId: 'alice', roomId: 'AB2C' }),
     );
-    await assertSucceeds(getDoc(doc(bob(), 'games/g1')));
+    await assertFails(
+      setDoc(doc(alice(), 'games/g11'), { hostId: 'bob', roomId: 'CD3E' }),
+    );
   });
 
   test('only the host can update or delete a game', async () => {

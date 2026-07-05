@@ -5,6 +5,15 @@ if (admin.apps.length === 0) {
   admin.initializeApp();
 }
 
+// A `/` in an id would address a different document path entirely (path
+// traversal into an arbitrary collection/doc) and, under `retry: true`, a
+// thrown batch would starve legitimate recipients for the whole retry
+// window. Reject anything that isn't a plausible bare uid before it's used
+// to build a document path.
+function isPlausibleUid(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0 && !value.includes('/');
+}
+
 /**
  * Fans a newly saved game out to every linked player's match history.
  * Recipients: set(hostId ∪ players[].firebaseId). Idempotent — the copy
@@ -19,13 +28,13 @@ export const onGameCreated = onDocumentCreated(
     const gameId = event.params.gameId;
 
     const ids = new Set<string>();
-    if (typeof game.hostId === 'string' && game.hostId.length > 0) {
+    if (isPlausibleUid(game.hostId)) {
       ids.add(game.hostId);
     }
     const players = Array.isArray(game.players) ? game.players : [];
     for (const player of players) {
       const firebaseId = player?.firebaseId;
-      if (typeof firebaseId === 'string' && firebaseId.length > 0) {
+      if (isPlausibleUid(firebaseId)) {
         ids.add(firebaseId);
       }
     }
