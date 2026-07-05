@@ -55,11 +55,14 @@ service cloud.firestore {
       // Creating: only as part of accepting a pending request between the
       // two users involved. The receiver runs the accept batch: they write
       // the sender onto their own list, and themselves onto the sender's.
+      // The edge doc's userId must match its key — FriendModel.userId feeds
+      // PIN-validation targets, so a mismatched field would misdirect them.
       allow create, update: if
-        (isOwner(uid) &&
+        request.resource.data.userId == friendId &&
+        ((isOwner(uid) &&
           exists(/databases/$(database)/documents/friendRequests/$(friendId + '_' + uid))) ||
         (signedIn() && request.auth.uid == friendId &&
-          exists(/databases/$(database)/documents/friendRequests/$(uid + '_' + request.auth.uid)));
+          exists(/databases/$(database)/documents/friendRequests/$(uid + '_' + request.auth.uid))));
     }
 
     match /friendRequests/{requestId} {
@@ -78,8 +81,13 @@ service cloud.firestore {
         resource.data.status == 'pending' &&
         request.resource.data.status == 'declined' &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
-      // Delete: sender cancels, or receiver deletes on accept.
+      // Delete: sender cancels, or receiver deletes on accept — PENDING
+      // only. Declined docs are permanent suppression markers: letting the
+      // sender delete one would allow delete-and-recreate to dodge the
+      // "declined senders are never seen again" promise. Recovery path:
+      // the decliner can send their own request, which the sender accepts.
       allow delete: if signedIn() &&
+        resource.data.status == 'pending' &&
         (resource.data.senderId == request.auth.uid ||
          resource.data.receiverId == request.auth.uid);
     }

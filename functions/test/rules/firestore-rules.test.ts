@@ -238,6 +238,17 @@ describe('friendRequests lifecycle', () => {
       deleteDoc(doc(env.authenticatedContext('carol').firestore(), 'friendRequests/alice_bob')),
     );
   });
+
+  test('declined docs cannot be deleted (delete-and-recreate suppression dodge)', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'friendRequests/alice_bob'), {
+        ...pending,
+        status: 'declined',
+      });
+    });
+    await assertFails(deleteDoc(doc(alice(), 'friendRequests/alice_bob')));
+    await assertFails(deleteDoc(doc(bob(), 'friendRequests/alice_bob')));
+  });
 });
 
 describe('friendList lifecycle', () => {
@@ -265,6 +276,24 @@ describe('friendList lifecycle', () => {
     );
     await assertFails(
       setDoc(doc(bob(), 'friends/carol/friendList/bob'), { userId: 'bob' }),
+    );
+  });
+
+  test('edge doc userId must match its key even with a valid pending gate', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'friendRequests/alice_bob'), {
+        senderId: 'alice',
+        receiverId: 'bob',
+        status: 'pending',
+      });
+    });
+    // FriendModel.userId feeds PIN-validation targets — a mismatched field
+    // would point the friend tile at a different account.
+    await assertFails(
+      setDoc(doc(bob(), 'friends/bob/friendList/alice'), { userId: 'mallory' }),
+    );
+    await assertFails(
+      setDoc(doc(bob(), 'friends/alice/friendList/bob'), { userId: 'mallory' }),
     );
   });
 
