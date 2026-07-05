@@ -6,7 +6,7 @@ Branch: feat/friends-hardening
 | Plan | Scope (spec phases) | Status |
 |---|---|---|
 | A `2026-07-03-friends-a-backend-foundation.md` | Functions + rules + private PIN (1) | complete |
-| B (not yet written) | Legacy gate + game fan-out (2–3) | pending |
+| B `2026-07-03-friends-b-gate-and-sync.md` | Legacy gate + game fan-out (2–3) | complete |
 | C (not yet written) | Social graph rules + blocking (4–5) | pending |
 | D (not yet written) | Profile page + cleanup (6–7) | pending |
 
@@ -30,19 +30,32 @@ report "Incorrect PIN" even when the PIN is right. This is a **named, accepted
 breakage** — to be paired with the existing force-upgrade mechanism when Plan B
 ships, so old clients are pushed to update before they can hit this path.
 
-**Plan B must own:**
-- `hasPin` self-healing — an old client's full-doc `set()` can wipe the `hasPin`
-  flag; `migrateLegacyPin` doesn't repair it once the legacy `pin` field is
-  already gone (no signal left to migrate from). The gate that decides whether a
-  friend has a PIN must not false-negative in this case.
-- A `PinNotSet` result variant — today `failed-precondition` (no PIN set) maps to
-  the client's `PinCheckUnavailable`, which shows a misleading "check your
-  connection" message for a friend who simply never set a PIN.
-- A top-of-file TRANSITIONAL header comment in `firestore.rules` marking the
-  rules that only exist to support the legacy-PIN fallback, so they're easy to
-  find and remove once migration is complete.
-- The force-upgrade decision itself (mechanism exists in `AppBloc`; policy for
-  when to trip it for this feature is not yet decided).
+**Resolved in Plan B:**
+- `hasPin` self-healing — `migrateLegacyPin` now repairs a wiped flag when the
+  private credentials doc exists.
+- `PinNotSet` result variant — `failed-precondition` surfaces distinct "friend
+  has no PIN" copy instead of "check your connection".
+- TRANSITIONAL strategy header added to `firestore.rules`.
+- Completeness gate: `AppBloc` routes on `UserProfileModel.isComplete`
+  (username + PIN + onboardingComplete); legacy users re-enter the pre-filled
+  onboarding wizard.
+- Game fan-out is fully server-side (`onGameCreated` trigger); cross-user
+  `matches` writes are now DENIED by rules; the game-over `firebaseId`
+  overwrite bug is fixed (guard + UI exclusion + "I'm not playing" option).
+
+**Still open (deploy-time policy, Josh's call):** the force-upgrade decision —
+the maintenance/force-upgrade mechanism exists via `app_config_repository`;
+whether to trip it for this release (pairing with the rules+functions deploy so
+old clients can't hit the migrated-PIN and denied-fan-out paths) is decided at
+release time, not in code.
+
+**DEPLOY GATE (updated for Plan B):** the Plan B rules tightening (cross-user
+`matches` writes denied) and the app's removal of client-side fan-out MUST
+deploy together with the `onGameCreated` function: deploying rules without the
+function (or shipping the app without deploying either) silently stops friends'
+match-history sync — game saves would succeed while friends receive no copies.
+Order: `firebase deploy --only functions` → `firebase deploy --only
+firestore:rules` → app release.
 
 **Plan D note:** decide whether `UserProfileModel` should adopt
 `includeIfNull: false` (as CLAUDE.md's documented convention claims all models
