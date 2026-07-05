@@ -568,21 +568,29 @@ class FirebaseDatabaseRepository {
   }
 
   /// Removes a friend from both users' friend lists.
+  ///
+  /// Both edge deletes commit in one batch so a mid-operation failure
+  /// can't leave a half-alive friendship (one edge deleted, the reverse
+  /// intact) — the only realistic path to a friendship/pending-request
+  /// state the rules reason about as impossible.
   Future<void> removeFriend(String userId, String friendId) async {
     try {
-      await _firebase
-          .collection('friends')
-          .doc(userId)
-          .collection('friendList')
-          .doc(friendId)
-          .delete();
-
-      await _firebase
-          .collection('friends')
-          .doc(friendId)
-          .collection('friendList')
-          .doc(userId)
-          .delete();
+      final batch = _firebase.batch()
+        ..delete(
+          _firebase
+              .collection('friends')
+              .doc(userId)
+              .collection('friendList')
+              .doc(friendId),
+        )
+        ..delete(
+          _firebase
+              .collection('friends')
+              .doc(friendId)
+              .collection('friendList')
+              .doc(userId),
+        );
+      await batch.commit();
     } catch (e) {
       throw Exception('Failed to remove friend: $e');
     }
