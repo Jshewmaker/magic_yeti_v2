@@ -21,7 +21,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
             firstName: existingProfile?.firstName ?? '',
             lastName: existingProfile?.lastName ?? '',
             bio: existingProfile?.bio ?? '',
-            existingPinHash: existingProfile?.pin,
+            hasExistingPin: (existingProfile?.hasPin ?? false) ||
+                (existingProfile?.pin?.isNotEmpty ?? false),
             existingImageUrl: existingProfile?.imageUrl,
           ),
         ) {
@@ -126,10 +127,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final friendCode = existingProfile?.friendCode ??
           await _firebaseDatabaseRepository.generateUniqueFriendCode();
 
-      // Hash PIN — use new PIN if entered, otherwise keep existing
-      final pinHash = state.pin.value.isNotEmpty
-          ? FirebaseDatabaseRepository.hashPin(state.pin.value)
-          : state.existingPinHash ?? '';
+      final hasNewPin = state.pin.value.isNotEmpty;
 
       await _firebaseDatabaseRepository.updateUserProfile(
         event.userId,
@@ -142,10 +140,20 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
           bio: state.bio,
           imageUrl: imageUrl,
           friendCode: friendCode,
-          pin: pinHash,
+          hasPin: hasNewPin || state.hasExistingPin,
           onboardingComplete: true,
         ),
       );
+
+      // Persist a newly entered PIN as a salted hash in the private
+      // credentials subcollection (never on the profile document).
+      if (hasNewPin) {
+        await _firebaseDatabaseRepository.setPin(
+          event.userId,
+          state.pin.value,
+        );
+      }
+
       emit(state.copyWith(status: FormzSubmissionStatus.success));
     } on Exception catch (_) {
       emit(state.copyWith(status: FormzSubmissionStatus.failure));

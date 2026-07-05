@@ -256,9 +256,9 @@ class _PinStep extends StatelessWidget {
     return BlocBuilder<OnboardingBloc, OnboardingState>(
       buildWhen: (previous, current) =>
           previous.pin != current.pin ||
-          previous.existingPinHash != current.existingPinHash,
+          previous.hasExistingPin != current.hasExistingPin,
       builder: (context, state) {
-        final hasExistingPin = state.existingPinHash != null;
+        final hasExistingPin = state.hasExistingPin;
         return _StepLayout(
           header: 'Set Your PIN',
           explanation: hasExistingPin
