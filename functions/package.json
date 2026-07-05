@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "test": "jest --testPathIgnorePatterns test/rules",
-    "test:rules": "jest test/rules",
+    "test:rules": "jest test/rules --runInBand",
     "serve": "npm run build && firebase emulators:start --only functions,firestore,auth"
   },
   "dependencies": {
