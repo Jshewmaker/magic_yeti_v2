@@ -240,6 +240,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please select the account owner from the list to sync the game stats to their account:';
 
   @override
+  String get notPlayingOption => 'I\'m not playing';
+
+  @override
+  String get linkedAccountBadge => 'Linked to a friend\'s account';
+
+  @override
   String get cancel => 'Cancel';
 
   @override

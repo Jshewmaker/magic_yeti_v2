@@ -43,5 +43,7 @@
     "setYourPinTitle": "Configura tu PIN",
     "setYourPinDescription": "Configura un PIN de 4 dígitos para que tus amigos puedan verificar tu identidad al agregarte a una partida.",
     "savePinButtonText": "Guardar PIN",
-    "addFriendButtonText": "Agregar"
+    "addFriendButtonText": "Agregar",
+    "notPlayingOption": "No estoy jugando",
+    "linkedAccountBadge": "Vinculado a la cuenta de un amigo"
 }

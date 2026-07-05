@@ -455,6 +455,18 @@
     "type": "text",
     "placeholders": {}
   },
+  "notPlayingOption": "I'm not playing",
+  "@notPlayingOption": {
+    "description": "Account owner dropdown option meaning the current user is not one of the players",
+    "type": "text",
+    "placeholders": {}
+  },
+  "linkedAccountBadge": "Linked to a friend's account",
+  "@linkedAccountBadge": {
+    "description": "Tooltip for the badge shown on a standings row linked to another account",
+    "type": "text",
+    "placeholders": {}
+  },
   "cancel": "Cancel",
   "@cancel": {
     "description": "Cancel button text",

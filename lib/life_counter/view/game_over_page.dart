@@ -544,6 +544,19 @@ class _StandingRow extends StatelessWidget {
                 ),
               ),
 
+              if (player.firebaseId != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Tooltip(
+                    message: context.l10n.linkedAccountBadge,
+                    child: const Icon(
+                      Icons.link_rounded,
+                      color: _MC.accent,
+                      size: 16,
+                    ),
+                  ),
+                ),
+
               // Drag handle
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
@@ -642,9 +655,10 @@ class _DetailsPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          _PlayerDropdown(
+          _AccountOwnerDropdown(
             value: state.selectedPlayerId,
             players: players,
+            currentUserId: context.read<AppBloc>().state.user.id,
             onChanged: (v) =>
                 context.read<GameOverBloc>().add(UpdateSelectedPlayerEvent(v)),
           ),
@@ -793,6 +807,69 @@ class _PlayerDropdown extends StatelessWidget {
             ),
           )
           .toList(),
+      onChanged: onChanged,
+    );
+  }
+}
+
+class _AccountOwnerDropdown extends StatelessWidget {
+  const _AccountOwnerDropdown({
+    required this.value,
+    required this.players,
+    required this.currentUserId,
+    required this.onChanged,
+  });
+
+  final String? value;
+  final List<Player> players;
+  final String currentUserId;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectable = players
+        .where(
+          (p) => p.firebaseId == null || p.firebaseId == currentUserId,
+        )
+        .toList();
+    return DropdownButtonFormField<String>(
+      initialValue: value,
+      dropdownColor: _MC.surfaceRaised,
+      style: const TextStyle(
+        color: _MC.textPrimary,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+      ),
+      iconEnabledColor: _MC.textSecondary,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: _MC.surfaceRaised,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _MC.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _MC.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _MC.accent, width: 1.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+      ),
+      items: [
+        ...selectable.map(
+          (p) => DropdownMenuItem(value: p.id, child: Text(p.name)),
+        ),
+        DropdownMenuItem(
+          value: GameOverBloc.notPlayingId,
+          child: Text(context.l10n.notPlayingOption),
+        ),
+      ],
       onChanged: onChanged,
     );
   }

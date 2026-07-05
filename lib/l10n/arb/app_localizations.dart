@@ -524,6 +524,18 @@ abstract class AppLocalizations {
   /// **'Please select the account owner from the list to sync the game stats to their account:'**
   String get accountOwner;
 
+  /// Account owner dropdown option meaning the current user is not one of the players
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m not playing'**
+  String get notPlayingOption;
+
+  /// Tooltip for the badge shown on a standings row linked to another account
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to a friend\'s account'**
+  String get linkedAccountBadge;
+
   /// Cancel button text
   ///
   /// In en, this message translates to:
