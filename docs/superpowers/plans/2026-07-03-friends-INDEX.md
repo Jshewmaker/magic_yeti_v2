@@ -106,6 +106,15 @@ indexes are missing or still building, and cleanup steps 3-6 of
 `onUserDeleted` will silently throw `FAILED_PRECONDITION` in production.
 Index builds on existing data take time, so deploy indexes first and wait
 for the build to reach READY before deploying functions.
+BEFORE the first index deploy: export current production indexes
+(`firebase firestore:indexes`) and merge them into `firestore.indexes.json`
+— the file is declarative and ships `"indexes": []`, so the CLI will offer
+to DELETE any console-created composite indexes it doesn't know about
+(same never-versioned risk as the rules gate above). Note also that the
+fieldOverrides drop Firestore's automatic DESCENDING/array-contains
+single-field indexes on `friendList.userId` and `blocks.userId`; nothing
+queries those today, but future queries on those fields need the file
+extended.
 Order: `firebase deploy --only firestore:indexes` → `firebase deploy --only
 functions` → `firebase deploy --only firestore:rules` → app release.
 - Game-over debt: `GameOverState.props` fixed; save failures now block
@@ -133,6 +142,13 @@ functions` → `firebase deploy --only firestore:rules` → app release.
 - `search_user_page` renders raw exception text on search errors
   (pre-existing pattern).
 - The force-upgrade deploy decision (see deploy gates above).
+- Distinct "username can't be empty" copy on the profile submit gate
+  (currently the generic save-failed snackbar).
+- Refresh `state.profile` after a PIN save on the profile page (closes a
+  narrow stale-profile window when login migration failed and the user
+  changes PIN then saves profile fields in one session).
+- CI is red on main for pre-existing repo-wide reasons (formatting +
+  spell-check gate the analyze/test jobs) — fix in a dedicated change.
 - Consolidate the duplicate delete-account paths (`ProfileBloc`'s
   `ProfileDeleted` handler is test-only/unused by the page; the page and
   `AppBloc` route through `AppUserAccountDeleted`, whose `deleteAccount` call
