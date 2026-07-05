@@ -704,6 +704,23 @@ class FirebaseDatabaseRepository {
     return sha256.convert(bytes).toString();
   }
 
+  /// Generates a random 16-byte hex salt for PIN hashing.
+  static String generateSalt() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  /// Hashes a PIN with a salt: sha256(salt + pin).
+  static String saltedPinHash(String pin, String salt) {
+    final bytes = utf8.encode(salt + pin);
+    return sha256.convert(bytes).toString();
+  }
+
+  /// Gets a reference to a user's private credentials document.
+  DocumentReference<Map<String, dynamic>> _credentialsDoc(String userId) =>
+      _firebase.doc('users/$userId/private/credentials');
+
   /// Validates a PIN against a user's stored hash.
   ///
   /// Returns `true` if the PIN matches.
@@ -771,26 +788,69 @@ class FirebaseDatabaseRepository {
     }
   }
 
-  /// Checks whether a user has set their PIN.
+  /// Sets the user's PIN: salted hash into the private credentials doc,
+  /// `hasPin` flag onto the profile, legacy `pin` field removed.
+  Future<void> setPin(String userId, String pin) async {
+    try {
+      final salt = generateSalt();
+      final batch = _firebase.batch()
+        ..set(_credentialsDoc(userId), {
+          'pinHash': saltedPinHash(pin, salt),
+          'salt': salt,
+          'updatedAt': FieldValue.serverTimestamp(),
+        })
+        ..set(
+          _firebase.collection('users').doc(userId),
+          {'hasPin': true, 'pin': FieldValue.delete()},
+          SetOptions(merge: true),
+        );
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Failed to set PIN: $e');
+    }
+  }
+
+  /// Moves a legacy profile-doc PIN hash into the private credentials
+  /// doc. Safe to call on every login; no-ops when nothing to migrate.
+  Future<void> migrateLegacyPin(String userId) async {
+    try {
+      final profileRef = _firebase.collection('users').doc(userId);
+      final profile = await profileRef.get();
+      if (!profile.exists) return;
+      final legacyHash = profile.data()?['pin'] as String?;
+      if (legacyHash == null || legacyHash.isEmpty) return;
+
+      final credentials = await _credentialsDoc(userId).get();
+      final batch = _firebase.batch();
+      if (!credentials.exists) {
+        batch.set(_credentialsDoc(userId), {
+          'pinHash': legacyHash,
+          'salt': null,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      batch.set(
+        profileRef,
+        {'hasPin': true, 'pin': FieldValue.delete()},
+        SetOptions(merge: true),
+      );
+      await batch.commit();
+    } catch (_) {
+      // Migration is best-effort on login; the callable's legacy
+      // fallback keeps validation working until it succeeds.
+    }
+  }
+
+  /// Checks whether a user has set their PIN (new flag or legacy field).
   Future<bool> hasPin(String userId) async {
     try {
       final doc = await _firebase.collection('users').doc(userId).get();
       if (!doc.exists) return false;
-      return doc.data()?['pin'] != null;
+      final data = doc.data()!;
+      final legacy = data['pin'] as String?;
+      return data['hasPin'] == true || (legacy != null && legacy.isNotEmpty);
     } catch (e) {
       return false;
-    }
-  }
-
-  /// Sets a user's PIN (hashed).
-  Future<void> setPin(String userId, String pin) async {
-    try {
-      await _firebase.collection('users').doc(userId).set(
-        {'pin': hashPin(pin)},
-        SetOptions(merge: true),
-      );
-    } catch (e) {
-      throw Exception('Failed to set PIN: $e');
     }
   }
 }
