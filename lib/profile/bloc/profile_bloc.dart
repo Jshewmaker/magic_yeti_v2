@@ -38,6 +38,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     try {
       final profile =
           await _firebaseDatabaseRepository.getUserProfileOnce(event.userId);
+      if (profile == null) {
+        // A missing profile doc is a failure, not an empty success — the
+        // page would otherwise render a silent blank with no retry.
+        emit(state.copyWith(status: ProfileStatus.failure));
+        return;
+      }
       emit(
         state.copyWith(
           status: ProfileStatus.loaded,

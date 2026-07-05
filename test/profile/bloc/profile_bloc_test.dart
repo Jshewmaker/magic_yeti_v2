@@ -87,6 +87,40 @@ void main() {
         ),
       ],
     );
+
+    blocTest<ProfileBloc, ProfileState>(
+      'a missing profile doc emits failure, not an empty loaded state',
+      build: () {
+        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
+            .thenAnswer((_) async => null);
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const ProfileLoadRequested('u1')),
+      expect: () => [
+        isA<ProfileState>().having(
+          (s) => s.status,
+          'status',
+          ProfileStatus.loading,
+        ),
+        isA<ProfileState>().having(
+          (s) => s.status,
+          'status',
+          ProfileStatus.failure,
+        ),
+      ],
+    );
+
+    blocTest<ProfileBloc, ProfileState>(
+      'submit before load completes is a no-op (race guard)',
+      build: buildBloc,
+      act: (bloc) => bloc.add(const ProfileSubmitted()),
+      expect: () => <ProfileState>[],
+      verify: (_) {
+        verifyNever(
+          () => firebaseDatabaseRepository.updateUserProfile(any(), any()),
+        );
+      },
+    );
   });
 
   group('ProfileSubmitted', () {
