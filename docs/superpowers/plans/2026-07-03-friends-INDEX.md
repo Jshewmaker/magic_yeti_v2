@@ -52,10 +52,35 @@ release time, not in code.
 **DEPLOY GATE (updated for Plan B):** the Plan B rules tightening (cross-user
 `matches` writes denied) and the app's removal of client-side fan-out MUST
 deploy together with the `onGameCreated` function: deploying rules without the
-function (or shipping the app without deploying either) silently stops friends'
-match-history sync — game saves would succeed while friends receive no copies.
+function (or shipping the app without deploying either) silently stops ALL
+match-history sync — including the host's own copy (the client no longer writes
+any matches doc at game end); game saves would succeed while nobody receives
+copies.
 Order: `firebase deploy --only functions` → `firebase deploy --only
 firestore:rules` → app release.
+
+**Plan C must own (from the Plan B whole-branch review):**
+- Close the trigger-laundered cross-user write path: rules-validate
+  `request.resource.data.hostId == request.auth.uid` on `games` create (the only
+  client create path already sets it), and once friendship edges are
+  rules-enforced, consider gating trigger fan-out to recipients with a
+  friendship edge to `hostId`.
+- Uid-shape validation in `onGameCreated` (reject `firebaseId` containing `/` —
+  today a path-hostile id makes the batch throw and, with `retry: true`,
+  starves legitimate recipients for the retry window).
+- The B4 malformed-input trigger tests (non-array `players`, missing `hostId`).
+- Follow the established TRANSITIONAL test choreography when tightening the
+  remaining `friends/*` and `friendRequests` blocks.
+
+**Plan D must own:**
+- `GameOverState.props` omits `status`/`gameModel` (Equatable swallows
+  loading/success emissions) and `saveGameStats` failures vanish (no failure
+  status, navigation already happened) — needed before any save-failure UX.
+- "I'm not playing"/slot-switch does not unlink a self-linked slot (stats can
+  attribute a slot the user disowned; two slots can carry the same uid).
+- Dropdown test lookup by `Key` instead of positional `.last`; wrap the
+  account-owner label Row in `Flexible` (real overflow risk with Spanish
+  strings).
 
 **Plan D note:** decide whether `UserProfileModel` should adopt
 `includeIfNull: false` (as CLAUDE.md's documented convention claims all models

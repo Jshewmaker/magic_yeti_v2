@@ -169,6 +169,21 @@ void main() {
               .having((s) => s.status, 'status', AppStatus.onboardingRequired),
         ],
       );
+
+      blocTest<AppBloc, AppState>(
+        'network failure falls back to authenticated (offline users are '
+        'never locked out by the gate)',
+        setUp: () {
+          when(() => firebaseDatabaseRepository.getUserProfileOnce('user1'))
+              .thenThrow(Exception('network unavailable'));
+        },
+        build: buildBloc,
+        act: (bloc) => bloc.add(const AppUserChanged(authenticatedUser)),
+        expect: () => [
+          isA<AppState>()
+              .having((s) => s.status, 'status', AppStatus.authenticated),
+        ],
+      );
     });
   });
 }
