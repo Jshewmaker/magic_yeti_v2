@@ -171,9 +171,9 @@ class FriendsListView extends StatelessWidget {
             ),
             actions: <Widget>[
               TextButton(
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(color: AppColors.neutral60),
+                child: Text(
+                  l10n.cancelTextButton,
+                  style: const TextStyle(color: AppColors.neutral60),
                 ),
                 onPressed: () => Navigator.of(dialogContext).pop(),
               ),

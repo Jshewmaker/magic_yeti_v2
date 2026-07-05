@@ -59,12 +59,21 @@ service cloud.firestore {
       // the sender onto their own list, and themselves onto the sender's.
       // The edge doc's userId must match its key — FriendModel.userId feeds
       // PIN-validation targets, so a mismatched field would misdirect them.
+      // Pending-status gate + block checks close the declined-doc capability
+      // a blocked user could otherwise exploit: existence alone isn't enough
+      // (a declined doc still exists), and a block must win even over a
+      // pending request. `exists() && get().data...` is evaluated per
+      // disjunct so get() never runs on a missing doc.
       allow create, update: if
         request.resource.data.userId == friendId &&
+        !exists(/databases/$(database)/documents/users/$(uid)/blocks/$(friendId)) &&
+        !exists(/databases/$(database)/documents/users/$(friendId)/blocks/$(uid)) &&
         ((isOwner(uid) &&
-          exists(/databases/$(database)/documents/friendRequests/$(friendId + '_' + uid))) ||
+          exists(/databases/$(database)/documents/friendRequests/$(friendId + '_' + uid)) &&
+          get(/databases/$(database)/documents/friendRequests/$(friendId + '_' + uid)).data.status == 'pending') ||
         (signedIn() && request.auth.uid == friendId &&
-          exists(/databases/$(database)/documents/friendRequests/$(uid + '_' + request.auth.uid))));
+          exists(/databases/$(database)/documents/friendRequests/$(uid + '_' + request.auth.uid)) &&
+          get(/databases/$(database)/documents/friendRequests/$(uid + '_' + request.auth.uid)).data.status == 'pending'));
     }
 
     match /friendRequests/{requestId} {

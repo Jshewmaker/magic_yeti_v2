@@ -435,13 +435,19 @@ class FirebaseDatabaseRepository {
         .get();
     if (friendDoc.exists) return FriendRequestResult.alreadyFriends;
 
-    // Guard: pending (or declined) request already sent — deterministic
-    // doc read instead of a query.
-    final ownDocRef =
-        _friendCollection.doc(friendRequestDocId(senderId, receiverId));
-    final ownDoc = await ownDocRef.get();
-    if (ownDoc.exists) {
-      final status = (ownDoc.data()! as Map<String, dynamic>)['status'];
+    // Guard: pending (or declined) request already sent. Point-gets on
+    // possibly-missing friendRequests docs are rules-denied — a get() on a
+    // NONEXISTENT doc evaluates `resource` as null, so the participant read
+    // rule (which reads `resource.data.*`) errors out to DENIED — so guards
+    // must be constraint-proven queries instead of deterministic doc reads.
+    final ownSnapshot = await _friendCollection
+        .where('senderId', isEqualTo: senderId)
+        .where('receiverId', isEqualTo: receiverId)
+        .limit(1)
+        .get();
+    if (ownSnapshot.docs.isNotEmpty) {
+      final status =
+          (ownSnapshot.docs.first.data()! as Map<String, dynamic>)['status'];
       // A declined request stays declined; the sender sees "sent" and the
       // receiver never sees it again (silent re-send suppression).
       if (status == 'declined') return FriendRequestResult.sent;
@@ -449,13 +455,15 @@ class FirebaseDatabaseRepository {
     }
 
     // Guard: reverse request exists — auto-accept
-    final reverseDoc = await _friendCollection
-        .doc(friendRequestDocId(receiverId, senderId))
+    final reverseSnapshot = await _friendCollection
+        .where('senderId', isEqualTo: receiverId)
+        .where('receiverId', isEqualTo: senderId)
+        .where('status', isEqualTo: 'pending')
+        .limit(1)
         .get();
-    if (reverseDoc.exists &&
-        (reverseDoc.data()! as Map<String, dynamic>)['status'] == 'pending') {
+    if (reverseSnapshot.docs.isNotEmpty) {
       final reverseModel = FriendRequestModel.fromJson(
-        reverseDoc.data()! as Map<String, dynamic>,
+        reverseSnapshot.docs.first.data()! as Map<String, dynamic>,
       );
       await acceptFriendRequest(reverseModel, senderId);
       return FriendRequestResult.autoAccepted;
@@ -719,12 +727,12 @@ class FirebaseDatabaseRepository {
   /// Under the Task 3 rules, `friendRequests` deletes are pending-only —
   /// deleting a nonexistent doc (null `resource.data`) or a declined doc
   /// is denied. Declined docs don't need deleting: they're already invisible
-  /// to [getFriendRequests] and permanently suppress re-sends, so this
-  /// reads both deterministic docs first and only queues a delete for ones
-  /// that exist AND are still pending. It also queries both legacy
-  /// (random-id) pending directions and deletes those too — query results
-  /// are pending by construction, so no existence/status check is needed
-  /// for them.
+  /// to [getFriendRequests] and permanently suppress re-sends. Rather than
+  /// point-getting the deterministic docs (which is rules-denied when the
+  /// doc doesn't exist — see [addFriendRequest]), this queries both pending
+  /// directions by sender/receiver id, which matches deterministic-id docs
+  /// just as well as legacy random-id ones: query results are pending by
+  /// construction, so no existence/status check is needed for them.
   Future<void> blockUser({
     required String currentUserId,
     required BlockedUserModel target,
@@ -758,22 +766,8 @@ class FirebaseDatabaseRepository {
             .doc(currentUserId),
       );
 
-    final ownDocRef = _friendCollection.doc(
-      friendRequestDocId(currentUserId, target.userId),
-    );
-    final reverseDocRef = _friendCollection.doc(
-      friendRequestDocId(target.userId, currentUserId),
-    );
-
-    final results = await Future.wait([ownDocRef.get(), reverseDocRef.get()]);
-    for (final doc in results) {
-      if (doc.exists &&
-          (doc.data()! as Map<String, dynamic>)['status'] == 'pending') {
-        batch.delete(doc.reference);
-      }
-    }
-
-    // Legacy (random-id) pending requests in both directions.
+    // Pending requests in both directions (covers deterministic AND legacy
+    // random-id docs — the query matches on sender/receiver id, not doc id).
     final legacySent = await _friendCollection
         .where('senderId', isEqualTo: currentUserId)
         .where('receiverId', isEqualTo: target.userId)

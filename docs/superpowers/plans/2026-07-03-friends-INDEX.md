@@ -75,6 +75,12 @@ firestore:rules` → app release.
   `searchByFriendCode` callable (block-hiding both directions, fail-closed
   friend-edge direction), client batch block/unblock, blocked-users screen,
   friends-list block action.
+  Accepted residual: search block-hiding binds the official client only —
+  the `users` collection remains list-readable to any signed-in user at the
+  wire level, so a raw-SDK user can still find a blocker by friendCode
+  query. Request-create denial and edge gating still hold. Plan D
+  candidate: restrict users `list` (requires moving
+  generateUniqueFriendCode's uniqueness query server-side).
 - **Legacy data note (Josh, deploy-time):** pending requests created before
   this deploy (random doc ids) can be DECLINED but not accepted (accept shows
   "sent from an older version — ask them to re-send"). Optional one-time

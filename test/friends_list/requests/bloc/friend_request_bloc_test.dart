@@ -29,8 +29,10 @@ void main() {
 
     group('AcceptFriendRequest', () {
       blocTest<FriendRequestBloc, FriendRequestState>(
-        'emits FriendRequestLegacyAcceptError when the repository throws '
-        'LegacyFriendRequestException',
+        'emits FriendRequestLegacyAcceptError then re-emits the prior '
+        'loaded list when the repository throws '
+        'LegacyFriendRequestException, so the page recovers instead of '
+        'showing an empty list',
         setUp: () {
           when(() => repository.acceptFriendRequest(request, 'alice'))
               .thenThrow(
@@ -43,7 +45,14 @@ void main() {
         build: buildBloc,
         seed: () => FriendRequestLoaded([request]),
         act: (bloc) => bloc.add(AcceptFriendRequest(request, 'alice')),
-        expect: () => [isA<FriendRequestLegacyAcceptError>()],
+        expect: () => [
+          isA<FriendRequestLegacyAcceptError>(),
+          isA<FriendRequestLoaded>().having(
+            (s) => s.requests,
+            'requests',
+            [request],
+          ),
+        ],
       );
 
       blocTest<FriendRequestBloc, FriendRequestState>(

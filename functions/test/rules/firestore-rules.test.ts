@@ -5,7 +5,18 @@ import {
   RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
 import { readFileSync } from 'fs';
-import { doc, getDoc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  collection,
+  where,
+  limit,
+} from 'firebase/firestore';
 
 let env: RulesTestEnvironment;
 
@@ -249,6 +260,30 @@ describe('friendRequests lifecycle', () => {
     await assertFails(deleteDoc(doc(alice(), 'friendRequests/alice_bob')));
     await assertFails(deleteDoc(doc(bob(), 'friendRequests/alice_bob')));
   });
+
+  test('point get on a NONEXISTENT request doc is denied (why the client uses queries)', async () => {
+    await assertFails(getDoc(doc(alice(), 'friendRequests/alice_bob')));
+  });
+
+  test('participant-constrained queries are allowed with no matching docs', async () => {
+    await assertSucceeds(
+      getDocs(query(
+        collection(alice(), 'friendRequests'),
+        where('senderId', '==', 'alice'),
+        where('receiverId', '==', 'bob'),
+        limit(1),
+      )),
+    );
+    await assertSucceeds(
+      getDocs(query(
+        collection(alice(), 'friendRequests'),
+        where('senderId', '==', 'bob'),
+        where('receiverId', '==', 'alice'),
+        where('status', '==', 'pending'),
+        limit(1),
+      )),
+    );
+  });
 });
 
 describe('friendList lifecycle', () => {
@@ -315,5 +350,27 @@ describe('friendList lifecycle', () => {
     await assertFails(
       deleteDoc(doc(env.authenticatedContext('carol').firestore(), 'friends/alice/friendList/bob')),
     );
+  });
+
+  test('a declined request grants no edge writes, even for the decliner', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'friendRequests/alice_bob'), {
+        senderId: 'alice', receiverId: 'bob', status: 'declined',
+      });
+    });
+    await assertFails(setDoc(doc(bob(), 'friends/bob/friendList/alice'), { userId: 'alice' }));
+    await assertFails(setDoc(doc(bob(), 'friends/alice/friendList/bob'), { userId: 'bob' }));
+  });
+
+  test('a block denies edge writes even with a pending request', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const seedDb = ctx.firestore();
+      await setDoc(doc(seedDb, 'friendRequests/alice_bob'), {
+        senderId: 'alice', receiverId: 'bob', status: 'pending',
+      });
+      await setDoc(doc(seedDb, 'users/alice/blocks/bob'), { blockedAt: 1 });
+    });
+    await assertFails(setDoc(doc(bob(), 'friends/bob/friendList/alice'), { userId: 'alice' }));
+    await assertFails(setDoc(doc(bob(), 'friends/alice/friendList/bob'), { userId: 'bob' }));
   });
 });
