@@ -2,6 +2,7 @@
 // https://verygood.ventures
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fake_app_config_repository/fake_app_config_repository.dart';
 import 'package:firebase_authentication_client/firebase_authentication_client.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
@@ -20,6 +21,7 @@ void main() {
       final playerRepository = PlayerRepository();
       final firebaseDatabaseRepository = FirebaseDatabaseRepository(
         firebase: FirebaseFirestore.instance,
+        functions: FirebaseFunctions.instance,
       );
 
       final userRepository = UserRepository(

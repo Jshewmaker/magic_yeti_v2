@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_database_repository/models/models.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -149,10 +150,17 @@ class GetUserProfileException implements Exception {
 /// {@endtemplate}
 class FirebaseDatabaseRepository {
   /// {@macro firebase_database_repository}
-  const FirebaseDatabaseRepository({required FirebaseFirestore firebase})
-      : _firebase = firebase;
+  FirebaseDatabaseRepository({
+    required FirebaseFirestore firebase,
+    FirebaseFunctions? functions,
+  })  : _firebase = firebase,
+        _functionsOverride = functions;
 
   final FirebaseFirestore _firebase;
+  final FirebaseFunctions? _functionsOverride;
+
+  FirebaseFunctions get _functions =>
+      _functionsOverride ?? FirebaseFunctions.instance;
 
   CollectionReference get _friendCollection =>
       _firebase.collection('friendRequests');
@@ -721,20 +729,38 @@ class FirebaseDatabaseRepository {
   DocumentReference<Map<String, dynamic>> _credentialsDoc(String userId) =>
       _firebase.doc('users/$userId/private/credentials');
 
-  /// Validates a PIN against a user's stored hash.
+  /// Validates a friend's PIN via the `validatePin` Cloud Function.
   ///
-  /// Returns `true` if the PIN matches.
-  Future<bool> validatePin(String userId, String pin) async {
+  /// The hash never reaches this client; the server enforces the
+  /// 5-failures / 15-minute lockout and the friends-only precondition.
+  Future<PinValidationResult> validatePin({
+    required String targetUserId,
+    required String pin,
+  }) async {
     try {
-      final doc = await _firebase.collection('users').doc(userId).get();
-      if (!doc.exists) return false;
-
-      final storedHash = doc.data()?['pin'] as String?;
-      if (storedHash == null) return false;
-
-      return storedHash == hashPin(pin);
-    } catch (e) {
-      throw Exception('Failed to validate PIN: $e');
+      final result = await _functions
+          .httpsCallable('validatePin')
+          .call<dynamic>({'targetUserId': targetUserId, 'pin': pin});
+      final data = Map<String, dynamic>.from(result.data as Map);
+      if (data['valid'] == true) return const PinValid();
+      return PinInvalid(
+        attemptsRemaining: (data['attemptsRemaining'] as num?)?.toInt() ?? 0,
+      );
+    } on FirebaseFunctionsException catch (e) {
+      if (e.code == 'resource-exhausted') {
+        final details = e.details;
+        final millis = details is Map
+            ? (details['lockedUntilMillis'] as num?)?.toInt()
+            : null;
+        return PinLockedOut(
+          lockedUntil: millis != null
+              ? DateTime.fromMillisecondsSinceEpoch(millis)
+              : DateTime.now().add(const Duration(minutes: 15)),
+        );
+      }
+      return const PinCheckUnavailable();
+    } catch (_) {
+      return const PinCheckUnavailable();
     }
   }
 
