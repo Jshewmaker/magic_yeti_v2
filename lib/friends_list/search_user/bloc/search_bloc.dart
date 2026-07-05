@@ -23,16 +23,23 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   ) async {
     emit(SearchLoading());
     try {
-      final user = await repository.searchByFriendCode(event.friendCode);
-      if (user != null) {
-        final status = await repository.checkRelationshipStatus(
-          event.currentUserId,
-          user.id,
+      final result = await repository.searchByFriendCode(event.friendCode);
+      if (result.found && result.user != null) {
+        emit(
+          SearchLoaded(
+            [result.user!],
+            result.relationship ?? RelationshipStatus.none,
+          ),
         );
-        emit(SearchLoaded([user], status));
       } else {
         emit(const SearchLoaded([], RelationshipStatus.none));
       }
+      // ignore: avoid_catching_errors
+    } on ArgumentError catch (e) {
+      // The repository throws ArgumentError for a callable
+      // `invalid-argument` response (e.g. an empty/blank code); surface it
+      // the same as any other search failure instead of crashing the bloc.
+      emit(SearchError('Failed to search by friend code: $e'));
     } on Exception catch (e) {
       emit(SearchError('Failed to search by friend code: $e'));
     }

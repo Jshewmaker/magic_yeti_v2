@@ -336,8 +336,7 @@ class FirebaseDatabaseRepository {
   /// Returns null if the document does not exist.
   Future<UserProfileModel?> getUserProfileOnce(String userId) async {
     try {
-      final doc =
-          await _firebase.collection('users').doc(userId).get();
+      final doc = await _firebase.collection('users').doc(userId).get();
       if (!doc.exists || doc.data() == null) return null;
       return UserProfileModel.fromJson(doc.data()!);
     } on Exception catch (error, stackTrace) {
@@ -472,8 +471,7 @@ class FirebaseDatabaseRepository {
     try {
       final senderDoc =
           await _firebase.collection('users').doc(request.senderId).get();
-      final receiverDoc =
-          await _firebase.collection('users').doc(userId).get();
+      final receiverDoc = await _firebase.collection('users').doc(userId).get();
 
       final senderData = senderDoc.data();
       final receiverData = receiverDoc.data();
@@ -481,18 +479,15 @@ class FirebaseDatabaseRepository {
       // Build friend models from profile data with safe fallbacks
       final senderFriend = FriendModel(
         userId: request.senderId,
-        username: senderData?['username'] as String? ??
-            request.senderName,
-        profilePictureUrl:
-            senderData?['imageUrl'] as String? ?? '',
+        username: senderData?['username'] as String? ?? request.senderName,
+        profilePictureUrl: senderData?['imageUrl'] as String? ?? '',
         friendCode: senderData?['friendCode'] as String?,
       );
 
       final receiverFriend = FriendModel(
         userId: userId,
         username: receiverData?['username'] as String? ?? '',
-        profilePictureUrl:
-            receiverData?['imageUrl'] as String? ?? '',
+        profilePictureUrl: receiverData?['imageUrl'] as String? ?? '',
         friendCode: receiverData?['friendCode'] as String?,
       );
 
@@ -560,41 +555,6 @@ class FirebaseDatabaseRepository {
           .toList();
     } catch (e) {
       throw Exception('Failed to retrieve friends: $e');
-    }
-  }
-
-  /// Searches for users by username or email.
-  ///
-  /// @param searchTerm The term to search for in usernames or emails.
-  /// @returns Future<List<Map<String, dynamic>>> A list of user data maps.
-  /// @throws Exception if the search fails.
-  Future<List<UserProfileModel>> searchUsers(String searchTerm) async {
-    try {
-      final QuerySnapshot usernameSnapshot = await _firebase
-          .collection('users')
-          .where('username', isEqualTo: searchTerm)
-          .get();
-
-      final QuerySnapshot emailSnapshot = await _firebase
-          .collection('users')
-          .where('email', isEqualTo: searchTerm)
-          .get();
-
-      final users = <UserProfileModel>[];
-
-      for (final doc in usernameSnapshot.docs) {
-        users.add(
-            UserProfileModel.fromJson(doc.data()! as Map<String, dynamic>));
-      }
-
-      for (final doc in emailSnapshot.docs) {
-        users.add(
-            UserProfileModel.fromJson(doc.data()! as Map<String, dynamic>));
-      }
-
-      return users;
-    } catch (e) {
-      throw Exception('Failed to search users: $e');
     }
   }
 
@@ -669,65 +629,169 @@ class FirebaseDatabaseRepository {
         'attempts');
   }
 
-  /// Searches for a user by their friend code.
+  /// Searches for a user by their friend code via the block-aware
+  /// `searchByFriendCode` callable.
   ///
-  /// Returns the matching [UserProfileModel] or `null` if not found.
-  Future<UserProfileModel?> searchByFriendCode(String friendCode) async {
+  /// `found: false` is returned ONLY for a genuine server not-found result
+  /// (which includes block-hiding — indistinguishable by design). An
+  /// `invalid-argument` response is rethrown as an [ArgumentError]; any
+  /// other callable failure (offline, internal, etc.) is thrown as a plain
+  /// [Exception] so callers (e.g. SearchBloc) can surface their existing
+  /// error state instead of silently reading as "not found".
+  Future<FriendSearchResult> searchByFriendCode(String friendCode) async {
     try {
-      final snapshot = await _firebase
-          .collection('users')
-          .where('friendCode', isEqualTo: friendCode.toUpperCase().trim())
-          .limit(1)
-          .get();
+      final result = await _functions
+          .httpsCallable('searchByFriendCode')
+          .call<dynamic>({'code': friendCode});
+      final data = Map<String, dynamic>.from(result.data as Map);
 
-      if (snapshot.docs.isEmpty) return null;
+      if (data['found'] != true) return const FriendSearchResult(found: false);
 
-      return UserProfileModel.fromJson(snapshot.docs.first.data());
-    } catch (e) {
-      throw Exception('Failed to search by friend code: $e');
+      final userJson = Map<String, dynamic>.from(data['user'] as Map);
+      final relationship = _relationshipFromString(
+        data['relationship'] as String?,
+      );
+
+      return FriendSearchResult(
+        found: true,
+        user: UserProfileModel.fromJson(userJson),
+        relationship: relationship,
+      );
+    } on FirebaseFunctionsException catch (e) {
+      if (e.code == 'invalid-argument') {
+        throw ArgumentError(e.message ?? 'Invalid friend code');
+      }
+      throw Exception('Friend code search unavailable');
     }
   }
 
-  /// Checks the relationship status between two users.
+  /// Maps the callable's relationship string onto [RelationshipStatus].
+  static RelationshipStatus _relationshipFromString(String? value) {
+    switch (value) {
+      case 'friends':
+        return RelationshipStatus.friends;
+      case 'pendingSent':
+        return RelationshipStatus.pendingSent;
+      case 'pendingReceived':
+        return RelationshipStatus.pendingReceived;
+      case 'self':
+        return RelationshipStatus.self;
+      case 'none':
+      default:
+        return RelationshipStatus.none;
+    }
+  }
+
+  /// Blocks [target]: writes the owner-managed block doc (denormalized
+  /// username/imageUrl + server timestamp), removes both friendship edges,
+  /// and deletes any pending friend-request docs between the two users.
   ///
-  /// Returns [RelationshipStatus] indicating the current state:
-  /// self, friends, pendingSent, pendingReceived, or none.
-  Future<RelationshipStatus> checkRelationshipStatus(
-    String currentUserId,
-    String otherUserId,
-  ) async {
-    if (currentUserId == otherUserId) return RelationshipStatus.self;
+  /// Under the Task 3 rules, `friendRequests` deletes are pending-only —
+  /// deleting a nonexistent doc (null `resource.data`) or a declined doc
+  /// is denied. Declined docs don't need deleting: they're already invisible
+  /// to [getFriendRequests] and permanently suppress re-sends, so this
+  /// reads both deterministic docs first and only queues a delete for ones
+  /// that exist AND are still pending. It also queries both legacy
+  /// (random-id) pending directions and deletes those too — query results
+  /// are pending by construction, so no existence/status check is needed
+  /// for them.
+  Future<void> blockUser({
+    required String currentUserId,
+    required BlockedUserModel target,
+  }) async {
+    final batch = _firebase.batch()
+      ..set(
+        _firebase
+            .collection('users')
+            .doc(currentUserId)
+            .collection('blocks')
+            .doc(target.userId),
+        {
+          'userId': target.userId,
+          'username': target.username,
+          'imageUrl': target.imageUrl,
+          'blockedAt': FieldValue.serverTimestamp(),
+        },
+      )
+      ..delete(
+        _firebase
+            .collection('friends')
+            .doc(currentUserId)
+            .collection('friendList')
+            .doc(target.userId),
+      )
+      ..delete(
+        _firebase
+            .collection('friends')
+            .doc(target.userId)
+            .collection('friendList')
+            .doc(currentUserId),
+      );
 
-    // Check if already friends
-    final friendDoc = await _firebase
-        .collection('friends')
-        .doc(currentUserId)
-        .collection('friendList')
-        .doc(otherUserId)
-        .get();
-    if (friendDoc.exists) return RelationshipStatus.friends;
+    final ownDocRef = _friendCollection.doc(
+      friendRequestDocId(currentUserId, target.userId),
+    );
+    final reverseDocRef = _friendCollection.doc(
+      friendRequestDocId(target.userId, currentUserId),
+    );
 
-    // Check if current user sent a pending request
-    final sentRequest = await _friendCollection
-        .where('senderId', isEqualTo: currentUserId)
-        .where('receiverId', isEqualTo: otherUserId)
-        .where('status', isEqualTo: 'pending')
-        .limit(1)
-        .get();
-    if (sentRequest.docs.isNotEmpty) return RelationshipStatus.pendingSent;
-
-    // Check if other user sent a pending request
-    final receivedRequest = await _friendCollection
-        .where('senderId', isEqualTo: otherUserId)
-        .where('receiverId', isEqualTo: currentUserId)
-        .where('status', isEqualTo: 'pending')
-        .limit(1)
-        .get();
-    if (receivedRequest.docs.isNotEmpty) {
-      return RelationshipStatus.pendingReceived;
+    final results = await Future.wait([ownDocRef.get(), reverseDocRef.get()]);
+    for (final doc in results) {
+      if (doc.exists &&
+          (doc.data()! as Map<String, dynamic>)['status'] == 'pending') {
+        batch.delete(doc.reference);
+      }
     }
 
-    return RelationshipStatus.none;
+    // Legacy (random-id) pending requests in both directions.
+    final legacySent = await _friendCollection
+        .where('senderId', isEqualTo: currentUserId)
+        .where('receiverId', isEqualTo: target.userId)
+        .where('status', isEqualTo: 'pending')
+        .get();
+    for (final doc in legacySent.docs) {
+      batch.delete(doc.reference);
+    }
+
+    final legacyReceived = await _friendCollection
+        .where('senderId', isEqualTo: target.userId)
+        .where('receiverId', isEqualTo: currentUserId)
+        .where('status', isEqualTo: 'pending')
+        .get();
+    for (final doc in legacyReceived.docs) {
+      batch.delete(doc.reference);
+    }
+
+    await batch.commit();
+  }
+
+  /// Unblocks a user by deleting the block doc only. Friendship edges and
+  /// requests were already removed at block time and are not restored.
+  Future<void> unblockUser({
+    required String currentUserId,
+    required String targetUserId,
+  }) async {
+    await _firebase
+        .collection('users')
+        .doc(currentUserId)
+        .collection('blocks')
+        .doc(targetUserId)
+        .delete();
+  }
+
+  /// Streams the current user's blocked users, newest-first.
+  Stream<List<BlockedUserModel>> getBlockedUsers(String userId) {
+    return _firebase
+        .collection('users')
+        .doc(userId)
+        .collection('blocks')
+        .orderBy('blockedAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => BlockedUserModel.fromJson(doc.data()))
+              .toList(),
+        );
   }
 
   /// Hashes a 4-digit PIN using SHA-256.
@@ -798,8 +862,7 @@ class FirebaseDatabaseRepository {
   /// generates and adds one. Returns the current friend code.
   Future<String?> ensureUserProfile(UserProfileModel profile) async {
     try {
-      final doc =
-          await _firebase.collection('users').doc(profile.id).get();
+      final doc = await _firebase.collection('users').doc(profile.id).get();
 
       if (!doc.exists) {
         // No profile at all — create a full one with friend code
