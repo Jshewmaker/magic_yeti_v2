@@ -22,6 +22,7 @@ class UserProfileModel extends Equatable {
     this.friendCode,
     this.pin,
     this.onboardingComplete = false,
+    this.hasPin = false,
   });
 
   /// Factory constructor for a [UserProfileModel] from a JSON map
@@ -64,6 +65,10 @@ class UserProfileModel extends Equatable {
   /// SHA-256 hashed 4-digit PIN for identity verification
   final String? pin;
 
+  /// Whether the user has a PIN set (hash lives in the private
+  /// credentials subcollection, so only this flag is public).
+  final bool hasPin;
+
   /// Whether the user has completed the onboarding flow
   final bool onboardingComplete;
 
@@ -84,6 +89,7 @@ class UserProfileModel extends Equatable {
     String? friendCode,
     String? pin,
     bool? onboardingComplete,
+    bool? hasPin,
   }) =>
       UserProfileModel(
         id: id ?? this.id,
@@ -98,7 +104,15 @@ class UserProfileModel extends Equatable {
         friendCode: friendCode ?? this.friendCode,
         pin: pin ?? this.pin,
         onboardingComplete: onboardingComplete ?? this.onboardingComplete,
+        hasPin: hasPin ?? this.hasPin,
       );
+
+  /// Whether the profile satisfies the friends-feature requirements:
+  /// onboarded, has a username, and has a PIN (new flag or legacy field).
+  bool get isComplete =>
+      onboardingComplete &&
+      (username?.isNotEmpty ?? false) &&
+      (hasPin || (pin?.isNotEmpty ?? false));
 
   @override
   List<Object?> get props => [
@@ -114,5 +128,6 @@ class UserProfileModel extends Equatable {
         friendCode,
         pin,
         onboardingComplete,
+        hasPin,
       ];
 }
