@@ -129,6 +129,28 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
       final hasNewPin = state.pin.value.isNotEmpty;
 
+      // Persist a newly entered PIN as a salted hash in the private
+      // credentials subcollection BEFORE the profile save. Ordering
+      // invariant — do not swap without re-reading this comment:
+      //   * setPin fails: nothing has been written yet, submit emits
+      //     failure, and the user can retry cleanly from an untouched
+      //     state.
+      //   * setPin succeeds but the profile save below fails: setPin's
+      //     own batch already merged `hasPin: true` onto the profile
+      //     doc (see FirebaseDatabaseRepository.setPin), so a retry (or
+      //     a later onboarding re-entry) seeds `hasExistingPin: true`
+      //     from that flag and the user is never re-asked for a PIN;
+      //     the profile save then simply completes onboarding.
+      // Reversing this order would let a profile-save success mark the
+      // user onboarded-with-PIN while leaving no credentials doc behind,
+      // permanently locking them out of validatePin with no re-prompt.
+      if (hasNewPin) {
+        await _firebaseDatabaseRepository.setPin(
+          event.userId,
+          state.pin.value,
+        );
+      }
+
       await _firebaseDatabaseRepository.updateUserProfile(
         event.userId,
         UserProfileModel(
@@ -144,15 +166,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
           onboardingComplete: true,
         ),
       );
-
-      // Persist a newly entered PIN as a salted hash in the private
-      // credentials subcollection (never on the profile document).
-      if (hasNewPin) {
-        await _firebaseDatabaseRepository.setPin(
-          event.userId,
-          state.pin.value,
-        );
-      }
 
       emit(state.copyWith(status: FormzSubmissionStatus.success));
     } on Exception catch (_) {

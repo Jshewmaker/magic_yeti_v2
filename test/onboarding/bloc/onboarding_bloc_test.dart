@@ -80,5 +80,85 @@ void main() {
         expect(profile.onboardingComplete, isTrue);
       },
     );
+
+    blocTest<OnboardingBloc, OnboardingState>(
+      'submit with an untouched pin and an existing PIN keeps hasPin true '
+      'without calling setPin',
+      build: () {
+        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
+            .thenAnswer(
+          (_) async => const UserProfileModel(id: 'u1', hasPin: true),
+        );
+        when(() => firebaseDatabaseRepository.generateUniqueFriendCode())
+            .thenAnswer((_) async => 'YETI-A3F9');
+        when(
+          () => firebaseDatabaseRepository.updateUserProfile(
+            'u1',
+            any(),
+          ),
+        ).thenAnswer((_) async {});
+        return buildBloc(
+          existingProfile: const UserProfileModel(id: 'u1', hasPin: true),
+        );
+      },
+      seed: () => const OnboardingState(
+        username: Username.dirty('josh'),
+        hasExistingPin: true,
+      ),
+      act: (bloc) => bloc.add(const OnboardingSubmitted('u1')),
+      verify: (_) {
+        verifyNever(() => firebaseDatabaseRepository.setPin(any(), any()));
+        final profile = verify(
+          () => firebaseDatabaseRepository.updateUserProfile(
+            'u1',
+            captureAny(),
+          ),
+        ).captured.single as UserProfileModel;
+        expect(profile.hasPin, isTrue);
+        expect(profile.pin, isNull);
+      },
+    );
+
+    blocTest<OnboardingBloc, OnboardingState>(
+      'submit fails without saving the profile when setPin throws '
+      '(pins the setPin-before-save ordering)',
+      build: () {
+        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
+            .thenAnswer((_) async => null);
+        when(() => firebaseDatabaseRepository.generateUniqueFriendCode())
+            .thenAnswer((_) async => 'YETI-A3F9');
+        when(() => firebaseDatabaseRepository.setPin('u1', '0742'))
+            .thenThrow(Exception('boom'));
+        when(
+          () => firebaseDatabaseRepository.updateUserProfile(
+            'u1',
+            any(),
+          ),
+        ).thenAnswer((_) async {});
+        return buildBloc();
+      },
+      seed: () => const OnboardingState(
+        username: Username.dirty('josh'),
+        pin: Pin.dirty('0742'),
+      ),
+      act: (bloc) => bloc.add(const OnboardingSubmitted('u1')),
+      expect: () => [
+        isA<OnboardingState>().having(
+          (s) => s.status,
+          'status',
+          FormzSubmissionStatus.inProgress,
+        ),
+        isA<OnboardingState>().having(
+          (s) => s.status,
+          'status',
+          FormzSubmissionStatus.failure,
+        ),
+      ],
+      verify: (_) {
+        verifyNever(
+          () => firebaseDatabaseRepository.updateUserProfile(any(), any()),
+        );
+      },
+    );
   });
 }
