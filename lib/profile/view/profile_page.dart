@@ -29,7 +29,7 @@ class ProfilePage extends StatelessWidget {
         firebaseDatabaseRepository: context.read<FirebaseDatabaseRepository>(),
         userRepository: context.read<UserRepository>(),
         userProfile: user,
-      ),
+      )..add(ProfileLoadRequested(user.id)),
       child: const ProfileView(),
     );
   }
@@ -47,17 +47,24 @@ class ProfileView extends StatelessWidget {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              const SnackBar(content: Text('Profile Updated Successfully')),
+              SnackBar(content: Text(context.l10n.profileSavedMessage)),
             );
         }
         if (state.status == ProfileStatus.failure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              const SnackBar(
-                content: Text('Failed to update profile'),
+              SnackBar(
+                content: Text(context.l10n.profileSaveFailedMessage),
                 backgroundColor: Colors.red,
               ),
+            );
+        }
+        if (state.status == ProfileStatus.pinSaved) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(content: Text(context.l10n.pinChangedMessage)),
             );
         }
       },
@@ -79,34 +86,43 @@ class ProfileView extends StatelessWidget {
                   width: 500,
                   child: BlocBuilder<ProfileBloc, ProfileState>(
                     buildWhen: (previous, current) =>
-                        previous.status != current.status,
+                        previous.status != current.status ||
+                        previous.isEditing != current.isEditing,
                     builder: (context, state) {
-                      if (state.status == ProfileStatus.loading) {
+                      if (state.status == ProfileStatus.loading &&
+                          state.profile == null) {
                         return const Center(child: CircularProgressIndicator());
                       }
+
+                      final profile = state.profile;
+                      if (profile == null) {
+                        // Load hasn't produced a profile yet (e.g. failure
+                        // before any successful load) — nothing to render.
+                        return const SizedBox.shrink();
+                      }
+
                       return Form(
                         child: Column(
                           children: [
-                            if (state.userProfile.photo != null &&
-                                state.userProfile.photo!.isNotEmpty)
+                            if (profile.imageUrl != null &&
+                                profile.imageUrl!.isNotEmpty)
                               Center(
                                 child: CircleAvatar(
                                   radius: 75,
                                   backgroundImage:
-                                      NetworkImage(state.userProfile.photo!),
+                                      NetworkImage(profile.imageUrl!),
                                 ),
                               ),
-                            if (state.userProfile.photo == null ||
-                                state.userProfile.photo!.isEmpty)
+                            if (profile.imageUrl == null ||
+                                profile.imageUrl!.isEmpty)
                               Center(
                                 child: CircleAvatar(
                                   radius: 75,
                                   backgroundColor:
                                       Theme.of(context).primaryColor,
                                   child: Text(
-                                    (state.userProfile.name ?? '').isNotEmpty
-                                        ? state.userProfile.name![0]
-                                            .toUpperCase()
+                                    (profile.username ?? '').isNotEmpty
+                                        ? profile.username![0].toUpperCase()
                                         : '',
                                     style: const TextStyle(
                                       fontSize: 40,
@@ -118,42 +134,49 @@ class ProfileView extends StatelessWidget {
                             const SizedBox(height: 50),
                             _ProfileField(
                               label: 'Username',
-                              initialValue: state.userProfile.email ?? '',
+                              initialValue: profile.username ?? '',
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileUsernameChanged(value)),
                             ),
                             _ProfileField(
-                              label: 'Name',
-                              initialValue: state.userProfile.name ?? '',
+                              label: 'First Name',
+                              initialValue: profile.firstName ?? '',
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileFirstNameChanged(value)),
                             ),
-                            // _ProfileField(
-                            //   label: 'Last Name',
-                            //   initialValue: state.userProfile.name ?? '',
-                            //   onChanged: (value) => context
-                            //       .read<ProfileBloc>()
-                            //       .add(ProfileLastNameChanged(value)),
-                            // ),
                             _ProfileField(
-                              label: 'Email',
-                              initialValue: state.userProfile.email ?? '',
+                              label: 'Last Name',
+                              initialValue: profile.lastName ?? '',
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
-                                  .add(ProfileEmailChanged(value)),
+                                  .add(ProfileLastNameChanged(value)),
+                            ),
+                            _ProfileField(
+                              label: 'Bio',
+                              initialValue: profile.bio ?? '',
+                              onChanged: (value) => context
+                                  .read<ProfileBloc>()
+                                  .add(ProfileBioChanged(value)),
+                            ),
+                            // Email is auth-managed and read-only here —
+                            // there is no ProfileEmailChanged event/pathway
+                            // anymore; edit via the auth provider instead.
+                            _ReadOnlyProfileField(
+                              label: 'Email',
+                              value: profile.email ?? '',
                             ),
                             const SizedBox(height: 20),
-                            _FriendCodeSection(
-                              userId: state.userProfile.id,
-                            ),
+                            _FriendCodeSection(friendCode: profile.friendCode),
                             const SizedBox(height: 20),
+                            const _ChangePinSection(),
+                            const SizedBox(height: 20),
+                            _EditProfileButton(),
+                            const SizedBox(height: 16),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                //   _EditProfileButton(),
-                                //const SizedBox(width: 16),
                                 _SignOutButton(),
                                 const SizedBox(width: 16),
                                 _DeleteProfileButton(),
@@ -240,6 +263,10 @@ class _DeleteProfileButton extends StatelessWidget {
                   HoldToConfirmButton(
                     child: const Text('Delete Profile'),
                     onProgressCompleted: () {
+                      // Server-side cleanup (friends/requests/blocks tied
+                      // to this account) now runs via a Firestore trigger
+                      // on account deletion (see Task 1), so there is no
+                      // client-side fan-out cleanup to trigger here.
                       context
                           .read<AppBloc>()
                           .add(const AppUserAccountDeleted());
@@ -276,64 +303,136 @@ class _SignOutButton extends StatelessWidget {
 }
 
 class _FriendCodeSection extends StatelessWidget {
-  const _FriendCodeSection({required this.userId});
+  const _FriendCodeSection({required this.friendCode});
 
-  final String userId;
+  final String? friendCode;
 
   @override
   Widget build(BuildContext context) {
-    final db = context.read<FirebaseDatabaseRepository>();
-    return StreamBuilder<UserProfileModel>(
-      stream: db.getUserProfile(userId),
-      builder: (context, snapshot) {
-        final friendCode = snapshot.data?.friendCode;
-        if (friendCode == null) return const SizedBox.shrink();
+    final code = friendCode;
+    if (code == null) return const SizedBox.shrink();
 
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            const Icon(Icons.badge_outlined),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.badge_outlined),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.l10n.friendCodeLabel,
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                    Text(
-                      friendCode,
-                      style:
-                          Theme.of(context).textTheme.headlineSmall,
-                    ),
-                  ],
+                Text(
+                  context.l10n.friendCodeLabel,
+                  style: Theme.of(context).textTheme.labelMedium,
                 ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.copy),
-                  tooltip: context.l10n.copyFriendCodeTooltip,
-                  onPressed: () {
-                    Clipboard.setData(
-                      ClipboardData(text: friendCode),
+                Text(
+                  code,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+              ],
+            ),
+            const Spacer(),
+            // share_plus is not a dependency of the root app (checked
+            // pubspec.yaml/pubspec.lock) — keeping copy-only rather than
+            // adding a new dependency for this. If share_plus is added
+            // later, wire a share icon here via Share.share(code).
+            IconButton(
+              icon: const Icon(Icons.copy),
+              tooltip: context.l10n.copyFriendCodeTooltip,
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: code));
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(context.l10n.friendCodeCopiedMessage),
+                    ),
+                  );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChangePinSection extends StatefulWidget {
+  const _ChangePinSection();
+
+  @override
+  State<_ChangePinSection> createState() => _ChangePinSectionState();
+}
+
+class _ChangePinSectionState extends State<_ChangePinSection> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.l10n.changePinTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              context.l10n.changePinDescription,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    key: const Key('profile_pin_field'),
+                    controller: _controller,
+                    keyboardType: TextInputType.number,
+                    maxLength: 4,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.newPinLabel,
+                      counterText: '',
+                    ),
+                    onChanged: (value) => context
+                        .read<ProfileBloc>()
+                        .add(ProfilePinChanged(value)),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                BlocBuilder<ProfileBloc, ProfileState>(
+                  buildWhen: (previous, current) =>
+                      previous.pin != current.pin ||
+                      previous.status != current.status,
+                  builder: (context, state) {
+                    return ElevatedButton(
+                      key: const Key('profile_pin_submit_button'),
+                      onPressed: state.pin.isValid &&
+                              state.status != ProfileStatus.loading
+                          ? () => context
+                              .read<ProfileBloc>()
+                              .add(const ProfilePinSubmitted())
+                          : null,
+                      child: const Text('Save'),
                     );
-                    ScaffoldMessenger.of(context)
-                      ..hideCurrentSnackBar()
-                      ..showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            context.l10n.friendCodeCopiedMessage,
-                          ),
-                        ),
-                      );
                   },
                 ),
               ],
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }
@@ -381,6 +480,38 @@ class _ProfileField extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _ReadOnlyProfileField extends StatelessWidget {
+  const _ReadOnlyProfileField({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(value.isEmpty ? 'Not set' : value),
+          ),
+        ],
+      ),
     );
   }
 }

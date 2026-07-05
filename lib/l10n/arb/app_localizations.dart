@@ -991,6 +991,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t save the game. Check your connection and try again.'**
   String get gameSaveFailedError;
+
+  /// Title for the change-PIN section on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get changePinTitle;
+
+  /// Description for the change-PIN section on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Your PIN confirms your identity when friends add you to a game.'**
+  String get changePinDescription;
+
+  /// Label for the new-PIN input field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'New PIN'**
+  String get newPinLabel;
+
+  /// Snackbar message shown after the PIN is changed successfully
+  ///
+  /// In en, this message translates to:
+  /// **'PIN updated!'**
+  String get pinChangedMessage;
+
+  /// Tooltip for the share friend code button
+  ///
+  /// In en, this message translates to:
+  /// **'Share friend code'**
+  String get shareFriendCodeTooltip;
+
+  /// Snackbar message shown after the profile is saved successfully
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved'**
+  String get profileSavedMessage;
+
+  /// Snackbar error shown when saving the profile fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your profile. Try again.'**
+  String get profileSaveFailedMessage;
 }
 
 class _AppLocalizationsDelegate

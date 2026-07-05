@@ -502,4 +502,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get gameSaveFailedError =>
       'Couldn\'t save the game. Check your connection and try again.';
+
+  @override
+  String get changePinTitle => 'Change PIN';
+
+  @override
+  String get changePinDescription =>
+      'Your PIN confirms your identity when friends add you to a game.';
+
+  @override
+  String get newPinLabel => 'New PIN';
+
+  @override
+  String get pinChangedMessage => 'PIN updated!';
+
+  @override
+  String get shareFriendCodeTooltip => 'Share friend code';
+
+  @override
+  String get profileSavedMessage => 'Profile saved';
+
+  @override
+  String get profileSaveFailedMessage =>
+      'Couldn\'t save your profile. Try again.';
 }

@@ -54,5 +54,12 @@
     "blockedUsersTitle": "Usuarios Bloqueados",
     "blockedUsersEmpty": "No has bloqueado a nadie.",
     "legacyRequestAcceptError": "Esta solicitud se envió desde una versión anterior. Pídele que la vuelva a enviar.",
-    "gameSaveFailedError": "No se pudo guardar la partida. Revisa tu conexión e inténtalo de nuevo."
+    "gameSaveFailedError": "No se pudo guardar la partida. Revisa tu conexión e inténtalo de nuevo.",
+    "changePinTitle": "Cambiar PIN",
+    "changePinDescription": "Tu PIN confirma tu identidad cuando tus amigos te agregan a una partida.",
+    "newPinLabel": "Nuevo PIN",
+    "pinChangedMessage": "¡PIN actualizado!",
+    "shareFriendCodeTooltip": "Compartir código de amigo",
+    "profileSavedMessage": "Perfil guardado",
+    "profileSaveFailedMessage": "No se pudo guardar tu perfil. Inténtalo de nuevo."
 }

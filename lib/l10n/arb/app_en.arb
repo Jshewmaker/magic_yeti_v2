@@ -855,6 +855,34 @@
   "gameSaveFailedError": "Couldn't save the game. Check your connection and try again.",
   "@gameSaveFailedError": {
     "description": "Snackbar error shown when saving the game-over stats to the database fails"
+  },
+  "changePinTitle": "Change PIN",
+  "@changePinTitle": {
+    "description": "Title for the change-PIN section on the profile page"
+  },
+  "changePinDescription": "Your PIN confirms your identity when friends add you to a game.",
+  "@changePinDescription": {
+    "description": "Description for the change-PIN section on the profile page"
+  },
+  "newPinLabel": "New PIN",
+  "@newPinLabel": {
+    "description": "Label for the new-PIN input field on the profile page"
+  },
+  "pinChangedMessage": "PIN updated!",
+  "@pinChangedMessage": {
+    "description": "Snackbar message shown after the PIN is changed successfully"
+  },
+  "shareFriendCodeTooltip": "Share friend code",
+  "@shareFriendCodeTooltip": {
+    "description": "Tooltip for the share friend code button"
+  },
+  "profileSavedMessage": "Profile saved",
+  "@profileSavedMessage": {
+    "description": "Snackbar message shown after the profile is saved successfully"
+  },
+  "profileSaveFailedMessage": "Couldn't save your profile. Try again.",
+  "@profileSaveFailedMessage": {
+    "description": "Snackbar error shown when saving the profile fails"
   }
 }
 

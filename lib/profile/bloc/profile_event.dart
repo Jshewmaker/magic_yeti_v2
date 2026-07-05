@@ -7,6 +7,16 @@ abstract class ProfileEvent extends Equatable {
   List<Object> get props => [];
 }
 
+/// Triggers the initial profile load via `getUserProfileOnce`.
+class ProfileLoadRequested extends ProfileEvent {
+  const ProfileLoadRequested(this.userId);
+
+  final String userId;
+
+  @override
+  List<Object> get props => [userId];
+}
+
 class ProfileEditingToggled extends ProfileEvent {
   const ProfileEditingToggled();
 }
@@ -38,15 +48,6 @@ class ProfileLastNameChanged extends ProfileEvent {
   List<Object> get props => [lastName];
 }
 
-class ProfileEmailChanged extends ProfileEvent {
-  const ProfileEmailChanged(this.email);
-
-  final String email;
-
-  @override
-  List<Object> get props => [email];
-}
-
 class ProfileBioChanged extends ProfileEvent {
   const ProfileBioChanged(this.bio);
 
@@ -58,6 +59,23 @@ class ProfileBioChanged extends ProfileEvent {
 
 class ProfileSubmitted extends ProfileEvent {
   const ProfileSubmitted();
+}
+
+/// New-PIN field changed on the profile page. Reuses the shared [Pin]
+/// formz input.
+class ProfilePinChanged extends ProfileEvent {
+  const ProfilePinChanged(this.pin);
+
+  final String pin;
+
+  @override
+  List<Object> get props => [pin];
+}
+
+/// Submits the entered PIN via `setPin`. Decision #5: no old-PIN prompt
+/// is required to change the PIN from the profile page.
+class ProfilePinSubmitted extends ProfileEvent {
+  const ProfilePinSubmitted();
 }
 
 class ProfileDeleted extends ProfileEvent {

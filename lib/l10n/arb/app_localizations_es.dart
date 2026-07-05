@@ -506,4 +506,27 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get gameSaveFailedError =>
       'No se pudo guardar la partida. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get changePinTitle => 'Cambiar PIN';
+
+  @override
+  String get changePinDescription =>
+      'Tu PIN confirma tu identidad cuando tus amigos te agregan a una partida.';
+
+  @override
+  String get newPinLabel => 'Nuevo PIN';
+
+  @override
+  String get pinChangedMessage => '¡PIN actualizado!';
+
+  @override
+  String get shareFriendCodeTooltip => 'Compartir código de amigo';
+
+  @override
+  String get profileSavedMessage => 'Perfil guardado';
+
+  @override
+  String get profileSaveFailedMessage =>
+      'No se pudo guardar tu perfil. Inténtalo de nuevo.';
 }
