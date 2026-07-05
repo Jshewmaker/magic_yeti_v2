@@ -828,6 +828,15 @@
     "description": "Body copy for the block-user confirmation dialog"
   },
   "unblockUserAction": "Unblock",
+  "unblockUserConfirmBody": "Are you sure you want to unblock {name}?",
+  "@unblockUserConfirmBody": {
+    "description": "Body of the unblock confirmation dialog",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "@unblockUserAction": {
     "description": "Action label to unblock a user"
   },

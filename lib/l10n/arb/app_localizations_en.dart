@@ -485,6 +485,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unblockUserAction => 'Unblock';
 
   @override
+  String unblockUserConfirmBody(String name) {
+    return 'Are you sure you want to unblock $name?';
+  }
+
+  @override
   String get blockedUsersTitle => 'Blocked Users';
 
   @override

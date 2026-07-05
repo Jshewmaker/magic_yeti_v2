@@ -114,14 +114,14 @@ class BlockedUsersView extends StatelessWidget {
               style: const TextStyle(color: AppColors.white),
             ),
             content: Text(
-              'Are you sure you want to unblock ${blockedUser.username}?',
+              l10n.unblockUserConfirmBody(blockedUser.username),
               style: const TextStyle(color: AppColors.neutral60),
             ),
             actions: <Widget>[
               TextButton(
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(color: AppColors.neutral60),
+                child: Text(
+                  l10n.cancelTextButton,
+                  style: const TextStyle(color: AppColors.neutral60),
                 ),
                 onPressed: () => Navigator.of(dialogContext).pop(),
               ),

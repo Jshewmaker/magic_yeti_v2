@@ -962,6 +962,12 @@ abstract class AppLocalizations {
   /// **'Unblock'**
   String get unblockUserAction;
 
+  /// Body of the unblock confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to unblock {name}?'**
+  String unblockUserConfirmBody(String name);
+
   /// Title for the blocked-users management page
   ///
   /// In en, this message translates to:
