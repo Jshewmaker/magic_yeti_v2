@@ -61,5 +61,7 @@
     "pinChangedMessage": "¡PIN actualizado!",
     "shareFriendCodeTooltip": "Compartir código de amigo",
     "profileSavedMessage": "Perfil guardado",
-    "profileSaveFailedMessage": "No se pudo guardar tu perfil. Inténtalo de nuevo."
+    "profileSaveFailedMessage": "No se pudo guardar tu perfil. Inténtalo de nuevo.",
+    "signInToLinkFriends": "Inicia sesión para vincular amigos a los jugadores.",
+    "signInToSearchFriends": "Inicia sesión para agregar amigos."
 }

@@ -435,6 +435,30 @@ class FirebaseDatabaseRepository {
         .get();
     if (friendDoc.exists) return FriendRequestResult.alreadyFriends;
 
+    // Guard: reverse request exists — auto-accept. Checked BEFORE the
+    // own-direction declined/pending short-circuit below: if Alice declined
+    // Bob's request and Bob later sends Alice one, Alice tapping "Accept" on
+    // Bob's search-card request re-invokes this method in the alice->bob
+    // direction. That must auto-accept — not fall through to the stale
+    // declined doc and return a fake silent "sent". A pending reverse doc
+    // always gates the accept batch's rules-legal disjuncts (same code path
+    // as the ordinary mutual-request auto-accept), so promoting this check
+    // above the own-direction guard is safe regardless of the caller's own
+    // prior history with the receiver.
+    final reverseSnapshot = await _friendCollection
+        .where('senderId', isEqualTo: receiverId)
+        .where('receiverId', isEqualTo: senderId)
+        .where('status', isEqualTo: 'pending')
+        .limit(1)
+        .get();
+    if (reverseSnapshot.docs.isNotEmpty) {
+      final reverseModel = FriendRequestModel.fromJson(
+        reverseSnapshot.docs.first.data()! as Map<String, dynamic>,
+      );
+      await acceptFriendRequest(reverseModel, senderId);
+      return FriendRequestResult.autoAccepted;
+    }
+
     // Guard: pending (or declined) request already sent. Point-gets on
     // possibly-missing friendRequests docs are rules-denied — a get() on a
     // NONEXISTENT doc evaluates `resource` as null, so the participant read
@@ -452,21 +476,6 @@ class FirebaseDatabaseRepository {
       // receiver never sees it again (silent re-send suppression).
       if (status == 'declined') return FriendRequestResult.sent;
       return FriendRequestResult.alreadyPending;
-    }
-
-    // Guard: reverse request exists — auto-accept
-    final reverseSnapshot = await _friendCollection
-        .where('senderId', isEqualTo: receiverId)
-        .where('receiverId', isEqualTo: senderId)
-        .where('status', isEqualTo: 'pending')
-        .limit(1)
-        .get();
-    if (reverseSnapshot.docs.isNotEmpty) {
-      final reverseModel = FriendRequestModel.fromJson(
-        reverseSnapshot.docs.first.data()! as Map<String, dynamic>,
-      );
-      await acceptFriendRequest(reverseModel, senderId);
-      return FriendRequestResult.autoAccepted;
     }
 
     // All clear — create the request at the deterministic doc id.

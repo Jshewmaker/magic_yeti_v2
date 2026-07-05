@@ -60,6 +60,23 @@ class SearchUserFormState extends State<SearchUserForm> {
 
   @override
   Widget build(BuildContext context) {
+    // The search-by-friend-code callable rejects anonymous callers outright;
+    // show intentional copy instead of a confusing error after they search.
+    final isAnonymous =
+        context.watch<AppBloc>().state.status == AppStatus.anonymous;
+    if (isAnonymous) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            context.l10n.signInToSearchFriends,
+            style: const TextStyle(color: AppColors.onSurfaceVariant),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
     final currentUserId = context.read<AppBloc>().state.user.id;
     return Column(
       children: [

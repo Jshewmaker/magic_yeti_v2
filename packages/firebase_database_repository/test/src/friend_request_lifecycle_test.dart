@@ -84,6 +84,42 @@ void main() {
       );
     });
 
+    test(
+        'reverse pending wins over declined suppression: '
+        'auto-accepts and leaves the declined doc untouched', () async {
+      await firestore.collection('users').doc('alice').set({'username': 'a'});
+      await firestore.collection('users').doc('bob').set({'username': 'b'});
+      // Alice sent Bob a request; Bob declined it.
+      await repository.addFriendRequest('alice', 'Alice', 'bob');
+      await repository.declineFriendRequest('alice_bob');
+      // Bob later sends Alice a request (reverse-direction pending).
+      await repository.addFriendRequest('bob', 'Bob', 'alice');
+      // Alice taps Accept on Bob's request from the search card — this
+      // re-invokes addFriendRequest in the alice->bob direction. The
+      // reverse-pending (bob_alice) must win over the own-doc declined
+      // short-circuit (alice_bob) and auto-accept.
+      final result =
+          await repository.addFriendRequest('alice', 'Alice', 'bob');
+      expect(result, FriendRequestResult.autoAccepted);
+      expect(
+        (await firestore.doc('friends/alice/friendList/bob').get()).exists,
+        isTrue,
+      );
+      expect(
+        (await firestore.doc('friends/bob/friendList/alice').get()).exists,
+        isTrue,
+      );
+      expect(
+        (await firestore.doc('friendRequests/bob_alice').get()).exists,
+        isFalse,
+      );
+      // The old declined doc is untouched — not deleted, not resurrected.
+      final declinedDoc =
+          await firestore.doc('friendRequests/alice_bob').get();
+      expect(declinedDoc.exists, isTrue);
+      expect(declinedDoc.data()!['status'], 'declined');
+    });
+
     test('getFriendRequests still filters to pending only', () async {
       await repository.addFriendRequest('alice', 'Alice', 'bob');
       await repository.addFriendRequest('carol', 'Carol', 'bob');

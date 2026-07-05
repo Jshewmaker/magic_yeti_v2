@@ -221,6 +221,27 @@ class _FriendSection extends StatelessWidget {
     final isLinked =
         customState.selectedFriend != null && customState.pinValidated;
 
+    // Anonymous users have no friend graph to link against — the callable
+    // backing this list requires an authenticated uid, so show intentional
+    // copy instead of an empty/loading friend list.
+    final isAnonymous =
+        context.watch<AppBloc>().state.status == AppStatus.anonymous;
+    if (isAnonymous) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xlg,
+          vertical: AppSpacing.sm,
+        ),
+        child: Text(
+          context.l10n.signInToLinkFriends,
+          style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.neutral60,
+          ),
+        ),
+      );
+    }
+
     // Hide section if no friends loaded and no friend selected
     final hasFriends =
         friendState is FriendsLoaded && friendState.friends.isNotEmpty;

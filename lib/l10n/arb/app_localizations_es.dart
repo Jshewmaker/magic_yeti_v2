@@ -529,4 +529,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get profileSaveFailedMessage =>
       'No se pudo guardar tu perfil. Inténtalo de nuevo.';
+
+  @override
+  String get signInToLinkFriends =>
+      'Inicia sesión para vincular amigos a los jugadores.';
+
+  @override
+  String get signInToSearchFriends => 'Inicia sesión para agregar amigos.';
 }

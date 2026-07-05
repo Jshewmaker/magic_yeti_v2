@@ -1033,6 +1033,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t save your profile. Try again.'**
   String get profileSaveFailedMessage;
+
+  /// Placeholder shown instead of the friend list on the customize player page when the user is anonymous
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to link friends to players.'**
+  String get signInToLinkFriends;
+
+  /// Placeholder shown instead of the search field on the find-friends page when the user is anonymous
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to add friends.'**
+  String get signInToSearchFriends;
 }
 
 class _AppLocalizationsDelegate
