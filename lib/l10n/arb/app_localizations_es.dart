@@ -472,4 +472,29 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get addFriendButtonText => 'Agregar';
+
+  @override
+  String get blockUserAction => 'Bloquear';
+
+  @override
+  String blockUserConfirmTitle(String name) {
+    return '¿Bloquear a $name?';
+  }
+
+  @override
+  String get blockUserConfirmBody =>
+      'Se eliminará de tus amigos y no podrá encontrarte ni enviarte solicitudes. No se le notificará.';
+
+  @override
+  String get unblockUserAction => 'Desbloquear';
+
+  @override
+  String get blockedUsersTitle => 'Usuarios Bloqueados';
+
+  @override
+  String get blockedUsersEmpty => 'No has bloqueado a nadie.';
+
+  @override
+  String get legacyRequestAcceptError =>
+      'Esta solicitud se envió desde una versión anterior. Pídele que la vuelva a enviar.';
 }

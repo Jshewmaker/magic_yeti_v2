@@ -808,6 +808,40 @@
   "addFriendButtonText": "Add",
   "@addFriendButtonText": {
     "description": "Button text to send a friend request"
+  },
+  "blockUserAction": "Block",
+  "@blockUserAction": {
+    "description": "Action label to block a user"
+  },
+  "blockUserConfirmTitle": "Block {name}?",
+  "@blockUserConfirmTitle": {
+    "description": "Title for the block-user confirmation dialog",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "blockUserConfirmBody": "They'll be removed from your friends and won't be able to find you or send requests. They won't be notified.",
+  "@blockUserConfirmBody": {
+    "description": "Body copy for the block-user confirmation dialog"
+  },
+  "unblockUserAction": "Unblock",
+  "@unblockUserAction": {
+    "description": "Action label to unblock a user"
+  },
+  "blockedUsersTitle": "Blocked Users",
+  "@blockedUsersTitle": {
+    "description": "Title for the blocked-users management page"
+  },
+  "blockedUsersEmpty": "You haven't blocked anyone.",
+  "@blockedUsersEmpty": {
+    "description": "Empty state message for the blocked-users page"
+  },
+  "legacyRequestAcceptError": "This request was sent from an older version. Ask them to re-send it.",
+  "@legacyRequestAcceptError": {
+    "description": "Snackbar error shown when accepting a friend request fails because it predates current permission rules"
   }
 }
 

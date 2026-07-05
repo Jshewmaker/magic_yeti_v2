@@ -937,6 +937,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add'**
   String get addFriendButtonText;
+
+  /// Action label to block a user
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get blockUserAction;
+
+  /// Title for the block-user confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}?'**
+  String blockUserConfirmTitle(String name);
+
+  /// Body copy for the block-user confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'They\'ll be removed from your friends and won\'t be able to find you or send requests. They won\'t be notified.'**
+  String get blockUserConfirmBody;
+
+  /// Action label to unblock a user
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get unblockUserAction;
+
+  /// Title for the blocked-users management page
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked Users'**
+  String get blockedUsersTitle;
+
+  /// Empty state message for the blocked-users page
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t blocked anyone.'**
+  String get blockedUsersEmpty;
+
+  /// Snackbar error shown when accepting a friend request fails because it predates current permission rules
+  ///
+  /// In en, this message translates to:
+  /// **'This request was sent from an older version. Ask them to re-send it.'**
+  String get legacyRequestAcceptError;
 }
 
 class _AppLocalizationsDelegate

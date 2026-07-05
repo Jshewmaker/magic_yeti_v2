@@ -7,6 +7,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/friends_list/friends_list/bloc/friend_list_bloc.dart';
 import 'package:magic_yeti/friends_list/widgets/friend_card.dart';
+import 'package:magic_yeti/l10n/arb/app_localizations.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
+
+enum _FriendCardAction { remove, block }
 
 class FriendsList extends StatelessWidget {
   const FriendsList({super.key});
@@ -29,6 +33,7 @@ class FriendsListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userId = context.read<AppBloc>().state.user.id;
+    final l10n = context.l10n;
     return BlocBuilder<FriendBloc, FriendState>(
       builder: (context, state) {
         if (state is FriendsLoading) {
@@ -53,13 +58,29 @@ class FriendsListView extends StatelessWidget {
                     : '?',
                 title: friend.username,
                 subtitle: friend.friendCode,
-                trailing: IconButton(
+                trailing: PopupMenuButton<_FriendCardAction>(
                   icon: const Icon(
-                    Icons.delete_outline,
+                    Icons.more_vert,
                     color: AppColors.neutral60,
                   ),
-                  onPressed: () =>
-                      _confirmRemoveFriend(context, friend, userId),
+                  onSelected: (action) {
+                    switch (action) {
+                      case _FriendCardAction.remove:
+                        _confirmRemoveFriend(context, friend, userId);
+                      case _FriendCardAction.block:
+                        _confirmBlockFriend(context, friend, userId, l10n);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: _FriendCardAction.remove,
+                      child: Text('Remove'),
+                    ),
+                    PopupMenuItem(
+                      value: _FriendCardAction.block,
+                      child: Text(l10n.blockUserAction),
+                    ),
+                  ],
                 ),
               );
             },
@@ -123,6 +144,60 @@ class FriendsListView extends StatelessWidget {
             ),
           ],
         );
+        },
+      ),
+    );
+  }
+
+  void _confirmBlockFriend(
+    BuildContext context,
+    FriendModel friend,
+    String userId,
+    AppLocalizations l10n,
+  ) {
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: Text(
+              l10n.blockUserConfirmTitle(friend.username),
+              style: const TextStyle(color: AppColors.white),
+            ),
+            content: Text(
+              l10n.blockUserConfirmBody,
+              style: const TextStyle(color: AppColors.neutral60),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: AppColors.neutral60),
+                ),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+              ),
+              TextButton(
+                child: Text(
+                  l10n.blockUserAction,
+                  style: const TextStyle(color: AppColors.red),
+                ),
+                onPressed: () {
+                  context.read<FriendBloc>().add(
+                        BlockFriend(
+                          userId,
+                          BlockedUserModel(
+                            userId: friend.userId,
+                            username: friend.username,
+                            imageUrl: friend.profilePictureUrl,
+                          ),
+                        ),
+                      );
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+            ],
+          );
         },
       ),
     );

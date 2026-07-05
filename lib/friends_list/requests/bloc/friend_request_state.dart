@@ -6,6 +6,9 @@ part of 'friend_request_bloc.dart';
 /// - FriendRequestLoading: Indicates loading state.
 /// - FriendRequestLoaded: Indicates successful loading of friend requests.
 /// - FriendRequestError: Indicates an error occurred while loading requests.
+/// - FriendRequestLegacyAcceptError: Indicates accepting a request failed
+///   because it predates the current permission rules (see
+///   [LegacyFriendRequestException]).
 
 abstract class FriendRequestState extends Equatable {
   const FriendRequestState();
@@ -30,4 +33,11 @@ class FriendRequestError extends FriendRequestState {
 
   @override
   List<Object> get props => [message];
+}
+
+/// Emitted when accepting a friend request fails because the request
+/// predates the current friend/block permission rules. The UI maps this to
+/// the `legacyRequestAcceptError` copy asking the sender to re-send it.
+class FriendRequestLegacyAcceptError extends FriendRequestState {
+  const FriendRequestLegacyAcceptError();
 }

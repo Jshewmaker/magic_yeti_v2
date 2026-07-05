@@ -45,5 +45,12 @@
     "savePinButtonText": "Guardar PIN",
     "addFriendButtonText": "Agregar",
     "notPlayingOption": "No estoy jugando",
-    "linkedAccountBadge": "Vinculado a la cuenta de un amigo"
+    "linkedAccountBadge": "Vinculado a la cuenta de un amigo",
+    "blockUserAction": "Bloquear",
+    "blockUserConfirmTitle": "¿Bloquear a {name}?",
+    "blockUserConfirmBody": "Se eliminará de tus amigos y no podrá encontrarte ni enviarte solicitudes. No se le notificará.",
+    "unblockUserAction": "Desbloquear",
+    "blockedUsersTitle": "Usuarios Bloqueados",
+    "blockedUsersEmpty": "No has bloqueado a nadie.",
+    "legacyRequestAcceptError": "Esta solicitud se envió desde una versión anterior. Pídele que la vuelva a enviar."
 }

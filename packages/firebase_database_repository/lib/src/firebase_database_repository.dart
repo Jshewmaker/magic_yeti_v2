@@ -145,6 +145,28 @@ class GetUserProfileException implements Exception {
   final Object stackTrace;
 }
 
+/// {@template legacy_friend_request_exception}
+/// Exception thrown when accepting a friend request fails because the
+/// rules layer denies it with `permission-denied`. This happens for
+/// requests created before the current friend/block rules shipped (e.g. a
+/// legacy random-id doc that doesn't satisfy the deterministic-id
+/// constraints the rules now require), so the accepting user is asked to
+/// have the sender re-send the request instead of seeing a generic failure.
+/// {@endtemplate}
+class LegacyFriendRequestException implements Exception {
+  /// {@macro legacy_friend_request_exception}
+  const LegacyFriendRequestException({
+    required this.message,
+    required this.stackTrace,
+  });
+
+  /// A description of the error.
+  final String message;
+
+  /// The stack trace for the exception.
+  final Object stackTrace;
+}
+
 /// {@template firebase_database_repository}
 /// Firebase database package
 /// {@endtemplate}
@@ -515,6 +537,14 @@ class FirebaseDatabaseRepository {
       batch.delete(_friendCollection.doc(request.id));
 
       await batch.commit();
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw LegacyFriendRequestException(
+          message: 'Failed to accept friend request: $e',
+          stackTrace: stackTrace,
+        );
+      }
+      throw Exception('Failed to accept friend request: $e');
     } catch (e) {
       throw Exception('Failed to accept friend request: $e');
     }

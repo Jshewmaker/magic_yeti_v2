@@ -49,6 +49,8 @@ class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
             .toList();
         emit(FriendRequestLoaded(updated));
       }
+    } on LegacyFriendRequestException {
+      emit(const FriendRequestLegacyAcceptError());
     } catch (e) {
       emit(const FriendRequestError('Failed to accept friend request'));
     }

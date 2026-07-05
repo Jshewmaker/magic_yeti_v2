@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/friends_list/requests/bloc/friend_request_bloc.dart';
 import 'package:magic_yeti/friends_list/widgets/friend_card.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
 
 class FriendRequestsPage extends StatelessWidget {
   const FriendRequestsPage({super.key});
@@ -33,7 +34,17 @@ class FriendRequestView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<FriendRequestBloc, FriendRequestState>(
+    return BlocConsumer<FriendRequestBloc, FriendRequestState>(
+      listener: (context, state) {
+        if (state is FriendRequestLegacyAcceptError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.legacyRequestAcceptError),
+              backgroundColor: AppColors.neutral60,
+            ),
+          );
+        }
+      },
       builder: (context, state) {
         if (state is FriendRequestLoading) {
           return const Center(child: CircularProgressIndicator());
@@ -93,6 +104,15 @@ class FriendRequestView extends StatelessWidget {
             child: Text(
               'Failed to load requests: ${state.message}',
               style: const TextStyle(color: AppColors.onSurfaceVariant),
+            ),
+          );
+        } else if (state is FriendRequestLegacyAcceptError) {
+          // The snackbar (see listener above) carries the actual copy;
+          // avoid rendering an empty tab underneath it.
+          return const Center(
+            child: Text(
+              'No pending requests',
+              style: TextStyle(color: AppColors.onSurfaceVariant),
             ),
           );
         }
