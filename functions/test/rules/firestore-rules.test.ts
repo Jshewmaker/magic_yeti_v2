@@ -99,6 +99,8 @@ describe('games', () => {
     await assertSucceeds(
       setDoc(doc(alice(), 'games/g10'), { hostId: 'alice', roomId: 'AB2C' }),
     );
+    // Any signed-in user may read a game (game-code lookup).
+    await assertSucceeds(getDoc(doc(bob(), 'games/g10')));
     await assertFails(
       setDoc(doc(alice(), 'games/g11'), { hostId: 'bob', roomId: 'CD3E' }),
     );
