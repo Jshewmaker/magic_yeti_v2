@@ -47,6 +47,12 @@ export const searchByFriendCode = onCall<SearchRequest>(async (request) => {
     relationship = 'self';
   } else {
     const [edge, sent, received] = await Promise.all([
+      // Deliberately the TARGET's list (is the caller on it), matching
+      // validate-pin's gate. Edges can be asymmetric (users may remove
+      // themselves from the other side); this direction fails CLOSED —
+      // an inert "friends" display — where reading the caller's own list
+      // would show "Add Friend" and create a spurious request against a
+      // target who still lists the caller. Do not "fix" this back.
       db.doc(`friends/${targetId}/friendList/${callerUid}`).get(),
       db.doc(`friendRequests/${callerUid}_${targetId}`).get(),
       db.doc(`friendRequests/${targetId}_${callerUid}`).get(),
