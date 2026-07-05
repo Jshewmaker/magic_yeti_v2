@@ -314,7 +314,7 @@ void main() {
       );
 
       blocTest<GameOverBloc, GameOverState>(
-        'concurrent submit events save exactly once (droppable)',
+        'concurrent submit events save exactly once',
         build: () {
           when(() => firebaseDatabaseRepository.saveGameStats(any()))
               .thenAnswer((_) async {

@@ -1,5 +1,4 @@
 import 'package:bloc/bloc.dart';
-import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:player_repository/player_repository.dart';
@@ -28,9 +27,7 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
     on<UpdateStandingsEvent>(_onUpdateStandings);
     on<UpdateSelectedPlayerEvent>(_onUpdateSelectedPlayer);
     on<UpdateFirstPlayerEvent>(_onUpdateFirstPlayer);
-    on<SendGameOverStatsEvent>(_onSendGameStatsToDatabase,
-        transformer: droppable());
-    // ^ Second tap during the save round-trip must not create a second game doc.
+    on<SendGameOverStatsEvent>(_onSendGameStatsToDatabase);
   }
 
   /// Dropdown sentinel meaning the current user is not one of the players.
@@ -70,13 +67,20 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
     SendGameOverStatsEvent event,
     Emitter<GameOverState> emit,
   ) async {
+    // A second tap during the save round-trip must not create a second
+    // game doc. The loading status is emitted synchronously below, before
+    // this handler's first await, so any later submission started while a
+    // save is in flight sees it here and bails. (A stream transformer like
+    // droppable() would also work, but its cancellation semantics hang
+    // bloc.close() when a save future never completes — e.g. in tests.)
+    if (state.status == GameOverStatus.loading) return;
+    if (event.gameModel == null) return;
     emit(
       state.copyWith(
         status: GameOverStatus.loading,
         exitIntent: event.exitIntent,
       ),
     );
-    if (event.gameModel == null) return;
 
     // Create a new game model with updated player placements and ownership
     final updatedGameModel = event.gameModel!.copyWith(
