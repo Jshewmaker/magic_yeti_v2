@@ -9,13 +9,18 @@ part 'game_over_state.dart';
 class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
   GameOverBloc({
     required List<Player> players,
+    required String currentUserId,
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
   })  : _firebaseDatabaseRepository = firebaseDatabaseRepository,
         super(
           GameOverState(
             standings: List<Player>.from(players)
               ..sort((a, b) => a.placement.compareTo(b.placement)),
-            selectedPlayerId: null,
+            selectedPlayerId: players
+                .where((p) => p.firebaseId == currentUserId)
+                .map((p) => p.id)
+                .cast<String?>()
+                .firstWhere((_) => true, orElse: () => null),
             firstPlayerId: null,
           ),
         ) {
@@ -24,6 +29,9 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
     on<UpdateFirstPlayerEvent>(_onUpdateFirstPlayer);
     on<SendGameOverStatsEvent>(_onSendGameStatsToDatabase);
   }
+
+  /// Dropdown sentinel meaning the current user is not one of the players.
+  static const notPlayingId = 'game_over_not_playing';
 
   final FirebaseDatabaseRepository _firebaseDatabaseRepository;
 
@@ -71,31 +79,26 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
         // Update player with new placement and firebase ID if selected
         return player.copyWith(
           placement: Value(index + 1),
-          firebaseId: () => player.id == state.selectedPlayerId
-              ? event.userId
-              : player.firebaseId,
+          firebaseId: () {
+            if (player.id != state.selectedPlayerId) return player.firebaseId;
+            // Never clobber a slot already linked to another account
+            // (PIN-linked friend); the UI excludes these, this guards it.
+            if (player.firebaseId != null &&
+                player.firebaseId != event.userId) {
+              return player.firebaseId;
+            }
+            return event.userId;
+          },
         );
       }).toList(),
       winnerId: state.standings.first.id,
       startingPlayerId: state.firstPlayerId,
     );
 
-    final docId =
-        await _firebaseDatabaseRepository.saveGameStats(updatedGameModel);
+    await _firebaseDatabaseRepository.saveGameStats(updatedGameModel);
 
-    final savedGame = updatedGameModel.copyWith(id: docId);
-
-    // Collect all player firebase IDs (host + friends)
-    final playerFirebaseIds = savedGame.players
-        .map((p) => p.firebaseId)
-        .whereType<String>()
-        .toSet()
-      ..add(event.userId);
-
-    await _firebaseDatabaseRepository.syncGameToPlayers(
-      savedGame,
-      playerFirebaseIds.toList(),
-    );
+    // Fan-out to players' match histories happens server-side
+    // (onGameCreated).
 
     emit(state.copyWith(status: GameOverStatus.success));
   }

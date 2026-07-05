@@ -767,21 +767,6 @@ class FirebaseDatabaseRepository {
     }
   }
 
-  /// Syncs a completed game to all authenticated players' match histories.
-  ///
-  /// Saves the [GameModel] to `users/{firebaseId}/matches/{gameId}` for
-  /// each unique Firebase ID in [playerFirebaseIds].
-  Future<void> syncGameToPlayers(
-    GameModel game,
-    List<String> playerFirebaseIds,
-  ) async {
-    final uniqueIds = playerFirebaseIds.toSet();
-    final futures = uniqueIds.map(
-      (id) => addMatchToPlayerHistory(game, id),
-    );
-    await Future.wait(futures);
-  }
-
   /// Ensures a user profile document exists with a friend code.
   ///
   /// If the profile doesn't exist, creates it from the provided

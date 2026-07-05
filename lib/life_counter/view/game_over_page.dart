@@ -57,6 +57,7 @@ class GameOverPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => GameOverBloc(
         players: context.read<PlayerRepository>().getPlayers(),
+        currentUserId: context.read<AppBloc>().state.user.id,
         firebaseDatabaseRepository: context.read<FirebaseDatabaseRepository>(),
       ),
       child: const GameOverView(),
