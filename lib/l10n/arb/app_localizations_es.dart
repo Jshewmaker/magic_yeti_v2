@@ -521,14 +521,35 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pinChangedMessage => '¡PIN actualizado!';
 
   @override
-  String get shareFriendCodeTooltip => 'Compartir código de amigo';
-
-  @override
   String get profileSavedMessage => 'Perfil guardado';
 
   @override
   String get profileSaveFailedMessage =>
       'No se pudo guardar tu perfil. Inténtalo de nuevo.';
+
+  @override
+  String get usernameLabel => 'Nombre de usuario';
+
+  @override
+  String get firstNameLabel => 'Nombre';
+
+  @override
+  String get lastNameLabel => 'Apellido';
+
+  @override
+  String get bioLabel => 'Biografía';
+
+  @override
+  String get emailLabel => 'Correo electrónico';
+
+  @override
+  String get notSetLabel => 'Sin configurar';
+
+  @override
+  String get saveProfileButton => 'Guardar perfil';
+
+  @override
+  String get editProfileButton => 'Editar perfil';
 
   @override
   String get signInToLinkFriends =>

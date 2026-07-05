@@ -107,6 +107,15 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final loaded = state.profile;
     if (loaded == null) return;
 
+    // A present-but-invalid username (e.g. cleared to empty) must never
+    // reach updateUserProfile: saving `username: ''` would flip
+    // UserProfileModel.isComplete false, bouncing the user back into
+    // onboarding on the next auth event.
+    if (state.username != null && !Formz.validate([state.username!])) {
+      emit(state.copyWith(status: ProfileStatus.failure));
+      return;
+    }
+
     emit(state.copyWith(status: ProfileStatus.loading));
 
     try {

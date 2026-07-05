@@ -517,14 +517,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pinChangedMessage => 'PIN updated!';
 
   @override
-  String get shareFriendCodeTooltip => 'Share friend code';
-
-  @override
   String get profileSavedMessage => 'Profile saved';
 
   @override
   String get profileSaveFailedMessage =>
       'Couldn\'t save your profile. Try again.';
+
+  @override
+  String get usernameLabel => 'Username';
+
+  @override
+  String get firstNameLabel => 'First Name';
+
+  @override
+  String get lastNameLabel => 'Last Name';
+
+  @override
+  String get bioLabel => 'Bio';
+
+  @override
+  String get emailLabel => 'Email';
+
+  @override
+  String get notSetLabel => 'Not set';
+
+  @override
+  String get saveProfileButton => 'Save Profile';
+
+  @override
+  String get editProfileButton => 'Edit Profile';
 
   @override
   String get signInToLinkFriends => 'Sign in to link friends to players.';

@@ -133,28 +133,28 @@ class ProfileView extends StatelessWidget {
                               ),
                             const SizedBox(height: 50),
                             _ProfileField(
-                              label: 'Username',
+                              label: context.l10n.usernameLabel,
                               initialValue: profile.username ?? '',
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileUsernameChanged(value)),
                             ),
                             _ProfileField(
-                              label: 'First Name',
+                              label: context.l10n.firstNameLabel,
                               initialValue: profile.firstName ?? '',
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileFirstNameChanged(value)),
                             ),
                             _ProfileField(
-                              label: 'Last Name',
+                              label: context.l10n.lastNameLabel,
                               initialValue: profile.lastName ?? '',
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileLastNameChanged(value)),
                             ),
                             _ProfileField(
-                              label: 'Bio',
+                              label: context.l10n.bioLabel,
                               initialValue: profile.bio ?? '',
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
@@ -164,7 +164,7 @@ class ProfileView extends StatelessWidget {
                             // there is no ProfileEmailChanged event/pathway
                             // anymore; edit via the auth provider instead.
                             _ReadOnlyProfileField(
-                              label: 'Email',
+                              label: context.l10n.emailLabel,
                               value: profile.email ?? '',
                             ),
                             const SizedBox(height: 20),
@@ -217,7 +217,11 @@ class _EditProfileButton extends StatelessWidget {
                         .add(const ProfileEditingToggled());
                   }
                 },
-          child: Text(state.isEditing ? 'Save Profile' : 'Edit Profile'),
+          child: Text(
+            state.isEditing
+                ? context.l10n.saveProfileButton
+                : context.l10n.editProfileButton,
+          ),
         );
       },
     );
@@ -474,7 +478,11 @@ class _ProfileField extends StatelessWidget {
                         ),
                         onChanged: onChanged,
                       )
-                    : Text(initialValue.isEmpty ? 'Not set' : initialValue),
+                    : Text(
+                        initialValue.isEmpty
+                            ? context.l10n.notSetLabel
+                            : initialValue,
+                      ),
               ),
             ],
           ),
@@ -508,7 +516,7 @@ class _ReadOnlyProfileField extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Text(value.isEmpty ? 'Not set' : value),
+            child: Text(value.isEmpty ? context.l10n.notSetLabel : value),
           ),
         ],
       ),

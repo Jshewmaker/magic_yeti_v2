@@ -51,6 +51,14 @@ export const onUserDeleted = functionsV1.auth.user().onDelete(async (user) => {
   await db.recursiveDelete(db.doc(`users/${uid}`));
   await db.recursiveDelete(db.doc(`friends/${uid}`));
 
+  // Collection-group queries require a COLLECTION_GROUP-scoped single-field
+  // index — Firestore's automatic indexes are collection-scope only. See
+  // firestore.indexes.json (fieldOverrides for friendList/blocks.userId).
+  // The emulator does NOT enforce this (it allows collection-group queries
+  // with no index), so this can pass every emulator/rules test and still
+  // throw FAILED_PRECONDITION in production if indexes aren't deployed
+  // first. Always run `firebase deploy --only firestore:indexes` (and wait
+  // for the build to reach READY) before deploying this function.
   await deleteQueryResults(
     db.collectionGroup('friendList').where('userId', '==', uid),
   );

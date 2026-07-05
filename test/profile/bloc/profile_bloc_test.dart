@@ -207,6 +207,34 @@ void main() {
     );
 
     blocTest<ProfileBloc, ProfileState>(
+      'emits failure and does not save when the edited username is '
+      'present but invalid (e.g. cleared to empty) — an empty username '
+      'would flip UserProfileModel.isComplete false and bounce the user '
+      'to onboarding on the next auth event',
+      build: buildBloc,
+      seed: () => const ProfileState(
+        user: authUser,
+        status: ProfileStatus.loaded,
+        profile: loadedProfile,
+        isEditing: true,
+        username: Username.dirty(),
+      ),
+      act: (bloc) => bloc.add(const ProfileSubmitted()),
+      expect: () => [
+        isA<ProfileState>().having(
+          (s) => s.status,
+          'status',
+          ProfileStatus.failure,
+        ),
+      ],
+      verify: (_) {
+        verifyNever(
+          () => firebaseDatabaseRepository.updateUserProfile(any(), any()),
+        );
+      },
+    );
+
+    blocTest<ProfileBloc, ProfileState>(
       'emits failure when updateUserProfile throws',
       build: () {
         when(

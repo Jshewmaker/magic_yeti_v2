@@ -22,8 +22,9 @@ For plan-by-plan status and deploy gates, see
 - **Blocking.** Blocking removes any existing friendship (both edges deleted),
   clears pending requests in both directions, and hides the blocked user from
   friend-code search both ways. The block record itself is one-directional
-  (owned by the blocker) and is the actual security boundary; edge/request
-  cleanup is best-effort and self-healing if a batch partially fails.
+  (owned by the blocker) and is the actual security boundary; the edge/request
+  cleanup is a single atomic batch commit — it either fully applies or fully
+  fails, so there's no partial-cleanup state to self-heal from.
 - **PIN-gated player linking.** Selecting a friend as a player requires their
   4-digit PIN on every link — there's no trusted-device state. PINs are salted
   SHA-256 hashes stored in a private, owner-only `credentials` subdocument;
@@ -47,6 +48,11 @@ For plan-by-plan status and deploy gates, see
   routed back into the same 4-step onboarding wizard, pre-filled, to complete
   only what's missing. Anonymous sessions bypass the gate; offline launches
   fail open to `authenticated` so the gate can't lock out a user who's offline.
+- **Account-deletion cleanup.** Deleting an account triggers server-side
+  cleanup (`onUserDeleted`) of the user's own data and social-graph
+  references — their profile, friend list, friendship edges pointing at them,
+  friend requests, and blocks of them. Games and other players' match
+  histories persist untouched.
 
 ## Security model
 

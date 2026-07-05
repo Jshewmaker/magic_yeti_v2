@@ -872,10 +872,6 @@
   "@pinChangedMessage": {
     "description": "Snackbar message shown after the PIN is changed successfully"
   },
-  "shareFriendCodeTooltip": "Share friend code",
-  "@shareFriendCodeTooltip": {
-    "description": "Tooltip for the share friend code button"
-  },
   "profileSavedMessage": "Profile saved",
   "@profileSavedMessage": {
     "description": "Snackbar message shown after the profile is saved successfully"
@@ -883,6 +879,38 @@
   "profileSaveFailedMessage": "Couldn't save your profile. Try again.",
   "@profileSaveFailedMessage": {
     "description": "Snackbar error shown when saving the profile fails"
+  },
+  "usernameLabel": "Username",
+  "@usernameLabel": {
+    "description": "Label for the username field on the profile page"
+  },
+  "firstNameLabel": "First Name",
+  "@firstNameLabel": {
+    "description": "Label for the first name field on the profile page"
+  },
+  "lastNameLabel": "Last Name",
+  "@lastNameLabel": {
+    "description": "Label for the last name field on the profile page"
+  },
+  "bioLabel": "Bio",
+  "@bioLabel": {
+    "description": "Label for the bio field on the profile page"
+  },
+  "emailLabel": "Email",
+  "@emailLabel": {
+    "description": "Label for the read-only email field on the profile page"
+  },
+  "notSetLabel": "Not set",
+  "@notSetLabel": {
+    "description": "Placeholder shown for an empty profile field when not editing"
+  },
+  "saveProfileButton": "Save Profile",
+  "@saveProfileButton": {
+    "description": "Button text to save profile changes when in editing mode"
+  },
+  "editProfileButton": "Edit Profile",
+  "@editProfileButton": {
+    "description": "Button text to enter profile editing mode"
   },
   "signInToLinkFriends": "Sign in to link friends to players.",
   "@signInToLinkFriends": {

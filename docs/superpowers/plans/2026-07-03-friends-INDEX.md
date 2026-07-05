@@ -93,6 +93,21 @@ firestore:rules` → app release.
   other players' match copies persist. Accepted residual: v1 auth triggers
   don't retry, so a mid-flight crash can orphan a few edges/requests — they
   fail closed (every rules guard on the missing uid denies) and are cosmetic.
+
+**DEPLOY GATE (updated for Plan D review):** deploy order now starts with
+`firebase deploy --only firestore:indexes` — before functions. The
+`onUserDeleted` collection-group queries (`collectionGroup('friendList')`,
+`collectionGroup('blocks')`, both filtered on `userId`) hard-require the
+COLLECTION_GROUP field overrides in `firestore.indexes.json`; Firestore's
+automatic indexes are collection-scope only and do not cover them. **The
+emulator cannot validate this** — it does not enforce indexes, so
+`test:rules` (and any emulator-based test) will pass even if the production
+indexes are missing or still building, and cleanup steps 3-6 of
+`onUserDeleted` will silently throw `FAILED_PRECONDITION` in production.
+Index builds on existing data take time, so deploy indexes first and wait
+for the build to reach READY before deploying functions.
+Order: `firebase deploy --only firestore:indexes` → `firebase deploy --only
+functions` → `firebase deploy --only firestore:rules` → app release.
 - Game-over debt: `GameOverState.props` fixed; save failures now block
   navigation and surface a snackbar with retry (buttons disabled while
   saving, double-submit guarded by a status check — a `droppable()`
@@ -118,3 +133,9 @@ firestore:rules` → app release.
 - `search_user_page` renders raw exception text on search errors
   (pre-existing pattern).
 - The force-upgrade deploy decision (see deploy gates above).
+- Consolidate the duplicate delete-account paths (`ProfileBloc`'s
+  `ProfileDeleted` handler is test-only/unused by the page; the page and
+  `AppBloc` route through `AppUserAccountDeleted`, whose `deleteAccount` call
+  is unawaited and surfaces failures nowhere).
+- Add logging/analytics to the swallowed `catch` blocks in `GameOverBloc` and
+  `ProfileBloc` so failures are observable instead of silently dropped.

@@ -1016,12 +1016,6 @@ abstract class AppLocalizations {
   /// **'PIN updated!'**
   String get pinChangedMessage;
 
-  /// Tooltip for the share friend code button
-  ///
-  /// In en, this message translates to:
-  /// **'Share friend code'**
-  String get shareFriendCodeTooltip;
-
   /// Snackbar message shown after the profile is saved successfully
   ///
   /// In en, this message translates to:
@@ -1033,6 +1027,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t save your profile. Try again.'**
   String get profileSaveFailedMessage;
+
+  /// Label for the username field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get usernameLabel;
+
+  /// Label for the first name field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'First Name'**
+  String get firstNameLabel;
+
+  /// Label for the last name field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Last Name'**
+  String get lastNameLabel;
+
+  /// Label for the bio field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get bioLabel;
+
+  /// Label for the read-only email field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get emailLabel;
+
+  /// Placeholder shown for an empty profile field when not editing
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get notSetLabel;
+
+  /// Button text to save profile changes when in editing mode
+  ///
+  /// In en, this message translates to:
+  /// **'Save Profile'**
+  String get saveProfileButton;
+
+  /// Button text to enter profile editing mode
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfileButton;
 
   /// Placeholder shown instead of the friend list on the customize player page when the user is anonymous
   ///
