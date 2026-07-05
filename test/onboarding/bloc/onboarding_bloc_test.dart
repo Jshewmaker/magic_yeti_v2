@@ -120,6 +120,45 @@ void main() {
     );
 
     blocTest<OnboardingBloc, OnboardingState>(
+      'submit with an untouched pin and an unmigrated legacy PIN preserves '
+      'the legacy hash without calling setPin',
+      build: () {
+        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
+            .thenAnswer(
+          (_) async =>
+              const UserProfileModel(id: 'u1', pin: 'legacyhash'),
+        );
+        when(() => firebaseDatabaseRepository.generateUniqueFriendCode())
+            .thenAnswer((_) async => 'YETI-A3F9');
+        when(
+          () => firebaseDatabaseRepository.updateUserProfile(
+            'u1',
+            any(),
+          ),
+        ).thenAnswer((_) async {});
+        return buildBloc(
+          existingProfile: const UserProfileModel(id: 'u1', pin: 'legacyhash'),
+        );
+      },
+      seed: () => const OnboardingState(
+        username: Username.dirty('josh'),
+        hasExistingPin: true,
+      ),
+      act: (bloc) => bloc.add(const OnboardingSubmitted('u1')),
+      verify: (_) {
+        verifyNever(() => firebaseDatabaseRepository.setPin(any(), any()));
+        final profile = verify(
+          () => firebaseDatabaseRepository.updateUserProfile(
+            'u1',
+            captureAny(),
+          ),
+        ).captured.single as UserProfileModel;
+        expect(profile.pin, 'legacyhash');
+        expect(profile.hasPin, isTrue);
+      },
+    );
+
+    blocTest<OnboardingBloc, OnboardingState>(
       'submit fails without saving the profile when setPin throws '
       '(pins the setPin-before-save ordering)',
       build: () {

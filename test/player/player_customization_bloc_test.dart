@@ -295,4 +295,28 @@ void main() {
       ],
     );
   });
+
+  group('ResetPinFlow', () {
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'clears error/attempts/lockout but preserves pinValidated',
+      build: build,
+      seed: () => PlayerCustomizationState(
+        pinFlowError: PinFlowError.lockedOut,
+        pinLockedUntil: DateTime(2026, 7, 3, 12),
+        pinValidated: true,
+      ),
+      act: (bloc) => bloc.add(const ResetPinFlow()),
+      expect: () => [
+        isA<PlayerCustomizationState>()
+            .having((s) => s.pinFlowError, 'pinFlowError', PinFlowError.none)
+            .having(
+              (s) => s.pinAttemptsRemaining,
+              'pinAttemptsRemaining',
+              0,
+            )
+            .having((s) => s.pinLockedUntil, 'pinLockedUntil', isNull)
+            .having((s) => s.pinValidated, 'pinValidated', isTrue),
+      ],
+    );
+  });
 }

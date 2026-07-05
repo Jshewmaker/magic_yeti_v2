@@ -40,6 +40,8 @@ export function evaluateAttempt(
   return { lockedOut: false, lockedUntilMillis: null };
 }
 
+// failCount intentionally never decays on its own; only a lockout expiring
+// resets it back to 0 (see the lockoutExpired check below).
 export function recordFailure(
   state: AttemptState | null,
   nowMillis: number,

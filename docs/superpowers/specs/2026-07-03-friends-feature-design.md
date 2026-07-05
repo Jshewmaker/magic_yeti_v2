@@ -107,7 +107,7 @@ and wired into `firebase.json`.
 | `users/{uid}` | `pin` field **deprecated** (lazily migrated out, then removed from `UserProfileModel`); new `isComplete` getter (username non-empty AND has PIN AND `onboardingComplete`) — completeness of PIN is tracked via a `hasPin` boolean on the profile so the client never needs the hash |
 | `users/{uid}/private/credentials` | **New.** `{ pinHash, salt, updatedAt }`. Salted SHA-256 for new PINs; legacy hashes carried over unsalted (`salt: null`) until the user changes their PIN. Owner-only rules; functions read via Admin SDK |
 | `users/{uid}/blocks/{blockedUid}` | **New.** `{ blockedAt, username, imageUrl }` (denormalized for the management UI). Owner-readable; function-write-only |
-| `pinAttempts/{callerUid}_{targetUid}` | **New.** `{ failCount, lockedUntil, updatedAt }`. No client access; function-only |
+| `pinAttempts/{callerUid}_{targetUid}` | **New.** `{ failCount, lockedUntilMillis (number\|null), updatedAt }`. No client access; function-only |
 | `friendRequests/{senderId}_{receiverId}` | **Doc IDs become deterministic** (one migration-free change: new requests use the new ID scheme; legacy random-ID pending requests are honored by accept/decline until drained). `status` gains `declined`; declined docs are retained (they power re-send suppression) instead of being deleted |
 | `games/{docId}`, `Player.firebaseId`, `GameModel` | Unchanged |
 

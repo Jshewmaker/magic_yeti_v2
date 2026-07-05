@@ -110,3 +110,12 @@ final class ValidatePin extends PlayerCustomizationEvent {
   @override
   List<Object> get props => [pin, friendUserId];
 }
+
+/// Clears stale PIN-flow error/lockout state before a dialog opens, so a
+/// lockout or error from a previous friend's attempt doesn't leak into the
+/// next dialog. Does not touch [PlayerCustomizationState.pinValidated] or
+/// [PlayerCustomizationState.selectedFriend] — an already-linked friend
+/// selection must survive opening and cancelling a second dialog.
+final class ResetPinFlow extends PlayerCustomizationEvent {
+  const ResetPinFlow();
+}

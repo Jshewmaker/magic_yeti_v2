@@ -18,6 +18,9 @@ final class PinValid extends PinValidationResult {
 }
 
 /// The PIN was wrong; [attemptsRemaining] tries left before lockout.
+///
+/// The attempt that trips the lockout still returns [PinInvalid] with
+/// `attemptsRemaining: 0`; only the next call returns [PinLockedOut].
 final class PinInvalid extends PinValidationResult {
   /// Creates an invalid result.
   const PinInvalid({required this.attemptsRemaining});

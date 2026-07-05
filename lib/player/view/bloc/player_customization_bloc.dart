@@ -33,6 +33,7 @@ class PlayerCustomizationBloc
     on<SelectFriend>(_onSelectFriend);
     on<ClearFriend>(_onClearFriend);
     on<ValidatePin>(_onValidatePin);
+    on<ResetPinFlow>(_onResetPinFlow);
   }
 
   final ScryfallRepository _scryfallRepository;
@@ -261,5 +262,18 @@ class PlayerCustomizationBloc
           ),
         );
     }
+  }
+
+  void _onResetPinFlow(
+    ResetPinFlow event,
+    Emitter<PlayerCustomizationState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        pinFlowError: PinFlowError.none,
+        pinAttemptsRemaining: 0,
+        pinLockedUntil: () => null,
+      ),
+    );
   }
 }

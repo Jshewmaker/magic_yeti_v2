@@ -60,6 +60,10 @@ void main() {
       await firestore.collection('users').doc('u1').set({'pin': legacyHash});
 
       await repository.migrateLegacyPin('u1');
+      // migrateLegacyPin fires the batch commit without awaiting it (see
+      // the offline-hang fix in FirebaseDatabaseRepository), so give the
+      // microtask queue a turn before asserting on its effects.
+      await Future<void>.delayed(Duration.zero);
 
       final creds =
           await firestore.doc('users/u1/private/credentials').get();
@@ -90,6 +94,8 @@ void main() {
           .set({'pin': 'staleLegacy'});
 
       await repository.migrateLegacyPin('u1');
+      // See note above: the batch commit is fire-and-forget.
+      await Future<void>.delayed(Duration.zero);
 
       final creds =
           await firestore.doc('users/u1/private/credentials').get();

@@ -162,6 +162,14 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
           bio: state.bio,
           imageUrl: imageUrl,
           friendCode: friendCode,
+          // When a NEW pin was set, setPin already deleted the legacy
+          // `pin` field and it must stay deleted (null) here. When
+          // keeping an existing pin, an unmigrated legacy hash
+          // (existingProfile?.pin) must survive this full-doc set() —
+          // updateUserProfile has no merge option — until login-time
+          // migration moves it into the private credentials doc.
+          // Losing this would silently erase the user's only PIN copy.
+          pin: hasNewPin ? null : existingProfile?.pin,
           hasPin: hasNewPin || state.hasExistingPin,
           onboardingComplete: true,
         ),

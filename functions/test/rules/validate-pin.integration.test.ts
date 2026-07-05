@@ -35,7 +35,9 @@ async function seedFriendshipAndPin(opts: { salted: boolean }) {
   }
 }
 
-afterAll(async () => {
+afterAll(() => {
+  // testEnv.cleanup() is synchronous (returns void in this version of
+  // firebase-functions-test) — nothing to await here.
   testEnv.cleanup();
 });
 

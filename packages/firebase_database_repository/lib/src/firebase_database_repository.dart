@@ -838,6 +838,13 @@ class FirebaseDatabaseRepository {
 
   /// Moves a legacy profile-doc PIN hash into the private credentials
   /// doc. Safe to call on every login; no-ops when nothing to migrate.
+  ///
+  /// Note: if a pre-update client changes the legacy PIN on a device that
+  /// hasn't picked up this migration, and that change lands after this
+  /// migration already ran, the change is silently discarded — the
+  /// credentials doc wins and the next `migrateLegacyPin` call simply
+  /// deletes the new legacy hash again. This is accepted behavior; there
+  /// is no cross-device coordination for legacy-field writes.
   Future<void> migrateLegacyPin(String userId) async {
     try {
       final profileRef = _firebase.collection('users').doc(userId);
@@ -860,7 +867,14 @@ class FirebaseDatabaseRepository {
         {'hasPin': true, 'pin': FieldValue.delete()},
         SetOptions(merge: true),
       );
-      await batch.commit();
+      // Fire-and-forget: offline, commit() never completes (Firestore
+      // queues it locally and syncs later); awaiting it here would wedge
+      // AppBloc's sequential auth-event queue. Local reads already
+      // reflect the pending write, and the callable's legacy fallback
+      // covers the gap until it syncs.
+      unawaited(
+        batch.commit().catchError((Object _) {}),
+      );
     } catch (_) {
       // Migration is best-effort on login; the callable's legacy
       // fallback keeps validation working until it succeeds.

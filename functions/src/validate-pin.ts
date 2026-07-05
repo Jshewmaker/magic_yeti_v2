@@ -41,7 +41,11 @@ export const validatePin = onCall<ValidatePinRequest>(async (request) => {
   const db = admin.firestore();
   const callerUid = auth.uid;
 
-  // Only friends of the target may attempt validation.
+  // Only friends of the target may attempt validation. Deliberately
+  // outside the transaction below: an unfriend racing this call can at
+  // worst let the caller land one extra rate-limited attempt, which is
+  // an acceptable trade for not having to read/watch the friend edge
+  // transactionally on every validation.
   const friendEdge = await db
     .doc(`friends/${targetUserId}/friendList/${callerUid}`)
     .get();

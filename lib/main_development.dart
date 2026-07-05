@@ -17,6 +17,12 @@ import 'package:user_repository/user_repository.dart';
 void main() {
   bootstrap(
     (FirebaseFirestore firebaseFirestore) async {
+      const useEmulator = bool.fromEnvironment('USE_FIREBASE_EMULATOR');
+      if (useEmulator) {
+        FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
+        FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+      }
+
       final authenticationClient = FirebaseAuthenticationClient();
       final playerRepository = PlayerRepository();
       final firebaseDatabaseRepository = FirebaseDatabaseRepository(

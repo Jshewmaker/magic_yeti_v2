@@ -301,9 +301,11 @@ class _FriendSection extends StatelessWidget {
       PinFlowError.lockedOut => l10n.pinLockedOutError(
           state.pinLockedUntil == null
               ? 15
-              : state.pinLockedUntil!
-                  .difference(DateTime.now())
-                  .inMinutes
+              : (state.pinLockedUntil!
+                          .difference(DateTime.now())
+                          .inSeconds /
+                      60)
+                  .ceil()
                   .clamp(1, 15),
         ),
       PinFlowError.unavailable => l10n.pinUnavailableError,
@@ -314,6 +316,10 @@ class _FriendSection extends StatelessWidget {
     final pinController = TextEditingController();
     final bloc = context.read<PlayerCustomizationBloc>();
     final l10n = context.l10n;
+
+    // Clear any stale error/lockout state left over from a previous
+    // friend's dialog before this one opens.
+    bloc.add(const ResetPinFlow());
 
     unawaited(
       showDialog<void>(
