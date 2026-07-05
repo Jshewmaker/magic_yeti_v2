@@ -1,7 +1,9 @@
 rules_version = '2';
-// Magic Yeti Firestore rules — staged hardening.
-// Blocks labeled TRANSITIONAL are deliberately permissive so the shipped
-// client keeps working, and are tightened by the named follow-up plan.
+// Magic Yeti Firestore rules.
+// Fully hardened as of Plan C: no TRANSITIONAL grants remain. Social-graph
+// writes are client batches validated here (deterministic friendRequests
+// ids, pending-gated friendship edges, owner-only blocks); cross-user match
+// fan-out and PIN checks run server-side (Admin SDK bypasses these rules).
 // Strategy + deploy gate: docs/superpowers/plans/2026-07-03-friends-INDEX.md
 service cloud.firestore {
   match /databases/{database}/documents {

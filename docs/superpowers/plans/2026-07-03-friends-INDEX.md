@@ -7,7 +7,7 @@ Branch: feat/friends-hardening
 |---|---|---|
 | A `2026-07-03-friends-a-backend-foundation.md` | Functions + rules + private PIN (1) | complete |
 | B `2026-07-03-friends-b-gate-and-sync.md` | Legacy gate + game fan-out (2–3) | complete |
-| C (not yet written) | Social graph rules + blocking (4–5) | pending |
+| C `2026-07-03-friends-c-social-graph-blocking.md` | Social graph rules + blocking (4–5) | complete |
 | D (not yet written) | Profile page + cleanup (6–7) | pending |
 
 **DEPLOY GATE:** before the first `firebase deploy --only firestore:rules`, export
@@ -59,18 +59,27 @@ copies.
 Order: `firebase deploy --only functions` → `firebase deploy --only
 firestore:rules` → app release.
 
-**Plan C must own (from the Plan B whole-branch review):**
-- Close the trigger-laundered cross-user write path: rules-validate
-  `request.resource.data.hostId == request.auth.uid` on `games` create (the only
-  client create path already sets it), and once friendship edges are
-  rules-enforced, consider gating trigger fan-out to recipients with a
-  friendship edge to `hostId`.
-- Uid-shape validation in `onGameCreated` (reject `firebaseId` containing `/` —
-  today a path-hostile id makes the batch throw and, with `retry: true`,
-  starves legitimate recipients for the retry window).
-- The B4 malformed-input trigger tests (non-array `players`, missing `hostId`).
-- Follow the established TRANSITIONAL test choreography when tightening the
-  remaining `friends/*` and `friendRequests` blocks.
+**Resolved in Plan C:**
+- Trigger injection closed: `games` create requires `hostId == request.auth.uid`;
+  `onGameCreated` rejects path-hostile ids; malformed-input tests added.
+  (Friendship-gated fan-out was considered and NOT adopted: hostId is now
+  authenticated, players are chosen on the host's device, and gating on edges
+  would break the guest/game-code flow — accepted residual: a host can list a
+  linked friend who later unfriends them; the game still syncs, which matches
+  the "players in the game get the game" product rule.)
+- Deterministic friendRequests ids (`{sender}_{receiver}`), declined docs
+  retained as permanent suppression markers (pending-only deletes — the
+  delete-and-recreate dodge is rules-blocked), block-gated creates, edge
+  writes gated on pending requests with `userId == doc key` integrity.
+- Full blocking: owner-managed `users/{uid}/blocks`, block-aware
+  `searchByFriendCode` callable (block-hiding both directions, fail-closed
+  friend-edge direction), client batch block/unblock, blocked-users screen,
+  friends-list block action.
+- **Legacy data note (Josh, deploy-time):** pending requests created before
+  this deploy (random doc ids) can be DECLINED but not accepted (accept shows
+  "sent from an older version — ask them to re-send"). Optional one-time
+  cleanup: delete `friendRequests` docs where the doc id doesn't match
+  `{senderId}_{receiverId}` — or just let them drain via decline.
 
 **Plan D must own:**
 - `GameOverState.props` omits `status`/`gameModel` (Equatable swallows
