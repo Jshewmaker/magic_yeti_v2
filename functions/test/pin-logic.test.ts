@@ -67,4 +67,9 @@ describe('lockout state machine', () => {
       lockedUntilMillis: null,
     });
   });
+
+  test('recordFailure during an active lockout does not extend it', () => {
+    const locked = { failCount: 5, lockedUntilMillis: NOW + LOCKOUT_MS };
+    expect(recordFailure(locked, NOW + 1)).toEqual(locked);
+  });
 });

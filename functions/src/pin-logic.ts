@@ -44,6 +44,9 @@ export function recordFailure(
   state: AttemptState | null,
   nowMillis: number,
 ): AttemptState {
+  if (evaluateAttempt(state, nowMillis).lockedOut) {
+    return state!;
+  }
   const lockoutExpired =
     state?.lockedUntilMillis != null && state.lockedUntilMillis <= nowMillis;
   const previousCount = state === null || lockoutExpired ? 0 : state.failCount;
