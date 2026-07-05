@@ -79,5 +79,96 @@ void main() {
         },
       );
     });
+
+    group('completeness gate', () {
+      const authenticatedUser = User(id: 'user1', email: 'josh@example.com');
+
+      void stubProfile(UserProfileModel? profile) {
+        when(() => firebaseDatabaseRepository.getUserProfileOnce('user1'))
+            .thenAnswer((_) async => profile);
+      }
+
+      blocTest<AppBloc, AppState>(
+        'complete profile emits authenticated',
+        setUp: () => stubProfile(
+          const UserProfileModel(
+            id: 'user1',
+            username: 'josh',
+            hasPin: true,
+            onboardingComplete: true,
+          ),
+        ),
+        build: buildBloc,
+        act: (bloc) => bloc.add(const AppUserChanged(authenticatedUser)),
+        expect: () => [
+          isA<AppState>()
+              .having((s) => s.status, 'status', AppStatus.authenticated),
+        ],
+      );
+
+      blocTest<AppBloc, AppState>(
+        'onboarded profile missing a PIN emits onboardingRequired',
+        setUp: () => stubProfile(
+          const UserProfileModel(
+            id: 'user1',
+            username: 'josh',
+            onboardingComplete: true,
+          ),
+        ),
+        build: buildBloc,
+        act: (bloc) => bloc.add(const AppUserChanged(authenticatedUser)),
+        expect: () => [
+          isA<AppState>()
+              .having((s) => s.status, 'status', AppStatus.onboardingRequired),
+        ],
+      );
+
+      blocTest<AppBloc, AppState>(
+        'onboarded profile with empty username emits onboardingRequired',
+        setUp: () => stubProfile(
+          const UserProfileModel(
+            id: 'user1',
+            username: '',
+            hasPin: true,
+            onboardingComplete: true,
+          ),
+        ),
+        build: buildBloc,
+        act: (bloc) => bloc.add(const AppUserChanged(authenticatedUser)),
+        expect: () => [
+          isA<AppState>()
+              .having((s) => s.status, 'status', AppStatus.onboardingRequired),
+        ],
+      );
+
+      blocTest<AppBloc, AppState>(
+        'legacy unmigrated pin field counts as complete',
+        setUp: () => stubProfile(
+          const UserProfileModel(
+            id: 'user1',
+            username: 'josh',
+            pin: 'legacyhash',
+            onboardingComplete: true,
+          ),
+        ),
+        build: buildBloc,
+        act: (bloc) => bloc.add(const AppUserChanged(authenticatedUser)),
+        expect: () => [
+          isA<AppState>()
+              .having((s) => s.status, 'status', AppStatus.authenticated),
+        ],
+      );
+
+      blocTest<AppBloc, AppState>(
+        'missing profile emits onboardingRequired',
+        setUp: () => stubProfile(null),
+        build: buildBloc,
+        act: (bloc) => bloc.add(const AppUserChanged(authenticatedUser)),
+        expect: () => [
+          isA<AppState>()
+              .having((s) => s.status, 'status', AppStatus.onboardingRequired),
+        ],
+      );
+    });
   });
 }

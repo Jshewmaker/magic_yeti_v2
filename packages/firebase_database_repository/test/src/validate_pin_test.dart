@@ -93,7 +93,7 @@ void main() {
   });
 
   test('permission-denied maps to PinCheckUnavailable', () async {
-    when(() => callable.call<dynamic>(any())).thenThrow(
+    when(() => callable.call<dynamic>(any<Map<String, dynamic>>())).thenThrow(
       FirebaseFunctionsException(code: 'permission-denied', message: 'denied'),
     );
     expect(
