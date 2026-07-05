@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:player_repository/player_repository.dart';
@@ -27,7 +28,9 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
     on<UpdateStandingsEvent>(_onUpdateStandings);
     on<UpdateSelectedPlayerEvent>(_onUpdateSelectedPlayer);
     on<UpdateFirstPlayerEvent>(_onUpdateFirstPlayer);
-    on<SendGameOverStatsEvent>(_onSendGameStatsToDatabase);
+    on<SendGameOverStatsEvent>(_onSendGameStatsToDatabase,
+        transformer: droppable());
+    // ^ Second tap during the save round-trip must not create a second game doc.
   }
 
   /// Dropdown sentinel meaning the current user is not one of the players.

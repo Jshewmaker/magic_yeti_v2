@@ -312,6 +312,46 @@ void main() {
           expect(friendSlot.firebaseId, 'friend1');
         },
       );
+
+      blocTest<GameOverBloc, GameOverState>(
+        'concurrent submit events save exactly once (droppable)',
+        build: () {
+          when(() => firebaseDatabaseRepository.saveGameStats(any()))
+              .thenAnswer((_) async {
+            await Future<void>.delayed(const Duration(milliseconds: 20));
+            return 'doc1';
+          });
+          return buildBloc(
+            players: [hostSelfSlot, otherSlot],
+            currentUserId: 'host',
+          );
+        },
+        seed: () => GameOverState(
+          standings: [hostSelfSlot, otherSlot],
+          selectedPlayerId: hostSelfSlot.id,
+          firstPlayerId: hostSelfSlot.id,
+        ),
+        act: (bloc) => bloc
+          ..add(
+            SendGameOverStatsEvent(
+              gameModel: gameModel,
+              userId: 'host',
+              exitIntent: GameOverExitIntent.home,
+            ),
+          )
+          ..add(
+            SendGameOverStatsEvent(
+              gameModel: gameModel,
+              userId: 'host',
+              exitIntent: GameOverExitIntent.playAgain,
+            ),
+          ),
+        wait: const Duration(milliseconds: 100),
+        verify: (_) {
+          verify(() => firebaseDatabaseRepository.saveGameStats(any()))
+              .called(1);
+        },
+      );
     });
   });
 }
