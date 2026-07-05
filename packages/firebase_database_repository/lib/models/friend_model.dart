@@ -17,7 +17,7 @@ part 'friend_model.g.dart';
 /// @notes
 /// - Ensure that all fields are properly validated before using this model
 /// {@endtemplate}
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
 class FriendModel extends Equatable {
   /// Constructor for FriendModel.
   ///

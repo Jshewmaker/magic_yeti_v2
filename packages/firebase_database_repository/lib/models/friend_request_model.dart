@@ -20,7 +20,7 @@ part 'friend_request_model.g.dart';
 /// @notes
 /// - Ensure that all fields are properly validated before using this model
 /// {@endtemplate}
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
 @TimestampConverter()
 class FriendRequestModel extends Equatable {
   /// Constructor for FriendRequestModel.

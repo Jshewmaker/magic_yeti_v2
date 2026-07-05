@@ -1,4 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// language: 3.8
 
 part of 'user_profile_model.dart';
 
@@ -26,16 +28,16 @@ UserProfileModel _$UserProfileModelFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$UserProfileModelToJson(UserProfileModel instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'email': instance.email,
+      'email': ?instance.email,
       'isNewUser': instance.isNewUser,
       'isAnonymous': instance.isAnonymous,
-      'username': instance.username,
-      'firstName': instance.firstName,
-      'lastName': instance.lastName,
-      'bio': instance.bio,
-      'imageUrl': instance.imageUrl,
-      'friendCode': instance.friendCode,
-      'pin': instance.pin,
+      'username': ?instance.username,
+      'firstName': ?instance.firstName,
+      'lastName': ?instance.lastName,
+      'bio': ?instance.bio,
+      'imageUrl': ?instance.imageUrl,
+      'friendCode': ?instance.friendCode,
+      'pin': ?instance.pin,
       'hasPin': instance.hasPin,
       'onboardingComplete': instance.onboardingComplete,
     };

@@ -7,7 +7,7 @@ part 'game_model.g.dart';
 /// {@template game_model}
 /// Model representing a completed game and its statistics
 /// {@endtemplate}
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
 class GameModel extends Equatable {
   /// {@macro game_model}
   const GameModel({

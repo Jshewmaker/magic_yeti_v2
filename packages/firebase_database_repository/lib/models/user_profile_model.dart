@@ -6,7 +6,7 @@ part 'user_profile_model.g.dart';
 /// {@template user_profile_model}
 /// Model representing a user's profile
 /// {@endtemplate}
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
 class UserProfileModel extends Equatable {
   /// / {@macro user_profile_model}
   const UserProfileModel({

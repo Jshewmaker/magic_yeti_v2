@@ -3,6 +3,14 @@ import 'package:test/test.dart';
 
 void main() {
   group('UserProfileModel', () {
+    test('toJson omits null fields entirely (includeIfNull false)', () {
+      const model = UserProfileModel(id: 'u1', username: 'josh');
+      final json = model.toJson();
+      expect(json.containsKey('pin'), isFalse);
+      expect(json.containsKey('bio'), isFalse);
+      expect(json['username'], 'josh');
+    });
+
     test('hasPin defaults false and round-trips through json', () {
       const model = UserProfileModel(id: 'u1', hasPin: true);
       final decoded = UserProfileModel.fromJson(model.toJson());

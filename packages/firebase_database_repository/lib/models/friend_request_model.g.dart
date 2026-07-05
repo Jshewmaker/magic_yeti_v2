@@ -13,8 +13,9 @@ FriendRequestModel _$FriendRequestModelFromJson(Map<String, dynamic> json) =>
       receiverId: json['receiverId'] as String,
       senderName: json['senderName'] as String,
       status: json['status'] as String,
-      timestamp:
-          const TimestampConverter().fromJson(json['timestamp'] as Timestamp),
+      timestamp: const TimestampConverter().fromJson(
+        json['timestamp'] as Timestamp,
+      ),
     );
 
 Map<String, dynamic> _$FriendRequestModelToJson(FriendRequestModel instance) =>

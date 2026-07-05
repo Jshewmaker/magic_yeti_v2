@@ -11,7 +11,7 @@ part 'blocked_user_model.g.dart';
 /// denormalizing enough profile data to render a "Blocked users" list
 /// without extra reads.
 /// {@endtemplate}
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
 @TimestampConverter()
 class BlockedUserModel extends Equatable {
   /// {@macro blocked_user_model}
