@@ -422,6 +422,26 @@ class AppLocalizationsEs extends AppLocalizations {
   String get verifyButtonText => 'Verificar';
 
   @override
+  String pinIncorrectError(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Quedan $count intentos',
+      one: 'Queda 1 intento',
+    );
+    return 'PIN incorrecto. $_temp0.';
+  }
+
+  @override
+  String pinLockedOutError(int minutes) {
+    return 'Demasiados intentos. Inténtalo de nuevo en $minutes min.';
+  }
+
+  @override
+  String get pinUnavailableError =>
+      'No se pudo verificar el PIN. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
   String get friendCodeLabel => 'Código de Amigo';
 
   @override

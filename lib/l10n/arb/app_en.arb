@@ -743,6 +743,28 @@
   "@verifyButtonText": {
     "description": "Button text to verify PIN"
   },
+  "pinIncorrectError": "Incorrect PIN. {count, plural, =1{1 attempt} other{{count} attempts}} remaining.",
+  "@pinIncorrectError": {
+    "description": "Error shown when a friend PIN is incorrect, with attempts remaining",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pinLockedOutError": "Too many attempts. Try again in {minutes} min.",
+  "@pinLockedOutError": {
+    "description": "Error shown when the PIN flow is locked out after too many failed attempts",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "pinUnavailableError": "Couldn't verify the PIN. Check your connection and try again.",
+  "@pinUnavailableError": {
+    "description": "Error shown when the PIN could not be verified due to offline or server error"
+  },
   "friendCodeLabel": "Friend Code",
   "@friendCodeLabel": {
     "description": "Label for the friend code display on profile page"

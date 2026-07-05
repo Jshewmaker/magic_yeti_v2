@@ -2,6 +2,22 @@ part of 'player_customization_bloc.dart';
 
 enum PlayerCustomizationStatus { initial, loading, success, failure }
 
+/// Errors surfaced by the friend-PIN validation flow.
+enum PinFlowError {
+  /// No error.
+  none,
+
+  /// The PIN was wrong.
+  incorrect,
+
+  /// Too many failed attempts; locked until
+  /// [PlayerCustomizationState.pinLockedUntil].
+  lockedOut,
+
+  /// The check could not run (offline or server error).
+  unavailable,
+}
+
 class PlayerCustomizationState extends Equatable {
   const PlayerCustomizationState({
     this.status = PlayerCustomizationStatus.initial,
@@ -20,7 +36,9 @@ class PlayerCustomizationState extends Equatable {
     this.favoriteIds = const {},
     this.selectedFriend,
     this.pinValidated = false,
-    this.pinError = '',
+    this.pinFlowError = PinFlowError.none,
+    this.pinAttemptsRemaining = 0,
+    this.pinLockedUntil,
   });
 
   final PlayerCustomizationStatus status;
@@ -39,7 +57,9 @@ class PlayerCustomizationState extends Equatable {
   final Set<String> favoriteIds;
   final FriendModel? selectedFriend;
   final bool pinValidated;
-  final String pinError;
+  final PinFlowError pinFlowError;
+  final int pinAttemptsRemaining;
+  final DateTime? pinLockedUntil;
 
   /// Commander-damage clocks this player will be tracked with: the commander,
   /// plus the partner if present. A background never adds a clock.
@@ -74,7 +94,9 @@ class PlayerCustomizationState extends Equatable {
         favoriteIds,
         selectedFriend,
         pinValidated,
-        pinError,
+        pinFlowError,
+        pinAttemptsRemaining,
+        pinLockedUntil,
       ];
 
   PlayerCustomizationState copyWith({
@@ -94,7 +116,9 @@ class PlayerCustomizationState extends Equatable {
     Set<String>? favoriteIds,
     FriendModel? selectedFriend,
     bool? pinValidated,
-    String? pinError,
+    PinFlowError? pinFlowError,
+    int? pinAttemptsRemaining,
+    DateTime? Function()? pinLockedUntil,
   }) {
     return PlayerCustomizationState(
       status: status ?? this.status,
@@ -113,7 +137,10 @@ class PlayerCustomizationState extends Equatable {
       favoriteIds: favoriteIds ?? this.favoriteIds,
       selectedFriend: selectedFriend ?? this.selectedFriend,
       pinValidated: pinValidated ?? this.pinValidated,
-      pinError: pinError ?? this.pinError,
+      pinFlowError: pinFlowError ?? this.pinFlowError,
+      pinAttemptsRemaining: pinAttemptsRemaining ?? this.pinAttemptsRemaining,
+      pinLockedUntil:
+          pinLockedUntil != null ? pinLockedUntil() : this.pinLockedUntil,
     );
   }
 

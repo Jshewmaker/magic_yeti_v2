@@ -196,4 +196,103 @@ void main() {
       expect(b.state.background, isNull);
     },
   );
+
+  group('ValidatePin', () {
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'emits pinValidated on PinValid',
+      build: () {
+        when(
+          () => db.validatePin(
+            targetUserId: 'friend1',
+            pin: '0742',
+          ),
+        ).thenAnswer((_) async => const PinValid());
+        return build();
+      },
+      act: (bloc) =>
+          bloc.add(const ValidatePin(pin: '0742', friendUserId: 'friend1')),
+      expect: () => [
+        isA<PlayerCustomizationState>()
+            .having((s) => s.pinValidated, 'pinValidated', true)
+            .having((s) => s.pinFlowError, 'pinFlowError', PinFlowError.none),
+      ],
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'emits incorrect with attemptsRemaining on PinInvalid',
+      build: () {
+        when(
+          () => db.validatePin(
+            targetUserId: 'friend1',
+            pin: '9999',
+          ),
+        ).thenAnswer((_) async => const PinInvalid(attemptsRemaining: 2));
+        return build();
+      },
+      act: (bloc) =>
+          bloc.add(const ValidatePin(pin: '9999', friendUserId: 'friend1')),
+      expect: () => [
+        isA<PlayerCustomizationState>()
+            .having((s) => s.pinValidated, 'pinValidated', false)
+            .having(
+              (s) => s.pinFlowError,
+              'pinFlowError',
+              PinFlowError.incorrect,
+            )
+            .having((s) => s.pinAttemptsRemaining, 'attempts', 2),
+      ],
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'emits lockedOut with expiry on PinLockedOut',
+      build: () {
+        when(
+          () => db.validatePin(
+            targetUserId: 'friend1',
+            pin: '9999',
+          ),
+        ).thenAnswer(
+          (_) async => PinLockedOut(lockedUntil: DateTime(2026, 7, 3, 12)),
+        );
+        return build();
+      },
+      act: (bloc) =>
+          bloc.add(const ValidatePin(pin: '9999', friendUserId: 'friend1')),
+      expect: () => [
+        isA<PlayerCustomizationState>()
+            .having(
+              (s) => s.pinFlowError,
+              'pinFlowError',
+              PinFlowError.lockedOut,
+            )
+            .having(
+              (s) => s.pinLockedUntil,
+              'lockedUntil',
+              DateTime(2026, 7, 3, 12),
+            ),
+      ],
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'emits unavailable on PinCheckUnavailable',
+      build: () {
+        when(
+          () => db.validatePin(
+            targetUserId: 'friend1',
+            pin: '0742',
+          ),
+        ).thenAnswer((_) async => const PinCheckUnavailable());
+        return build();
+      },
+      act: (bloc) =>
+          bloc.add(const ValidatePin(pin: '0742', friendUserId: 'friend1')),
+      expect: () => [
+        isA<PlayerCustomizationState>().having(
+          (s) => s.pinFlowError,
+          'pinFlowError',
+          PinFlowError.unavailable,
+        ),
+      ],
+    );
+  });
 }

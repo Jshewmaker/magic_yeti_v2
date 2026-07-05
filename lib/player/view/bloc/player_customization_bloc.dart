@@ -203,7 +203,12 @@ class PlayerCustomizationBloc
     SelectFriend event,
     Emitter<PlayerCustomizationState> emit,
   ) {
-    emit(state.copyWith(selectedFriend: event.friend, pinError: ''));
+    emit(
+      state.copyWith(
+        selectedFriend: event.friend,
+        pinFlowError: PinFlowError.none,
+      ),
+    );
   }
 
   void _onClearFriend(
@@ -217,23 +222,44 @@ class PlayerCustomizationBloc
     ValidatePin event,
     Emitter<PlayerCustomizationState> emit,
   ) async {
-    try {
-      final isValid = await _firebaseDatabaseRepository.validatePin(
-        event.friendUserId,
-        event.pin,
-      );
-      if (isValid) {
-        emit(state.copyWith(pinValidated: true, pinError: ''));
-      } else {
-        emit(state.copyWith(pinValidated: false, pinError: 'Incorrect PIN'));
-      }
-    } on Exception catch (_) {
-      emit(
-        state.copyWith(
-          pinValidated: false,
-          pinError: 'Failed to validate PIN',
-        ),
-      );
+    final result = await _firebaseDatabaseRepository.validatePin(
+      targetUserId: event.friendUserId,
+      pin: event.pin,
+    );
+    switch (result) {
+      case PinValid():
+        emit(
+          state.copyWith(
+            pinValidated: true,
+            pinFlowError: PinFlowError.none,
+            pinLockedUntil: () => null,
+          ),
+        );
+      case PinInvalid(:final attemptsRemaining):
+        emit(
+          state.copyWith(
+            pinValidated: false,
+            pinFlowError: PinFlowError.incorrect,
+            pinAttemptsRemaining: attemptsRemaining,
+            pinLockedUntil: () => null,
+          ),
+        );
+      case PinLockedOut(:final lockedUntil):
+        emit(
+          state.copyWith(
+            pinValidated: false,
+            pinFlowError: PinFlowError.lockedOut,
+            pinLockedUntil: () => lockedUntil,
+          ),
+        );
+      case PinCheckUnavailable():
+        emit(
+          state.copyWith(
+            pinValidated: false,
+            pinFlowError: PinFlowError.unavailable,
+            pinLockedUntil: () => null,
+          ),
+        );
     }
   }
 }

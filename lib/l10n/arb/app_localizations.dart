@@ -860,6 +860,24 @@ abstract class AppLocalizations {
   /// **'Verify'**
   String get verifyButtonText;
 
+  /// Error shown when a friend PIN is incorrect, with attempts remaining
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN. {count, plural, =1{1 attempt} other{{count} attempts}} remaining.'**
+  String pinIncorrectError(int count);
+
+  /// Error shown when the PIN flow is locked out after too many failed attempts
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again in {minutes} min.'**
+  String pinLockedOutError(int minutes);
+
+  /// Error shown when the PIN could not be verified due to offline or server error
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t verify the PIN. Check your connection and try again.'**
+  String get pinUnavailableError;
+
   /// Label for the friend code display on profile page
   ///
   /// In en, this message translates to:

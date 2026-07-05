@@ -292,6 +292,24 @@ class _FriendSection extends StatelessWidget {
     );
   }
 
+  String? _pinErrorText(BuildContext context, PlayerCustomizationState state) {
+    final l10n = context.l10n;
+    return switch (state.pinFlowError) {
+      PinFlowError.none => null,
+      PinFlowError.incorrect =>
+        l10n.pinIncorrectError(state.pinAttemptsRemaining),
+      PinFlowError.lockedOut => l10n.pinLockedOutError(
+          state.pinLockedUntil == null
+              ? 15
+              : state.pinLockedUntil!
+                  .difference(DateTime.now())
+                  .inMinutes
+                  .clamp(1, 15),
+        ),
+      PinFlowError.unavailable => l10n.pinUnavailableError,
+    };
+  }
+
   void _showPinDialog(BuildContext context, FriendModel friend) {
     final pinController = TextEditingController();
     final bloc = context.read<PlayerCustomizationBloc>();
@@ -307,7 +325,7 @@ class _FriendSection extends StatelessWidget {
                 PlayerCustomizationState>(
               listenWhen: (previous, current) =>
                   previous.pinValidated != current.pinValidated ||
-                  previous.pinError != current.pinError,
+                  previous.pinFlowError != current.pinFlowError,
               listener: (listenerContext, state) {
                 if (state.pinValidated) {
                   // PIN succeeded — select friend, populate name, close
@@ -315,7 +333,7 @@ class _FriendSection extends StatelessWidget {
                   nameController.text = friend.username;
                   Navigator.pop(listenerContext);
                 }
-                // pinError is shown reactively via the StatefulBuilder below
+                // pinFlowError is shown reactively via the BlocBuilder below
               },
               child: StatefulBuilder(
                 builder: (dialogContext, setDialogState) {
@@ -337,7 +355,11 @@ class _FriendSection extends StatelessWidget {
                         BlocBuilder<PlayerCustomizationBloc,
                             PlayerCustomizationState>(
                           buildWhen: (previous, current) =>
-                              previous.pinError != current.pinError,
+                              previous.pinFlowError != current.pinFlowError ||
+                              previous.pinAttemptsRemaining !=
+                                  current.pinAttemptsRemaining ||
+                              previous.pinLockedUntil !=
+                                  current.pinLockedUntil,
                           builder: (context, state) {
                             return TextField(
                               controller: pinController,
@@ -377,9 +399,7 @@ class _FriendSection extends StatelessWidget {
                                     color: AppColors.red,
                                   ),
                                 ),
-                                errorText: state.pinError.isNotEmpty
-                                    ? state.pinError
-                                    : null,
+                                errorText: _pinErrorText(context, state),
                                 errorStyle: const TextStyle(
                                   color: AppColors.red,
                                 ),
@@ -399,18 +419,28 @@ class _FriendSection extends StatelessWidget {
                               const TextStyle(color: AppColors.neutral60),
                         ),
                       ),
-                      FilledButton(
-                        onPressed: pinController.text.length == 4
-                            ? () {
-                                bloc.add(
-                                  ValidatePin(
-                                    pin: pinController.text,
-                                    friendUserId: friend.userId,
-                                  ),
-                                );
-                              }
-                            : null,
-                        child: Text(l10n.verifyButtonText),
+                      BlocBuilder<PlayerCustomizationBloc,
+                          PlayerCustomizationState>(
+                        buildWhen: (previous, current) =>
+                            previous.pinFlowError != current.pinFlowError,
+                        builder: (context, state) {
+                          final isLockedOut =
+                              state.pinFlowError == PinFlowError.lockedOut;
+                          return FilledButton(
+                            onPressed:
+                                pinController.text.length == 4 && !isLockedOut
+                                    ? () {
+                                        bloc.add(
+                                          ValidatePin(
+                                            pin: pinController.text,
+                                            friendUserId: friend.userId,
+                                          ),
+                                        );
+                                      }
+                                    : null,
+                            child: Text(l10n.verifyButtonText),
+                          );
+                        },
                       ),
                     ],
                   );
