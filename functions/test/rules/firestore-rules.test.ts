@@ -126,12 +126,6 @@ describe('friends (TRANSITIONAL until Plan C)', () => {
     await assertSucceeds(getDoc(doc(alice(), 'friends/alice/friendList/bob')));
     await assertFails(getDoc(doc(bob(), 'friends/alice/friendList/bob')));
   });
-
-  test('TRANSITIONAL: signed-in users may write friend edges (accept batch until Plan C)', async () => {
-    await assertSucceeds(
-      setDoc(doc(bob(), 'friends/alice/friendList/bob'), { userId: 'bob' }),
-    );
-  });
 });
 
 describe('friendRequests', () => {
@@ -149,21 +143,148 @@ describe('friendRequests', () => {
       getDoc(doc(env.authenticatedContext('carol').firestore(), 'friendRequests/r1')),
     );
   });
+});
 
-  test('sender may create a request as themselves only', async () => {
+describe('blocks', () => {
+  test('owner reads and writes own block docs; others cannot', async () => {
     await assertSucceeds(
-      setDoc(doc(alice(), 'friendRequests/r2'), {
+      setDoc(doc(alice(), 'users/alice/blocks/bob'), { blockedAt: 1 }),
+    );
+    await assertSucceeds(getDoc(doc(alice(), 'users/alice/blocks/bob')));
+    await assertFails(getDoc(doc(bob(), 'users/alice/blocks/bob')));
+    await assertFails(
+      setDoc(doc(bob(), 'users/alice/blocks/carol'), { blockedAt: 1 }),
+    );
+  });
+});
+
+describe('friendRequests lifecycle', () => {
+  const pending = {
+    id: 'alice_bob',
+    senderId: 'alice',
+    receiverId: 'bob',
+    senderName: 'Alice',
+    status: 'pending',
+  };
+
+  test('sender creates at the deterministic id', async () => {
+    await assertSucceeds(setDoc(doc(alice(), 'friendRequests/alice_bob'), pending));
+  });
+
+  test('create with a mismatched doc id is denied', async () => {
+    await assertFails(setDoc(doc(alice(), 'friendRequests/wrong_id'), pending));
+  });
+
+  test('create claiming another sender is denied', async () => {
+    await assertFails(
+      setDoc(doc(bob(), 'friendRequests/alice_bob'), pending),
+    );
+  });
+
+  test('create is denied when the receiver blocks the sender', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'users/bob/blocks/alice'), { blockedAt: 1 });
+    });
+    await assertFails(setDoc(doc(alice(), 'friendRequests/alice_bob'), pending));
+  });
+
+  test('create is denied when the sender blocks the receiver', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'users/alice/blocks/bob'), { blockedAt: 1 });
+    });
+    await assertFails(setDoc(doc(alice(), 'friendRequests/alice_bob'), pending));
+  });
+
+  test('receiver declines pending -> declined; sender cannot', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'friendRequests/alice_bob'), pending);
+    });
+    await assertFails(
+      updateDoc(doc(alice(), 'friendRequests/alice_bob'), { status: 'declined' }),
+    );
+    await assertSucceeds(
+      updateDoc(doc(bob(), 'friendRequests/alice_bob'), { status: 'declined' }),
+    );
+  });
+
+  test('declined docs are immutable to further updates', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'friendRequests/alice_bob'), {
+        ...pending,
+        status: 'declined',
+      });
+    });
+    await assertFails(
+      updateDoc(doc(bob(), 'friendRequests/alice_bob'), { status: 'pending' }),
+    );
+    await assertFails(
+      updateDoc(doc(alice(), 'friendRequests/alice_bob'), { status: 'pending' }),
+    );
+  });
+
+  test('sender may cancel (delete) a pending; receiver may delete (accept path)', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'friendRequests/alice_bob'), pending);
+    });
+    await assertSucceeds(deleteDoc(doc(bob(), 'friendRequests/alice_bob')));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'friendRequests/alice_bob'), pending);
+    });
+    await assertSucceeds(deleteDoc(doc(alice(), 'friendRequests/alice_bob')));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'friendRequests/alice_bob'), pending);
+    });
+    await assertFails(
+      deleteDoc(doc(env.authenticatedContext('carol').firestore(), 'friendRequests/alice_bob')),
+    );
+  });
+});
+
+describe('friendList lifecycle', () => {
+  test('accepting receiver writes both edges while the pending doc exists', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'friendRequests/alice_bob'), {
         senderId: 'alice',
         receiverId: 'bob',
         status: 'pending',
-      }),
+      });
+    });
+    // bob (receiver) writes alice onto his own list…
+    await assertSucceeds(
+      setDoc(doc(bob(), 'friends/bob/friendList/alice'), { userId: 'alice' }),
+    );
+    // …and himself onto alice's list.
+    await assertSucceeds(
+      setDoc(doc(bob(), 'friends/alice/friendList/bob'), { userId: 'bob' }),
+    );
+  });
+
+  test('edge writes without a matching pending request are denied', async () => {
+    await assertFails(
+      setDoc(doc(bob(), 'friends/bob/friendList/carol'), { userId: 'carol' }),
     );
     await assertFails(
-      setDoc(doc(alice(), 'friendRequests/r3'), {
-        senderId: 'bob',
-        receiverId: 'carol',
-        status: 'pending',
-      }),
+      setDoc(doc(bob(), 'friends/carol/friendList/bob'), { userId: 'bob' }),
+    );
+  });
+
+  test('owner may always delete own edges; you may always delete yourself from another list', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const seedDb = ctx.firestore();
+      await setDoc(doc(seedDb, 'friends/alice/friendList/bob'), { userId: 'bob' });
+      await setDoc(doc(seedDb, 'friends/bob/friendList/alice'), { userId: 'alice' });
+    });
+    const aliceDb = alice();
+    await assertSucceeds(deleteDoc(doc(aliceDb, 'friends/alice/friendList/bob')));
+    await assertSucceeds(deleteDoc(doc(aliceDb, 'friends/bob/friendList/alice')));
+  });
+
+  test("a third party cannot delete someone else's edge", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'friends/alice/friendList/bob'), { userId: 'bob' });
+    });
+    await assertFails(
+      deleteDoc(doc(env.authenticatedContext('carol').firestore(), 'friends/alice/friendList/bob')),
     );
   });
 });

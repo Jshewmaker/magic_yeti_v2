@@ -26,6 +26,10 @@ service cloud.firestore {
         // owner write covers the game-code import flow.
         allow read, write: if isOwner(uid);
       }
+
+      match /blocks/{blockedUid} {
+        allow read, write: if isOwner(uid);
+      }
     }
 
     // Server-only rate limiting state. No client access, ever.
@@ -44,8 +48,18 @@ service cloud.firestore {
 
     match /friends/{uid}/friendList/{friendId} {
       allow read: if isOwner(uid);
-      // TRANSITIONAL (Plan C tightens): accept/remove batch writes cross-user.
-      allow write: if signedIn();
+      // Deleting: you may prune your own list, and you may always remove
+      // YOURSELF from someone else's list (unfriend/block cleanup).
+      allow delete: if isOwner(uid) ||
+        (signedIn() && request.auth.uid == friendId);
+      // Creating: only as part of accepting a pending request between the
+      // two users involved. The receiver runs the accept batch: they write
+      // the sender onto their own list, and themselves onto the sender's.
+      allow create, update: if
+        (isOwner(uid) &&
+          exists(/databases/$(database)/documents/friendRequests/$(friendId + '_' + uid))) ||
+        (signedIn() && request.auth.uid == friendId &&
+          exists(/databases/$(database)/documents/friendRequests/$(uid + '_' + request.auth.uid)));
     }
 
     match /friendRequests/{requestId} {
@@ -53,9 +67,19 @@ service cloud.firestore {
         (resource.data.senderId == request.auth.uid ||
          resource.data.receiverId == request.auth.uid);
       allow create: if signedIn() &&
-        request.resource.data.senderId == request.auth.uid;
-      // TRANSITIONAL (Plan C tightens to deterministic-ID lifecycle rules).
-      allow update, delete: if signedIn() &&
+        request.resource.data.senderId == request.auth.uid &&
+        requestId == request.resource.data.senderId + '_' + request.resource.data.receiverId &&
+        request.resource.data.status == 'pending' &&
+        !exists(/databases/$(database)/documents/users/$(request.resource.data.receiverId)/blocks/$(request.auth.uid)) &&
+        !exists(/databases/$(database)/documents/users/$(request.auth.uid)/blocks/$(request.resource.data.receiverId));
+      // Decline: receiver flips pending -> declined, nothing else, once.
+      allow update: if signedIn() &&
+        resource.data.receiverId == request.auth.uid &&
+        resource.data.status == 'pending' &&
+        request.resource.data.status == 'declined' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+      // Delete: sender cancels, or receiver deletes on accept.
+      allow delete: if signedIn() &&
         (resource.data.senderId == request.auth.uid ||
          resource.data.receiverId == request.auth.uid);
     }
