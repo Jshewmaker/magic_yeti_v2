@@ -851,6 +851,10 @@
   "legacyRequestAcceptError": "This request was sent from an older version. Ask them to re-send it.",
   "@legacyRequestAcceptError": {
     "description": "Snackbar error shown when accepting a friend request fails because it predates current permission rules"
+  },
+  "gameSaveFailedError": "Couldn't save the game. Check your connection and try again.",
+  "@gameSaveFailedError": {
+    "description": "Snackbar error shown when saving the game-over stats to the database fails"
   }
 }
 

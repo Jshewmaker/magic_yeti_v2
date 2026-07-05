@@ -502,4 +502,8 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get legacyRequestAcceptError =>
       'Esta solicitud se envió desde una versión anterior. Pídele que la vuelva a enviar.';
+
+  @override
+  String get gameSaveFailedError =>
+      'No se pudo guardar la partida. Revisa tu conexión e inténtalo de nuevo.';
 }

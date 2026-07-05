@@ -67,7 +67,12 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
     SendGameOverStatsEvent event,
     Emitter<GameOverState> emit,
   ) async {
-    emit(state.copyWith(status: GameOverStatus.loading));
+    emit(
+      state.copyWith(
+        status: GameOverStatus.loading,
+        exitIntent: event.exitIntent,
+      ),
+    );
     if (event.gameModel == null) return;
 
     // Create a new game model with updated player placements and ownership
@@ -80,14 +85,22 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
         return player.copyWith(
           placement: Value(index + 1),
           firebaseId: () {
-            if (player.id != state.selectedPlayerId) return player.firebaseId;
-            // Never clobber a slot already linked to another account
-            // (PIN-linked friend); the UI excludes these, this guards it.
-            if (player.firebaseId != null &&
-                player.firebaseId != event.userId) {
-              return player.firebaseId;
+            if (player.id == state.selectedPlayerId) {
+              // Never clobber a slot already linked to another account
+              // (PIN-linked friend); the UI excludes these, this guards it.
+              if (player.firebaseId != null &&
+                  player.firebaseId != event.userId) {
+                return player.firebaseId;
+              }
+              return event.userId;
             }
-            return event.userId;
+            // The user disowned this slot by selecting a different one (or
+            // notPlaying); unlink it so it doesn't stay tied to their
+            // account. Foreign-linked slots are left untouched.
+            if (player.firebaseId == event.userId) {
+              return null;
+            }
+            return player.firebaseId;
           },
         );
       }).toList(),
@@ -95,7 +108,12 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
       startingPlayerId: state.firstPlayerId,
     );
 
-    await _firebaseDatabaseRepository.saveGameStats(updatedGameModel);
+    try {
+      await _firebaseDatabaseRepository.saveGameStats(updatedGameModel);
+    } on Object catch (_) {
+      emit(state.copyWith(status: GameOverStatus.failure));
+      return;
+    }
 
     // Fan-out to players' match histories happens server-side
     // (onGameCreated).

@@ -985,6 +985,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This request was sent from an older version. Ask them to re-send it.'**
   String get legacyRequestAcceptError;
+
+  /// Snackbar error shown when saving the game-over stats to the database fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the game. Check your connection and try again.'**
+  String get gameSaveFailedError;
 }
 
 class _AppLocalizationsDelegate

@@ -53,5 +53,6 @@
     "unblockUserConfirmBody": "¿Seguro que quieres desbloquear a {name}?",
     "blockedUsersTitle": "Usuarios Bloqueados",
     "blockedUsersEmpty": "No has bloqueado a nadie.",
-    "legacyRequestAcceptError": "Esta solicitud se envió desde una versión anterior. Pídele que la vuelva a enviar."
+    "legacyRequestAcceptError": "Esta solicitud se envió desde una versión anterior. Pídele que la vuelva a enviar.",
+    "gameSaveFailedError": "No se pudo guardar la partida. Revisa tu conexión e inténtalo de nuevo."
 }

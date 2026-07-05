@@ -38,15 +38,20 @@ class UpdateFirstPlayerEvent extends GameOverEvent {
   List<Object?> get props => [playerId];
 }
 
+/// Where the view should navigate after a successful save.
+enum GameOverExitIntent { home, playAgain }
+
 class SendGameOverStatsEvent extends GameOverEvent {
   const SendGameOverStatsEvent({
     required this.gameModel,
     required this.userId,
+    this.exitIntent = GameOverExitIntent.home,
   });
 
   final GameModel? gameModel;
   final String userId;
+  final GameOverExitIntent exitIntent;
 
   @override
-  List<Object?> get props => [gameModel, userId];
+  List<Object?> get props => [gameModel, userId, exitIntent];
 }

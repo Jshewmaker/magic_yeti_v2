@@ -498,4 +498,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get legacyRequestAcceptError =>
       'This request was sent from an older version. Ask them to re-send it.';
+
+  @override
+  String get gameSaveFailedError =>
+      'Couldn\'t save the game. Check your connection and try again.';
 }
