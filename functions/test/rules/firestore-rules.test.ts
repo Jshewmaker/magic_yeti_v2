@@ -81,9 +81,15 @@ describe('matches', () => {
     await assertFails(getDoc(doc(bob(), 'users/alice/matches/g1')));
   });
 
-  test('TRANSITIONAL: another signed-in user may write matches (host fan-out until Plan B)', async () => {
-    await assertSucceeds(
+  test('cross-user match writes are denied (fan-out is server-side)', async () => {
+    await assertFails(
       setDoc(doc(bob(), 'users/alice/matches/g2'), { id: 'g2' }),
+    );
+  });
+
+  test('owner may write own matches (game-code import path)', async () => {
+    await assertSucceeds(
+      setDoc(doc(alice(), 'users/alice/matches/g3'), { id: 'g3' }),
     );
   });
 });

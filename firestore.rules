@@ -1,4 +1,8 @@
 rules_version = '2';
+// Magic Yeti Firestore rules — staged hardening.
+// Blocks labeled TRANSITIONAL are deliberately permissive so the shipped
+// client keeps working, and are tightened by the named follow-up plan.
+// Strategy + deploy gate: docs/superpowers/plans/2026-07-03-friends-INDEX.md
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() {
@@ -17,9 +21,10 @@ service cloud.firestore {
       }
 
       match /matches/{gameId} {
-        allow read: if isOwner(uid);
-        // TRANSITIONAL (Plan B removes): host client fan-out writes cross-user.
-        allow write: if signedIn();
+        // Owner-only. Fan-out to other players happens server-side via
+        // the onGameCreated trigger (Admin SDK bypasses rules); the
+        // owner write covers the game-code import flow.
+        allow read, write: if isOwner(uid);
       }
     }
 
