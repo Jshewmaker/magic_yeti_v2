@@ -3,3 +3,4 @@
 export { validatePin } from './validate-pin';
 export { onGameCreated } from './on-game-created';
 export { searchByFriendCode } from './search-by-friend-code';
+export { onUserDeleted } from './on-user-deleted';
