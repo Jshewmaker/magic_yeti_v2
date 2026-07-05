@@ -486,7 +486,7 @@ describe('hashing', () => {
   test('hashPin matches known sha256 of "0742"', () => {
     // echo -n 0742 | shasum -a 256
     expect(hashPin('0742')).toBe(
-      'bfe0891a5e7a17a4d51bee79fbde07572ac3057c1a7ab164136dfd68f5a20d6a',
+      'a2f8d2eed38aea1c4e9a90af0a0ad9fc833b5f923afc5c7709745e56f766c87c',
     );
   });
 
