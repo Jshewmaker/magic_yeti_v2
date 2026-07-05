@@ -373,6 +373,21 @@ class FirebaseDatabaseRepository {
     }
   }
 
+  /// Computes the deterministic `friendRequests` document id for a
+  /// request from [senderId] to [receiverId].
+  ///
+  /// Requests are keyed by `{senderId}_{receiverId}` (rather than a random
+  /// id) so that Firestore security rules can enforce the doc id shape on
+  /// create, and so the sender/reverse-sender lookups below can read a
+  /// single doc instead of running a query.
+  static String friendRequestDocId(String senderId, String receiverId) =>
+      '${senderId}_$receiverId';
+
+  // Legacy-pending note: reverse-direction LEGACY (random-id) pendings won't
+  // be found by the deterministic reverse read, so no auto-accept for them —
+  // the sender simply creates a new deterministic request and the receiver
+  // now has two pendings, one legacy (declinable) and one acceptable.
+  // Acceptable drain path.
   /// Adds a friend request with guards against duplicates, self-requests,
   /// and existing friendships.
   ///
@@ -399,26 +414,25 @@ class FirebaseDatabaseRepository {
         .get();
     if (friendDoc.exists) return FriendRequestResult.alreadyFriends;
 
-    // Guard: pending request already sent
-    final existingSent = await _friendCollection
-        .where('senderId', isEqualTo: senderId)
-        .where('receiverId', isEqualTo: receiverId)
-        .where('status', isEqualTo: 'pending')
-        .limit(1)
-        .get();
-    if (existingSent.docs.isNotEmpty) {
+    // Guard: pending (or declined) request already sent — deterministic
+    // doc read instead of a query.
+    final ownDocRef =
+        _friendCollection.doc(friendRequestDocId(senderId, receiverId));
+    final ownDoc = await ownDocRef.get();
+    if (ownDoc.exists) {
+      final status = (ownDoc.data()! as Map<String, dynamic>)['status'];
+      // A declined request stays declined; the sender sees "sent" and the
+      // receiver never sees it again (silent re-send suppression).
+      if (status == 'declined') return FriendRequestResult.sent;
       return FriendRequestResult.alreadyPending;
     }
 
     // Guard: reverse request exists — auto-accept
-    final reverseRequest = await _friendCollection
-        .where('senderId', isEqualTo: receiverId)
-        .where('receiverId', isEqualTo: senderId)
-        .where('status', isEqualTo: 'pending')
-        .limit(1)
+    final reverseDoc = await _friendCollection
+        .doc(friendRequestDocId(receiverId, senderId))
         .get();
-    if (reverseRequest.docs.isNotEmpty) {
-      final reverseDoc = reverseRequest.docs.first;
+    if (reverseDoc.exists &&
+        (reverseDoc.data()! as Map<String, dynamic>)['status'] == 'pending') {
       final reverseModel = FriendRequestModel.fromJson(
         reverseDoc.data()! as Map<String, dynamic>,
       );
@@ -426,18 +440,24 @@ class FirebaseDatabaseRepository {
       return FriendRequestResult.autoAccepted;
     }
 
-    // All clear — create the request
-    final newRequestRef = _friendCollection.doc();
-    final documentId = newRequestRef.id;
-    await newRequestRef.set({
-      'id': documentId,
-      'senderId': senderId,
-      'senderName': senderName,
-      'receiverId': receiverId,
-      'status': 'pending',
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-    return FriendRequestResult.sent;
+    // All clear — create the request at the deterministic doc id.
+    try {
+      final documentId = friendRequestDocId(senderId, receiverId);
+      await _friendCollection.doc(documentId).set({
+        'id': documentId,
+        'senderId': senderId,
+        'senderName': senderName,
+        'receiverId': receiverId,
+        'status': 'pending',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      return FriendRequestResult.sent;
+    } on FirebaseException catch (e) {
+      // A blocked sender is denied by rules; concealment is deliberate —
+      // they see the same "sent" as everyone else (spec accepted tradeoff).
+      if (e.code == 'permission-denied') return FriendRequestResult.sent;
+      rethrow;
+    }
   }
 
   /// Accepts a friend request by updating its status in the Firestore database.
@@ -599,14 +619,18 @@ class FirebaseDatabaseRepository {
     }
   }
 
-  /// Declines a friend request by removing it from the Firestore database.
+  /// Declines a friend request by marking its status as declined.
+  ///
+  /// The doc is retained (not deleted) so a future re-send from the same
+  /// sender to the same receiver is silently suppressed — see
+  /// [addFriendRequest].
   ///
   /// @param requestId The ID of the friend request to decline.
   /// @returns Future<void>
-  /// @throws Exception if the request cannot be removed.
+  /// @throws Exception if the request cannot be updated.
   Future<void> declineFriendRequest(String requestId) async {
     try {
-      await _friendCollection.doc(requestId).delete();
+      await _friendCollection.doc(requestId).update({'status': 'declined'});
     } catch (e) {
       throw Exception('Failed to decline friend request: $e');
     }
