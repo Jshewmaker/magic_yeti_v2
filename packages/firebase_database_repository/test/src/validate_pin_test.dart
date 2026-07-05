@@ -91,4 +91,14 @@ void main() {
       const PinNotSet(),
     );
   });
+
+  test('permission-denied maps to PinCheckUnavailable', () async {
+    when(() => callable.call<dynamic>(any())).thenThrow(
+      FirebaseFunctionsException(code: 'permission-denied', message: 'denied'),
+    );
+    expect(
+      await repository.validatePin(targetUserId: 'f', pin: '0742'),
+      const PinCheckUnavailable(),
+    );
+  });
 }
