@@ -30,8 +30,8 @@ For plan-by-plan status and deploy gates, see
   only the `validatePin` callable (Admin SDK) can read them. The callable
   requires the caller to already be friends with the target, and enforces
   **5 failed attempts → 15-minute lockout** per caller→target pair. Legacy
-  (pre-migration) accounts fall back to the old plaintext-adjacent `pin` field
-  via the same callable.
+  (pre-migration) accounts fall back to the old unsalted-hash `pin` field
+  via the same callable until login-time migration moves it.
 - **Server-side game fan-out.** Match history sync to linked players is a
   Firestore trigger (`onGameCreated`), not a client write — the client no
   longer writes cross-user `matches` docs, and rules deny it outright. The

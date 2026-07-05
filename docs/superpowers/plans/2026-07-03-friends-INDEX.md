@@ -8,7 +8,7 @@ Branch: feat/friends-hardening
 | A `2026-07-03-friends-a-backend-foundation.md` | Functions + rules + private PIN (1) | complete |
 | B `2026-07-03-friends-b-gate-and-sync.md` | Legacy gate + game fan-out (2–3) | complete |
 | C `2026-07-03-friends-c-social-graph-blocking.md` | Social graph rules + blocking (4–5) | complete |
-| D (not yet written) | Profile page + cleanup (6–7) | pending |
+| D `2026-07-03-friends-d-profile-cleanup.md` | Profile page + cleanup (6–7) | complete |
 
 **DEPLOY GATE:** before the first `firebase deploy --only firestore:rules`, export
 the project's CURRENT production rules from the Firebase console and diff them
@@ -87,20 +87,34 @@ firestore:rules` → app release.
   cleanup: delete `friendRequests` docs where the doc id doesn't match
   `{senderId}_{receiverId}` — or just let them drain via decline.
 
-**Plan D must own:**
-- `GameOverState.props` omits `status`/`gameModel` (Equatable swallows
-  loading/success emissions) and `saveGameStats` failures vanish (no failure
-  status, navigation already happened) — needed before any save-failure UX.
-- "I'm not playing"/slot-switch does not unlink a self-linked slot (stats can
-  attribute a slot the user disowned; two slots can carry the same uid).
-- Dropdown test lookup by `Key` instead of positional `.last`; wrap the
-  account-owner label Row in `Flexible` (real overflow risk with Spanish
-  strings).
+**Resolved in Plan D:**
+- `onUserDeleted` auth trigger cleans the deleted user's doc tree, friendship
+  edges both directions, requests (any status), and blocks of them — games and
+  other players' match copies persist. Accepted residual: v1 auth triggers
+  don't retry, so a mid-flight crash can orphan a few edges/requests — they
+  fail closed (every rules guard on the missing uid denies) and are cosmetic.
+- Game-over debt: `GameOverState.props` fixed; save failures now block
+  navigation and surface a snackbar with retry (buttons disabled while
+  saving, double-submit guarded by a status check — a `droppable()`
+  transformer was tried and reverted: its cancellation semantics hang
+  `bloc.close()`); disowned self-linked slots unlink on save; dropdown keyed;
+  label overflow fixed.
+- Profile page rebuilt on `UserProfileModel`: real submit that carries
+  pin/hasPin/friendCode through the full-doc set (Fix-2-class regression
+  impossible by construction), PIN change with no old-PIN prompt, friend-code
+  copy (share deferred — `share_plus` not a dependency), email read-only.
+- `includeIfNull: false` adopted on all five firebase_database_repository
+  models — CLAUDE.md's stated convention is now true for this package.
+- Search-card accept honesty (reverse-pending wins over declined
+  suppression); anonymous users get intentional sign-in copy on the friend
+  section and search page; `removeFriend` edge deletes are atomic.
+- l10n sweep of branch-introduced strings; `docs/friends_feature_plan.md`
+  rewritten as the as-shipped feature README.
 
-**Plan D note:** decide whether `UserProfileModel` should adopt
-`includeIfNull: false` (as CLAUDE.md's documented convention claims all models
-do) or whether CLAUDE.md should be corrected. Today the model has no
-`includeIfNull`, so `toJson()` always serializes `pin` — including explicit
-`null` — which is precisely what made the onboarding-erases-legacy-PIN bug
-(Fix 2 in the final-review wave) possible. Whichever way this is decided, audit
-other full-doc `set()` call sites for the same hazard.
+**Open follow-ups (post-branch):**
+- Restrict `users` collection `list` reads (requires moving
+  `generateUniqueFriendCode`'s uniqueness query server-side) — closes the
+  raw-SDK friendCode-search bypass of block hiding.
+- `search_user_page` renders raw exception text on search errors
+  (pre-existing pattern).
+- The force-upgrade deploy decision (see deploy gates above).
