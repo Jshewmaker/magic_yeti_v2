@@ -309,6 +309,7 @@ class _FriendSection extends StatelessWidget {
                   .clamp(1, 15),
         ),
       PinFlowError.unavailable => l10n.pinUnavailableError,
+      PinFlowError.notSet => l10n.pinNotSetError,
     };
   }
 

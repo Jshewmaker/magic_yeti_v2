@@ -294,6 +294,28 @@ void main() {
         ),
       ],
     );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'emits notSet on PinNotSet',
+      build: () {
+        when(
+          () => db.validatePin(
+            targetUserId: 'friend1',
+            pin: '0742',
+          ),
+        ).thenAnswer((_) async => const PinNotSet());
+        return build();
+      },
+      act: (bloc) =>
+          bloc.add(const ValidatePin(pin: '0742', friendUserId: 'friend1')),
+      expect: () => [
+        isA<PlayerCustomizationState>().having(
+          (s) => s.pinFlowError,
+          'pinFlowError',
+          PinFlowError.notSet,
+        ),
+      ],
+    );
   });
 
   group('ResetPinFlow', () {

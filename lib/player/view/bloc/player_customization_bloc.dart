@@ -253,6 +253,14 @@ class PlayerCustomizationBloc
             pinLockedUntil: () => lockedUntil,
           ),
         );
+      case PinNotSet():
+        emit(
+          state.copyWith(
+            pinValidated: false,
+            pinFlowError: PinFlowError.notSet,
+            pinLockedUntil: () => null,
+          ),
+        );
       case PinCheckUnavailable():
         emit(
           state.copyWith(

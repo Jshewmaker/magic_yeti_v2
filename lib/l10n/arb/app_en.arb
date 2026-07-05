@@ -765,6 +765,10 @@
   "@pinUnavailableError": {
     "description": "Error shown when the PIN could not be verified due to offline or server error"
   },
+  "pinNotSetError": "This friend hasn't set a PIN yet. Ask them to set one in their profile.",
+  "@pinNotSetError": {
+    "description": "Error shown when the selected friend has no PIN set"
+  },
   "friendCodeLabel": "Friend Code",
   "@friendCodeLabel": {
     "description": "Label for the friend code display on profile page"

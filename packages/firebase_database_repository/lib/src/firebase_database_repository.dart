@@ -758,6 +758,9 @@ class FirebaseDatabaseRepository {
               : DateTime.now().add(const Duration(minutes: 15)),
         );
       }
+      if (e.code == 'failed-precondition') {
+        return const PinNotSet();
+      }
       return const PinCheckUnavailable();
     } catch (_) {
       return const PinCheckUnavailable();

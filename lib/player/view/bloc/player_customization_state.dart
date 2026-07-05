@@ -16,6 +16,9 @@ enum PinFlowError {
 
   /// The check could not run (offline or server error).
   unavailable,
+
+  /// The selected friend has not set a PIN yet.
+  notSet,
 }
 
 class PlayerCustomizationState extends Equatable {

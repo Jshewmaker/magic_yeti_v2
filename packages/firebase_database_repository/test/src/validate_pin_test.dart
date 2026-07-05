@@ -82,14 +82,13 @@ void main() {
     );
   });
 
-  test('permission-denied and failed-precondition surface as unavailable',
-      () async {
+  test('failed-precondition maps to PinNotSet', () async {
     when(() => callable.call<dynamic>(any())).thenThrow(
       FirebaseFunctionsException(code: 'failed-precondition', message: 'no pin'),
     );
     expect(
       await repository.validatePin(targetUserId: 'f', pin: '0742'),
-      const PinCheckUnavailable(),
+      const PinNotSet(),
     );
   });
 }

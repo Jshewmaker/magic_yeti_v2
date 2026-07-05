@@ -438,6 +438,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t verify the PIN. Check your connection and try again.';
 
   @override
+  String get pinNotSetError =>
+      'This friend hasn\'t set a PIN yet. Ask them to set one in their profile.';
+
+  @override
   String get friendCodeLabel => 'Friend Code';
 
   @override

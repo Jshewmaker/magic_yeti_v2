@@ -442,6 +442,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo verificar el PIN. Revisa tu conexión e inténtalo de nuevo.';
 
   @override
+  String get pinNotSetError =>
+      'Este amigo aún no ha configurado un PIN. Pídele que configure uno en su perfil.';
+
+  @override
   String get friendCodeLabel => 'Código de Amigo';
 
   @override

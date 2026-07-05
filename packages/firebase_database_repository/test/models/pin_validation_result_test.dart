@@ -18,6 +18,7 @@ void main() {
         PinLockedOut(lockedUntil: DateTime.utc(2026, 7, 3)),
       );
       expect(const PinCheckUnavailable(), const PinCheckUnavailable());
+      expect(const PinNotSet(), const PinNotSet());
     });
 
     test('subtypes are exhaustively switchable', () {
@@ -27,6 +28,7 @@ void main() {
               'invalid:$attemptsRemaining',
             PinLockedOut() => 'locked',
             PinCheckUnavailable() => 'unavailable',
+            PinNotSet() => 'notSet',
           };
       expect(describe(const PinValid()), 'valid');
       expect(

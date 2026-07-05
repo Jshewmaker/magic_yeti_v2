@@ -49,3 +49,9 @@ final class PinCheckUnavailable extends PinValidationResult {
   /// Creates an unavailable result.
   const PinCheckUnavailable();
 }
+
+/// The target user has not set a PIN yet, so validation cannot run.
+final class PinNotSet extends PinValidationResult {
+  /// Creates a not-set result.
+  const PinNotSet();
+}

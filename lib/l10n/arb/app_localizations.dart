@@ -878,6 +878,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t verify the PIN. Check your connection and try again.'**
   String get pinUnavailableError;
 
+  /// Error shown when the selected friend has no PIN set
+  ///
+  /// In en, this message translates to:
+  /// **'This friend hasn\'t set a PIN yet. Ask them to set one in their profile.'**
+  String get pinNotSetError;
+
   /// Label for the friend code display on profile page
   ///
   /// In en, this message translates to:
