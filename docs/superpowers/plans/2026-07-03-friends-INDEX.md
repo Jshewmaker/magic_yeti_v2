@@ -10,6 +10,23 @@ Branch: feat/friends-hardening
 | C `2026-07-03-friends-c-social-graph-blocking.md` | Social graph rules + blocking (4–5) | complete |
 | D `2026-07-03-friends-d-profile-cleanup.md` | Profile page + cleanup (6–7) | complete |
 
+**POST-DEPLOY GOTCHA (discovered 2026-07-05, first real production deploy):** if a
+multi-function deploy partially fails (one function's build breaks, aborting the
+whole operation), any 2nd-gen callable functions that DID finish creating their
+underlying Cloud Run service can be left without the public-invoker IAM binding —
+they "exist" and every subsequent deploy sees no source change and treats them as
+an update (skipping re-applying that binding), so they silently reject ALL traffic
+forever with a raw Google-frontend 403 HTML page instead of Firebase's normal JSON
+error. This is indistinguishable from a working deploy in `firebase deploy` output.
+**Verify any 2nd-gen callable after deploying** with:
+`curl -X POST <callable-url> -d '{"data":{}}'` — expect
+`{"error":{"status":"UNAUTHENTICATED",...}}` (HTTP 401). A raw HTML "403 Forbidden"
+page means the fix is `firebase functions:delete <name> --force` followed by a
+fresh deploy, forcing a genuine create instead of an update. (The malformed
+response also appears to break the Flutter `cloud_functions` client's error
+handling rather than surfacing a clean exception — this is what caused the
+friend-search freeze/crash on-device, not a code bug in `searchByFriendCode`.)
+
 **DEPLOY GATE:** before the first `firebase deploy --only firestore:rules`, export
 the project's CURRENT production rules from the Firebase console and diff them
 against `firestore.rules` — the console rules were never versioned and may contain
