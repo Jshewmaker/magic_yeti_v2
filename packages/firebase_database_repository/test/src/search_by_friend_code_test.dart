@@ -29,7 +29,7 @@ void main() {
   void stubResult(Map<String, dynamic> data) {
     final result = _MockResult();
     when(() => result.data).thenReturn(data);
-    when(() => callable.call<dynamic>(any())).thenAnswer((_) async => result);
+    when(() => callable.call<dynamic>(any<Map<String, dynamic>>())).thenAnswer((_) async => result);
   }
 
   test(
@@ -68,7 +68,7 @@ void main() {
   });
 
   test('unavailable throws', () async {
-    when(() => callable.call<dynamic>(any())).thenThrow(
+    when(() => callable.call<dynamic>(any<Map<String, dynamic>>())).thenThrow(
       FirebaseFunctionsException(code: 'unavailable', message: 'offline'),
     );
 
@@ -79,7 +79,7 @@ void main() {
   });
 
   test('invalid-argument throws ArgumentError', () async {
-    when(() => callable.call<dynamic>(any())).thenThrow(
+    when(() => callable.call<dynamic>(any<Map<String, dynamic>>())).thenThrow(
       FirebaseFunctionsException(
         code: 'invalid-argument',
         message: 'code is required',
@@ -93,7 +93,7 @@ void main() {
   });
 
   test('other FirebaseFunctionsException throws (not found:false)', () async {
-    when(() => callable.call<dynamic>(any())).thenThrow(
+    when(() => callable.call<dynamic>(any<Map<String, dynamic>>())).thenThrow(
       FirebaseFunctionsException(
         code: 'internal',
         message: 'boom',

@@ -34,11 +34,11 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       } else {
         emit(const SearchLoaded([], RelationshipStatus.none));
       }
-      // ignore: avoid_catching_errors
-    } on ArgumentError catch (e) {
       // The repository throws ArgumentError for a callable
       // `invalid-argument` response (e.g. an empty/blank code); surface it
       // the same as any other search failure instead of crashing the bloc.
+      // ignore: avoid_catching_errors
+    } on ArgumentError catch (e) {
       emit(SearchError('Failed to search by friend code: $e'));
     } on Exception catch (e) {
       emit(SearchError('Failed to search by friend code: $e'));
