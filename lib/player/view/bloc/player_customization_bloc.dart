@@ -27,7 +27,6 @@ class PlayerCustomizationBloc
     on<CancelSelectingSecondCard>(_onCancelSelectingSecondCard);
     on<SecondCardCleared>(_onSecondCardCleared);
     on<CommanderFavoriteToggled>(_onFavoriteToggled);
-    on<UpdateAccountOwnership>(_onUpdateAccountOwnership);
     on<UpdateCommanderFilters>(_onUpdateCommanderFilters);
     on<ClearCardList>(_onClearCardList);
     on<SelectFriend>(_onSelectFriend);
@@ -165,13 +164,6 @@ class PlayerCustomizationBloc
         favoriteIds: favorites.map(_id).toSet(),
       ),
     );
-  }
-
-  void _onUpdateAccountOwnership(
-    UpdateAccountOwnership event,
-    Emitter<PlayerCustomizationState> emit,
-  ) {
-    emit(state.copyWith(isAccountOwner: event.isOwner));
   }
 
   void _onClearCardList(

@@ -274,6 +274,114 @@ void main() {
       expect(find.text('Linked to Alice'), findsOneWidget);
     });
   });
+
+  group('CustomizePlayerView rehydration', () {
+    late MockAppBloc appBloc;
+    late MockFriendBloc friendBloc;
+    late MockPlayerBloc playerBloc;
+    late MockPlayerRepository playerRepository;
+    late MockFirebaseDatabaseRepository db;
+
+    const linkedToOwnerPlayer = Player(
+      id: 'p1',
+      name: 'Old Name',
+      playerNumber: 0,
+      lifePoints: 40,
+      color: 0xFF378ADD,
+      opponents: [],
+      state: PlayerModelState.active,
+      firebaseId: 'alice',
+    );
+
+    const linkedToFriendPlayer = Player(
+      id: 'p1',
+      name: 'Bob',
+      playerNumber: 0,
+      lifePoints: 40,
+      color: 0xFF378ADD,
+      opponents: [],
+      state: PlayerModelState.active,
+      firebaseId: 'bob',
+    );
+
+    setUp(() {
+      appBloc = MockAppBloc();
+      friendBloc = MockFriendBloc();
+      playerBloc = MockPlayerBloc();
+      playerRepository = MockPlayerRepository();
+      db = MockFirebaseDatabaseRepository();
+
+      when(() => appBloc.state)
+          .thenReturn(const AppState.authenticated(User(id: 'alice')));
+      when(() => db.getUserProfileOnce('alice')).thenAnswer(
+        (_) async => const UserProfileModel(id: 'alice', username: 'Alice'),
+      );
+    });
+
+    Future<void> pump(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1600, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpApp(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<AppBloc>.value(value: appBloc),
+            BlocProvider<FriendBloc>.value(value: friendBloc),
+            BlocProvider<PlayerBloc>.value(value: playerBloc),
+            BlocProvider<PlayerCustomizationBloc>(
+              create: (context) => PlayerCustomizationBloc(
+                scryfallRepository: MockScryfallRepository(),
+                firebaseDatabaseRepository: db,
+                commanderLibraryRepository: FakeCommanderLibraryRepository(),
+              ),
+            ),
+          ],
+          child: RepositoryProvider<PlayerRepository>.value(
+            value: playerRepository,
+            child: const CustomizePlayerView(playerId: 'p1'),
+          ),
+        ),
+      );
+    }
+
+    testWidgets(
+        'reopening an owner-linked seat re-confirms Me and shows the owner '
+        'username, without needing a fresh selection', (tester) async {
+      when(() => playerRepository.getPlayerById('p1'))
+          .thenReturn(linkedToOwnerPlayer);
+      when(() => playerBloc.state)
+          .thenReturn(const PlayerState(player: linkedToOwnerPlayer));
+      when(() => friendBloc.state).thenReturn(const FriendsLoaded([bob]));
+
+      await pump(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Linked to Alice'), findsOneWidget);
+    });
+
+    testWidgets(
+        'reopening a friend-linked seat re-confirms that friend once the '
+        'friend list finishes loading, without a PIN prompt', (tester) async {
+      when(() => playerRepository.getPlayerById('p1'))
+          .thenReturn(linkedToFriendPlayer);
+      when(() => playerBloc.state)
+          .thenReturn(const PlayerState(player: linkedToFriendPlayer));
+      // Starts loading, then transitions to FriendsLoaded — whenListen
+      // drives both the initial `.state` read and the later stream event
+      // that the page's BlocListener reacts to, without a manual re-stub.
+      whenListen<FriendState>(
+        friendBloc,
+        Stream.fromIterable([const FriendsLoaded([bob])]),
+        initialState: FriendsLoading(),
+      );
+
+      await pump(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('Linked to Bob'), findsOneWidget);
+    });
+  });
 }
 
 /// Matches the test framework's own synthetic exception, thrown when two or

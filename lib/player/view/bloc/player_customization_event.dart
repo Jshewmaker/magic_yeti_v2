@@ -70,15 +70,6 @@ final class ClearCardList extends PlayerCustomizationEvent {
   const ClearCardList();
 }
 
-final class UpdateAccountOwnership extends PlayerCustomizationEvent {
-  const UpdateAccountOwnership({required this.isOwner});
-
-  final bool isOwner;
-
-  @override
-  List<Object> get props => [isOwner];
-}
-
 final class UpdateCommanderFilters extends PlayerCustomizationEvent {
   const UpdateCommanderFilters({required this.showOnlyLegendary});
 

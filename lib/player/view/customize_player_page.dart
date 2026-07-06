@@ -82,10 +82,13 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
       }
     });
 
-    final isOwner = context.read<PlayerBloc>().state.player.firebaseId != null;
-    context.read<PlayerCustomizationBloc>().add(
-      UpdateAccountOwnership(isOwner: isOwner),
-    );
+    final currentUserId = context.read<AppBloc>().state.user.id;
+    final linkedFirebaseId = context.read<PlayerBloc>().state.player.firebaseId;
+    if (linkedFirebaseId != null && linkedFirebaseId == currentUserId) {
+      context.read<PlayerCustomizationBloc>().add(
+        OwnerSelected(userId: currentUserId),
+      );
+    }
   }
 
   @override
@@ -123,71 +126,121 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
       widget.playerId,
     );
 
-    return BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
-      builder: (context, state) {
-        final commander = state.commander ?? player.commander;
-        return Scaffold(
-          backgroundColor: Colors.transparent,
-          extendBodyBehindAppBar: true,
-          appBar: AppBar(
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<FriendBloc, FriendState>(
+          listenWhen: (previous, current) => current is FriendsLoaded,
+          listener: (context, friendState) {
+            final customState = context.read<PlayerCustomizationBloc>().state;
+            if (customState.isAccountOwner ||
+                customState.selectedFriend != null) {
+              return;
+            }
+            final linkedFirebaseId =
+                context.read<PlayerBloc>().state.player.firebaseId;
+            if (linkedFirebaseId == null) return;
+            final friends = (friendState as FriendsLoaded).friends;
+            FriendModel? match;
+            for (final f in friends) {
+              if (f.userId == linkedFirebaseId) {
+                match = f;
+                break;
+              }
+            }
+            if (match != null) {
+              context.read<PlayerCustomizationBloc>().add(
+                SelectFriend(friend: match),
+              );
+            }
+          },
+        ),
+        BlocListener<PlayerCustomizationBloc, PlayerCustomizationState>(
+          listenWhen: (previous, current) =>
+              previous.isAccountOwner != current.isAccountOwner ||
+              previous.ownerUsername != current.ownerUsername ||
+              previous.selectedFriend != current.selectedFriend,
+          listener: (context, state) {
+            if (state.isAccountOwner) {
+              final owner = state.ownerUsername;
+              if (owner != null && owner.isNotEmpty) {
+                _nameController.text = owner;
+              }
+            } else if (state.selectedFriend != null) {
+              _nameController.text = state.selectedFriend!.username;
+            } else {
+              _nameController.clear();
+            }
+          },
+        ),
+      ],
+      child: BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
+        builder: (context, state) {
+          final commander = state.commander ?? player.commander;
+          return Scaffold(
             backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              CommanderHeroBanner(
-                commander: commander,
-                partner: state.partner,
-                background: state.background,
-                playerColor: player.color,
+            extendBodyBehindAppBar: true,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
               ),
-              ColoredBox(color: AppColors.black.withValues(alpha: 0.45)),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        flex: 39,
-                        child: _Panel(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                _FriendSection(nameController: _nameController),
-                                PlayerIdentityPanel(
-                                  nameController: _nameController,
-                                  nameFocusNode: _nameFocusNode,
-                                  playerColor: player.color,
-                                  onSave: () => _save(context, state),
-                                ),
-                              ],
+            ),
+            body: Stack(
+              fit: StackFit.expand,
+              children: [
+                CommanderHeroBanner(
+                  commander: commander,
+                  partner: state.partner,
+                  background: state.background,
+                  playerColor: player.color,
+                ),
+                ColoredBox(color: AppColors.black.withValues(alpha: 0.45)),
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          flex: 39,
+                          child: _Panel(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  _FriendSection(
+                                    nameController: _nameController,
+                                  ),
+                                  PlayerIdentityPanel(
+                                    nameController: _nameController,
+                                    nameFocusNode: _nameFocusNode,
+                                    playerColor: player.color,
+                                    onSave: () => _save(context, state),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        flex: 61,
-                        child: _Panel(
-                          child: CommanderPickerPanel(
-                            searchController: _searchController,
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          flex: 61,
+                          child: _Panel(
+                            child: CommanderPickerPanel(
+                              searchController: _searchController,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -356,9 +409,10 @@ class _FriendSection extends StatelessWidget {
                   previous.pinFlowError != current.pinFlowError,
               listener: (listenerContext, state) {
                 if (state.pinValidated) {
-                  // PIN succeeded — select friend, populate name, close
+                  // PIN succeeded — select friend, close. The page-level
+                  // BlocListener in CustomizePlayerView.build() populates
+                  // the name field once selectedFriend changes.
                   bloc.add(SelectFriend(friend: friend));
-                  nameController.text = friend.username;
                   Navigator.pop(listenerContext);
                 }
                 // pinFlowError is shown reactively via the BlocBuilder below
