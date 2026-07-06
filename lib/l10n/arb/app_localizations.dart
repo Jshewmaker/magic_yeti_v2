@@ -872,6 +872,12 @@ abstract class AppLocalizations {
   /// **'Verify'**
   String get verifyButtonText;
 
+  /// Dropdown entry / fallback label to link a player slot to the signed-in user's own account
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get accountOwnerOptionLabel;
+
   /// Error shown when a friend PIN is incorrect, with attempts remaining
   ///
   /// In en, this message translates to:

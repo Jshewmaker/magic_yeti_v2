@@ -429,6 +429,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get verifyButtonText => 'Verificar';
 
   @override
+  String get accountOwnerOptionLabel => 'Yo';
+
+  @override
   String pinIncorrectError(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

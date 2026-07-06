@@ -203,6 +203,77 @@ void main() {
       expect(dialog.scrollable, isTrue);
     });
   });
+
+  group('CustomizePlayerView name lock', () {
+    late MockAppBloc appBloc;
+    late MockFriendBloc friendBloc;
+    late MockPlayerBloc playerBloc;
+    late MockPlayerRepository playerRepository;
+    late MockFirebaseDatabaseRepository db;
+
+    setUp(() {
+      appBloc = MockAppBloc();
+      friendBloc = MockFriendBloc();
+      playerBloc = MockPlayerBloc();
+      playerRepository = MockPlayerRepository();
+      db = MockFirebaseDatabaseRepository();
+
+      when(() => playerRepository.getPlayerById('p1')).thenReturn(testPlayer);
+      when(() => playerBloc.state)
+          .thenReturn(const PlayerState(player: testPlayer));
+      when(() => appBloc.state)
+          .thenReturn(const AppState.authenticated(User(id: 'alice')));
+      when(() => friendBloc.state).thenReturn(const FriendsLoaded([bob]));
+      when(() => db.getUserProfileOnce('alice')).thenAnswer(
+        (_) async => const UserProfileModel(id: 'alice', username: 'Alice'),
+      );
+    });
+
+    testWidgets(
+        'locks the name field and shows "Linked to Alice" once the owner '
+        'is confirmed', (tester) async {
+      tester.view.physicalSize = const Size(1600, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      late PlayerCustomizationBloc customizationBloc;
+      await tester.pumpApp(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<AppBloc>.value(value: appBloc),
+            BlocProvider<FriendBloc>.value(value: friendBloc),
+            BlocProvider<PlayerBloc>.value(value: playerBloc),
+            BlocProvider<PlayerCustomizationBloc>(
+              create: (context) {
+                customizationBloc = PlayerCustomizationBloc(
+                  scryfallRepository: MockScryfallRepository(),
+                  firebaseDatabaseRepository: db,
+                  commanderLibraryRepository: FakeCommanderLibraryRepository(),
+                );
+                return customizationBloc;
+              },
+            ),
+          ],
+          child: RepositoryProvider<PlayerRepository>.value(
+            value: playerRepository,
+            child: const CustomizePlayerView(playerId: 'p1'),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      customizationBloc.add(const OwnerSelected(userId: 'alice'));
+      await tester.pumpAndSettle();
+
+      final nameField = tester.widget<TextField>(
+        find.byWidgetPredicate(
+          (w) => w is TextField && w.decoration?.hintText == 'Player name',
+        ),
+      );
+      expect(nameField.readOnly, isTrue);
+      expect(find.text('Linked to Alice'), findsOneWidget);
+    });
+  });
 }
 
 /// Matches the test framework's own synthetic exception, thrown when two or

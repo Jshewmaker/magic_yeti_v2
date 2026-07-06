@@ -755,6 +755,10 @@
   "@verifyButtonText": {
     "description": "Button text to verify PIN"
   },
+  "accountOwnerOptionLabel": "Me",
+  "@accountOwnerOptionLabel": {
+    "description": "Dropdown entry / fallback label to link a player slot to the signed-in user's own account"
+  },
   "pinIncorrectError": "Incorrect PIN. {count, plural, =1{1 attempt} other{{count} attempts}} remaining.",
   "@pinIncorrectError": {
     "description": "Error shown when a friend PIN is incorrect, with attempts remaining",
