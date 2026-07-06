@@ -42,6 +42,7 @@ class PlayerCustomizationState extends Equatable {
     this.pinFlowError = PinFlowError.none,
     this.pinAttemptsRemaining = 0,
     this.pinLockedUntil,
+    this.isPinValidating = false,
   });
 
   final PlayerCustomizationStatus status;
@@ -63,6 +64,7 @@ class PlayerCustomizationState extends Equatable {
   final PinFlowError pinFlowError;
   final int pinAttemptsRemaining;
   final DateTime? pinLockedUntil;
+  final bool isPinValidating;
 
   /// Commander-damage clocks this player will be tracked with: the commander,
   /// plus the partner if present. A background never adds a clock.
@@ -100,6 +102,7 @@ class PlayerCustomizationState extends Equatable {
         pinFlowError,
         pinAttemptsRemaining,
         pinLockedUntil,
+        isPinValidating,
       ];
 
   PlayerCustomizationState copyWith({
@@ -122,6 +125,7 @@ class PlayerCustomizationState extends Equatable {
     PinFlowError? pinFlowError,
     int? pinAttemptsRemaining,
     DateTime? Function()? pinLockedUntil,
+    bool? isPinValidating,
   }) {
     return PlayerCustomizationState(
       status: status ?? this.status,
@@ -144,6 +148,7 @@ class PlayerCustomizationState extends Equatable {
       pinAttemptsRemaining: pinAttemptsRemaining ?? this.pinAttemptsRemaining,
       pinLockedUntil:
           pinLockedUntil != null ? pinLockedUntil() : this.pinLockedUntil,
+      isPinValidating: isPinValidating ?? this.isPinValidating,
     );
   }
 

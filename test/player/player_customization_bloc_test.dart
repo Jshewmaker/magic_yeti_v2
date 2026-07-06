@@ -199,7 +199,7 @@ void main() {
 
   group('ValidatePin', () {
     blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
-      'emits pinValidated on PinValid',
+      'emits isPinValidating true, then pinValidated on PinValid',
       build: () {
         when(
           () => db.validatePin(
@@ -213,6 +213,9 @@ void main() {
           bloc.add(const ValidatePin(pin: '0742', friendUserId: 'friend1')),
       expect: () => [
         isA<PlayerCustomizationState>()
+            .having((s) => s.isPinValidating, 'isPinValidating', true),
+        isA<PlayerCustomizationState>()
+            .having((s) => s.isPinValidating, 'isPinValidating', false)
             .having((s) => s.pinValidated, 'pinValidated', true)
             .having((s) => s.pinFlowError, 'pinFlowError', PinFlowError.none),
       ],
@@ -231,8 +234,10 @@ void main() {
       },
       act: (bloc) =>
           bloc.add(const ValidatePin(pin: '9999', friendUserId: 'friend1')),
+      skip: 1,
       expect: () => [
         isA<PlayerCustomizationState>()
+            .having((s) => s.isPinValidating, 'isPinValidating', false)
             .having((s) => s.pinValidated, 'pinValidated', false)
             .having(
               (s) => s.pinFlowError,
@@ -258,8 +263,10 @@ void main() {
       },
       act: (bloc) =>
           bloc.add(const ValidatePin(pin: '9999', friendUserId: 'friend1')),
+      skip: 1,
       expect: () => [
         isA<PlayerCustomizationState>()
+            .having((s) => s.isPinValidating, 'isPinValidating', false)
             .having(
               (s) => s.pinFlowError,
               'pinFlowError',
@@ -286,12 +293,15 @@ void main() {
       },
       act: (bloc) =>
           bloc.add(const ValidatePin(pin: '0742', friendUserId: 'friend1')),
+      skip: 1,
       expect: () => [
-        isA<PlayerCustomizationState>().having(
-          (s) => s.pinFlowError,
-          'pinFlowError',
-          PinFlowError.unavailable,
-        ),
+        isA<PlayerCustomizationState>()
+            .having((s) => s.isPinValidating, 'isPinValidating', false)
+            .having(
+              (s) => s.pinFlowError,
+              'pinFlowError',
+              PinFlowError.unavailable,
+            ),
       ],
     );
 
@@ -308,12 +318,15 @@ void main() {
       },
       act: (bloc) =>
           bloc.add(const ValidatePin(pin: '0742', friendUserId: 'friend1')),
+      skip: 1,
       expect: () => [
-        isA<PlayerCustomizationState>().having(
-          (s) => s.pinFlowError,
-          'pinFlowError',
-          PinFlowError.notSet,
-        ),
+        isA<PlayerCustomizationState>()
+            .having((s) => s.isPinValidating, 'isPinValidating', false)
+            .having(
+              (s) => s.pinFlowError,
+              'pinFlowError',
+              PinFlowError.notSet,
+            ),
       ],
     );
   });

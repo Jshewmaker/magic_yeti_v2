@@ -223,6 +223,7 @@ class PlayerCustomizationBloc
     ValidatePin event,
     Emitter<PlayerCustomizationState> emit,
   ) async {
+    emit(state.copyWith(isPinValidating: true));
     final result = await _firebaseDatabaseRepository.validatePin(
       targetUserId: event.friendUserId,
       pin: event.pin,
@@ -231,6 +232,7 @@ class PlayerCustomizationBloc
       case PinValid():
         emit(
           state.copyWith(
+            isPinValidating: false,
             pinValidated: true,
             pinFlowError: PinFlowError.none,
             pinLockedUntil: () => null,
@@ -239,6 +241,7 @@ class PlayerCustomizationBloc
       case PinInvalid(:final attemptsRemaining):
         emit(
           state.copyWith(
+            isPinValidating: false,
             pinValidated: false,
             pinFlowError: PinFlowError.incorrect,
             pinAttemptsRemaining: attemptsRemaining,
@@ -248,6 +251,7 @@ class PlayerCustomizationBloc
       case PinLockedOut(:final lockedUntil):
         emit(
           state.copyWith(
+            isPinValidating: false,
             pinValidated: false,
             pinFlowError: PinFlowError.lockedOut,
             pinLockedUntil: () => lockedUntil,
@@ -256,6 +260,7 @@ class PlayerCustomizationBloc
       case PinNotSet():
         emit(
           state.copyWith(
+            isPinValidating: false,
             pinValidated: false,
             pinFlowError: PinFlowError.notSet,
             pinLockedUntil: () => null,
@@ -264,6 +269,7 @@ class PlayerCustomizationBloc
       case PinCheckUnavailable():
         emit(
           state.copyWith(
+            isPinValidating: false,
             pinValidated: false,
             pinFlowError: PinFlowError.unavailable,
             pinLockedUntil: () => null,
