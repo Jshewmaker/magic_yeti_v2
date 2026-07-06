@@ -354,4 +354,104 @@ void main() {
       ],
     );
   });
+
+  group('OwnerSelected', () {
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'confirms isAccountOwner and clears any existing friend selection',
+      build: () {
+        when(() => db.getUserProfileOnce('alice'))
+            .thenAnswer((_) async => null);
+        return build();
+      },
+      seed: () => PlayerCustomizationState(
+        selectedFriend: const FriendModel(
+          userId: 'bob',
+          username: 'Bob',
+          profilePictureUrl: '',
+        ),
+        pinValidated: true,
+      ),
+      act: (bloc) => bloc.add(const OwnerSelected(userId: 'alice')),
+      verify: (bloc) {
+        expect(bloc.state.isAccountOwner, isTrue);
+        expect(bloc.state.selectedFriend, isNull);
+        expect(bloc.state.pinValidated, isFalse);
+      },
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'fetches and stores the owner username',
+      build: () {
+        when(() => db.getUserProfileOnce('alice')).thenAnswer(
+          (_) async => const UserProfileModel(id: 'alice', username: 'Alice'),
+        );
+        return build();
+      },
+      act: (bloc) => bloc.add(const OwnerSelected(userId: 'alice')),
+      verify: (bloc) {
+        expect(bloc.state.ownerUsername, 'Alice');
+      },
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'leaves ownerUsername unset if the profile fetch returns null',
+      build: () {
+        when(() => db.getUserProfileOnce('alice'))
+            .thenAnswer((_) async => null);
+        return build();
+      },
+      act: (bloc) => bloc.add(const OwnerSelected(userId: 'alice')),
+      verify: (bloc) {
+        expect(bloc.state.ownerUsername, isNull);
+      },
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'still confirms isAccountOwner if the profile fetch throws',
+      build: () {
+        when(() => db.getUserProfileOnce('alice'))
+            .thenThrow(Exception('offline'));
+        return build();
+      },
+      act: (bloc) => bloc.add(const OwnerSelected(userId: 'alice')),
+      verify: (bloc) {
+        expect(bloc.state.isAccountOwner, isTrue);
+        expect(bloc.state.ownerUsername, isNull);
+      },
+    );
+  });
+
+  group('SelectFriend', () {
+    const bob = FriendModel(
+      userId: 'bob',
+      username: 'Bob',
+      profilePictureUrl: '',
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'confirms the friend as validated and clears isAccountOwner',
+      build: build,
+      seed: () => const PlayerCustomizationState(isAccountOwner: true),
+      act: (bloc) => bloc.add(const SelectFriend(friend: bob)),
+      verify: (bloc) {
+        expect(bloc.state.selectedFriend, bob);
+        expect(bloc.state.pinValidated, isTrue);
+        expect(bloc.state.isAccountOwner, isFalse);
+      },
+    );
+  });
+
+  group('LinkCleared', () {
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'clears both a friend link and owner status',
+      build: build,
+      seed: () => const PlayerCustomizationState(isAccountOwner: true),
+      act: (bloc) => bloc.add(const LinkCleared()),
+      verify: (bloc) {
+        expect(bloc.state.isAccountOwner, isFalse);
+        expect(bloc.state.selectedFriend, isNull);
+        expect(bloc.state.pinValidated, isFalse);
+      },
+    );
+  });
 }

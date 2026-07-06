@@ -31,7 +31,8 @@ class PlayerCustomizationBloc
     on<UpdateCommanderFilters>(_onUpdateCommanderFilters);
     on<ClearCardList>(_onClearCardList);
     on<SelectFriend>(_onSelectFriend);
-    on<ClearFriend>(_onClearFriend);
+    on<OwnerSelected>(_onOwnerSelected);
+    on<LinkCleared>(_onLinkCleared);
     on<ValidatePin>(_onValidatePin);
     on<ResetPinFlow>(_onResetPinFlow);
   }
@@ -204,19 +205,33 @@ class PlayerCustomizationBloc
     SelectFriend event,
     Emitter<PlayerCustomizationState> emit,
   ) {
-    emit(
-      state.copyWith(
-        selectedFriend: event.friend,
-        pinFlowError: PinFlowError.none,
-      ),
-    );
+    emit(state.copyWithFriendSelected(event.friend));
   }
 
-  void _onClearFriend(
-    ClearFriend event,
+  Future<void> _onOwnerSelected(
+    OwnerSelected event,
+    Emitter<PlayerCustomizationState> emit,
+  ) async {
+    emit(state.copyWithOwnerSelected());
+    try {
+      final profile =
+          await _firebaseDatabaseRepository.getUserProfileOnce(event.userId);
+      if (profile?.username != null && profile!.username!.isNotEmpty) {
+        emit(state.copyWith(ownerUsername: profile.username));
+      }
+    } on Exception catch (_) {
+      // Leave ownerUsername unset — PlayerIdentityPanel falls back to
+      // whatever name was already persisted for this seat. isAccountOwner
+      // stays confirmed either way; a failed username fetch shouldn't
+      // block linking the seat to the owner's account.
+    }
+  }
+
+  void _onLinkCleared(
+    LinkCleared event,
     Emitter<PlayerCustomizationState> emit,
   ) {
-    emit(state.copyWithClearedFriend());
+    emit(state.copyWithLinkCleared());
   }
 
   Future<void> _onValidatePin(

@@ -43,6 +43,7 @@ class PlayerCustomizationState extends Equatable {
     this.pinAttemptsRemaining = 0,
     this.pinLockedUntil,
     this.isPinValidating = false,
+    this.ownerUsername,
   });
 
   final PlayerCustomizationStatus status;
@@ -65,6 +66,7 @@ class PlayerCustomizationState extends Equatable {
   final int pinAttemptsRemaining;
   final DateTime? pinLockedUntil;
   final bool isPinValidating;
+  final String? ownerUsername;
 
   /// Commander-damage clocks this player will be tracked with: the commander,
   /// plus the partner if present. A background never adds a clock.
@@ -103,6 +105,7 @@ class PlayerCustomizationState extends Equatable {
         pinAttemptsRemaining,
         pinLockedUntil,
         isPinValidating,
+        ownerUsername,
       ];
 
   PlayerCustomizationState copyWith({
@@ -126,6 +129,7 @@ class PlayerCustomizationState extends Equatable {
     int? pinAttemptsRemaining,
     DateTime? Function()? pinLockedUntil,
     bool? isPinValidating,
+    String? ownerUsername,
   }) {
     return PlayerCustomizationState(
       status: status ?? this.status,
@@ -149,10 +153,13 @@ class PlayerCustomizationState extends Equatable {
       pinLockedUntil:
           pinLockedUntil != null ? pinLockedUntil() : this.pinLockedUntil,
       isPinValidating: isPinValidating ?? this.isPinValidating,
+      ownerUsername: ownerUsername ?? this.ownerUsername,
     );
   }
 
-  PlayerCustomizationState copyWithClearedFriend() {
+  /// Clears any link (owner or friend) — returns this seat to a fully
+  /// unlinked, freely-editable state.
+  PlayerCustomizationState copyWithLinkCleared() {
     return PlayerCustomizationState(
       status: status,
       name: name,
@@ -161,13 +168,63 @@ class PlayerCustomizationState extends Equatable {
       background: background,
       cardList: cardList,
       magicCardList: magicCardList,
-      isAccountOwner: isAccountOwner,
+      isAccountOwner: false,
       showOnlyLegendary: showOnlyLegendary,
       availablePairing: availablePairing,
       selectingSecondCard: selectingSecondCard,
       recents: recents,
       favorites: favorites,
       favoriteIds: favoriteIds,
+      ownerUsername: ownerUsername,
+    );
+  }
+
+  /// Confirms the account owner as this seat's linked identity, clearing
+  /// any friend link — a seat is linked to at most one account at a time.
+  PlayerCustomizationState copyWithOwnerSelected() {
+    return PlayerCustomizationState(
+      status: status,
+      name: name,
+      commander: commander,
+      partner: partner,
+      background: background,
+      cardList: cardList,
+      magicCardList: magicCardList,
+      isAccountOwner: true,
+      showOnlyLegendary: showOnlyLegendary,
+      availablePairing: availablePairing,
+      selectingSecondCard: selectingSecondCard,
+      recents: recents,
+      favorites: favorites,
+      favoriteIds: favoriteIds,
+      ownerUsername: ownerUsername,
+    );
+  }
+
+  /// Confirms [friend] as this seat's linked identity — always treated as
+  /// already PIN-validated, since both call sites (the PIN dialog's success
+  /// listener, and initState rehydration from an already-persisted
+  /// firebaseId) represent a link that was already established, never a
+  /// fresh unverified pick. Clears any owner selection.
+  PlayerCustomizationState copyWithFriendSelected(FriendModel friend) {
+    return PlayerCustomizationState(
+      status: status,
+      name: name,
+      commander: commander,
+      partner: partner,
+      background: background,
+      cardList: cardList,
+      magicCardList: magicCardList,
+      isAccountOwner: false,
+      showOnlyLegendary: showOnlyLegendary,
+      availablePairing: availablePairing,
+      selectingSecondCard: selectingSecondCard,
+      recents: recents,
+      favorites: favorites,
+      favoriteIds: favoriteIds,
+      ownerUsername: ownerUsername,
+      selectedFriend: friend,
+      pinValidated: true,
     );
   }
 }

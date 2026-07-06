@@ -97,8 +97,17 @@ final class SelectFriend extends PlayerCustomizationEvent {
   List<Object> get props => [friend];
 }
 
-final class ClearFriend extends PlayerCustomizationEvent {
-  const ClearFriend();
+final class OwnerSelected extends PlayerCustomizationEvent {
+  const OwnerSelected({required this.userId});
+
+  final String userId;
+
+  @override
+  List<Object> get props => [userId];
+}
+
+final class LinkCleared extends PlayerCustomizationEvent {
+  const LinkCleared();
 }
 
 final class ValidatePin extends PlayerCustomizationEvent {

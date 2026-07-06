@@ -273,7 +273,7 @@ class _FriendSection extends StatelessWidget {
                   onPressed: () {
                     context
                         .read<PlayerCustomizationBloc>()
-                        .add(const ClearFriend());
+                        .add(const LinkCleared());
                     nameController.clear();
                   },
                   child: Text(

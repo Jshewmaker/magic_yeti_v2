@@ -180,7 +180,7 @@ class _FriendLinkRow extends StatelessWidget {
             TextButton(
               onPressed: () => context
                   .read<PlayerCustomizationBloc>()
-                  .add(const ClearFriend()),
+                  .add(const LinkCleared()),
               child: const Text('Unlink'),
             ),
           ],
