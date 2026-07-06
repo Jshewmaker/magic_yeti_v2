@@ -366,6 +366,7 @@ class _FriendSection extends StatelessWidget {
               child: StatefulBuilder(
                 builder: (dialogContext, setDialogState) {
                   return AlertDialog(
+                    scrollable: true,
                     backgroundColor: AppColors.surface,
                     title: Text(
                       l10n.verifyFriendTitle(friend.username),
@@ -439,34 +440,55 @@ class _FriendSection extends StatelessWidget {
                       ],
                     ),
                     actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(dialogContext),
-                        child: Text(
-                          l10n.cancelTextButton,
-                          style:
-                              const TextStyle(color: AppColors.neutral60),
-                        ),
+                      BlocBuilder<PlayerCustomizationBloc,
+                          PlayerCustomizationState>(
+                        buildWhen: (previous, current) =>
+                            previous.isPinValidating != current.isPinValidating,
+                        builder: (context, state) {
+                          return TextButton(
+                            onPressed: state.isPinValidating
+                                ? null
+                                : () => Navigator.pop(dialogContext),
+                            child: Text(
+                              l10n.cancelTextButton,
+                              style:
+                                  const TextStyle(color: AppColors.neutral60),
+                            ),
+                          );
+                        },
                       ),
                       BlocBuilder<PlayerCustomizationBloc,
                           PlayerCustomizationState>(
                         buildWhen: (previous, current) =>
-                            previous.pinFlowError != current.pinFlowError,
+                            previous.pinFlowError != current.pinFlowError ||
+                            previous.isPinValidating != current.isPinValidating,
                         builder: (context, state) {
                           final isLockedOut =
                               state.pinFlowError == PinFlowError.lockedOut;
+                          final canSubmit = pinController.text.length == 4 &&
+                              !isLockedOut &&
+                              !state.isPinValidating;
                           return FilledButton(
-                            onPressed:
-                                pinController.text.length == 4 && !isLockedOut
-                                    ? () {
-                                        bloc.add(
-                                          ValidatePin(
-                                            pin: pinController.text,
-                                            friendUserId: friend.userId,
-                                          ),
-                                        );
-                                      }
-                                    : null,
-                            child: Text(l10n.verifyButtonText),
+                            onPressed: canSubmit
+                                ? () {
+                                    bloc.add(
+                                      ValidatePin(
+                                        pin: pinController.text,
+                                        friendUserId: friend.userId,
+                                      ),
+                                    );
+                                  }
+                                : null,
+                            child: state.isPinValidating
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.white,
+                                    ),
+                                  )
+                                : Text(l10n.verifyButtonText),
                           );
                         },
                       ),
