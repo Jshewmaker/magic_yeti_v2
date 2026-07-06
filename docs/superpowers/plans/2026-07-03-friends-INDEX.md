@@ -22,10 +22,29 @@ error. This is indistinguishable from a working deploy in `firebase deploy` outp
 `curl -X POST <callable-url> -d '{"data":{}}'` — expect
 `{"error":{"status":"UNAUTHENTICATED",...}}` (HTTP 401). A raw HTML "403 Forbidden"
 page means the fix is `firebase functions:delete <name> --force` followed by a
-fresh deploy, forcing a genuine create instead of an update. (The malformed
-response also appears to break the Flutter `cloud_functions` client's error
-handling rather than surfacing a clean exception — this is what caused the
-friend-search freeze/crash on-device, not a code bug in `searchByFriendCode`.)
+fresh deploy, forcing a genuine create instead of an update.
+
+**NATIVE CRASH ON FRIEND SEARCH (found 2026-07-05, root-caused via Console.app crash
+report):** the IAM gotcha above was real but was NOT the cause of the on-device
+friend-search freeze/crash reported the same day — that symptom is a **native
+SIGABRT inside the FirebaseFunctions/FirebaseAuth iOS SDKs themselves**, unrelated
+to any app or Cloud Functions code. Root cause: Swift 6.3 (shipped in Xcode 26.4)
+has a compiler regression that miscompiles `async let` teardown in optimized
+builds, corrupting the Swift Concurrency runtime's task-local stack the moment
+`HTTPSCallable.call()` (used by `searchByFriendCode`) tears down its internal
+concurrent auth/App Check token fetches — same pattern affects any `FirebaseAuth`
+call. Upstream: firebase/firebase-ios-sdk#15974, fixed via PR #15991 (Task-based
+rewrite replacing the `async let`), targeted for firebase-ios-sdk 12.12.0 — far
+ahead of this repo's currently pinned 11.8.0. Confirmed match: this machine runs
+exactly Xcode 26.4 / Swift 6.3.
+Fix applied in `ios/Podfile`'s `post_install` hook: force
+`SWIFT_OPTIMIZATION_LEVEL = -Onone` on the `FirebaseFunctions` and `FirebaseAuth`
+pod targets (all configs), sidestepping the optimizer bug regardless of which
+Xcode build configuration CocoaPods compiles them under. This is a toolchain
+workaround, not an app code change — remove it once the podspecs are bumped to a
+firebase-ios-sdk release containing #15991 (12.12.0+), which requires bumping the
+FlutterFire plugin majors (`cloud_functions`, `firebase_auth`, `firebase_core`,
+etc.) since this repo currently pins `firebase_core: ^3.8.1` → SDK 11.8.0.
 
 **DEPLOY GATE:** before the first `firebase deploy --only firestore:rules`, export
 the project's CURRENT production rules from the Firebase console and diff them
