@@ -24,6 +24,7 @@ void main() {
       userId: 'bob',
       username: 'Bob',
       imageUrl: 'http://x/bob.png',
+      friendCode: 'YETI-B0B1',
     );
 
     test('writes the block doc with denormalized fields + blockedAt', () async {
@@ -33,7 +34,21 @@ void main() {
       expect(blockDoc.exists, isTrue);
       expect(blockDoc.data()!['username'], 'Bob');
       expect(blockDoc.data()!['imageUrl'], 'http://x/bob.png');
+      expect(blockDoc.data()!['friendCode'], 'YETI-B0B1');
       expect(blockDoc.data()!['blockedAt'], isA<Timestamp>());
+    });
+
+    test('omits friendCode from the block doc when the target has none',
+        () async {
+      const noCodeTarget = BlockedUserModel(
+        userId: 'carol',
+        username: 'Carol',
+        imageUrl: 'http://x/carol.png',
+      );
+      await repository.blockUser(currentUserId: 'alice', target: noCodeTarget);
+
+      final blockDoc = await firestore.doc('users/alice/blocks/carol').get();
+      expect(blockDoc.data()!.containsKey('friendCode'), isFalse);
     });
 
     test('removes both friendship edges', () async {

@@ -191,6 +191,7 @@ class FriendsListView extends StatelessWidget {
                             userId: friend.userId,
                             username: friend.username,
                             imageUrl: friend.profilePictureUrl,
+                            friendCode: friend.friendCode,
                           ),
                         ),
                       );

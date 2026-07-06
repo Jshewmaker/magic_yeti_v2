@@ -25,7 +25,7 @@ void main() {
   group('addFriendRequest', () {
     test('new requests use the deterministic doc id and id field', () async {
       final result =
-          await repository.addFriendRequest('alice', 'Alice', 'bob');
+          await repository.addFriendRequest('alice', 'Alice', null, 'bob');
       expect(result, FriendRequestResult.sent);
       final doc = await firestore.doc('friendRequests/alice_bob').get();
       expect(doc.exists, isTrue);
@@ -36,18 +36,18 @@ void main() {
     });
 
     test('re-send onto an existing pending returns alreadyPending', () async {
-      await repository.addFriendRequest('alice', 'Alice', 'bob');
+      await repository.addFriendRequest('alice', 'Alice', null, 'bob');
       expect(
-        await repository.addFriendRequest('alice', 'Alice', 'bob'),
+        await repository.addFriendRequest('alice', 'Alice', null, 'bob'),
         FriendRequestResult.alreadyPending,
       );
     });
 
     test('declined doc suppresses re-send silently as sent', () async {
-      await repository.addFriendRequest('alice', 'Alice', 'bob');
+      await repository.addFriendRequest('alice', 'Alice', null, 'bob');
       await repository.declineFriendRequest('alice_bob');
       final result =
-          await repository.addFriendRequest('alice', 'Alice', 'bob');
+          await repository.addFriendRequest('alice', 'Alice', null, 'bob');
       expect(result, FriendRequestResult.sent);
       // Still declined — no new pending doc, receiver never sees it again.
       final doc = await firestore.doc('friendRequests/alice_bob').get();
@@ -55,7 +55,7 @@ void main() {
     });
 
     test('decline retains the doc with status declined', () async {
-      await repository.addFriendRequest('alice', 'Alice', 'bob');
+      await repository.addFriendRequest('alice', 'Alice', null, 'bob');
       await repository.declineFriendRequest('alice_bob');
       final doc = await firestore.doc('friendRequests/alice_bob').get();
       expect(doc.exists, isTrue);
@@ -66,9 +66,9 @@ void main() {
         () async {
       await firestore.collection('users').doc('alice').set({'username': 'a'});
       await firestore.collection('users').doc('bob').set({'username': 'b'});
-      await repository.addFriendRequest('bob', 'Bob', 'alice');
+      await repository.addFriendRequest('bob', 'Bob', null, 'alice');
       final result =
-          await repository.addFriendRequest('alice', 'Alice', 'bob');
+          await repository.addFriendRequest('alice', 'Alice', null, 'bob');
       expect(result, FriendRequestResult.autoAccepted);
       expect(
         (await firestore.doc('friends/alice/friendList/bob').get()).exists,
@@ -90,16 +90,16 @@ void main() {
       await firestore.collection('users').doc('alice').set({'username': 'a'});
       await firestore.collection('users').doc('bob').set({'username': 'b'});
       // Alice sent Bob a request; Bob declined it.
-      await repository.addFriendRequest('alice', 'Alice', 'bob');
+      await repository.addFriendRequest('alice', 'Alice', null, 'bob');
       await repository.declineFriendRequest('alice_bob');
       // Bob later sends Alice a request (reverse-direction pending).
-      await repository.addFriendRequest('bob', 'Bob', 'alice');
+      await repository.addFriendRequest('bob', 'Bob', null, 'alice');
       // Alice taps Accept on Bob's request from the search card — this
       // re-invokes addFriendRequest in the alice->bob direction. The
       // reverse-pending (bob_alice) must win over the own-doc declined
       // short-circuit (alice_bob) and auto-accept.
       final result =
-          await repository.addFriendRequest('alice', 'Alice', 'bob');
+          await repository.addFriendRequest('alice', 'Alice', null, 'bob');
       expect(result, FriendRequestResult.autoAccepted);
       expect(
         (await firestore.doc('friends/alice/friendList/bob').get()).exists,
@@ -121,11 +121,22 @@ void main() {
     });
 
     test('getFriendRequests still filters to pending only', () async {
-      await repository.addFriendRequest('alice', 'Alice', 'bob');
-      await repository.addFriendRequest('carol', 'Carol', 'bob');
+      await repository.addFriendRequest('alice', 'Alice', null, 'bob');
+      await repository.addFriendRequest('carol', 'Carol', null, 'bob');
       await repository.declineFriendRequest('alice_bob');
       final requests = await repository.getFriendRequests('bob');
       expect(requests.map((r) => r.senderId), ['carol']);
+    });
+
+    test('denormalizes senderFriendCode when provided, omits it when null',
+        () async {
+      await repository.addFriendRequest('alice', 'Alice', 'YETI-A3F9', 'bob');
+      final doc = await firestore.doc('friendRequests/alice_bob').get();
+      expect(doc.data()!['senderFriendCode'], 'YETI-A3F9');
+
+      await repository.addFriendRequest('carol', 'Carol', null, 'bob');
+      final noCodeDoc = await firestore.doc('friendRequests/carol_bob').get();
+      expect(noCodeDoc.data()!.containsKey('senderFriendCode'), isFalse);
     });
   });
 }

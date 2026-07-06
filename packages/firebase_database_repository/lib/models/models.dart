@@ -7,3 +7,4 @@ export 'game_model.dart';
 export 'pin_validation_result.dart';
 export 'relationship_status.dart';
 export 'user_profile_model.dart';
+export 'user_search_match.dart';

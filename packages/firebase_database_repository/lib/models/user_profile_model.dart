@@ -15,6 +15,7 @@ class UserProfileModel extends Equatable {
     this.isNewUser = false,
     this.isAnonymous = false,
     this.username,
+    this.usernameLower,
     this.firstName,
     this.lastName,
     this.bio,
@@ -47,6 +48,11 @@ class UserProfileModel extends Equatable {
   /// Username of the user
   final String? username;
 
+  /// Lowercase copy of [username], kept in sync by the repository on every
+  /// profile write. Powers the server-side `searchByUsername` prefix
+  /// search — do not set this directly.
+  final String? usernameLower;
+
   /// First name of the user
   final String? firstName;
 
@@ -59,7 +65,7 @@ class UserProfileModel extends Equatable {
   /// Image URL of the user
   final String? imageUrl;
 
-  /// Unique friend code for discovery (e.g. "YETI-A3F9")
+  /// Unique friend code for discovery (e.g. "A3F9K2XQ")
   final String? friendCode;
 
   /// SHA-256 hashed 4-digit PIN for identity verification
@@ -82,6 +88,7 @@ class UserProfileModel extends Equatable {
     bool? isNewUser,
     bool? isAnonymous,
     String? username,
+    String? usernameLower,
     String? firstName,
     String? lastName,
     String? bio,
@@ -95,6 +102,7 @@ class UserProfileModel extends Equatable {
         id: id ?? this.id,
         email: email ?? this.email,
         username: username ?? this.username,
+        usernameLower: usernameLower ?? this.usernameLower,
         firstName: firstName ?? this.firstName,
         lastName: lastName ?? this.lastName,
         bio: bio ?? this.bio,
@@ -121,6 +129,7 @@ class UserProfileModel extends Equatable {
         isNewUser,
         isAnonymous,
         username,
+        usernameLower,
         firstName,
         lastName,
         bio,

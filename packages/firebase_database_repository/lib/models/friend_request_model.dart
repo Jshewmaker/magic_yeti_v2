@@ -37,6 +37,7 @@ class FriendRequestModel extends Equatable {
     required this.senderName,
     required this.status,
     required this.timestamp,
+    this.senderFriendCode,
   });
 
   /// Converts a Firestore document snapshot to a FriendRequestModel.
@@ -58,6 +59,12 @@ class FriendRequestModel extends Equatable {
   /// The name of the user sending the request.
   final String senderName;
 
+  /// The sender's unique friend code, denormalized at request-creation
+  /// time — since [senderName] has no uniqueness guarantee, this is the
+  /// only reliable way to tell two same-named senders apart. Null for
+  /// requests created before this field existed.
+  final String? senderFriendCode;
+
   /// The current status of the friend request (e.g., 'pending', 'accepted').
   final String status;
 
@@ -72,6 +79,7 @@ class FriendRequestModel extends Equatable {
     String? senderId,
     String? receiverId,
     String? senderName,
+    String? senderFriendCode,
     String? status,
     DateTime? timestamp,
   }) {
@@ -80,6 +88,7 @@ class FriendRequestModel extends Equatable {
       senderId: senderId ?? this.senderId,
       receiverId: receiverId ?? this.receiverId,
       senderName: senderName ?? this.senderName,
+      senderFriendCode: senderFriendCode ?? this.senderFriendCode,
       status: status ?? this.status,
       timestamp: timestamp ?? this.timestamp,
     );
@@ -91,6 +100,7 @@ class FriendRequestModel extends Equatable {
         senderId,
         receiverId,
         senderName,
+        senderFriendCode,
         status,
         timestamp,
       ];

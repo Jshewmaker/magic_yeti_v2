@@ -26,6 +26,7 @@ void main() {
       userId: 'bob',
       username: 'Bob',
       imageUrl: 'http://x/bob.png',
+      friendCode: 'YETI-B0B1',
     );
     const carol = BlockedUserModel(
       userId: 'carol',
@@ -62,6 +63,7 @@ void main() {
 
       expect(find.text('Bob'), findsOneWidget);
       expect(find.text('Carol'), findsOneWidget);
+      expect(find.text('YETI-B0B1'), findsOneWidget);
     });
 
     testWidgets('shows the empty state when there are no blocked users',

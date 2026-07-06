@@ -83,6 +83,7 @@ void main() {
               userId: 'bob',
               username: 'Bob',
               imageUrl: 'http://x/bob.png',
+              friendCode: 'YETI-B0B1',
             ),
           ),
         ),

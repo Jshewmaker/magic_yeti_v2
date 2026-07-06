@@ -705,19 +705,19 @@
   "@findFriendsTitle": {
     "description": "Title for the friend search page"
   },
-  "friendCodeSearchHint": "Enter friend code (e.g. YETI-A3F9)",
+  "friendCodeSearchHint": "Search by name or friend code (e.g. A3F9K2XQ)",
   "@friendCodeSearchHint": {
-    "description": "Hint text for friend code search input"
+    "description": "Hint text for the friend search input, which accepts either a username or a friend code"
   },
   "friendRequestSentMessage": "Friend request sent!",
   "@friendRequestSentMessage": {
     "description": "Message shown after sending a friend request"
   },
-  "noUserFoundMessage": "No user found with that code.",
+  "noUserFoundMessage": "No user found.",
   "@noUserFoundMessage": {
-    "description": "Message shown when friend code search returns no results"
+    "description": "Message shown when a name or friend code search returns no results"
   },
-  "friendCodeSearchPrompt": "Enter a friend code to find players.",
+  "friendCodeSearchPrompt": "Search by name or friend code to find players.",
   "@friendCodeSearchPrompt": {
     "description": "Prompt shown on the friend search page before searching"
   },
@@ -792,6 +792,10 @@
   "friendCodeCopiedMessage": "Friend code copied!",
   "@friendCodeCopiedMessage": {
     "description": "Snackbar message shown when friend code is copied"
+  },
+  "friendCodeHelperText": "Your unique code. Share it so a specific friend can add you exactly — even if someone else shares your username.",
+  "@friendCodeHelperText": {
+    "description": "Helper text explaining the friend code is the unique identifier, unlike username"
   },
   "setYourPinTitle": "Set Your PIN",
   "@setYourPinTitle": {
@@ -883,6 +887,10 @@
   "usernameLabel": "Username",
   "@usernameLabel": {
     "description": "Label for the username field on the profile page"
+  },
+  "usernameHelperText": "How friends find and recognize you. Not unique — others may share this name.",
+  "@usernameHelperText": {
+    "description": "Helper text under the username field explaining its purpose and that it isn't unique"
   },
   "firstNameLabel": "First Name",
   "@firstNameLabel": {

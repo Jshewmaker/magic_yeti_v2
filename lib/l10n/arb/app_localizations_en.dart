@@ -390,16 +390,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get findFriendsTitle => 'Find Friends';
 
   @override
-  String get friendCodeSearchHint => 'Enter friend code (e.g. YETI-A3F9)';
+  String get friendCodeSearchHint =>
+      'Search by name or friend code (e.g. A3F9K2XQ)';
 
   @override
   String get friendRequestSentMessage => 'Friend request sent!';
 
   @override
-  String get noUserFoundMessage => 'No user found with that code.';
+  String get noUserFoundMessage => 'No user found.';
 
   @override
-  String get friendCodeSearchPrompt => 'Enter a friend code to find players.';
+  String get friendCodeSearchPrompt =>
+      'Search by name or friend code to find players.';
 
   @override
   String get selectFriendLabel => 'Select a friend';
@@ -455,6 +457,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get friendCodeCopiedMessage => 'Friend code copied!';
+
+  @override
+  String get friendCodeHelperText =>
+      'Your unique code. Share it so a specific friend can add you exactly — even if someone else shares your username.';
 
   @override
   String get setYourPinTitle => 'Set Your PIN';
@@ -525,6 +531,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get usernameLabel => 'Username';
+
+  @override
+  String get usernameHelperText =>
+      'How friends find and recognize you. Not unique — others may share this name.';
 
   @override
   String get firstNameLabel => 'First Name';

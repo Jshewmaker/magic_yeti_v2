@@ -191,3 +191,19 @@ functions` → `firebase deploy --only firestore:rules` → app release.
   is unawaited and surfaces failures nowhere).
 - Add logging/analytics to the swallowed `catch` blocks in `GameOverBloc` and
   `ProfileBloc` so failures are observable instead of silently dropped.
+
+**SEARCH BY NAME (post-branch feature, 2026-07-05):** the search box now
+auto-detects friend-code-shaped input (`YETI-XXXX`) vs. everything else,
+routing the latter to a new block-aware `searchByUsername` callable
+(case-insensitive prefix match, 2-char minimum, 10-result cap). Requires:
+- A new `usernameLower` field on `UserProfileModel`, derived and force-synced
+  by `FirebaseDatabaseRepository.updateUserProfile` on every write — never
+  set it directly. `firestore.rules` validates any client-written
+  `usernameLower` matches `username.lower()`.
+- **DEPLOY GATE:** this needs `firebase deploy --only functions` (new
+  `searchByUsername`) AND `firebase deploy --only firestore:rules` (the
+  `usernameLower` validation) before release. No index changes — a
+  single-field range query gets Firestore's automatic index for free.
+  Existing profiles won't have `usernameLower` until their next profile
+  save, so name search only finds users who have saved their profile since
+  this deploy; friend-code search is unaffected.

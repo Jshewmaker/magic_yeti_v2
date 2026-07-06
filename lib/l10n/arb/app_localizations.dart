@@ -812,10 +812,10 @@ abstract class AppLocalizations {
   /// **'Find Friends'**
   String get findFriendsTitle;
 
-  /// Hint text for friend code search input
+  /// Hint text for the friend search input, which accepts either a username or a friend code
   ///
   /// In en, this message translates to:
-  /// **'Enter friend code (e.g. YETI-A3F9)'**
+  /// **'Search by name or friend code (e.g. A3F9K2XQ)'**
   String get friendCodeSearchHint;
 
   /// Message shown after sending a friend request
@@ -824,16 +824,16 @@ abstract class AppLocalizations {
   /// **'Friend request sent!'**
   String get friendRequestSentMessage;
 
-  /// Message shown when friend code search returns no results
+  /// Message shown when a name or friend code search returns no results
   ///
   /// In en, this message translates to:
-  /// **'No user found with that code.'**
+  /// **'No user found.'**
   String get noUserFoundMessage;
 
   /// Prompt shown on the friend search page before searching
   ///
   /// In en, this message translates to:
-  /// **'Enter a friend code to find players.'**
+  /// **'Search by name or friend code to find players.'**
   String get friendCodeSearchPrompt;
 
   /// Label above friend selection chips on customize player page
@@ -913,6 +913,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Friend code copied!'**
   String get friendCodeCopiedMessage;
+
+  /// Helper text explaining the friend code is the unique identifier, unlike username
+  ///
+  /// In en, this message translates to:
+  /// **'Your unique code. Share it so a specific friend can add you exactly — even if someone else shares your username.'**
+  String get friendCodeHelperText;
 
   /// Title for the PIN setup dialog shown to existing users
   ///
@@ -1033,6 +1039,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Username'**
   String get usernameLabel;
+
+  /// Helper text under the username field explaining its purpose and that it isn't unique
+  ///
+  /// In en, this message translates to:
+  /// **'How friends find and recognize you. Not unique — others may share this name.'**
+  String get usernameHelperText;
 
   /// Label for the first name field on the profile page
   ///

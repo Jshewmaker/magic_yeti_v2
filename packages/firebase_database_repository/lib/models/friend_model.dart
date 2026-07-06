@@ -47,7 +47,7 @@ class FriendModel extends Equatable {
   /// The URL of the friend's profile picture.
   final String profilePictureUrl;
 
-  /// The friend's unique friend code (e.g. "YETI-A3F9")
+  /// The friend's unique friend code (e.g. "A3F9K2XQ")
   final String? friendCode;
 
   @override

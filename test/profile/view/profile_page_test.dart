@@ -102,6 +102,35 @@ void main() {
       expect(find.byIcon(Icons.copy), findsOneWidget);
     });
 
+    testWidgets(
+        'explains that username is not unique and friend code is the '
+        'unique identifier', (tester) async {
+      when(() => profileBloc.state).thenReturn(
+        const ProfileState(
+          user: authUser,
+          status: ProfileStatus.loaded,
+          profile: loadedProfile,
+        ),
+      );
+
+      await pumpProfile(tester);
+
+      expect(
+        find.text(
+          'How friends find and recognize you. Not unique — others may '
+          'share this name.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          'Your unique code. Share it so a specific friend can add you '
+          'exactly — even if someone else shares your username.',
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('renders the PIN change section', (tester) async {
       when(() => profileBloc.state).thenReturn(
         const ProfileState(

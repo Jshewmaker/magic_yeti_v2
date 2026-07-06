@@ -1,6 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
-// language: 3.8
 
 part of 'user_profile_model.dart';
 
@@ -15,6 +13,7 @@ UserProfileModel _$UserProfileModelFromJson(Map<String, dynamic> json) =>
       isNewUser: json['isNewUser'] as bool? ?? false,
       isAnonymous: json['isAnonymous'] as bool? ?? false,
       username: json['username'] as String?,
+      usernameLower: json['usernameLower'] as String?,
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
       bio: json['bio'] as String?,
@@ -32,6 +31,7 @@ Map<String, dynamic> _$UserProfileModelToJson(UserProfileModel instance) =>
       'isNewUser': instance.isNewUser,
       'isAnonymous': instance.isAnonymous,
       'username': ?instance.username,
+      'usernameLower': ?instance.usernameLower,
       'firstName': ?instance.firstName,
       'lastName': ?instance.lastName,
       'bio': ?instance.bio,

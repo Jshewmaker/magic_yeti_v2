@@ -81,6 +81,28 @@ describe('users', () => {
     );
     await assertFails(setDoc(doc(bob(), 'users/alice'), { username: 'evil' }));
   });
+
+  test('usernameLower must be a faithful lowercase of username', async () => {
+    await assertSucceeds(
+      setDoc(doc(alice(), 'users/alice'), {
+        username: 'Alice',
+        usernameLower: 'alice',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(alice(), 'users/alice'), {
+        username: 'Alice',
+        usernameLower: 'someoneelse',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(alice(), 'users/alice'), { usernameLower: 'alice' }),
+    );
+    // Writes that omit usernameLower entirely are unaffected.
+    await assertSucceeds(
+      setDoc(doc(alice(), 'users/alice'), { username: 'Alice' }),
+    );
+  });
 });
 
 describe('matches', () => {

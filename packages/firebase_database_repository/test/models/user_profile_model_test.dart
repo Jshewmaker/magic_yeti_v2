@@ -11,6 +11,19 @@ void main() {
       expect(json['username'], 'josh');
     });
 
+    test('usernameLower omitted when null, round-trips when set', () {
+      const withUsername = UserProfileModel(id: 'u1', username: 'josh');
+      expect(withUsername.toJson().containsKey('usernameLower'), isFalse);
+
+      const withLower = UserProfileModel(
+        id: 'u1',
+        username: 'Josh',
+        usernameLower: 'josh',
+      );
+      final decoded = UserProfileModel.fromJson(withLower.toJson());
+      expect(decoded.usernameLower, 'josh');
+    });
+
     test('hasPin defaults false and round-trips through json', () {
       const model = UserProfileModel(id: 'u1', hasPin: true);
       final decoded = UserProfileModel.fromJson(model.toJson());

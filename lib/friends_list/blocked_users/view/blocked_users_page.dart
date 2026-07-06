@@ -75,6 +75,7 @@ class BlockedUsersView extends StatelessWidget {
                       ? blockedUser.username[0]
                       : '?',
                   title: blockedUser.username,
+                  subtitle: blockedUser.friendCode,
                   trailing: TextButton(
                     onPressed: () =>
                         _confirmUnblock(context, blockedUser),

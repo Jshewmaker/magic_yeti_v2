@@ -392,17 +392,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get findFriendsTitle => 'Buscar Amigos';
 
   @override
-  String get friendCodeSearchHint => 'Ingresa código de amigo (ej. YETI-A3F9)';
+  String get friendCodeSearchHint =>
+      'Busca por nombre o código de amigo (ej. A3F9K2XQ)';
 
   @override
   String get friendRequestSentMessage => '¡Solicitud de amistad enviada!';
 
   @override
-  String get noUserFoundMessage => 'No se encontró usuario con ese código.';
+  String get noUserFoundMessage => 'No se encontró ningún usuario.';
 
   @override
   String get friendCodeSearchPrompt =>
-      'Ingresa un código de amigo para buscar jugadores.';
+      'Busca por nombre o código de amigo para encontrar jugadores.';
 
   @override
   String get selectFriendLabel => 'Seleccionar un amigo';
@@ -459,6 +460,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get friendCodeCopiedMessage => '¡Código de amigo copiado!';
+
+  @override
+  String get friendCodeHelperText =>
+      'Tu código único. Compártelo para que un amigo específico pueda agregarte con exactitud, incluso si alguien más comparte tu nombre de usuario.';
 
   @override
   String get setYourPinTitle => 'Configura tu PIN';
@@ -529,6 +534,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get usernameLabel => 'Nombre de usuario';
+
+  @override
+  String get usernameHelperText =>
+      'Cómo te encuentran y reconocen tus amigos. No es único: otros pueden compartir este nombre.';
 
   @override
   String get firstNameLabel => 'Nombre';

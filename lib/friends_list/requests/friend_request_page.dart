@@ -67,7 +67,7 @@ class FriendRequestView extends StatelessWidget {
                     ? request.senderName[0]
                     : '?',
                 title: request.senderName,
-                subtitle: 'Wants to be your friend',
+                subtitle: request.senderFriendCode,
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

@@ -135,6 +135,7 @@ class ProfileView extends StatelessWidget {
                             _ProfileField(
                               label: context.l10n.usernameLabel,
                               initialValue: profile.username ?? '',
+                              helperText: context.l10n.usernameHelperText,
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileUsernameChanged(value)),
@@ -323,20 +324,26 @@ class _FriendCodeSection extends StatelessWidget {
           children: [
             const Icon(Icons.badge_outlined),
             const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.l10n.friendCodeLabel,
-                  style: Theme.of(context).textTheme.labelMedium,
-                ),
-                Text(
-                  code,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.friendCodeLabel,
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                  Text(
+                    code,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    context.l10n.friendCodeHelperText,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
             ),
-            const Spacer(),
             // share_plus is not a dependency of the root app (checked
             // pubspec.yaml/pubspec.lock) — keeping copy-only rather than
             // adding a new dependency for this. If share_plus is added
@@ -446,11 +453,13 @@ class _ProfileField extends StatelessWidget {
     required this.label,
     required this.initialValue,
     required this.onChanged,
+    this.helperText,
   });
 
   final String label;
   final String initialValue;
   final void Function(String) onChanged;
+  final String? helperText;
 
   @override
   Widget build(BuildContext context) {
@@ -459,31 +468,44 @@ class _ProfileField extends StatelessWidget {
       builder: (context, state) {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                width: 100,
-                child: Text(
-                  label,
-                  style: Theme.of(context).textTheme.titleMedium,
+              Row(
+                children: [
+                  SizedBox(
+                    width: 100,
+                    child: Text(
+                      label,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: state.isEditing
+                        ? TextFormField(
+                            initialValue: initialValue,
+                            decoration: InputDecoration(
+                              hintText: 'Enter $label',
+                            ),
+                            onChanged: onChanged,
+                          )
+                        : Text(
+                            initialValue.isEmpty
+                                ? context.l10n.notSetLabel
+                                : initialValue,
+                          ),
+                  ),
+                ],
+              ),
+              if (helperText != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 116, top: 2),
+                  child: Text(
+                    helperText!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: state.isEditing
-                    ? TextFormField(
-                        initialValue: initialValue,
-                        decoration: InputDecoration(
-                          hintText: 'Enter $label',
-                        ),
-                        onChanged: onChanged,
-                      )
-                    : Text(
-                        initialValue.isEmpty
-                            ? context.l10n.notSetLabel
-                            : initialValue,
-                      ),
-              ),
             ],
           ),
         );

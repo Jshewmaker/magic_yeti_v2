@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
+import { isBlocked, resolveRelationship, toSearchPayload } from './search-helpers';
 
 if (admin.apps.length === 0) {
   admin.initializeApp();
@@ -34,43 +35,15 @@ export const searchByFriendCode = onCall<SearchRequest>(async (request) => {
   const callerUid = auth.uid;
 
   // Block hiding: either direction reads as not-found.
-  const [targetBlocksCaller, callerBlocksTarget] = await Promise.all([
-    db.doc(`users/${targetId}/blocks/${callerUid}`).get(),
-    db.doc(`users/${callerUid}/blocks/${targetId}`).get(),
-  ]);
-  if (targetBlocksCaller.exists || callerBlocksTarget.exists) {
+  if (await isBlocked(db, targetId, callerUid)) {
     return { found: false };
   }
 
-  let relationship = 'none';
-  if (targetId === callerUid) {
-    relationship = 'self';
-  } else {
-    const [edge, sent, received] = await Promise.all([
-      // Deliberately the TARGET's list (is the caller on it), matching
-      // validate-pin's gate. Edges can be asymmetric (users may remove
-      // themselves from the other side); this direction fails CLOSED —
-      // an inert "friends" display — where reading the caller's own list
-      // would show "Add Friend" and create a spurious request against a
-      // target who still lists the caller. Do not "fix" this back.
-      db.doc(`friends/${targetId}/friendList/${callerUid}`).get(),
-      db.doc(`friendRequests/${callerUid}_${targetId}`).get(),
-      db.doc(`friendRequests/${targetId}_${callerUid}`).get(),
-    ]);
-    if (edge.exists) relationship = 'friends';
-    else if (sent.exists && sent.data()?.status === 'pending') relationship = 'pendingSent';
-    else if (received.exists && received.data()?.status === 'pending') relationship = 'pendingReceived';
-  }
+  const relationship = await resolveRelationship(db, targetId, callerUid);
 
-  const data = target.data();
   return {
     found: true,
-    user: {
-      id: targetId,
-      username: (data.username as string | undefined) ?? '',
-      imageUrl: (data.imageUrl as string | undefined) ?? '',
-      friendCode: (data.friendCode as string | undefined) ?? code,
-    },
+    user: toSearchPayload(targetId, target.data(), code),
     relationship,
   };
 });

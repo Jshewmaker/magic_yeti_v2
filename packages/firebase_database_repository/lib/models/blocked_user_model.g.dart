@@ -1,6 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
-// language: 3.8
 
 part of 'blocked_user_model.dart';
 
@@ -13,6 +11,7 @@ BlockedUserModel _$BlockedUserModelFromJson(Map<String, dynamic> json) =>
       userId: json['userId'] as String,
       username: json['username'] as String,
       imageUrl: json['imageUrl'] as String,
+      friendCode: json['friendCode'] as String?,
       blockedAt: _$JsonConverterFromJson<Timestamp, DateTime>(
         json['blockedAt'],
         const TimestampConverter().fromJson,
@@ -24,6 +23,7 @@ Map<String, dynamic> _$BlockedUserModelToJson(BlockedUserModel instance) =>
       'userId': instance.userId,
       'username': instance.username,
       'imageUrl': instance.imageUrl,
+      'friendCode': ?instance.friendCode,
       'blockedAt': ?_$JsonConverterToJson<Timestamp, DateTime>(
         instance.blockedAt,
         const TimestampConverter().toJson,

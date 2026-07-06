@@ -110,7 +110,7 @@ class SearchUserFormState extends State<SearchUserForm> {
             onSubmitted: (value) {
               if (value.isNotEmpty) {
                 context.read<SearchBloc>().add(
-                      SearchByFriendCode(value, currentUserId),
+                      SearchSubmitted(value, currentUserId),
                     );
               }
             },
@@ -147,25 +147,9 @@ class SearchUserFormState extends State<SearchUserForm> {
                   child: CircularProgressIndicator(),
                 );
               } else if (state is FriendRequestSent) {
-                if (state.users.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                final status = switch (state.result) {
-                  FriendRequestResult.sent => RelationshipStatus.pendingSent,
-                  FriendRequestResult.autoAccepted =>
-                    RelationshipStatus.friends,
-                  FriendRequestResult.alreadyFriends =>
-                    RelationshipStatus.friends,
-                  FriendRequestResult.alreadyPending =>
-                    RelationshipStatus.pendingSent,
-                  FriendRequestResult.self => RelationshipStatus.self,
-                };
-                return _SearchResultCard(
-                  user: state.users.first,
-                  status: status,
-                );
+                return _SearchResultsList(matches: state.matches);
               } else if (state is SearchLoaded) {
-                if (state.users.isEmpty) {
+                if (state.matches.isEmpty) {
                   return Center(
                     child: Text(
                       context.l10n.noUserFoundMessage,
@@ -175,10 +159,7 @@ class SearchUserFormState extends State<SearchUserForm> {
                     ),
                   );
                 }
-                return _SearchResultCard(
-                  user: state.users.first,
-                  status: state.relationshipStatus,
-                );
+                return _SearchResultsList(matches: state.matches);
               } else if (state is SearchError) {
                 return Center(
                   child: Text(
@@ -212,10 +193,33 @@ class SearchUserFormState extends State<SearchUserForm> {
   }
 }
 
+class _SearchResultsList extends StatelessWidget {
+  const _SearchResultsList({required this.matches});
+
+  final List<UserSearchMatch> matches;
+
+  @override
+  Widget build(BuildContext context) {
+    if (matches.isEmpty) return const SizedBox.shrink();
+    return ListView.builder(
+      itemCount: matches.length,
+      itemBuilder: (context, index) {
+        final match = matches[index];
+        return _SearchResultCard(
+          key: ValueKey(match.user.id),
+          user: match.user,
+          status: match.relationship,
+        );
+      },
+    );
+  }
+}
+
 class _SearchResultCard extends StatelessWidget {
   const _SearchResultCard({
     required this.user,
     required this.status,
+    super.key,
   });
 
   final UserProfileModel user;
@@ -286,7 +290,6 @@ class _SearchResultCard extends StatelessWidget {
             context.read<SearchBloc>().add(
                   AddFriendRequest(
                     appBloc.state.user.id,
-                    appBloc.state.user.name ?? '',
                     user.id,
                   ),
                 );
@@ -312,7 +315,6 @@ class _SearchResultCard extends StatelessWidget {
             context.read<SearchBloc>().add(
                   AddFriendRequest(
                     appBloc.state.user.id,
-                    appBloc.state.user.name ?? '',
                     user.id,
                   ),
                 );

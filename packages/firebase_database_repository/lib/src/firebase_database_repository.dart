@@ -323,13 +323,28 @@ class FirebaseDatabaseRepository {
     }
   }
 
-  /// Update a user's profile
+  /// Update a user's profile.
+  ///
+  /// `usernameLower` is always derived from [UserProfileModel.username]
+  /// here — the single choke point for every profile write — so it can
+  /// never drift from whatever a caller happened to set (or forget to
+  /// set) on the model. It powers the server-side `searchByUsername`
+  /// prefix search. Operates on the JSON map directly (rather than
+  /// `copyWith`, whose `??` pattern can't force a field back to null) so a
+  /// null username always clears any stale `usernameLower` too.
   Future<void> updateUserProfile(
     String userId,
     UserProfileModel userProfile,
   ) async {
     try {
-      await _firebase.collection('users').doc(userId).set(userProfile.toJson());
+      final json = userProfile.toJson();
+      final usernameLower = userProfile.username?.toLowerCase();
+      if (usernameLower != null) {
+        json['usernameLower'] = usernameLower;
+      } else {
+        json.remove('usernameLower');
+      }
+      await _firebase.collection('users').doc(userId).set(json);
     } on Exception catch (error, stackTrace) {
       throw UpdateUserProfileException(
         message: error.toString(),
@@ -412,6 +427,11 @@ class FirebaseDatabaseRepository {
   /// Adds a friend request with guards against duplicates, self-requests,
   /// and existing friendships.
   ///
+  /// [senderFriendCode] is denormalized onto the request doc so the
+  /// receiver can tell the sender apart from anyone else sharing the same
+  /// (non-unique) [senderName] — pass the sender's own profile friend
+  /// code, not the receiver's.
+  ///
   /// Returns [FriendRequestResult] indicating what happened:
   /// - [FriendRequestResult.sent] — request created
   /// - [FriendRequestResult.autoAccepted] — mutual request, now friends
@@ -421,6 +441,7 @@ class FirebaseDatabaseRepository {
   Future<FriendRequestResult> addFriendRequest(
     String senderId,
     String senderName,
+    String? senderFriendCode,
     String receiverId,
   ) async {
     // Guard: self-request
@@ -485,6 +506,7 @@ class FirebaseDatabaseRepository {
         'id': documentId,
         'senderId': senderId,
         'senderName': senderName,
+        if (senderFriendCode != null) 'senderFriendCode': senderFriendCode,
         'receiverId': receiverId,
         'status': 'pending',
         'timestamp': FieldValue.serverTimestamp(),
@@ -651,7 +673,12 @@ class FirebaseDatabaseRepository {
     }
   }
 
-  /// Generates a unique friend code in the format "YETI-XXXX".
+  /// Generates a unique 8-character friend code (e.g. "A3F9K2XQ").
+  ///
+  /// Plain random characters, no prefix — a prefix doesn't add any
+  /// information (every code would carry the same one), and unlike a
+  /// username-derived code, a fully random one never goes stale if the
+  /// owner renames themselves.
   ///
   /// Checks for uniqueness against existing codes in the database.
   /// Retries up to 10 times if a collision is found.
@@ -659,15 +686,15 @@ class FirebaseDatabaseRepository {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random.secure();
     const maxAttempts = 10;
+    const codeLength = 8;
 
     for (var attempt = 0; attempt < maxAttempts; attempt++) {
-      final code = String.fromCharCodes(
+      final friendCode = String.fromCharCodes(
         Iterable.generate(
-          4,
+          codeLength,
           (_) => chars.codeUnitAt(random.nextInt(chars.length)),
         ),
       );
-      final friendCode = 'YETI-$code';
 
       final existing = await _firebase
           .collection('users')
@@ -720,6 +747,37 @@ class FirebaseDatabaseRepository {
     }
   }
 
+  /// Searches for users by username prefix (case-insensitive) via the
+  /// block-aware `searchByUsername` callable. Returns an empty list when
+  /// nothing matches; throws [ArgumentError] for an `invalid-argument`
+  /// response (e.g. a query shorter than the server's minimum length), and
+  /// a plain [Exception] for any other callable failure.
+  Future<List<UserSearchMatch>> searchByUsername(String query) async {
+    try {
+      final result = await _functions
+          .httpsCallable('searchByUsername')
+          .call<dynamic>({'query': query});
+      final data = Map<String, dynamic>.from(result.data as Map);
+      final matches = List<dynamic>.from(data['matches'] as List);
+
+      return matches.map((match) {
+        final matchMap = Map<String, dynamic>.from(match as Map);
+        final userJson = Map<String, dynamic>.from(matchMap['user'] as Map);
+        return UserSearchMatch(
+          user: UserProfileModel.fromJson(userJson),
+          relationship: _relationshipFromString(
+            matchMap['relationship'] as String?,
+          ),
+        );
+      }).toList();
+    } on FirebaseFunctionsException catch (e) {
+      if (e.code == 'invalid-argument') {
+        throw ArgumentError(e.message ?? 'Invalid search query');
+      }
+      throw Exception('Username search unavailable');
+    }
+  }
+
   /// Maps the callable's relationship string onto [RelationshipStatus].
   static RelationshipStatus _relationshipFromString(String? value) {
     switch (value) {
@@ -765,6 +823,7 @@ class FirebaseDatabaseRepository {
           'userId': target.userId,
           'username': target.username,
           'imageUrl': target.imageUrl,
+          if (target.friendCode != null) 'friendCode': target.friendCode,
           'blockedAt': FieldValue.serverTimestamp(),
         },
       )

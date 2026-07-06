@@ -19,6 +19,7 @@ class BlockedUserModel extends Equatable {
     required this.userId,
     required this.username,
     required this.imageUrl,
+    this.friendCode,
     this.blockedAt,
   });
 
@@ -38,10 +39,17 @@ class BlockedUserModel extends Equatable {
   /// The blocked user's profile image URL, denormalized at block time.
   final String imageUrl;
 
+  /// The blocked user's unique friend code, denormalized at block time —
+  /// since [username] has no uniqueness guarantee, this is the only
+  /// reliable way to tell two same-named blocked users apart. Null for
+  /// blocks created before this field existed.
+  final String? friendCode;
+
   /// When the block was created. Null until the server timestamp resolves.
   @TimestampConverter()
   final DateTime? blockedAt;
 
   @override
-  List<Object?> get props => [userId, username, imageUrl, blockedAt];
+  List<Object?> get props =>
+      [userId, username, imageUrl, friendCode, blockedAt];
 }

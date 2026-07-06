@@ -16,7 +16,14 @@ service cloud.firestore {
 
     match /users/{uid} {
       allow read: if signedIn();
-      allow write: if isOwner(uid);
+      // usernameLower powers server-side prefix search (searchByUsername);
+      // when present it must be a faithful lowercase of username, so a
+      // client can't make itself discoverable under a name it doesn't have.
+      allow write: if isOwner(uid) &&
+        (!('usernameLower' in request.resource.data) ||
+          ('username' in request.resource.data &&
+            request.resource.data.usernameLower ==
+            request.resource.data.username.lower()));
 
       match /private/{document=**} {
         allow read, write: if isOwner(uid);
