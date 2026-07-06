@@ -270,12 +270,11 @@ void main() {
             BlocProvider<PlayerBloc>.value(value: playerBloc),
             BlocProvider<PlayerCustomizationBloc>(
               create: (context) {
-                customizationBloc = PlayerCustomizationBloc(
+                return customizationBloc = PlayerCustomizationBloc(
                   scryfallRepository: MockScryfallRepository(),
                   firebaseDatabaseRepository: db,
                   commanderLibraryRepository: FakeCommanderLibraryRepository(),
                 );
-                return customizationBloc;
               },
             ),
           ],
@@ -579,12 +578,11 @@ void main() {
             BlocProvider<PlayerBloc>.value(value: playerBloc),
             BlocProvider<PlayerCustomizationBloc>(
               create: (context) {
-                customizationBloc = PlayerCustomizationBloc(
+                return customizationBloc = PlayerCustomizationBloc(
                   scryfallRepository: MockScryfallRepository(),
                   firebaseDatabaseRepository: db,
                   commanderLibraryRepository: FakeCommanderLibraryRepository(),
                 );
-                return customizationBloc;
               },
             ),
           ],

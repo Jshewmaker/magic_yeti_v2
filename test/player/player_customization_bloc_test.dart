@@ -363,8 +363,8 @@ void main() {
             .thenAnswer((_) async => null);
         return build();
       },
-      seed: () => PlayerCustomizationState(
-        selectedFriend: const FriendModel(
+      seed: () => const PlayerCustomizationState(
+        selectedFriend: FriendModel(
           userId: 'bob',
           username: 'Bob',
           profilePictureUrl: '',

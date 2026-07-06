@@ -176,7 +176,8 @@ class _FriendLinkRow extends StatelessWidget {
               child: Text(
                 context.l10n.linkedToFriend(
                   state.isAccountOwner
-                      ? (state.ownerUsername ?? context.l10n.accountOwnerOptionLabel)
+                      ? (state.ownerUsername ??
+                          context.l10n.accountOwnerOptionLabel)
                       : (state.selectedFriend?.username ?? ''),
                 ),
                 style: const TextStyle(color: AppColors.white, fontSize: 13),

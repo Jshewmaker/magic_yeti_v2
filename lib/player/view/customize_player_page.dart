@@ -334,7 +334,6 @@ class _FriendSectionState extends State<_FriendSection> {
               key: ValueKey('$confirmedValue-$_resetNonce'),
               initialSelection: confirmedValue,
               enableFilter: true,
-              enableSearch: true,
               // DropdownMenu.requestFocusOnTap defaults to false on mobile
               // platforms (iOS/Android/Fuchsia), which makes its internal
               // TextField readOnly — type-to-search silently does nothing
