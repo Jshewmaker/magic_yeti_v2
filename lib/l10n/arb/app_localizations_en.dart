@@ -429,6 +429,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountOwnerOptionLabel => 'Me';
 
   @override
+  String get notLinkedOptionLabel => 'Not linked';
+
+  @override
   String pinIncorrectError(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

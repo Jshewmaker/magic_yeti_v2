@@ -209,9 +209,7 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
                             child: SingleChildScrollView(
                               child: Column(
                                 children: [
-                                  _FriendSection(
-                                    nameController: _nameController,
-                                  ),
+                                  const _FriendSection(),
                                   PlayerIdentityPanel(
                                     nameController: _nameController,
                                     nameFocusNode: _nameFocusNode,
@@ -262,23 +260,30 @@ class _Panel extends StatelessWidget {
   }
 }
 
-class _FriendSection extends StatelessWidget {
-  const _FriendSection({required this.nameController});
+class _FriendSection extends StatefulWidget {
+  const _FriendSection();
 
-  final TextEditingController nameController;
+  @override
+  State<_FriendSection> createState() => _FriendSectionState();
+}
+
+class _FriendSectionState extends State<_FriendSection> {
+  int _resetNonce = 0;
+
+  void _forceReset() {
+    if (mounted) setState(() => _resetNonce++);
+  }
 
   @override
   Widget build(BuildContext context) {
     final customState = context.watch<PlayerCustomizationBloc>().state;
     final friendState = context.watch<FriendBloc>().state;
-    final isLinked =
-        customState.selectedFriend != null && customState.pinValidated;
+    final appState = context.watch<AppBloc>().state;
+    final isAnonymous = appState.status == AppStatus.anonymous;
 
     // Anonymous users have no friend graph to link against — the callable
     // backing this list requires an authenticated uid, so show intentional
     // copy instead of an empty/loading friend list.
-    final isAnonymous =
-        context.watch<AppBloc>().state.status == AppStatus.anonymous;
     if (isAnonymous) {
       return Padding(
         padding: const EdgeInsets.symmetric(
@@ -295,68 +300,81 @@ class _FriendSection extends StatelessWidget {
       );
     }
 
-    // Hide section if no friends loaded and no friend selected
-    final hasFriends =
-        friendState is FriendsLoaded && friendState.friends.isNotEmpty;
-    if (!hasFriends && !isLinked) {
-      return const SizedBox.shrink();
-    }
-
     final friends =
         friendState is FriendsLoaded ? friendState.friends : <FriendModel>[];
+    final sortedFriends = List<FriendModel>.from(friends)
+      ..sort(
+        (a, b) =>
+            a.username.toLowerCase().compareTo(b.username.toLowerCase()),
+      );
+
+    final currentUserId = appState.user.id;
+    final confirmedValue = customState.isAccountOwner
+        ? currentUserId
+        : (customState.selectedFriend != null && customState.pinValidated
+            ? customState.selectedFriend!.userId
+            : null);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xlg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section header with optional Clear button
-          Row(
-            children: [
-              Text(
-                context.l10n.selectFriendLabel,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.neutral60,
-                ),
-              ),
-              const Spacer(),
-              if (isLinked)
-                TextButton(
-                  onPressed: () {
-                    context
-                        .read<PlayerCustomizationBloc>()
-                        .add(const LinkCleared());
-                    nameController.clear();
-                  },
-                  child: Text(
-                    context.l10n.clearButtonText,
-                    style: const TextStyle(color: AppColors.neutral60),
-                  ),
-                ),
-            ],
+          Text(
+            context.l10n.selectFriendLabel,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.neutral60,
+            ),
           ),
           const SizedBox(height: AppSpacing.xs),
-          // Friend list
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 160),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const ClampingScrollPhysics(),
-              itemCount: friends.length,
-              separatorBuilder: (_, _) =>
-                  const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, index) {
-                final friend = friends[index];
-                final isSelected = isLinked &&
-                    customState.selectedFriend?.userId == friend.userId;
-                return _FriendTile(
-                  friend: friend,
-                  isSelected: isSelected,
-                  onTap: isSelected
-                      ? null
-                      : () => _showPinDialog(context, friend),
-                );
+          SizedBox(
+            width: double.infinity,
+            child: DropdownMenu<String?>(
+              key: ValueKey('$confirmedValue-$_resetNonce'),
+              initialSelection: confirmedValue,
+              enableFilter: true,
+              enableSearch: true,
+              // DropdownMenu.requestFocusOnTap defaults to false on mobile
+              // platforms (iOS/Android/Fuchsia), which makes its internal
+              // TextField readOnly — type-to-search silently does nothing
+              // there without this. This app's primary targets are iOS and
+              // Android (see CLAUDE.md), so enableFilter's whole point
+              // (Step 7's "filters as you type... on a small simulated
+              // device (e.g. iPhone SE)") requires this explicitly.
+              requestFocusOnTap: true,
+              hintText: context.l10n.notLinkedOptionLabel,
+              dropdownMenuEntries: [
+                DropdownMenuEntry(
+                  value: null,
+                  label: context.l10n.notLinkedOptionLabel,
+                ),
+                DropdownMenuEntry(
+                  value: currentUserId,
+                  label: context.l10n.accountOwnerOptionLabel,
+                ),
+                ...sortedFriends.map(
+                  (friend) => DropdownMenuEntry(
+                    value: friend.userId,
+                    label: friend.username,
+                  ),
+                ),
+              ],
+              onSelected: (value) {
+                if (value == null) {
+                  context.read<PlayerCustomizationBloc>().add(
+                        const LinkCleared(),
+                      );
+                } else if (value == currentUserId) {
+                  context.read<PlayerCustomizationBloc>().add(
+                        OwnerSelected(userId: currentUserId),
+                      );
+                } else {
+                  final friend = sortedFriends.firstWhere(
+                    (f) => f.userId == value,
+                  );
+                  _showPinDialog(context, friend);
+                }
               },
             ),
           ),
@@ -553,85 +571,14 @@ class _FriendSection extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _FriendTile extends StatelessWidget {
-  const _FriendTile({
-    required this.friend,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  final FriendModel friend;
-  final bool isSelected;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSpacing.md),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.surface.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(AppSpacing.md),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.tertiary
-                : AppColors.neutral60.withValues(alpha: 0.3),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            // Profile picture or first-letter fallback
-            if (friend.profilePictureUrl.isNotEmpty)
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: AppColors.tertiary,
-                backgroundImage: NetworkImage(friend.profilePictureUrl),
-                onBackgroundImageError: (_, _) {},
-              )
-            else
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: AppColors.tertiary,
-                child: Text(
-                  friend.username.isNotEmpty
-                      ? friend.username[0].toUpperCase()
-                      : '?',
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Text(
-                friend.username,
-                style: const TextStyle(
-                  color: AppColors.white,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            if (isSelected)
-              const Icon(
-                Icons.check_circle,
-                color: AppColors.green,
-                size: 20,
-              ),
-          ],
-        ),
-      ),
+      ).then((_) {
+        final confirmed =
+            bloc.state.selectedFriend?.userId == friend.userId &&
+                bloc.state.pinValidated;
+        if (!confirmed) {
+          _forceReset();
+        }
+      }),
     );
   }
 }

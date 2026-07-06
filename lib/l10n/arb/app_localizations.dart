@@ -878,6 +878,12 @@ abstract class AppLocalizations {
   /// **'Me'**
   String get accountOwnerOptionLabel;
 
+  /// Dropdown entry meaning this player slot is not linked to any account
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked'**
+  String get notLinkedOptionLabel;
+
   /// Error shown when a friend PIN is incorrect, with attempts remaining
   ///
   /// In en, this message translates to:

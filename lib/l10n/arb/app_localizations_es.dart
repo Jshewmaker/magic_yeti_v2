@@ -432,6 +432,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get accountOwnerOptionLabel => 'Yo';
 
   @override
+  String get notLinkedOptionLabel => 'Sin vincular';
+
+  @override
   String pinIncorrectError(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

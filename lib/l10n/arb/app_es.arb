@@ -34,6 +34,7 @@
     "enterPinPrompt": "Ingresa su PIN de 4 dígitos para confirmar identidad.",
     "verifyButtonText": "Verificar",
     "accountOwnerOptionLabel": "Yo",
+    "notLinkedOptionLabel": "Sin vincular",
     "pinIncorrectError": "PIN incorrecto. {count, plural, =1{Queda 1 intento} other{Quedan {count} intentos}}.",
     "pinLockedOutError": "Demasiados intentos. Inténtalo de nuevo en {minutes} min.",
     "pinUnavailableError": "No se pudo verificar el PIN. Revisa tu conexión e inténtalo de nuevo.",

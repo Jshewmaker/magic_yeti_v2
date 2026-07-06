@@ -124,7 +124,24 @@ void main() {
           .thenAnswer((_) => completer.future);
 
       await pumpCustomizePlayer(tester);
-      await tester.tap(find.text('Bob'));
+      // The friend tile list was replaced by a searchable DropdownMenu (see
+      // the 'friend/owner dropdown' group below) — open it before picking
+      // Bob, same as every other test in this file that selects a friend.
+      //
+      // Tap the internal TextField, not find.byType(DropdownMenu<String?>):
+      // production wraps the DropdownMenu in SizedBox(width:
+      // double.infinity) (see _FriendSection), which stretches the
+      // widget's outer bounds far past its internal TextField's actual
+      // clickable area. tester.tap(find.byType(DropdownMenu<String?>)) taps
+      // the geometric center of those stretched outer bounds, which lands
+      // in a dead zone and silently fails to open the menu — confirmed via
+      // an isolated repro (WidgetController.getCenter() on a DropdownMenu
+      // inside SizedBox(width: double.infinity) always misses the hit
+      // test, regardless of surrounding layout). Tapping the TextField
+      // directly opens it reliably.
+      await tester.tap(find.byType(TextField).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bob').last);
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField).last, '1234');
@@ -167,7 +184,15 @@ void main() {
       // still fails loudly on any *different*, unexpected exception.
       _expectOnlyKnownOverflow(tester.takeException());
 
-      await tester.tap(find.text('Bob'));
+      // Open the dropdown by tapping its internal TextField, not
+      // find.byType(DropdownMenu<String?>) — see the detailed comment on
+      // the equivalent line in the 'Verify button shows a spinner...' test
+      // above for why a direct tap on the DropdownMenu itself silently
+      // fails to open it here.
+      await tester.tap(find.byType(TextField).first);
+      await tester.pumpAndSettle();
+      _expectOnlyKnownOverflow(tester.takeException());
+      await tester.tap(find.text('Bob').last);
       await tester.pumpAndSettle();
       _expectOnlyKnownOverflow(tester.takeException());
 
@@ -380,6 +405,209 @@ void main() {
 
       expect(find.byType(AlertDialog), findsNothing);
       expect(find.text('Linked to Bob'), findsOneWidget);
+    });
+  });
+
+  group('CustomizePlayerView friend/owner dropdown', () {
+    late MockAppBloc appBloc;
+    late MockFriendBloc friendBloc;
+    late MockPlayerBloc playerBloc;
+    late MockPlayerRepository playerRepository;
+    late MockFirebaseDatabaseRepository db;
+
+    setUp(() {
+      appBloc = MockAppBloc();
+      friendBloc = MockFriendBloc();
+      playerBloc = MockPlayerBloc();
+      playerRepository = MockPlayerRepository();
+      db = MockFirebaseDatabaseRepository();
+
+      when(() => playerRepository.getPlayerById('p1')).thenReturn(testPlayer);
+      when(() => playerBloc.state)
+          .thenReturn(const PlayerState(player: testPlayer));
+      when(() => appBloc.state)
+          .thenReturn(const AppState.authenticated(User(id: 'alice')));
+      when(() => db.getUserProfileOnce('alice')).thenAnswer(
+        (_) async => const UserProfileModel(id: 'alice', username: 'Alice'),
+      );
+    });
+
+    Future<void> pump(WidgetTester tester, {List<FriendModel>? friends}) async {
+      when(() => friendBloc.state)
+          .thenReturn(FriendsLoaded(friends ?? const [bob]));
+      tester.view.physicalSize = const Size(1600, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpApp(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<AppBloc>.value(value: appBloc),
+            BlocProvider<FriendBloc>.value(value: friendBloc),
+            BlocProvider<PlayerBloc>.value(value: playerBloc),
+            BlocProvider<PlayerCustomizationBloc>(
+              create: (context) => PlayerCustomizationBloc(
+                scryfallRepository: MockScryfallRepository(),
+                firebaseDatabaseRepository: db,
+                commanderLibraryRepository: FakeCommanderLibraryRepository(),
+              ),
+            ),
+          ],
+          child: RepositoryProvider<PlayerRepository>.value(
+            value: playerRepository,
+            child: const CustomizePlayerView(playerId: 'p1'),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('shows Me as an entry even with zero friends', (tester) async {
+      await pump(tester, friends: []);
+
+      // Every test below opens the dropdown by tapping its internal
+      // TextField, not find.byType(DropdownMenu<String?>) — see the
+      // detailed comment on the 'Verify button shows a spinner...' test
+      // near the top of this file for why a direct tap on the
+      // DropdownMenu itself silently fails to open it.
+      await tester.tap(find.byType(TextField).first);
+      await tester.pumpAndSettle();
+
+      // DropdownMenu renders each visible label at least twice while open
+      // (an offstage sizing copy inside _DropdownMenuBody, plus the real
+      // tappable MenuItemButton in the overlay) — findsOneWidget is never
+      // satisfiable here, hence findsWidgets, matching the idiom the very
+      // next test ('typing filters the entries') already uses for 'Zara'.
+      expect(find.text('Me'), findsWidgets);
+      expect(find.text('Not linked'), findsWidgets);
+    });
+
+    testWidgets('typing filters the entries', (tester) async {
+      const zara = FriendModel(
+        userId: 'zara',
+        username: 'Zara',
+        profilePictureUrl: '',
+      );
+      await pump(tester, friends: const [bob, zara]);
+
+      // Open via the internal TextField — see the detailed comment on the
+      // 'Verify button shows a spinner...' test near the top of this file.
+      await tester.tap(find.byType(TextField).first);
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, 'Za');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Zara'), findsWidgets);
+      // DropdownMenu keeps one permanent, invisible copy of every original
+      // entry's label for internal width measurement (`_initialMenu`,
+      // built once from the unfiltered entry list and never rebuilt), so
+      // 'Bob' never fully leaves the widget tree even once filtered out of
+      // the real, interactive overlay — findsNothing is unsatisfiable here.
+      // Distinguish the real, tappable overlay entries from that
+      // invisible copy via ExcludeSemantics(excluding: true), which
+      // DropdownMenu wraps only around the invisible _initialMenu buttons
+      // (the real, interactive ones use excluding: false, a no-op): after
+      // filtering to 'Za', 'Bob' should not appear under any
+      // non-excluded (real) MenuItemButton.
+      final realMenuItems = find.byWidgetPredicate(
+        (w) => w is ExcludeSemantics && !w.excluding,
+      );
+      expect(
+        find.descendant(of: realMenuItems, matching: find.text('Bob')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('selecting Me dispatches OwnerSelected with no PIN dialog',
+        (tester) async {
+      await pump(tester);
+
+      // Open via the internal TextField — see the detailed comment on the
+      // 'Verify button shows a spinner...' test near the top of this file.
+      await tester.tap(find.byType(TextField).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Me').last);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('Linked to Alice'), findsOneWidget);
+    });
+
+    testWidgets('selecting a friend opens the PIN dialog', (tester) async {
+      await pump(tester);
+
+      // Open via the internal TextField — see the detailed comment on the
+      // 'Verify button shows a spinner...' test near the top of this file.
+      await tester.tap(find.byType(TextField).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bob').last);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Verify Bob'), findsOneWidget);
+    });
+
+    testWidgets('cancelling the PIN dialog reverts the dropdown display',
+        (tester) async {
+      await pump(tester);
+
+      // Open via the internal TextField — see the detailed comment on the
+      // 'Verify button shows a spinner...' test near the top of this file.
+      await tester.tap(find.byType(TextField).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bob').last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      final field = tester.widget<TextField>(find.byType(TextField).first);
+      expect(field.controller?.text, isNot('Bob'));
+    });
+
+    testWidgets('selecting Not linked clears an existing link', (tester) async {
+      late PlayerCustomizationBloc customizationBloc;
+      when(() => friendBloc.state).thenReturn(const FriendsLoaded([bob]));
+      tester.view.physicalSize = const Size(1600, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpApp(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<AppBloc>.value(value: appBloc),
+            BlocProvider<FriendBloc>.value(value: friendBloc),
+            BlocProvider<PlayerBloc>.value(value: playerBloc),
+            BlocProvider<PlayerCustomizationBloc>(
+              create: (context) {
+                customizationBloc = PlayerCustomizationBloc(
+                  scryfallRepository: MockScryfallRepository(),
+                  firebaseDatabaseRepository: db,
+                  commanderLibraryRepository: FakeCommanderLibraryRepository(),
+                );
+                return customizationBloc;
+              },
+            ),
+          ],
+          child: RepositoryProvider<PlayerRepository>.value(
+            value: playerRepository,
+            child: const CustomizePlayerView(playerId: 'p1'),
+          ),
+        ),
+      );
+      await tester.pump();
+      customizationBloc.add(const OwnerSelected(userId: 'alice'));
+      await tester.pumpAndSettle();
+      expect(customizationBloc.state.isAccountOwner, isTrue);
+
+      // Open via the internal TextField — see the detailed comment on the
+      // 'Verify button shows a spinner...' test near the top of this file.
+      await tester.tap(find.byType(TextField).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Not linked').last);
+      await tester.pumpAndSettle();
+
+      expect(customizationBloc.state.isAccountOwner, isFalse);
+      expect(find.text('Linked to Alice'), findsNothing);
     });
   });
 }
