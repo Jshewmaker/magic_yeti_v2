@@ -125,23 +125,17 @@ class _IdentityStep extends StatefulWidget {
 
 class _IdentityStepState extends State<_IdentityStep> {
   late final TextEditingController _usernameController;
-  late final TextEditingController _firstNameController;
-  late final TextEditingController _lastNameController;
 
   @override
   void initState() {
     super.initState();
     final state = context.read<OnboardingBloc>().state;
     _usernameController = TextEditingController(text: state.username.value);
-    _firstNameController = TextEditingController(text: state.firstName);
-    _lastNameController = TextEditingController(text: state.lastName);
   }
 
   @override
   void dispose() {
     _usernameController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
     super.dispose();
   }
 
@@ -186,59 +180,19 @@ class _IdentityStepState extends State<_IdentityStep> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: AppColors.red),
                   ),
-                  errorText: state.username.displayError != null
-                      ? 'Username is required'
-                      : null,
+                  errorText: switch (state.username.displayError) {
+                    UsernameValidationError.empty =>
+                      context.l10n.usernameRequiredError,
+                    UsernameValidationError.tooShort =>
+                      context.l10n.usernameTooShortError,
+                    UsernameValidationError.tooLong =>
+                      context.l10n.usernameTooLongError,
+                    null => null,
+                  },
                   errorStyle: const TextStyle(color: AppColors.red),
                 ),
               );
             },
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            key: const Key('onboarding_firstName_input'),
-            controller: _firstNameController,
-            onChanged: (value) => context
-                .read<OnboardingBloc>()
-                .add(OnboardingFirstNameChanged(value)),
-            style: const TextStyle(color: AppColors.white),
-            decoration: InputDecoration(
-              labelText: 'First Name (Optional)',
-              labelStyle: const TextStyle(color: AppColors.neutral60),
-              filled: true,
-              fillColor: AppColors.surface,
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.neutral60),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.tertiary),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            key: const Key('onboarding_lastName_input'),
-            controller: _lastNameController,
-            onChanged: (value) => context
-                .read<OnboardingBloc>()
-                .add(OnboardingLastNameChanged(value)),
-            style: const TextStyle(color: AppColors.white),
-            decoration: InputDecoration(
-              labelText: 'Last Name (Optional)',
-              labelStyle: const TextStyle(color: AppColors.neutral60),
-              filled: true,
-              fillColor: AppColors.surface,
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.neutral60),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.tertiary),
-              ),
-            ),
           ),
         ],
       ),

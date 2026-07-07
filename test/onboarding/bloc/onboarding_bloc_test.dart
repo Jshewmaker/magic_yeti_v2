@@ -200,4 +200,36 @@ void main() {
       },
     );
   });
+
+  group('username hardening', () {
+    test('whitespace-only username keeps step 0 invalid', () {
+      final bloc = buildBloc()..add(const OnboardingUsernameChanged('   '));
+      addTearDown(bloc.close);
+      expect(bloc.state.isStepValid, isFalse);
+    });
+
+    blocTest<OnboardingBloc, OnboardingState>(
+      'submit persists the trimmed username',
+      build: () {
+        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
+            .thenAnswer(
+          (_) async => const UserProfileModel(id: 'u1', friendCode: 'ABCD1234'),
+        );
+        when(
+          () => firebaseDatabaseRepository.updateUserProfile(any(), any()),
+        ).thenAnswer((_) async {});
+        return buildBloc();
+      },
+      act: (bloc) => bloc
+        ..add(const OnboardingUsernameChanged('  josh  '))
+        ..add(const OnboardingSubmitted('u1')),
+      verify: (_) {
+        final saved = verify(
+          () =>
+              firebaseDatabaseRepository.updateUserProfile('u1', captureAny()),
+        ).captured.single as UserProfileModel;
+        expect(saved.username, 'josh');
+      },
+    );
+  });
 }

@@ -23,22 +23,6 @@ class OnboardingPinChanged extends OnboardingEvent {
   List<Object?> get props => [pin];
 }
 
-class OnboardingFirstNameChanged extends OnboardingEvent {
-  const OnboardingFirstNameChanged(this.firstName);
-  final String firstName;
-
-  @override
-  List<Object?> get props => [firstName];
-}
-
-class OnboardingLastNameChanged extends OnboardingEvent {
-  const OnboardingLastNameChanged(this.lastName);
-  final String lastName;
-
-  @override
-  List<Object?> get props => [lastName];
-}
-
 class OnboardingBioChanged extends OnboardingEvent {
   const OnboardingBioChanged(this.bio);
   final String bio;

@@ -18,8 +18,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
                     existingProfile!.username!.isNotEmpty
                 ? Username.dirty(existingProfile.username!)
                 : const Username.pure(),
-            firstName: existingProfile?.firstName ?? '',
-            lastName: existingProfile?.lastName ?? '',
             bio: existingProfile?.bio ?? '',
             hasExistingPin: (existingProfile?.hasPin ?? false) ||
                 (existingProfile?.pin?.isNotEmpty ?? false),
@@ -28,8 +26,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         ) {
     on<OnboardingUsernameChanged>(_onUsernameChanged);
     on<OnboardingPinChanged>(_onPinChanged);
-    on<OnboardingFirstNameChanged>(_onFirstNameChanged);
-    on<OnboardingLastNameChanged>(_onLastNameChanged);
     on<OnboardingBioChanged>(_onBioChanged);
     on<OnboardingStepNext>(_onStepNext);
     on<OnboardingStepBack>(_onStepBack);
@@ -51,20 +47,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     Emitter<OnboardingState> emit,
   ) {
     emit(state.copyWith(pin: Pin.dirty(event.pin)));
-  }
-
-  void _onFirstNameChanged(
-    OnboardingFirstNameChanged event,
-    Emitter<OnboardingState> emit,
-  ) {
-    emit(state.copyWith(firstName: event.firstName));
-  }
-
-  void _onLastNameChanged(
-    OnboardingLastNameChanged event,
-    Emitter<OnboardingState> emit,
-  ) {
-    emit(state.copyWith(lastName: event.lastName));
   }
 
   void _onBioChanged(
@@ -156,9 +138,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         UserProfileModel(
           id: event.userId,
           email: existingProfile?.email,
-          username: state.username.value,
-          firstName: state.firstName,
-          lastName: state.lastName,
+          username: state.username.value.trim(),
           bio: state.bio,
           imageUrl: imageUrl,
           friendCode: friendCode,

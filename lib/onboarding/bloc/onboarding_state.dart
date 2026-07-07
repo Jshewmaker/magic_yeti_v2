@@ -5,8 +5,6 @@ class OnboardingState extends Equatable {
     this.currentStep = 0,
     this.username = const Username.pure(),
     this.pin = const Pin.pure(),
-    this.firstName = '',
-    this.lastName = '',
     this.bio = '',
     this.profileImagePath,
     this.hasExistingPin = false,
@@ -17,8 +15,6 @@ class OnboardingState extends Equatable {
   final int currentStep;
   final Username username;
   final Pin pin;
-  final String firstName;
-  final String lastName;
   final String bio;
   final String? profileImagePath;
   final bool hasExistingPin;
@@ -47,8 +43,6 @@ class OnboardingState extends Equatable {
     int? currentStep,
     Username? username,
     Pin? pin,
-    String? firstName,
-    String? lastName,
     String? bio,
     String? Function()? profileImagePath,
     bool? hasExistingPin,
@@ -59,8 +53,6 @@ class OnboardingState extends Equatable {
       currentStep: currentStep ?? this.currentStep,
       username: username ?? this.username,
       pin: pin ?? this.pin,
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
       bio: bio ?? this.bio,
       profileImagePath: profileImagePath != null
           ? profileImagePath()
@@ -78,8 +70,6 @@ class OnboardingState extends Equatable {
         currentStep,
         username,
         pin,
-        firstName,
-        lastName,
         bio,
         profileImagePath,
         hasExistingPin,
