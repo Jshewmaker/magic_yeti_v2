@@ -15,7 +15,7 @@ void main() {
   late _MockFirebaseDatabaseRepository firebaseDatabaseRepository;
   late _MockUserRepository userRepository;
 
-  const authUser = User(id: 'u1', email: 'josh@example.com', name: 'Josh');
+  const authUser = User(id: 'u1', email: 'josh@example.com');
 
   const loadedProfile = UserProfileModel(
     id: 'u1',

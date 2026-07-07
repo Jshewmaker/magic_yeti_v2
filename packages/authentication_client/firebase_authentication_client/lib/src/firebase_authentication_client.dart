@@ -141,7 +141,6 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
       final appleIdCredential = await _getAppleCredentials(
         scopes: [
           AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
         ],
       );
 
@@ -334,7 +333,6 @@ extension on firebase_auth.User {
     return User(
       id: uid,
       email: email,
-      name: displayName,
       photo: photoURL,
       isAnonymous: email == null || email == '',
     );

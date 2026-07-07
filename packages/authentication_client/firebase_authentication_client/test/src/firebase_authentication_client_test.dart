@@ -118,7 +118,6 @@ void main() {
         expect(getAppleCredentialsCalls, [
           [
             AppleIDAuthorizationScopes.email,
-            AppleIDAuthorizationScopes.fullName,
           ]
         ]);
       });
