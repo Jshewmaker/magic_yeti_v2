@@ -916,14 +916,6 @@
   "@searchFailedMessage": {
     "description": "Friendly error shown when a friend search fails"
   },
-  "firstNameLabel": "First Name",
-  "@firstNameLabel": {
-    "description": "Label for the first name field on the profile page"
-  },
-  "lastNameLabel": "Last Name",
-  "@lastNameLabel": {
-    "description": "Label for the last name field on the profile page"
-  },
   "bioLabel": "Bio",
   "@bioLabel": {
     "description": "Label for the bio field on the profile page"

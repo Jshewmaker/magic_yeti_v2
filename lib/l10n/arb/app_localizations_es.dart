@@ -562,12 +562,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'La búsqueda falló. Comprueba tu conexión e inténtalo de nuevo.';
 
   @override
-  String get firstNameLabel => 'Nombre';
-
-  @override
-  String get lastNameLabel => 'Apellido';
-
-  @override
   String get bioLabel => 'Biografía';
 
   @override

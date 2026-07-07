@@ -556,12 +556,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Search failed. Check your connection and try again.';
 
   @override
-  String get firstNameLabel => 'First Name';
-
-  @override
-  String get lastNameLabel => 'Last Name';
-
-  @override
   String get bioLabel => 'Bio';
 
   @override

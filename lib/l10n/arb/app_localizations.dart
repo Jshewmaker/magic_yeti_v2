@@ -1082,18 +1082,6 @@ abstract class AppLocalizations {
   /// **'Search failed. Check your connection and try again.'**
   String get searchFailedMessage;
 
-  /// Label for the first name field on the profile page
-  ///
-  /// In en, this message translates to:
-  /// **'First Name'**
-  String get firstNameLabel;
-
-  /// Label for the last name field on the profile page
-  ///
-  /// In en, this message translates to:
-  /// **'Last Name'**
-  String get lastNameLabel;
-
   /// Label for the bio field on the profile page
   ///
   /// In en, this message translates to:

@@ -16,8 +16,6 @@ class UserProfileModel extends Equatable {
     this.isAnonymous = false,
     this.username,
     this.usernameLower,
-    this.firstName,
-    this.lastName,
     this.bio,
     this.imageUrl,
     this.friendCode,
@@ -53,12 +51,6 @@ class UserProfileModel extends Equatable {
   /// search — do not set this directly.
   final String? usernameLower;
 
-  /// First name of the user
-  final String? firstName;
-
-  /// Last name of the user
-  final String? lastName;
-
   /// Bio of the user
   final String? bio;
 
@@ -89,8 +81,6 @@ class UserProfileModel extends Equatable {
     bool? isAnonymous,
     String? username,
     String? usernameLower,
-    String? firstName,
-    String? lastName,
     String? bio,
     String? imageUrl,
     String? friendCode,
@@ -103,8 +93,6 @@ class UserProfileModel extends Equatable {
         email: email ?? this.email,
         username: username ?? this.username,
         usernameLower: usernameLower ?? this.usernameLower,
-        firstName: firstName ?? this.firstName,
-        lastName: lastName ?? this.lastName,
         bio: bio ?? this.bio,
         imageUrl: imageUrl ?? this.imageUrl,
         isNewUser: isNewUser ?? this.isNewUser,
@@ -130,8 +118,6 @@ class UserProfileModel extends Equatable {
         isAnonymous,
         username,
         usernameLower,
-        firstName,
-        lastName,
         bio,
         imageUrl,
         friendCode,
