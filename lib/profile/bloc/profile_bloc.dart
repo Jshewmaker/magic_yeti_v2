@@ -18,8 +18,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileLoadRequested>(_onLoadRequested);
     on<ProfileEditingToggled>(_onEditingToggled);
     on<ProfileUsernameChanged>(_onUsernameChanged);
-    on<ProfileFirstNameChanged>(_onFirstNameChanged);
-    on<ProfileLastNameChanged>(_onLastNameChanged);
     on<ProfileBioChanged>(_onBioChanged);
     on<ProfileSubmitted>(_onSubmitted);
     on<ProfilePinChanged>(_onPinChanged);
@@ -79,20 +77,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     );
   }
 
-  void _onFirstNameChanged(
-    ProfileFirstNameChanged event,
-    Emitter<ProfileState> emit,
-  ) {
-    emit(state.copyWith(firstName: event.firstName));
-  }
-
-  void _onLastNameChanged(
-    ProfileLastNameChanged event,
-    Emitter<ProfileState> emit,
-  ) {
-    emit(state.copyWith(lastName: event.lastName));
-  }
-
   void _onBioChanged(
     ProfileBioChanged event,
     Emitter<ProfileState> emit,
@@ -112,7 +96,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     // UserProfileModel.isComplete false, bouncing the user back into
     // onboarding on the next auth event.
     if (state.username != null && !Formz.validate([state.username!])) {
-      emit(state.copyWith(status: ProfileStatus.failure));
+      emit(state.copyWith(status: ProfileStatus.usernameInvalid));
       return;
     }
 
@@ -126,9 +110,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       // silently drop those fields on save (the Fix-2-class regression
       // this bloc must never reintroduce).
       final updatedProfile = loaded.copyWith(
-        username: state.username?.value ?? loaded.username,
-        firstName: state.firstName ?? loaded.firstName,
-        lastName: state.lastName ?? loaded.lastName,
+        username: state.username?.value.trim() ?? loaded.username,
         bio: state.bio ?? loaded.bio,
       );
 

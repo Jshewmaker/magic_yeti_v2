@@ -28,8 +28,6 @@ void main() {
       id: 'u1',
       email: 'josh@example.com',
       username: 'joshy',
-      firstName: 'Josh',
-      lastName: 'Shew',
       bio: 'Commander enjoyer',
       friendCode: 'YETI-A3F9',
       hasPin: true,
@@ -68,7 +66,7 @@ void main() {
     });
 
     testWidgets(
-        'renders username/name/bio from the loaded UserProfileModel, '
+        'renders username/bio from the loaded UserProfileModel, '
         'not the auth User', (tester) async {
       when(() => profileBloc.state).thenReturn(
         const ProfileState(
@@ -81,8 +79,6 @@ void main() {
       await pumpProfile(tester);
 
       expect(find.text('joshy'), findsOneWidget);
-      expect(find.textContaining('Josh'), findsWidgets);
-      expect(find.text('Shew'), findsOneWidget);
       expect(find.text('Commander enjoyer'), findsOneWidget);
     });
 
@@ -289,9 +285,9 @@ void main() {
       await pumpProfile(tester);
 
       expect(find.text('josh@example.com'), findsOneWidget);
-      // No editable text field is bound to email; only the username,
-      // first/last name, and bio fields are editable text fields.
-      expect(find.byType(TextFormField), findsNWidgets(4));
+      // No editable text field is bound to email; only the username
+      // and bio fields are editable text fields.
+      expect(find.byType(TextFormField), findsNWidgets(2));
     });
   });
 }

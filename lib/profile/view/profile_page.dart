@@ -2,6 +2,7 @@ import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:form_inputs/form_inputs.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hold_to_confirm_button/hold_to_confirm_button.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
@@ -48,6 +49,16 @@ class ProfileView extends StatelessWidget {
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(content: Text(context.l10n.profileSavedMessage)),
+            );
+        }
+        if (state.status == ProfileStatus.usernameInvalid) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(context.l10n.usernameInvalidMessage),
+                backgroundColor: Colors.red,
+              ),
             );
         }
         if (state.status == ProfileStatus.failure) {
@@ -136,23 +147,19 @@ class ProfileView extends StatelessWidget {
                               label: context.l10n.usernameLabel,
                               initialValue: profile.username ?? '',
                               helperText: context.l10n.usernameHelperText,
+                              errorTextBuilder: (context, state) =>
+                                  switch (state.username?.displayError) {
+                                UsernameValidationError.empty =>
+                                  context.l10n.usernameRequiredError,
+                                UsernameValidationError.tooShort =>
+                                  context.l10n.usernameTooShortError,
+                                UsernameValidationError.tooLong =>
+                                  context.l10n.usernameTooLongError,
+                                null => null,
+                              },
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileUsernameChanged(value)),
-                            ),
-                            _ProfileField(
-                              label: context.l10n.firstNameLabel,
-                              initialValue: profile.firstName ?? '',
-                              onChanged: (value) => context
-                                  .read<ProfileBloc>()
-                                  .add(ProfileFirstNameChanged(value)),
-                            ),
-                            _ProfileField(
-                              label: context.l10n.lastNameLabel,
-                              initialValue: profile.lastName ?? '',
-                              onChanged: (value) => context
-                                  .read<ProfileBloc>()
-                                  .add(ProfileLastNameChanged(value)),
                             ),
                             _ProfileField(
                               label: context.l10n.bioLabel,
@@ -454,6 +461,7 @@ class _ProfileField extends StatelessWidget {
     required this.initialValue,
     required this.onChanged,
     this.helperText,
+    this.errorTextBuilder,
   });
 
   final String label;
@@ -461,10 +469,19 @@ class _ProfileField extends StatelessWidget {
   final void Function(String) onChanged;
   final String? helperText;
 
+  /// Builds live inline error copy from bloc state; null for fields
+  /// without validation. The parent builder only rebuilds on
+  /// status/isEditing changes, so the error must flow through this
+  /// widget's own BlocBuilder.
+  final String? Function(BuildContext context, ProfileState state)?
+      errorTextBuilder;
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(
-      buildWhen: (previous, current) => previous.isEditing != current.isEditing,
+      buildWhen: (previous, current) =>
+          previous.isEditing != current.isEditing ||
+          previous.username != current.username,
       builder: (context, state) {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -487,6 +504,8 @@ class _ProfileField extends StatelessWidget {
                             initialValue: initialValue,
                             decoration: InputDecoration(
                               hintText: 'Enter $label',
+                              errorText:
+                                  errorTextBuilder?.call(context, state),
                             ),
                             onChanged: onChanged,
                           )

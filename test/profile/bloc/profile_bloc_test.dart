@@ -21,8 +21,6 @@ void main() {
     id: 'u1',
     email: 'josh@example.com',
     username: 'josh',
-    firstName: 'Josh',
-    lastName: 'Shew',
     bio: 'hello',
     friendCode: 'YETI-A3F9',
     pin: 'legacyhash',
@@ -143,8 +141,6 @@ void main() {
         profile: loadedProfile,
         isEditing: true,
         username: Username.dirty('newname'),
-        firstName: 'NewFirst',
-        lastName: 'NewLast',
         bio: 'new bio',
       ),
       act: (bloc) => bloc.add(const ProfileSubmitted()),
@@ -158,8 +154,6 @@ void main() {
 
         // Fields explicitly changed by the form.
         expect(saved.username, 'newname');
-        expect(saved.firstName, 'NewFirst');
-        expect(saved.lastName, 'NewLast');
         expect(saved.bio, 'new bio');
 
         // Fields NOT touched by the profile form must carry over from
@@ -207,8 +201,8 @@ void main() {
     );
 
     blocTest<ProfileBloc, ProfileState>(
-      'emits failure and does not save when the edited username is '
-      'present but invalid (e.g. cleared to empty) — an empty username '
+      'emits usernameInvalid and does not save when the edited username '
+      'is present but invalid (e.g. cleared to empty) — an empty username '
       'would flip UserProfileModel.isComplete false and bounce the user '
       'to onboarding on the next auth event',
       build: buildBloc,
@@ -217,20 +211,45 @@ void main() {
         status: ProfileStatus.loaded,
         profile: loadedProfile,
         isEditing: true,
-        username: Username.dirty(),
+        username: Username.dirty('   '),
       ),
       act: (bloc) => bloc.add(const ProfileSubmitted()),
       expect: () => [
         isA<ProfileState>().having(
           (s) => s.status,
           'status',
-          ProfileStatus.failure,
+          ProfileStatus.usernameInvalid,
         ),
       ],
       verify: (_) {
         verifyNever(
           () => firebaseDatabaseRepository.updateUserProfile(any(), any()),
         );
+      },
+    );
+
+    blocTest<ProfileBloc, ProfileState>(
+      'submit persists the trimmed username',
+      build: () {
+        when(
+          () => firebaseDatabaseRepository.updateUserProfile('u1', any()),
+        ).thenAnswer((_) async {});
+        return buildBloc();
+      },
+      seed: () => const ProfileState(
+        user: authUser,
+        status: ProfileStatus.loaded,
+        profile: loadedProfile,
+        isEditing: true,
+        username: Username.dirty('  josh2  '),
+      ),
+      act: (bloc) => bloc.add(const ProfileSubmitted()),
+      verify: (_) {
+        final saved = verify(
+          () =>
+              firebaseDatabaseRepository.updateUserProfile('u1', captureAny()),
+        ).captured.single as UserProfileModel;
+        expect(saved.username, 'josh2');
       },
     );
 

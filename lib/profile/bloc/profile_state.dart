@@ -1,6 +1,14 @@
 part of 'profile_bloc.dart';
 
-enum ProfileStatus { initial, loading, loaded, success, failure, pinSaved }
+enum ProfileStatus {
+  initial,
+  loading,
+  loaded,
+  success,
+  failure,
+  pinSaved,
+  usernameInvalid,
+}
 
 class ProfileState extends Equatable {
   const ProfileState({
@@ -9,8 +17,6 @@ class ProfileState extends Equatable {
     this.profile,
     this.isEditing = false,
     this.username,
-    this.firstName,
-    this.lastName,
     this.bio,
     this.isValid = false,
     this.pin = const Pin.pure(),
@@ -27,8 +33,6 @@ class ProfileState extends Equatable {
   final UserProfileModel? profile;
   final bool isEditing;
   final Username? username;
-  final String? firstName;
-  final String? lastName;
   final String? bio;
   final bool isValid;
   final Pin pin;
@@ -39,8 +43,6 @@ class ProfileState extends Equatable {
     UserProfileModel? profile,
     bool? isEditing,
     Username? username,
-    String? firstName,
-    String? lastName,
     String? bio,
     bool? isValid,
     Pin? pin,
@@ -51,8 +53,6 @@ class ProfileState extends Equatable {
       profile: profile ?? this.profile,
       isEditing: isEditing ?? this.isEditing,
       username: username ?? this.username,
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
       bio: bio ?? this.bio,
       isValid: isValid ?? this.isValid,
       pin: pin ?? this.pin,
@@ -66,8 +66,6 @@ class ProfileState extends Equatable {
         profile,
         isEditing,
         username,
-        firstName,
-        lastName,
         bio,
         isValid,
         pin,

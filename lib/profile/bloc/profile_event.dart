@@ -30,24 +30,6 @@ class ProfileUsernameChanged extends ProfileEvent {
   List<Object> get props => [username];
 }
 
-class ProfileFirstNameChanged extends ProfileEvent {
-  const ProfileFirstNameChanged(this.firstName);
-
-  final String firstName;
-
-  @override
-  List<Object> get props => [firstName];
-}
-
-class ProfileLastNameChanged extends ProfileEvent {
-  const ProfileLastNameChanged(this.lastName);
-
-  final String lastName;
-
-  @override
-  List<Object> get props => [lastName];
-}
-
 class ProfileBioChanged extends ProfileEvent {
   const ProfileBioChanged(this.bio);
 
