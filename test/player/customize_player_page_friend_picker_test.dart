@@ -477,7 +477,6 @@ void main() {
       // satisfiable here, hence findsWidgets, matching the idiom the very
       // next test ('typing filters the entries') already uses for 'Zara'.
       expect(find.text('Me'), findsWidgets);
-      expect(find.text('Not linked'), findsWidgets);
     });
 
     testWidgets('typing filters the entries', (tester) async {
@@ -564,7 +563,8 @@ void main() {
       expect(field.controller?.text, isNot('Bob'));
     });
 
-    testWidgets('selecting Not linked clears an existing link', (tester) async {
+    testWidgets('tapping the clear icon in the name field clears an existing '
+        'link', (tester) async {
       late PlayerCustomizationBloc customizationBloc;
       when(() => friendBloc.state).thenReturn(const FriendsLoaded([bob]));
       tester.view.physicalSize = const Size(1600, 1200);
@@ -597,11 +597,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(customizationBloc.state.isAccountOwner, isTrue);
 
-      // Open via the internal TextField — see the detailed comment on the
-      // 'Verify button shows a spinner...' test near the top of this file.
-      await tester.tap(find.byType(TextField).first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Not linked').last);
+      // The clear affordance is the X icon in PlayerIdentityPanel's name
+      // field, not an entry in the friend/owner dropdown.
+      await tester.tap(find.byIcon(Icons.cancel));
       await tester.pumpAndSettle();
 
       expect(customizationBloc.state.isAccountOwner, isFalse);

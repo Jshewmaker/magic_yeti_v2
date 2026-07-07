@@ -134,7 +134,11 @@ void main() {
         find.text('Sign in to link friends to players.'),
         findsNothing,
       );
-      expect(find.text('Bob'), findsOneWidget);
+      // Bob is a selectable entry in the dropdown, not static page text —
+      // the menu has to actually be open to find it in the tree.
+      await tester.tap(find.byType(TextField).first);
+      await tester.pumpAndSettle();
+      expect(find.text('Bob'), findsWidgets);
     });
   });
 }

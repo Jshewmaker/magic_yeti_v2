@@ -406,7 +406,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Busca por nombre o código de amigo para encontrar jugadores.';
 
   @override
-  String get selectFriendLabel => 'Seleccionar un amigo';
+  String get selectFriendLabel => 'Seleccionar una cuenta';
 
   @override
   String linkedToFriend(String name) {
@@ -430,9 +430,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get accountOwnerOptionLabel => 'Yo';
-
-  @override
-  String get notLinkedOptionLabel => 'Sin vincular';
 
   @override
   String pinIncorrectError(int count) {

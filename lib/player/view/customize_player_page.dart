@@ -270,6 +270,13 @@ class _FriendSection extends StatefulWidget {
 class _FriendSectionState extends State<_FriendSection> {
   int _resetNonce = 0;
 
+  // The menu popup's background is dark (AppColors.surface); Material 3's
+  // default entry text color assumes a light surface and renders
+  // near-illegibly here without this override.
+  static const _entryStyle = ButtonStyle(
+    foregroundColor: WidgetStatePropertyAll(AppColors.white),
+  );
+
   void _forceReset() {
     if (mounted) setState(() => _resetNonce++);
   }
@@ -316,66 +323,130 @@ class _FriendSectionState extends State<_FriendSection> {
             : null);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xlg),
+      // Matches PlayerIdentityPanel's own padding (AppSpacing.md) below it —
+      // this section previously used AppSpacing.xlg, which didn't line up
+      // with its sibling at all.
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.l10n.selectFriendLabel,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.neutral60,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          SizedBox(
-            width: double.infinity,
-            child: DropdownMenu<String?>(
-              key: ValueKey('$confirmedValue-$_resetNonce'),
-              initialSelection: confirmedValue,
-              enableFilter: true,
-              // DropdownMenu.requestFocusOnTap defaults to false on mobile
-              // platforms (iOS/Android/Fuchsia), which makes its internal
-              // TextField readOnly — type-to-search silently does nothing
-              // there without this. This app's primary targets are iOS and
-              // Android (see CLAUDE.md), so enableFilter's whole point
-              // (Step 7's "filters as you type... on a small simulated
-              // device (e.g. iPhone SE)") requires this explicitly.
-              requestFocusOnTap: true,
-              hintText: context.l10n.notLinkedOptionLabel,
-              dropdownMenuEntries: [
-                DropdownMenuEntry(
-                  value: null,
-                  label: context.l10n.notLinkedOptionLabel,
-                ),
-                DropdownMenuEntry(
-                  value: currentUserId,
-                  label: context.l10n.accountOwnerOptionLabel,
-                ),
-                ...sortedFriends.map(
-                  (friend) => DropdownMenuEntry(
-                    value: friend.userId,
-                    label: friend.username,
+          Row(
+            children: [
+              // Matches the 14px player-color circle + AppSpacing.sm gap
+              // that precedes the name field in PlayerIdentityPanel below,
+              // so this field's content lines up with that one's instead
+              // of sitting under the circle.
+              const SizedBox(width: 14 + AppSpacing.sm),
+              Expanded(
+                child: DropdownMenu<String?>(
+                  key: ValueKey('$confirmedValue-$_resetNonce'),
+                  initialSelection: confirmedValue,
+                  // Without this, DropdownMenu sizes itself to its
+                  // content width regardless of any parent SizedBox — it
+                  // never actually stretched to match the name field
+                  // below it.
+                  expandedInsets: EdgeInsets.zero,
+                  enableFilter: true,
+                  // DropdownMenu.requestFocusOnTap defaults to false on
+                  // mobile platforms (iOS/Android/Fuchsia), which makes
+                  // its internal TextField readOnly — type-to-search
+                  // silently does nothing there without this. This
+                  // app's primary targets are iOS and Android (see
+                  // CLAUDE.md), so enableFilter's whole point (Step 7's
+                  // "filters as you type... on a small simulated device
+                  // (e.g. iPhone SE)") requires this explicitly.
+                  requestFocusOnTap: true,
+                  // Formerly a separate label above the field — moved
+                  // in as the hint so the field carries its own
+                  // description instead of needing a caption beside it.
+                  hintText: context.l10n.selectFriendLabel,
+                  leadingIcon: const Icon(
+                    Icons.person_search,
+                    color: AppColors.neutral60,
                   ),
+                  // DropdownMenu has its own dedicated theme slot
+                  // (DropdownMenuThemeData) separate from the app's
+                  // general InputDecorationTheme — nothing sets that
+                  // slot anywhere in this app, so without the overrides
+                  // below this field renders in unthemed Material 3
+                  // defaults instead of matching the name field and
+                  // search bar beside it.
+                  textStyle: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 16,
+                  ),
+                  inputDecorationTheme: InputDecorationTheme(
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    isDense: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.sm),
+                      borderSide: const BorderSide(
+                        color: AppColors.neutral60,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.sm),
+                      borderSide: const BorderSide(
+                        color: AppColors.neutral60,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.sm),
+                      borderSide: const BorderSide(
+                        color: AppColors.neutral60,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                  menuStyle: MenuStyle(
+                    backgroundColor: const WidgetStatePropertyAll(
+                      AppColors.surface,
+                    ),
+                    surfaceTintColor: const WidgetStatePropertyAll(
+                      Colors.transparent,
+                    ),
+                    shape: WidgetStatePropertyAll(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSpacing.sm),
+                        side: const BorderSide(color: AppColors.neutral60),
+                      ),
+                    ),
+                  ),
+                  dropdownMenuEntries: [
+                    DropdownMenuEntry(
+                      value: currentUserId,
+                      label: context.l10n.accountOwnerOptionLabel,
+                      style: _entryStyle,
+                    ),
+                    ...sortedFriends.map(
+                      (friend) => DropdownMenuEntry(
+                        value: friend.userId,
+                        label: friend.username,
+                        style: _entryStyle,
+                      ),
+                    ),
+                  ],
+                  // Clearing an existing link now happens via the X
+                  // button in the name field (PlayerIdentityPanel), not
+                  // from this dropdown — every remaining entry is a real
+                  // account, so `value` is never null here in practice.
+                  onSelected: (value) {
+                    if (value == null) return;
+                    if (value == currentUserId) {
+                      context.read<PlayerCustomizationBloc>().add(
+                            OwnerSelected(userId: currentUserId),
+                          );
+                    } else {
+                      final friend = sortedFriends.firstWhere(
+                        (f) => f.userId == value,
+                      );
+                      _showPinDialog(context, friend);
+                    }
+                  },
                 ),
-              ],
-              onSelected: (value) {
-                if (value == null) {
-                  context.read<PlayerCustomizationBloc>().add(
-                        const LinkCleared(),
-                      );
-                } else if (value == currentUserId) {
-                  context.read<PlayerCustomizationBloc>().add(
-                        OwnerSelected(userId: currentUserId),
-                      );
-                } else {
-                  final friend = sortedFriends.firstWhere(
-                    (f) => f.userId == value,
-                  );
-                  _showPinDialog(context, friend);
-                }
-              },
-            ),
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.sm),
         ],

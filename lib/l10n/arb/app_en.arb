@@ -721,9 +721,9 @@
   "@friendCodeSearchPrompt": {
     "description": "Prompt shown on the friend search page before searching"
   },
-  "selectFriendLabel": "Select a friend",
+  "selectFriendLabel": "Select an account",
   "@selectFriendLabel": {
-    "description": "Label above friend selection chips on customize player page"
+    "description": "Hint text shown in the owner/friend link dropdown on the customize player page before anything is selected"
   },
   "linkedToFriend": "Linked to {name}",
   "@linkedToFriend": {
@@ -758,10 +758,6 @@
   "accountOwnerOptionLabel": "Me",
   "@accountOwnerOptionLabel": {
     "description": "Dropdown entry / fallback label to link a player slot to the signed-in user's own account"
-  },
-  "notLinkedOptionLabel": "Not linked",
-  "@notLinkedOptionLabel": {
-    "description": "Dropdown entry meaning this player slot is not linked to any account"
   },
   "pinIncorrectError": "Incorrect PIN. {count, plural, =1{1 attempt} other{{count} attempts}} remaining.",
   "@pinIncorrectError": {

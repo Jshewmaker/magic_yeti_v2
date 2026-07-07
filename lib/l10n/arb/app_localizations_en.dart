@@ -404,7 +404,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Search by name or friend code to find players.';
 
   @override
-  String get selectFriendLabel => 'Select a friend';
+  String get selectFriendLabel => 'Select an account';
 
   @override
   String linkedToFriend(String name) {
@@ -427,9 +427,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountOwnerOptionLabel => 'Me';
-
-  @override
-  String get notLinkedOptionLabel => 'Not linked';
 
   @override
   String pinIncorrectError(int count) {

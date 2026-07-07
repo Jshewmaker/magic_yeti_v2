@@ -56,6 +56,18 @@ class PlayerIdentityPanel extends StatelessWidget {
                           color:
                               isLinked ? AppColors.green : AppColors.neutral60,
                         ),
+                        suffixIcon: isLinked
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.cancel,
+                                  color: AppColors.neutral60,
+                                ),
+                                tooltip: context.l10n.clearButtonText,
+                                onPressed: () => context
+                                    .read<PlayerCustomizationBloc>()
+                                    .add(const LinkCleared()),
+                              )
+                            : null,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppSpacing.sm),
                         ),
@@ -182,12 +194,6 @@ class _FriendLinkRow extends StatelessWidget {
                 ),
                 style: const TextStyle(color: AppColors.white, fontSize: 13),
               ),
-            ),
-            TextButton(
-              onPressed: () => context
-                  .read<PlayerCustomizationBloc>()
-                  .add(const LinkCleared()),
-              child: const Text('Unlink'),
             ),
           ],
         ),

@@ -836,10 +836,10 @@ abstract class AppLocalizations {
   /// **'Search by name or friend code to find players.'**
   String get friendCodeSearchPrompt;
 
-  /// Label above friend selection chips on customize player page
+  /// Hint text shown in the owner/friend link dropdown on the customize player page before anything is selected
   ///
   /// In en, this message translates to:
-  /// **'Select a friend'**
+  /// **'Select an account'**
   String get selectFriendLabel;
 
   /// Text shown when a friend is linked to a player slot
@@ -877,12 +877,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Me'**
   String get accountOwnerOptionLabel;
-
-  /// Dropdown entry meaning this player slot is not linked to any account
-  ///
-  /// In en, this message translates to:
-  /// **'Not linked'**
-  String get notLinkedOptionLabel;
 
   /// Error shown when a friend PIN is incorrect, with attempts remaining
   ///
