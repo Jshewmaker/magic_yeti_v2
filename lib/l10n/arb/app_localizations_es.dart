@@ -543,6 +543,25 @@ class AppLocalizationsEs extends AppLocalizations {
       'Cómo te encuentran y reconocen tus amigos. No es único: otros pueden compartir este nombre.';
 
   @override
+  String get usernameRequiredError => 'El nombre de usuario es obligatorio';
+
+  @override
+  String get usernameTooShortError =>
+      'El nombre de usuario debe tener al menos 2 caracteres';
+
+  @override
+  String get usernameTooLongError =>
+      'El nombre de usuario debe tener 30 caracteres o menos';
+
+  @override
+  String get usernameInvalidMessage =>
+      'Corrige tu nombre de usuario antes de guardar.';
+
+  @override
+  String get searchFailedMessage =>
+      'La búsqueda falló. Comprueba tu conexión e inténtalo de nuevo.';
+
+  @override
   String get firstNameLabel => 'Nombre';
 
   @override

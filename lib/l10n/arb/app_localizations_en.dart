@@ -540,6 +540,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'How friends find and recognize you. Not unique — others may share this name.';
 
   @override
+  String get usernameRequiredError => 'Username is required';
+
+  @override
+  String get usernameTooShortError => 'Username must be at least 2 characters';
+
+  @override
+  String get usernameTooLongError => 'Username must be 30 characters or fewer';
+
+  @override
+  String get usernameInvalidMessage => 'Fix your username before saving.';
+
+  @override
+  String get searchFailedMessage =>
+      'Search failed. Check your connection and try again.';
+
+  @override
   String get firstNameLabel => 'First Name';
 
   @override

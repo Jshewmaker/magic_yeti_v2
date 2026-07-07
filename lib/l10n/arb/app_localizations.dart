@@ -1052,6 +1052,36 @@ abstract class AppLocalizations {
   /// **'How friends find and recognize you. Not unique — others may share this name.'**
   String get usernameHelperText;
 
+  /// Inline error when the username field is empty or whitespace-only
+  ///
+  /// In en, this message translates to:
+  /// **'Username is required'**
+  String get usernameRequiredError;
+
+  /// Inline error when the trimmed username is shorter than 2 characters
+  ///
+  /// In en, this message translates to:
+  /// **'Username must be at least 2 characters'**
+  String get usernameTooShortError;
+
+  /// Inline error when the trimmed username is longer than 30 characters
+  ///
+  /// In en, this message translates to:
+  /// **'Username must be 30 characters or fewer'**
+  String get usernameTooLongError;
+
+  /// Snackbar shown when a profile save is blocked by an invalid username
+  ///
+  /// In en, this message translates to:
+  /// **'Fix your username before saving.'**
+  String get usernameInvalidMessage;
+
+  /// Friendly error shown when a friend search fails
+  ///
+  /// In en, this message translates to:
+  /// **'Search failed. Check your connection and try again.'**
+  String get searchFailedMessage;
+
   /// Label for the first name field on the profile page
   ///
   /// In en, this message translates to:

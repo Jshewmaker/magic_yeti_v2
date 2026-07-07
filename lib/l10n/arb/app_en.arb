@@ -896,6 +896,26 @@
   "@usernameHelperText": {
     "description": "Helper text under the username field explaining its purpose and that it isn't unique"
   },
+  "usernameRequiredError": "Username is required",
+  "@usernameRequiredError": {
+    "description": "Inline error when the username field is empty or whitespace-only"
+  },
+  "usernameTooShortError": "Username must be at least 2 characters",
+  "@usernameTooShortError": {
+    "description": "Inline error when the trimmed username is shorter than 2 characters"
+  },
+  "usernameTooLongError": "Username must be 30 characters or fewer",
+  "@usernameTooLongError": {
+    "description": "Inline error when the trimmed username is longer than 30 characters"
+  },
+  "usernameInvalidMessage": "Fix your username before saving.",
+  "@usernameInvalidMessage": {
+    "description": "Snackbar shown when a profile save is blocked by an invalid username"
+  },
+  "searchFailedMessage": "Search failed. Check your connection and try again.",
+  "@searchFailedMessage": {
+    "description": "Friendly error shown when a friend search fails"
+  },
   "firstNameLabel": "First Name",
   "@firstNameLabel": {
     "description": "Label for the first name field on the profile page"
