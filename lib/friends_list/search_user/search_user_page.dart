@@ -161,9 +161,11 @@ class SearchUserFormState extends State<SearchUserForm> {
                 }
                 return _SearchResultsList(matches: state.matches);
               } else if (state is SearchError) {
+                // state.message carries the raw exception detail for
+                // logs/tests; the UI shows friendly localized copy only.
                 return Center(
                   child: Text(
-                    'Error: ${state.message}',
+                    context.l10n.searchFailedMessage,
                     style: const TextStyle(
                       color: AppColors.red,
                     ),
