@@ -70,15 +70,6 @@ final class ClearCardList extends PlayerCustomizationEvent {
   const ClearCardList();
 }
 
-final class UpdateAccountOwnership extends PlayerCustomizationEvent {
-  const UpdateAccountOwnership({required this.isOwner});
-
-  final bool isOwner;
-
-  @override
-  List<Object> get props => [isOwner];
-}
-
 final class UpdateCommanderFilters extends PlayerCustomizationEvent {
   const UpdateCommanderFilters({required this.showOnlyLegendary});
 
@@ -97,8 +88,17 @@ final class SelectFriend extends PlayerCustomizationEvent {
   List<Object> get props => [friend];
 }
 
-final class ClearFriend extends PlayerCustomizationEvent {
-  const ClearFriend();
+final class OwnerSelected extends PlayerCustomizationEvent {
+  const OwnerSelected({required this.userId});
+
+  final String userId;
+
+  @override
+  List<Object> get props => [userId];
+}
+
+final class LinkCleared extends PlayerCustomizationEvent {
+  const LinkCleared();
 }
 
 final class ValidatePin extends PlayerCustomizationEvent {
@@ -109,4 +109,13 @@ final class ValidatePin extends PlayerCustomizationEvent {
 
   @override
   List<Object> get props => [pin, friendUserId];
+}
+
+/// Clears stale PIN-flow error/lockout state before a dialog opens, so a
+/// lockout or error from a previous friend's attempt doesn't leak into the
+/// next dialog. Does not touch [PlayerCustomizationState.pinValidated] or
+/// [PlayerCustomizationState.selectedFriend] — an already-linked friend
+/// selection must survive opening and cancelling a second dialog.
+final class ResetPinFlow extends PlayerCustomizationEvent {
+  const ResetPinFlow();
 }

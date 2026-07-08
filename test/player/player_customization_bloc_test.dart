@@ -196,4 +196,262 @@ void main() {
       expect(b.state.background, isNull);
     },
   );
+
+  group('ValidatePin', () {
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'emits isPinValidating true, then pinValidated on PinValid',
+      build: () {
+        when(
+          () => db.validatePin(
+            targetUserId: 'friend1',
+            pin: '0742',
+          ),
+        ).thenAnswer((_) async => const PinValid());
+        return build();
+      },
+      act: (bloc) =>
+          bloc.add(const ValidatePin(pin: '0742', friendUserId: 'friend1')),
+      expect: () => [
+        isA<PlayerCustomizationState>()
+            .having((s) => s.isPinValidating, 'isPinValidating', true),
+        isA<PlayerCustomizationState>()
+            .having((s) => s.isPinValidating, 'isPinValidating', false)
+            .having((s) => s.pinValidated, 'pinValidated', true)
+            .having((s) => s.pinFlowError, 'pinFlowError', PinFlowError.none),
+      ],
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'emits incorrect with attemptsRemaining on PinInvalid',
+      build: () {
+        when(
+          () => db.validatePin(
+            targetUserId: 'friend1',
+            pin: '9999',
+          ),
+        ).thenAnswer((_) async => const PinInvalid(attemptsRemaining: 2));
+        return build();
+      },
+      act: (bloc) =>
+          bloc.add(const ValidatePin(pin: '9999', friendUserId: 'friend1')),
+      skip: 1,
+      expect: () => [
+        isA<PlayerCustomizationState>()
+            .having((s) => s.isPinValidating, 'isPinValidating', false)
+            .having((s) => s.pinValidated, 'pinValidated', false)
+            .having(
+              (s) => s.pinFlowError,
+              'pinFlowError',
+              PinFlowError.incorrect,
+            )
+            .having((s) => s.pinAttemptsRemaining, 'attempts', 2),
+      ],
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'emits lockedOut with expiry on PinLockedOut',
+      build: () {
+        when(
+          () => db.validatePin(
+            targetUserId: 'friend1',
+            pin: '9999',
+          ),
+        ).thenAnswer(
+          (_) async => PinLockedOut(lockedUntil: DateTime(2026, 7, 3, 12)),
+        );
+        return build();
+      },
+      act: (bloc) =>
+          bloc.add(const ValidatePin(pin: '9999', friendUserId: 'friend1')),
+      skip: 1,
+      expect: () => [
+        isA<PlayerCustomizationState>()
+            .having((s) => s.isPinValidating, 'isPinValidating', false)
+            .having(
+              (s) => s.pinFlowError,
+              'pinFlowError',
+              PinFlowError.lockedOut,
+            )
+            .having(
+              (s) => s.pinLockedUntil,
+              'lockedUntil',
+              DateTime(2026, 7, 3, 12),
+            ),
+      ],
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'emits unavailable on PinCheckUnavailable',
+      build: () {
+        when(
+          () => db.validatePin(
+            targetUserId: 'friend1',
+            pin: '0742',
+          ),
+        ).thenAnswer((_) async => const PinCheckUnavailable());
+        return build();
+      },
+      act: (bloc) =>
+          bloc.add(const ValidatePin(pin: '0742', friendUserId: 'friend1')),
+      skip: 1,
+      expect: () => [
+        isA<PlayerCustomizationState>()
+            .having((s) => s.isPinValidating, 'isPinValidating', false)
+            .having(
+              (s) => s.pinFlowError,
+              'pinFlowError',
+              PinFlowError.unavailable,
+            ),
+      ],
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'emits notSet on PinNotSet',
+      build: () {
+        when(
+          () => db.validatePin(
+            targetUserId: 'friend1',
+            pin: '0742',
+          ),
+        ).thenAnswer((_) async => const PinNotSet());
+        return build();
+      },
+      act: (bloc) =>
+          bloc.add(const ValidatePin(pin: '0742', friendUserId: 'friend1')),
+      skip: 1,
+      expect: () => [
+        isA<PlayerCustomizationState>()
+            .having((s) => s.isPinValidating, 'isPinValidating', false)
+            .having(
+              (s) => s.pinFlowError,
+              'pinFlowError',
+              PinFlowError.notSet,
+            ),
+      ],
+    );
+  });
+
+  group('ResetPinFlow', () {
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'clears error/attempts/lockout but preserves pinValidated',
+      build: build,
+      seed: () => PlayerCustomizationState(
+        pinFlowError: PinFlowError.lockedOut,
+        pinLockedUntil: DateTime(2026, 7, 3, 12),
+        pinValidated: true,
+      ),
+      act: (bloc) => bloc.add(const ResetPinFlow()),
+      expect: () => [
+        isA<PlayerCustomizationState>()
+            .having((s) => s.pinFlowError, 'pinFlowError', PinFlowError.none)
+            .having(
+              (s) => s.pinAttemptsRemaining,
+              'pinAttemptsRemaining',
+              0,
+            )
+            .having((s) => s.pinLockedUntil, 'pinLockedUntil', isNull)
+            .having((s) => s.pinValidated, 'pinValidated', isTrue),
+      ],
+    );
+  });
+
+  group('OwnerSelected', () {
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'confirms isAccountOwner and clears any existing friend selection',
+      build: () {
+        when(() => db.getUserProfileOnce('alice'))
+            .thenAnswer((_) async => null);
+        return build();
+      },
+      seed: () => const PlayerCustomizationState(
+        selectedFriend: FriendModel(
+          userId: 'bob',
+          username: 'Bob',
+          profilePictureUrl: '',
+        ),
+        pinValidated: true,
+      ),
+      act: (bloc) => bloc.add(const OwnerSelected(userId: 'alice')),
+      verify: (bloc) {
+        expect(bloc.state.isAccountOwner, isTrue);
+        expect(bloc.state.selectedFriend, isNull);
+        expect(bloc.state.pinValidated, isFalse);
+      },
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'fetches and stores the owner username',
+      build: () {
+        when(() => db.getUserProfileOnce('alice')).thenAnswer(
+          (_) async => const UserProfileModel(id: 'alice', username: 'Alice'),
+        );
+        return build();
+      },
+      act: (bloc) => bloc.add(const OwnerSelected(userId: 'alice')),
+      verify: (bloc) {
+        expect(bloc.state.ownerUsername, 'Alice');
+      },
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'leaves ownerUsername unset if the profile fetch returns null',
+      build: () {
+        when(() => db.getUserProfileOnce('alice'))
+            .thenAnswer((_) async => null);
+        return build();
+      },
+      act: (bloc) => bloc.add(const OwnerSelected(userId: 'alice')),
+      verify: (bloc) {
+        expect(bloc.state.ownerUsername, isNull);
+      },
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'still confirms isAccountOwner if the profile fetch throws',
+      build: () {
+        when(() => db.getUserProfileOnce('alice'))
+            .thenThrow(Exception('offline'));
+        return build();
+      },
+      act: (bloc) => bloc.add(const OwnerSelected(userId: 'alice')),
+      verify: (bloc) {
+        expect(bloc.state.isAccountOwner, isTrue);
+        expect(bloc.state.ownerUsername, isNull);
+      },
+    );
+  });
+
+  group('SelectFriend', () {
+    const bob = FriendModel(
+      userId: 'bob',
+      username: 'Bob',
+      profilePictureUrl: '',
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'confirms the friend as validated and clears isAccountOwner',
+      build: build,
+      seed: () => const PlayerCustomizationState(isAccountOwner: true),
+      act: (bloc) => bloc.add(const SelectFriend(friend: bob)),
+      verify: (bloc) {
+        expect(bloc.state.selectedFriend, bob);
+        expect(bloc.state.pinValidated, isTrue);
+        expect(bloc.state.isAccountOwner, isFalse);
+      },
+    );
+  });
+
+  group('LinkCleared', () {
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'clears both a friend link and owner status',
+      build: build,
+      seed: () => const PlayerCustomizationState(isAccountOwner: true),
+      act: (bloc) => bloc.add(const LinkCleared()),
+      verify: (bloc) {
+        expect(bloc.state.isAccountOwner, isFalse);
+        expect(bloc.state.selectedFriend, isNull);
+        expect(bloc.state.pinValidated, isFalse);
+      },
+    );
+  });
 }

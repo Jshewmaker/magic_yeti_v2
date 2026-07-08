@@ -9,6 +9,7 @@ class GameOverState extends Equatable {
     required this.firstPlayerId,
     this.gameModel,
     this.status = GameOverStatus.initial,
+    this.exitIntent = GameOverExitIntent.home,
   });
 
   final List<Player> standings;
@@ -17,12 +18,18 @@ class GameOverState extends Equatable {
   final String? firstPlayerId;
   final GameOverStatus status;
 
+  /// Where the view should navigate after a successful save. Set from the
+  /// triggering [SendGameOverStatsEvent] so the view's listener knows the
+  /// destination without needing to inspect the event directly.
+  final GameOverExitIntent exitIntent;
+
   GameOverState copyWith({
     List<Player>? standings,
     GameModel? gameModel,
     String? selectedPlayerId,
     String? firstPlayerId,
     GameOverStatus? status,
+    GameOverExitIntent? exitIntent,
   }) {
     return GameOverState(
       standings: standings ?? this.standings,
@@ -30,9 +37,17 @@ class GameOverState extends Equatable {
       selectedPlayerId: selectedPlayerId ?? this.selectedPlayerId,
       firstPlayerId: firstPlayerId ?? this.firstPlayerId,
       status: status ?? this.status,
+      exitIntent: exitIntent ?? this.exitIntent,
     );
   }
 
   @override
-  List<Object?> get props => [standings, selectedPlayerId, firstPlayerId];
+  List<Object?> get props => [
+    standings,
+    selectedPlayerId,
+    firstPlayerId,
+    gameModel,
+    status,
+    exitIntent,
+  ];
 }

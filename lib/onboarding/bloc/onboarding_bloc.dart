@@ -18,17 +18,14 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
                     existingProfile!.username!.isNotEmpty
                 ? Username.dirty(existingProfile.username!)
                 : const Username.pure(),
-            firstName: existingProfile?.firstName ?? '',
-            lastName: existingProfile?.lastName ?? '',
             bio: existingProfile?.bio ?? '',
-            existingPinHash: existingProfile?.pin,
+            hasExistingPin: (existingProfile?.hasPin ?? false) ||
+                (existingProfile?.pin?.isNotEmpty ?? false),
             existingImageUrl: existingProfile?.imageUrl,
           ),
         ) {
     on<OnboardingUsernameChanged>(_onUsernameChanged);
     on<OnboardingPinChanged>(_onPinChanged);
-    on<OnboardingFirstNameChanged>(_onFirstNameChanged);
-    on<OnboardingLastNameChanged>(_onLastNameChanged);
     on<OnboardingBioChanged>(_onBioChanged);
     on<OnboardingStepNext>(_onStepNext);
     on<OnboardingStepBack>(_onStepBack);
@@ -50,20 +47,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     Emitter<OnboardingState> emit,
   ) {
     emit(state.copyWith(pin: Pin.dirty(event.pin)));
-  }
-
-  void _onFirstNameChanged(
-    OnboardingFirstNameChanged event,
-    Emitter<OnboardingState> emit,
-  ) {
-    emit(state.copyWith(firstName: event.firstName));
-  }
-
-  void _onLastNameChanged(
-    OnboardingLastNameChanged event,
-    Emitter<OnboardingState> emit,
-  ) {
-    emit(state.copyWith(lastName: event.lastName));
   }
 
   void _onBioChanged(
@@ -126,26 +109,52 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final friendCode = existingProfile?.friendCode ??
           await _firebaseDatabaseRepository.generateUniqueFriendCode();
 
-      // Hash PIN — use new PIN if entered, otherwise keep existing
-      final pinHash = state.pin.value.isNotEmpty
-          ? FirebaseDatabaseRepository.hashPin(state.pin.value)
-          : state.existingPinHash ?? '';
+      final hasNewPin = state.pin.value.isNotEmpty;
+
+      // Persist a newly entered PIN as a salted hash in the private
+      // credentials subcollection BEFORE the profile save. Ordering
+      // invariant — do not swap without re-reading this comment:
+      //   * setPin fails: nothing has been written yet, submit emits
+      //     failure, and the user can retry cleanly from an untouched
+      //     state.
+      //   * setPin succeeds but the profile save below fails: setPin's
+      //     own batch already merged `hasPin: true` onto the profile
+      //     doc (see FirebaseDatabaseRepository.setPin), so a retry (or
+      //     a later onboarding re-entry) seeds `hasExistingPin: true`
+      //     from that flag and the user is never re-asked for a PIN;
+      //     the profile save then simply completes onboarding.
+      // Reversing this order would let a profile-save success mark the
+      // user onboarded-with-PIN while leaving no credentials doc behind,
+      // permanently locking them out of validatePin with no re-prompt.
+      if (hasNewPin) {
+        await _firebaseDatabaseRepository.setPin(
+          event.userId,
+          state.pin.value,
+        );
+      }
 
       await _firebaseDatabaseRepository.updateUserProfile(
         event.userId,
         UserProfileModel(
           id: event.userId,
           email: existingProfile?.email,
-          username: state.username.value,
-          firstName: state.firstName,
-          lastName: state.lastName,
+          username: state.username.value.trim(),
           bio: state.bio,
           imageUrl: imageUrl,
           friendCode: friendCode,
-          pin: pinHash,
+          // When a NEW pin was set, setPin already deleted the legacy
+          // `pin` field and it must stay deleted (null) here. When
+          // keeping an existing pin, an unmigrated legacy hash
+          // (existingProfile?.pin) must survive this full-doc set() —
+          // updateUserProfile has no merge option — until login-time
+          // migration moves it into the private credentials doc.
+          // Losing this would silently erase the user's only PIN copy.
+          pin: hasNewPin ? null : existingProfile?.pin,
+          hasPin: hasNewPin || state.hasExistingPin,
           onboardingComplete: true,
         ),
       );
+
       emit(state.copyWith(status: FormzSubmissionStatus.success));
     } on Exception catch (_) {
       emit(state.copyWith(status: FormzSubmissionStatus.failure));

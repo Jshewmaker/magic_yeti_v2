@@ -166,6 +166,48 @@ flutter gen-l10n --arb-dir="lib/l10n/arb"
 
 Alternatively, run `flutter run` and code generation will take place automatically.
 
+---
+
+## Firebase Backend 🔥
+
+Magic Yeti's backend lives alongside the Flutter app in this repo:
+
+- `functions/` — TypeScript Cloud Functions (e.g. `validatePin`, a callable that
+  checks a user's PIN server-side against their salted private credentials).
+- `firestore.rules` — Firestore security rules governing direct client reads
+  and writes (friends, requests, profiles, private credentials, etc.).
+
+### Running backend tests
+
+```sh
+# Build and unit test the Cloud Functions
+cd functions && npm run build && npm test && cd ..
+
+# Run the firebase_database_repository package tests
+cd packages/firebase_database_repository && flutter test && cd ..
+
+# Run Firestore security rules tests against the emulator
+firebase emulators:exec --only firestore "npm --prefix functions run test:rules"
+```
+
+If the globally-installed `firebase` CLI has trouble with `emulators:exec`, pin
+a known-good version instead:
+
+```sh
+npx firebase-tools@14.9.0 emulators:exec --only firestore "npm --prefix functions run test:rules"
+```
+
+### Deploying
+
+```sh
+firebase deploy --only firestore:rules,functions
+```
+
+Deploys are run manually by a maintainer — see
+`docs/superpowers/plans/2026-07-03-friends-INDEX.md` for the pre-deploy gate
+(diffing versioned rules against the console's current production rules
+before the first deploy).
+
 [coverage_badge]: coverage_badge.svg
 [flutter_localizations_link]: https://api.flutter.dev/flutter/flutter_localizations/flutter_localizations-library.html
 [internationalization_link]: https://flutter.dev/docs/development/accessibility-and-localization/internationalization

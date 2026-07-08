@@ -455,6 +455,18 @@
     "type": "text",
     "placeholders": {}
   },
+  "notPlayingOption": "I'm not playing",
+  "@notPlayingOption": {
+    "description": "Account owner dropdown option meaning the current user is not one of the players",
+    "type": "text",
+    "placeholders": {}
+  },
+  "linkedAccountBadge": "Linked to a friend's account",
+  "@linkedAccountBadge": {
+    "description": "Tooltip for the badge shown on a standings row linked to another account",
+    "type": "text",
+    "placeholders": {}
+  },
   "cancel": "Cancel",
   "@cancel": {
     "description": "Cancel button text",
@@ -693,25 +705,25 @@
   "@findFriendsTitle": {
     "description": "Title for the friend search page"
   },
-  "friendCodeSearchHint": "Enter friend code (e.g. YETI-A3F9)",
+  "friendCodeSearchHint": "Search by name or friend code (e.g. A3F9K2XQ)",
   "@friendCodeSearchHint": {
-    "description": "Hint text for friend code search input"
+    "description": "Hint text for the friend search input, which accepts either a username or a friend code"
   },
   "friendRequestSentMessage": "Friend request sent!",
   "@friendRequestSentMessage": {
     "description": "Message shown after sending a friend request"
   },
-  "noUserFoundMessage": "No user found with that code.",
+  "noUserFoundMessage": "No user found.",
   "@noUserFoundMessage": {
-    "description": "Message shown when friend code search returns no results"
+    "description": "Message shown when a name or friend code search returns no results"
   },
-  "friendCodeSearchPrompt": "Enter a friend code to find players.",
+  "friendCodeSearchPrompt": "Search by name or friend code to find players.",
   "@friendCodeSearchPrompt": {
     "description": "Prompt shown on the friend search page before searching"
   },
-  "selectFriendLabel": "Select a friend",
+  "selectFriendLabel": "Select an account",
   "@selectFriendLabel": {
-    "description": "Label above friend selection chips on customize player page"
+    "description": "Hint text shown in the owner/friend link dropdown on the customize player page before anything is selected"
   },
   "linkedToFriend": "Linked to {name}",
   "@linkedToFriend": {
@@ -743,6 +755,36 @@
   "@verifyButtonText": {
     "description": "Button text to verify PIN"
   },
+  "accountOwnerOptionLabel": "Me",
+  "@accountOwnerOptionLabel": {
+    "description": "Dropdown entry / fallback label to link a player slot to the signed-in user's own account"
+  },
+  "pinIncorrectError": "Incorrect PIN. {count, plural, =1{1 attempt} other{{count} attempts}} remaining.",
+  "@pinIncorrectError": {
+    "description": "Error shown when a friend PIN is incorrect, with attempts remaining",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pinLockedOutError": "Too many attempts. Try again in {minutes} min.",
+  "@pinLockedOutError": {
+    "description": "Error shown when the PIN flow is locked out after too many failed attempts",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "pinUnavailableError": "Couldn't verify the PIN. Check your connection and try again.",
+  "@pinUnavailableError": {
+    "description": "Error shown when the PIN could not be verified due to offline or server error"
+  },
+  "pinNotSetError": "This friend hasn't set a PIN yet. Ask them to set one in their profile.",
+  "@pinNotSetError": {
+    "description": "Error shown when the selected friend has no PIN set"
+  },
   "friendCodeLabel": "Friend Code",
   "@friendCodeLabel": {
     "description": "Label for the friend code display on profile page"
@@ -754,6 +796,10 @@
   "friendCodeCopiedMessage": "Friend code copied!",
   "@friendCodeCopiedMessage": {
     "description": "Snackbar message shown when friend code is copied"
+  },
+  "friendCodeHelperText": "Your unique code. Share it so a specific friend can add you exactly — even if someone else shares your username.",
+  "@friendCodeHelperText": {
+    "description": "Helper text explaining the friend code is the unique identifier, unlike username"
   },
   "setYourPinTitle": "Set Your PIN",
   "@setYourPinTitle": {
@@ -770,6 +816,159 @@
   "addFriendButtonText": "Add",
   "@addFriendButtonText": {
     "description": "Button text to send a friend request"
+  },
+  "blockUserAction": "Block",
+  "@blockUserAction": {
+    "description": "Action label to block a user"
+  },
+  "blockUserConfirmTitle": "Block {name}?",
+  "@blockUserConfirmTitle": {
+    "description": "Title for the block-user confirmation dialog",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "blockUserConfirmBody": "They'll be removed from your friends and won't be able to find you or send requests. They won't be notified.",
+  "@blockUserConfirmBody": {
+    "description": "Body copy for the block-user confirmation dialog"
+  },
+  "unblockUserAction": "Unblock",
+  "unblockUserConfirmBody": "Are you sure you want to unblock {name}?",
+  "@unblockUserConfirmBody": {
+    "description": "Body of the unblock confirmation dialog",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@unblockUserAction": {
+    "description": "Action label to unblock a user"
+  },
+  "blockedUsersTitle": "Blocked Users",
+  "@blockedUsersTitle": {
+    "description": "Title for the blocked-users management page"
+  },
+  "blockedUsersEmpty": "You haven't blocked anyone.",
+  "@blockedUsersEmpty": {
+    "description": "Empty state message for the blocked-users page"
+  },
+  "legacyRequestAcceptError": "This request was sent from an older version. Ask them to re-send it.",
+  "@legacyRequestAcceptError": {
+    "description": "Snackbar error shown when accepting a friend request fails because it predates current permission rules"
+  },
+  "gameSaveFailedError": "Couldn't save the game. Check your connection and try again.",
+  "@gameSaveFailedError": {
+    "description": "Snackbar error shown when saving the game-over stats to the database fails"
+  },
+  "changePinTitle": "Change PIN",
+  "@changePinTitle": {
+    "description": "Title for the change-PIN section on the profile page"
+  },
+  "changePinDescription": "Your PIN confirms your identity when friends add you to a game.",
+  "@changePinDescription": {
+    "description": "Description for the change-PIN section on the profile page"
+  },
+  "newPinLabel": "New PIN",
+  "@newPinLabel": {
+    "description": "Label for the new-PIN input field on the profile page"
+  },
+  "pinChangedMessage": "PIN updated!",
+  "@pinChangedMessage": {
+    "description": "Snackbar message shown after the PIN is changed successfully"
+  },
+  "profileSavedMessage": "Profile saved",
+  "@profileSavedMessage": {
+    "description": "Snackbar message shown after the profile is saved successfully"
+  },
+  "profileSaveFailedMessage": "Couldn't save your profile. Try again.",
+  "@profileSaveFailedMessage": {
+    "description": "Snackbar error shown when saving the profile fails"
+  },
+  "usernameLabel": "Username",
+  "@usernameLabel": {
+    "description": "Label for the username field on the profile page"
+  },
+  "usernameHelperText": "How friends find and recognize you. Not unique — others may share this name.",
+  "@usernameHelperText": {
+    "description": "Helper text under the username field explaining its purpose and that it isn't unique"
+  },
+  "usernameRequiredError": "Username is required",
+  "@usernameRequiredError": {
+    "description": "Inline error when the username field is empty or whitespace-only"
+  },
+  "usernameTooShortError": "Username must be at least 2 characters",
+  "@usernameTooShortError": {
+    "description": "Inline error when the trimmed username is shorter than 2 characters"
+  },
+  "usernameTooLongError": "Username must be 30 characters or fewer",
+  "@usernameTooLongError": {
+    "description": "Inline error when the trimmed username is longer than 30 characters"
+  },
+  "usernameInvalidMessage": "Fix your username before saving.",
+  "@usernameInvalidMessage": {
+    "description": "Snackbar shown when a profile save is blocked by an invalid username"
+  },
+  "searchFailedMessage": "Search failed. Check your connection and try again.",
+  "@searchFailedMessage": {
+    "description": "Friendly error shown when a friend search fails"
+  },
+  "bioLabel": "Bio",
+  "@bioLabel": {
+    "description": "Label for the bio field on the profile page"
+  },
+  "emailLabel": "Email",
+  "@emailLabel": {
+    "description": "Label for the read-only email field on the profile page"
+  },
+  "notSetLabel": "Not set",
+  "@notSetLabel": {
+    "description": "Placeholder shown for an empty profile field when not editing"
+  },
+  "saveProfileButton": "Save Profile",
+  "@saveProfileButton": {
+    "description": "Button text to save profile changes when in editing mode"
+  },
+  "editProfileButton": "Edit Profile",
+  "@editProfileButton": {
+    "description": "Button text to enter profile editing mode"
+  },
+  "signInToLinkFriends": "Sign in to link friends to players.",
+  "@signInToLinkFriends": {
+    "description": "Placeholder shown instead of the friend list on the customize player page when the user is anonymous"
+  },
+  "signInToSearchFriends": "Sign in to add friends.",
+  "@signInToSearchFriends": {
+    "description": "Placeholder shown instead of the search field on the find-friends page when the user is anonymous"
+  },
+  "removeFriendAction": "Remove",
+  "@removeFriendAction": {
+    "description": "Action label to remove a friend"
+  },
+  "removeFriendConfirmTitle": "Remove {name}?",
+  "@removeFriendConfirmTitle": {
+    "description": "Title for the remove-friend confirmation dialog",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "removeFriendConfirmBody": "They won't be notified. You can add each other again anytime.",
+  "@removeFriendConfirmBody": {
+    "description": "Body copy for the remove-friend confirmation dialog"
+  },
+  "onboardingSaveFailedMessage": "Failed to save profile. Please try again.",
+  "@onboardingSaveFailedMessage": {
+    "description": "Snackbar error shown when submitting the onboarding form fails"
+  },
+  "blockedUsersLoadFailedError": "Couldn't load your blocked list. Check your connection and try again.",
+  "@blockedUsersLoadFailedError": {
+    "description": "Error message shown when the blocked-users page fails to load or update"
   }
 }
 

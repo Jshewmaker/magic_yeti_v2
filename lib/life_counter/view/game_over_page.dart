@@ -57,6 +57,7 @@ class GameOverPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => GameOverBloc(
         players: context.read<PlayerRepository>().getPlayers(),
+        currentUserId: context.read<AppBloc>().state.user.id,
         firebaseDatabaseRepository: context.read<FirebaseDatabaseRepository>(),
       ),
       child: const GameOverView(),
@@ -82,41 +83,66 @@ class GameOverView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: _MC.background,
-      body: BlocBuilder<GameOverBloc, GameOverState>(
-        builder: (context, state) {
-          final players = state.standings;
-          final winner = players.first;
+      body: BlocListener<GameOverBloc, GameOverState>(
+        listenWhen: (previous, current) => previous.status != current.status,
+        listener: (context, state) {
+          switch (state.status) {
+            case GameOverStatus.success:
+              switch (state.exitIntent) {
+                case GameOverExitIntent.home:
+                  context.go(HomePage.routeName);
+                case GameOverExitIntent.playAgain:
+                  context.read<GameBloc>().add(const GameResetEvent());
+                  context.read<TimerBloc>()
+                    ..add(const TimerResetEvent())
+                    ..add(const TimerStartEvent());
+                  context.go(GamePage.routePath);
+              }
+            case GameOverStatus.failure:
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(context.l10n.gameSaveFailedError)),
+              );
+            case GameOverStatus.initial:
+            case GameOverStatus.loading:
+              break;
+          }
+        },
+        child: BlocBuilder<GameOverBloc, GameOverState>(
+          builder: (context, state) {
+            final players = state.standings;
+            final winner = players.first;
 
-          return Column(
-            children: [
-              _Header(canRestoreGame: canRestoreGame),
-              _WinnerHero(winner: winner),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        flex: 5,
-                        child: _StandingsPanel(state: state),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 4,
-                        child: _DetailsPanel(
-                          state: state,
-                          players: players,
-                          gameModel: gameModel,
+            return Column(
+              children: [
+                _Header(canRestoreGame: canRestoreGame),
+                _WinnerHero(winner: winner),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: _StandingsPanel(state: state),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 4,
+                          child: _DetailsPanel(
+                            state: state,
+                            players: players,
+                            gameModel: gameModel,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -543,6 +569,19 @@ class _StandingRow extends StatelessWidget {
                 ),
               ),
 
+              if (player.firebaseId != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Tooltip(
+                    message: context.l10n.linkedAccountBadge,
+                    child: const Icon(
+                      Icons.link_rounded,
+                      color: _MC.accent,
+                      size: 16,
+                    ),
+                  ),
+                ),
+
               // Drag handle
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
@@ -576,7 +615,9 @@ class _DetailsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final canSubmit =
-        state.selectedPlayerId != null && state.firstPlayerId != null;
+        state.selectedPlayerId != null &&
+        state.firstPlayerId != null &&
+        state.status != GameOverStatus.loading;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -613,13 +654,15 @@ class _DetailsPanel extends StatelessWidget {
           // Account owner
           Row(
             children: [
-              Text(
-                l10n.accountOwner,
-                style: const TextStyle(
-                  color: _MC.textSecondary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
+              Flexible(
+                child: Text(
+                  l10n.accountOwner,
+                  style: const TextStyle(
+                    color: _MC.textSecondary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
               const SizedBox(width: 6),
@@ -641,9 +684,11 @@ class _DetailsPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          _PlayerDropdown(
+          _AccountOwnerDropdown(
+            key: const ValueKey('game_over_account_owner_dropdown'),
             value: state.selectedPlayerId,
             players: players,
+            currentUserId: context.read<AppBloc>().state.user.id,
             onChanged: (v) =>
                 context.read<GameOverBloc>().add(UpdateSelectedPlayerEvent(v)),
           ),
@@ -689,7 +734,6 @@ class _DetailsPanel extends StatelessWidget {
                         userId: userId,
                       ),
                     );
-                    context.go(HomePage.routeName);
                   },
                 ),
               ),
@@ -705,13 +749,9 @@ class _DetailsPanel extends StatelessWidget {
                       SendGameOverStatsEvent(
                         gameModel: gameModel,
                         userId: userId,
+                        exitIntent: GameOverExitIntent.playAgain,
                       ),
                     );
-                    context.read<GameBloc>().add(const GameResetEvent());
-                    context.read<TimerBloc>()
-                      ..add(const TimerResetEvent())
-                      ..add(const TimerStartEvent());
-                    context.go(GamePage.routePath);
                   },
                 ),
               ),
@@ -792,6 +832,70 @@ class _PlayerDropdown extends StatelessWidget {
             ),
           )
           .toList(),
+      onChanged: onChanged,
+    );
+  }
+}
+
+class _AccountOwnerDropdown extends StatelessWidget {
+  const _AccountOwnerDropdown({
+    required this.value,
+    required this.players,
+    required this.currentUserId,
+    required this.onChanged,
+    super.key,
+  });
+
+  final String? value;
+  final List<Player> players;
+  final String currentUserId;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectable = players
+        .where(
+          (p) => p.firebaseId == null || p.firebaseId == currentUserId,
+        )
+        .toList();
+    return DropdownButtonFormField<String>(
+      initialValue: value,
+      dropdownColor: _MC.surfaceRaised,
+      style: const TextStyle(
+        color: _MC.textPrimary,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+      ),
+      iconEnabledColor: _MC.textSecondary,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: _MC.surfaceRaised,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _MC.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _MC.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _MC.accent, width: 1.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+      ),
+      items: [
+        ...selectable.map(
+          (p) => DropdownMenuItem(value: p.id, child: Text(p.name)),
+        ),
+        DropdownMenuItem(
+          value: GameOverBloc.notPlayingId,
+          child: Text(context.l10n.notPlayingOption),
+        ),
+      ],
       onChanged: onChanged,
     );
   }

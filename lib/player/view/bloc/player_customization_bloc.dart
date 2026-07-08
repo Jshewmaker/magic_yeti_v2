@@ -27,12 +27,13 @@ class PlayerCustomizationBloc
     on<CancelSelectingSecondCard>(_onCancelSelectingSecondCard);
     on<SecondCardCleared>(_onSecondCardCleared);
     on<CommanderFavoriteToggled>(_onFavoriteToggled);
-    on<UpdateAccountOwnership>(_onUpdateAccountOwnership);
     on<UpdateCommanderFilters>(_onUpdateCommanderFilters);
     on<ClearCardList>(_onClearCardList);
     on<SelectFriend>(_onSelectFriend);
-    on<ClearFriend>(_onClearFriend);
+    on<OwnerSelected>(_onOwnerSelected);
+    on<LinkCleared>(_onLinkCleared);
     on<ValidatePin>(_onValidatePin);
+    on<ResetPinFlow>(_onResetPinFlow);
   }
 
   final ScryfallRepository _scryfallRepository;
@@ -165,13 +166,6 @@ class PlayerCustomizationBloc
     );
   }
 
-  void _onUpdateAccountOwnership(
-    UpdateAccountOwnership event,
-    Emitter<PlayerCustomizationState> emit,
-  ) {
-    emit(state.copyWith(isAccountOwner: event.isOwner));
-  }
-
   void _onClearCardList(
     ClearCardList event,
     Emitter<PlayerCustomizationState> emit,
@@ -203,37 +197,104 @@ class PlayerCustomizationBloc
     SelectFriend event,
     Emitter<PlayerCustomizationState> emit,
   ) {
-    emit(state.copyWith(selectedFriend: event.friend, pinError: ''));
+    emit(state.copyWithFriendSelected(event.friend));
   }
 
-  void _onClearFriend(
-    ClearFriend event,
+  Future<void> _onOwnerSelected(
+    OwnerSelected event,
+    Emitter<PlayerCustomizationState> emit,
+  ) async {
+    emit(state.copyWithOwnerSelected());
+    try {
+      final profile =
+          await _firebaseDatabaseRepository.getUserProfileOnce(event.userId);
+      if (profile?.username != null && profile!.username!.isNotEmpty) {
+        emit(state.copyWith(ownerUsername: profile.username));
+      }
+    } on Exception catch (_) {
+      // Leave ownerUsername unset — PlayerIdentityPanel falls back to
+      // whatever name was already persisted for this seat. isAccountOwner
+      // stays confirmed either way; a failed username fetch shouldn't
+      // block linking the seat to the owner's account.
+    }
+  }
+
+  void _onLinkCleared(
+    LinkCleared event,
     Emitter<PlayerCustomizationState> emit,
   ) {
-    emit(state.copyWithClearedFriend());
+    emit(state.copyWithLinkCleared());
   }
 
   Future<void> _onValidatePin(
     ValidatePin event,
     Emitter<PlayerCustomizationState> emit,
   ) async {
-    try {
-      final isValid = await _firebaseDatabaseRepository.validatePin(
-        event.friendUserId,
-        event.pin,
-      );
-      if (isValid) {
-        emit(state.copyWith(pinValidated: true, pinError: ''));
-      } else {
-        emit(state.copyWith(pinValidated: false, pinError: 'Incorrect PIN'));
-      }
-    } on Exception catch (_) {
-      emit(
-        state.copyWith(
-          pinValidated: false,
-          pinError: 'Failed to validate PIN',
-        ),
-      );
+    emit(state.copyWith(isPinValidating: true));
+    final result = await _firebaseDatabaseRepository.validatePin(
+      targetUserId: event.friendUserId,
+      pin: event.pin,
+    );
+    switch (result) {
+      case PinValid():
+        emit(
+          state.copyWith(
+            isPinValidating: false,
+            pinValidated: true,
+            pinFlowError: PinFlowError.none,
+            pinLockedUntil: () => null,
+          ),
+        );
+      case PinInvalid(:final attemptsRemaining):
+        emit(
+          state.copyWith(
+            isPinValidating: false,
+            pinValidated: false,
+            pinFlowError: PinFlowError.incorrect,
+            pinAttemptsRemaining: attemptsRemaining,
+            pinLockedUntil: () => null,
+          ),
+        );
+      case PinLockedOut(:final lockedUntil):
+        emit(
+          state.copyWith(
+            isPinValidating: false,
+            pinValidated: false,
+            pinFlowError: PinFlowError.lockedOut,
+            pinLockedUntil: () => lockedUntil,
+          ),
+        );
+      case PinNotSet():
+        emit(
+          state.copyWith(
+            isPinValidating: false,
+            pinValidated: false,
+            pinFlowError: PinFlowError.notSet,
+            pinLockedUntil: () => null,
+          ),
+        );
+      case PinCheckUnavailable():
+        emit(
+          state.copyWith(
+            isPinValidating: false,
+            pinValidated: false,
+            pinFlowError: PinFlowError.unavailable,
+            pinLockedUntil: () => null,
+          ),
+        );
     }
+  }
+
+  void _onResetPinFlow(
+    ResetPinFlow event,
+    Emitter<PlayerCustomizationState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        pinFlowError: PinFlowError.none,
+        pinAttemptsRemaining: 0,
+        pinLockedUntil: () => null,
+      ),
+    );
   }
 }

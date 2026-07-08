@@ -240,6 +240,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please select the account owner from the list to sync the game stats to their account:';
 
   @override
+  String get notPlayingOption => 'I\'m not playing';
+
+  @override
+  String get linkedAccountBadge => 'Linked to a friend\'s account';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
@@ -384,19 +390,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get findFriendsTitle => 'Find Friends';
 
   @override
-  String get friendCodeSearchHint => 'Enter friend code (e.g. YETI-A3F9)';
+  String get friendCodeSearchHint =>
+      'Search by name or friend code (e.g. A3F9K2XQ)';
 
   @override
   String get friendRequestSentMessage => 'Friend request sent!';
 
   @override
-  String get noUserFoundMessage => 'No user found with that code.';
+  String get noUserFoundMessage => 'No user found.';
 
   @override
-  String get friendCodeSearchPrompt => 'Enter a friend code to find players.';
+  String get friendCodeSearchPrompt =>
+      'Search by name or friend code to find players.';
 
   @override
-  String get selectFriendLabel => 'Select a friend';
+  String get selectFriendLabel => 'Select an account';
 
   @override
   String linkedToFriend(String name) {
@@ -418,6 +426,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifyButtonText => 'Verify';
 
   @override
+  String get accountOwnerOptionLabel => 'Me';
+
+  @override
+  String pinIncorrectError(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attempts',
+      one: '1 attempt',
+    );
+    return 'Incorrect PIN. $_temp0 remaining.';
+  }
+
+  @override
+  String pinLockedOutError(int minutes) {
+    return 'Too many attempts. Try again in $minutes min.';
+  }
+
+  @override
+  String get pinUnavailableError =>
+      'Couldn\'t verify the PIN. Check your connection and try again.';
+
+  @override
+  String get pinNotSetError =>
+      'This friend hasn\'t set a PIN yet. Ask them to set one in their profile.';
+
+  @override
   String get friendCodeLabel => 'Friend Code';
 
   @override
@@ -425,6 +460,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get friendCodeCopiedMessage => 'Friend code copied!';
+
+  @override
+  String get friendCodeHelperText =>
+      'Your unique code. Share it so a specific friend can add you exactly — even if someone else shares your username.';
 
   @override
   String get setYourPinTitle => 'Set Your PIN';
@@ -438,4 +477,122 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addFriendButtonText => 'Add';
+
+  @override
+  String get blockUserAction => 'Block';
+
+  @override
+  String blockUserConfirmTitle(String name) {
+    return 'Block $name?';
+  }
+
+  @override
+  String get blockUserConfirmBody =>
+      'They\'ll be removed from your friends and won\'t be able to find you or send requests. They won\'t be notified.';
+
+  @override
+  String get unblockUserAction => 'Unblock';
+
+  @override
+  String unblockUserConfirmBody(String name) {
+    return 'Are you sure you want to unblock $name?';
+  }
+
+  @override
+  String get blockedUsersTitle => 'Blocked Users';
+
+  @override
+  String get blockedUsersEmpty => 'You haven\'t blocked anyone.';
+
+  @override
+  String get legacyRequestAcceptError =>
+      'This request was sent from an older version. Ask them to re-send it.';
+
+  @override
+  String get gameSaveFailedError =>
+      'Couldn\'t save the game. Check your connection and try again.';
+
+  @override
+  String get changePinTitle => 'Change PIN';
+
+  @override
+  String get changePinDescription =>
+      'Your PIN confirms your identity when friends add you to a game.';
+
+  @override
+  String get newPinLabel => 'New PIN';
+
+  @override
+  String get pinChangedMessage => 'PIN updated!';
+
+  @override
+  String get profileSavedMessage => 'Profile saved';
+
+  @override
+  String get profileSaveFailedMessage =>
+      'Couldn\'t save your profile. Try again.';
+
+  @override
+  String get usernameLabel => 'Username';
+
+  @override
+  String get usernameHelperText =>
+      'How friends find and recognize you. Not unique — others may share this name.';
+
+  @override
+  String get usernameRequiredError => 'Username is required';
+
+  @override
+  String get usernameTooShortError => 'Username must be at least 2 characters';
+
+  @override
+  String get usernameTooLongError => 'Username must be 30 characters or fewer';
+
+  @override
+  String get usernameInvalidMessage => 'Fix your username before saving.';
+
+  @override
+  String get searchFailedMessage =>
+      'Search failed. Check your connection and try again.';
+
+  @override
+  String get bioLabel => 'Bio';
+
+  @override
+  String get emailLabel => 'Email';
+
+  @override
+  String get notSetLabel => 'Not set';
+
+  @override
+  String get saveProfileButton => 'Save Profile';
+
+  @override
+  String get editProfileButton => 'Edit Profile';
+
+  @override
+  String get signInToLinkFriends => 'Sign in to link friends to players.';
+
+  @override
+  String get signInToSearchFriends => 'Sign in to add friends.';
+
+  @override
+  String get removeFriendAction => 'Remove';
+
+  @override
+  String removeFriendConfirmTitle(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String get removeFriendConfirmBody =>
+      'They won\'t be notified. You can add each other again anytime.';
+
+  @override
+  String get onboardingSaveFailedMessage =>
+      'Failed to save profile. Please try again.';
+
+  @override
+  String get blockedUsersLoadFailedError =>
+      'Couldn\'t load your blocked list. Check your connection and try again.';
 }

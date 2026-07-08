@@ -60,6 +60,23 @@ class SearchUserFormState extends State<SearchUserForm> {
 
   @override
   Widget build(BuildContext context) {
+    // The search-by-friend-code callable rejects anonymous callers outright;
+    // show intentional copy instead of a confusing error after they search.
+    final isAnonymous =
+        context.watch<AppBloc>().state.status == AppStatus.anonymous;
+    if (isAnonymous) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            context.l10n.signInToSearchFriends,
+            style: const TextStyle(color: AppColors.onSurfaceVariant),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
     final currentUserId = context.read<AppBloc>().state.user.id;
     return Column(
       children: [
@@ -93,7 +110,7 @@ class SearchUserFormState extends State<SearchUserForm> {
             onSubmitted: (value) {
               if (value.isNotEmpty) {
                 context.read<SearchBloc>().add(
-                      SearchByFriendCode(value, currentUserId),
+                      SearchSubmitted(value, currentUserId),
                     );
               }
             },
@@ -130,25 +147,9 @@ class SearchUserFormState extends State<SearchUserForm> {
                   child: CircularProgressIndicator(),
                 );
               } else if (state is FriendRequestSent) {
-                if (state.users.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                final status = switch (state.result) {
-                  FriendRequestResult.sent => RelationshipStatus.pendingSent,
-                  FriendRequestResult.autoAccepted =>
-                    RelationshipStatus.friends,
-                  FriendRequestResult.alreadyFriends =>
-                    RelationshipStatus.friends,
-                  FriendRequestResult.alreadyPending =>
-                    RelationshipStatus.pendingSent,
-                  FriendRequestResult.self => RelationshipStatus.self,
-                };
-                return _SearchResultCard(
-                  user: state.users.first,
-                  status: status,
-                );
+                return _SearchResultsList(matches: state.matches);
               } else if (state is SearchLoaded) {
-                if (state.users.isEmpty) {
+                if (state.matches.isEmpty) {
                   return Center(
                     child: Text(
                       context.l10n.noUserFoundMessage,
@@ -158,14 +159,13 @@ class SearchUserFormState extends State<SearchUserForm> {
                     ),
                   );
                 }
-                return _SearchResultCard(
-                  user: state.users.first,
-                  status: state.relationshipStatus,
-                );
+                return _SearchResultsList(matches: state.matches);
               } else if (state is SearchError) {
+                // state.message carries the raw exception detail for
+                // logs/tests; the UI shows friendly localized copy only.
                 return Center(
                   child: Text(
-                    'Error: ${state.message}',
+                    context.l10n.searchFailedMessage,
                     style: const TextStyle(
                       color: AppColors.red,
                     ),
@@ -195,10 +195,33 @@ class SearchUserFormState extends State<SearchUserForm> {
   }
 }
 
+class _SearchResultsList extends StatelessWidget {
+  const _SearchResultsList({required this.matches});
+
+  final List<UserSearchMatch> matches;
+
+  @override
+  Widget build(BuildContext context) {
+    if (matches.isEmpty) return const SizedBox.shrink();
+    return ListView.builder(
+      itemCount: matches.length,
+      itemBuilder: (context, index) {
+        final match = matches[index];
+        return _SearchResultCard(
+          key: ValueKey(match.user.id),
+          user: match.user,
+          status: match.relationship,
+        );
+      },
+    );
+  }
+}
+
 class _SearchResultCard extends StatelessWidget {
   const _SearchResultCard({
     required this.user,
     required this.status,
+    super.key,
   });
 
   final UserProfileModel user;
@@ -269,7 +292,6 @@ class _SearchResultCard extends StatelessWidget {
             context.read<SearchBloc>().add(
                   AddFriendRequest(
                     appBloc.state.user.id,
-                    appBloc.state.user.name ?? '',
                     user.id,
                   ),
                 );
@@ -295,7 +317,6 @@ class _SearchResultCard extends StatelessWidget {
             context.read<SearchBloc>().add(
                   AddFriendRequest(
                     appBloc.state.user.id,
-                    appBloc.state.user.name ?? '',
                     user.id,
                   ),
                 );

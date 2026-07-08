@@ -2,6 +2,7 @@
 // https://verygood.ventures
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fake_app_config_repository/fake_app_config_repository.dart';
 import 'package:firebase_authentication_client/firebase_authentication_client.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
@@ -16,10 +17,17 @@ import 'package:user_repository/user_repository.dart';
 void main() {
   bootstrap(
     (FirebaseFirestore firebaseFirestore) async {
+      const useEmulator = bool.fromEnvironment('USE_FIREBASE_EMULATOR');
+      if (useEmulator) {
+        FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
+        FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+      }
+
       final authenticationClient = FirebaseAuthenticationClient();
       final playerRepository = PlayerRepository();
       final firebaseDatabaseRepository = FirebaseDatabaseRepository(
         firebase: FirebaseFirestore.instance,
+        functions: FirebaseFunctions.instance,
       );
 
       final userRepository = UserRepository(

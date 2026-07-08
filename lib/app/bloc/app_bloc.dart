@@ -122,11 +122,18 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         final generation = ++_onboardingCheckGeneration;
         // Check Firestore for onboarding completion
         try {
+          // Lazily move any legacy profile-doc PIN hash into the private
+          // credentials doc before the profile is evaluated. Best-effort:
+          // the callable's legacy fallback covers failures.
+          await _firebaseDatabaseRepository.migrateLegacyPin(event.user.id);
           final profile = await _firebaseDatabaseRepository
               .getUserProfileOnce(event.user.id);
           // Stale check — a newer event has arrived
           if (generation != _onboardingCheckGeneration) return;
-          if (profile == null || !profile.onboardingComplete) {
+          // Completeness requires onboardingComplete AND a username AND a
+          // PIN (hasPin flag or unmigrated legacy field) — legacy users
+          // missing any of these re-enter the pre-filled onboarding wizard.
+          if (profile == null || !profile.isComplete) {
             return emit(AppState.onboardingRequired(event.user));
           }
           return emit(AppState.authenticated(event.user));

@@ -6,7 +6,7 @@ part 'user_profile_model.g.dart';
 /// {@template user_profile_model}
 /// Model representing a user's profile
 /// {@endtemplate}
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
 class UserProfileModel extends Equatable {
   /// / {@macro user_profile_model}
   const UserProfileModel({
@@ -15,13 +15,13 @@ class UserProfileModel extends Equatable {
     this.isNewUser = false,
     this.isAnonymous = false,
     this.username,
-    this.firstName,
-    this.lastName,
+    this.usernameLower,
     this.bio,
     this.imageUrl,
     this.friendCode,
     this.pin,
     this.onboardingComplete = false,
+    this.hasPin = false,
   });
 
   /// Factory constructor for a [UserProfileModel] from a JSON map
@@ -46,11 +46,10 @@ class UserProfileModel extends Equatable {
   /// Username of the user
   final String? username;
 
-  /// First name of the user
-  final String? firstName;
-
-  /// Last name of the user
-  final String? lastName;
+  /// Lowercase copy of [username], kept in sync by the repository on every
+  /// profile write. Powers the server-side `searchByUsername` prefix
+  /// search — do not set this directly.
+  final String? usernameLower;
 
   /// Bio of the user
   final String? bio;
@@ -58,11 +57,15 @@ class UserProfileModel extends Equatable {
   /// Image URL of the user
   final String? imageUrl;
 
-  /// Unique friend code for discovery (e.g. "YETI-A3F9")
+  /// Unique friend code for discovery (e.g. "A3F9K2XQ")
   final String? friendCode;
 
   /// SHA-256 hashed 4-digit PIN for identity verification
   final String? pin;
+
+  /// Whether the user has a PIN set (hash lives in the private
+  /// credentials subcollection, so only this flag is public).
+  final bool hasPin;
 
   /// Whether the user has completed the onboarding flow
   final bool onboardingComplete;
@@ -77,20 +80,19 @@ class UserProfileModel extends Equatable {
     bool? isNewUser,
     bool? isAnonymous,
     String? username,
-    String? firstName,
-    String? lastName,
+    String? usernameLower,
     String? bio,
     String? imageUrl,
     String? friendCode,
     String? pin,
     bool? onboardingComplete,
+    bool? hasPin,
   }) =>
       UserProfileModel(
         id: id ?? this.id,
         email: email ?? this.email,
         username: username ?? this.username,
-        firstName: firstName ?? this.firstName,
-        lastName: lastName ?? this.lastName,
+        usernameLower: usernameLower ?? this.usernameLower,
         bio: bio ?? this.bio,
         imageUrl: imageUrl ?? this.imageUrl,
         isNewUser: isNewUser ?? this.isNewUser,
@@ -98,7 +100,15 @@ class UserProfileModel extends Equatable {
         friendCode: friendCode ?? this.friendCode,
         pin: pin ?? this.pin,
         onboardingComplete: onboardingComplete ?? this.onboardingComplete,
+        hasPin: hasPin ?? this.hasPin,
       );
+
+  /// Whether the profile satisfies the friends-feature requirements:
+  /// onboarded, has a username, and has a PIN (new flag or legacy field).
+  bool get isComplete =>
+      onboardingComplete &&
+      (username?.isNotEmpty ?? false) &&
+      (hasPin || (pin?.isNotEmpty ?? false));
 
   @override
   List<Object?> get props => [
@@ -107,12 +117,12 @@ class UserProfileModel extends Equatable {
         isNewUser,
         isAnonymous,
         username,
-        firstName,
-        lastName,
+        usernameLower,
         bio,
         imageUrl,
         friendCode,
         pin,
         onboardingComplete,
+        hasPin,
       ];
 }

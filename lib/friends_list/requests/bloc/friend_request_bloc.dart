@@ -39,6 +39,11 @@ class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
     AcceptFriendRequest event,
     Emitter<FriendRequestState> emit,
   ) async {
+    // Captured before the attempt so a legacy-accept failure can restore
+    // the list the page was showing — the builder renders the error state
+    // as an empty "No pending requests" placeholder, so without recovery
+    // the whole list would appear to vanish over one bad request.
+    final priorState = state;
     try {
       await repository.acceptFriendRequest(event.request, event.userId);
       // Remove accepted request from in-memory list
@@ -48,6 +53,11 @@ class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
             .where((r) => r.id != event.request.id)
             .toList();
         emit(FriendRequestLoaded(updated));
+      }
+    } on LegacyFriendRequestException {
+      emit(const FriendRequestLegacyAcceptError());
+      if (priorState is FriendRequestLoaded) {
+        emit(priorState);
       }
     } catch (e) {
       emit(const FriendRequestError('Failed to accept friend request'));

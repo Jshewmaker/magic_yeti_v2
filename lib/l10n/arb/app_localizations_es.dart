@@ -242,6 +242,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'Please select the account owner from the list to sync the game stats to their account:';
 
   @override
+  String get notPlayingOption => 'No estoy jugando';
+
+  @override
+  String get linkedAccountBadge => 'Vinculado a la cuenta de un amigo';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
@@ -386,20 +392,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get findFriendsTitle => 'Buscar Amigos';
 
   @override
-  String get friendCodeSearchHint => 'Ingresa código de amigo (ej. YETI-A3F9)';
+  String get friendCodeSearchHint =>
+      'Busca por nombre o código de amigo (ej. A3F9K2XQ)';
 
   @override
   String get friendRequestSentMessage => '¡Solicitud de amistad enviada!';
 
   @override
-  String get noUserFoundMessage => 'No se encontró usuario con ese código.';
+  String get noUserFoundMessage => 'No se encontró ningún usuario.';
 
   @override
   String get friendCodeSearchPrompt =>
-      'Ingresa un código de amigo para buscar jugadores.';
+      'Busca por nombre o código de amigo para encontrar jugadores.';
 
   @override
-  String get selectFriendLabel => 'Seleccionar un amigo';
+  String get selectFriendLabel => 'Seleccionar una cuenta';
 
   @override
   String linkedToFriend(String name) {
@@ -422,6 +429,33 @@ class AppLocalizationsEs extends AppLocalizations {
   String get verifyButtonText => 'Verificar';
 
   @override
+  String get accountOwnerOptionLabel => 'Yo';
+
+  @override
+  String pinIncorrectError(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Quedan $count intentos',
+      one: 'Queda 1 intento',
+    );
+    return 'PIN incorrecto. $_temp0.';
+  }
+
+  @override
+  String pinLockedOutError(int minutes) {
+    return 'Demasiados intentos. Inténtalo de nuevo en $minutes min.';
+  }
+
+  @override
+  String get pinUnavailableError =>
+      'No se pudo verificar el PIN. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get pinNotSetError =>
+      'Este amigo aún no ha configurado un PIN. Pídele que configure uno en su perfil.';
+
+  @override
   String get friendCodeLabel => 'Código de Amigo';
 
   @override
@@ -429,6 +463,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get friendCodeCopiedMessage => '¡Código de amigo copiado!';
+
+  @override
+  String get friendCodeHelperText =>
+      'Tu código único. Compártelo para que un amigo específico pueda agregarte con exactitud, incluso si alguien más comparte tu nombre de usuario.';
 
   @override
   String get setYourPinTitle => 'Configura tu PIN';
@@ -442,4 +480,126 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get addFriendButtonText => 'Agregar';
+
+  @override
+  String get blockUserAction => 'Bloquear';
+
+  @override
+  String blockUserConfirmTitle(String name) {
+    return '¿Bloquear a $name?';
+  }
+
+  @override
+  String get blockUserConfirmBody =>
+      'Se eliminará de tus amigos y no podrá encontrarte ni enviarte solicitudes. No se le notificará.';
+
+  @override
+  String get unblockUserAction => 'Desbloquear';
+
+  @override
+  String unblockUserConfirmBody(String name) {
+    return '¿Seguro que quieres desbloquear a $name?';
+  }
+
+  @override
+  String get blockedUsersTitle => 'Usuarios Bloqueados';
+
+  @override
+  String get blockedUsersEmpty => 'No has bloqueado a nadie.';
+
+  @override
+  String get legacyRequestAcceptError =>
+      'Esta solicitud se envió desde una versión anterior. Pídele que la vuelva a enviar.';
+
+  @override
+  String get gameSaveFailedError =>
+      'No se pudo guardar la partida. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get changePinTitle => 'Cambiar PIN';
+
+  @override
+  String get changePinDescription =>
+      'Tu PIN confirma tu identidad cuando tus amigos te agregan a una partida.';
+
+  @override
+  String get newPinLabel => 'Nuevo PIN';
+
+  @override
+  String get pinChangedMessage => '¡PIN actualizado!';
+
+  @override
+  String get profileSavedMessage => 'Perfil guardado';
+
+  @override
+  String get profileSaveFailedMessage =>
+      'No se pudo guardar tu perfil. Inténtalo de nuevo.';
+
+  @override
+  String get usernameLabel => 'Nombre de usuario';
+
+  @override
+  String get usernameHelperText =>
+      'Cómo te encuentran y reconocen tus amigos. No es único: otros pueden compartir este nombre.';
+
+  @override
+  String get usernameRequiredError => 'El nombre de usuario es obligatorio';
+
+  @override
+  String get usernameTooShortError =>
+      'El nombre de usuario debe tener al menos 2 caracteres';
+
+  @override
+  String get usernameTooLongError =>
+      'El nombre de usuario debe tener 30 caracteres o menos';
+
+  @override
+  String get usernameInvalidMessage =>
+      'Corrige tu nombre de usuario antes de guardar.';
+
+  @override
+  String get searchFailedMessage =>
+      'La búsqueda falló. Comprueba tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get bioLabel => 'Biografía';
+
+  @override
+  String get emailLabel => 'Correo electrónico';
+
+  @override
+  String get notSetLabel => 'Sin configurar';
+
+  @override
+  String get saveProfileButton => 'Guardar perfil';
+
+  @override
+  String get editProfileButton => 'Editar perfil';
+
+  @override
+  String get signInToLinkFriends =>
+      'Inicia sesión para vincular amigos a los jugadores.';
+
+  @override
+  String get signInToSearchFriends => 'Inicia sesión para agregar amigos.';
+
+  @override
+  String get removeFriendAction => 'Eliminar';
+
+  @override
+  String removeFriendConfirmTitle(String name) {
+    return '¿Eliminar a $name?';
+  }
+
+  @override
+  String get removeFriendConfirmBody =>
+      'No se le notificará. Pueden agregarse de nuevo en cualquier momento.';
+
+  @override
+  String get onboardingSaveFailedMessage =>
+      'No se pudo guardar el perfil. Inténtalo de nuevo.';
+
+  @override
+  String get blockedUsersLoadFailedError =>
+      'No se pudo cargar tu lista de bloqueados. Revisa tu conexión e inténtalo de nuevo.';
 }

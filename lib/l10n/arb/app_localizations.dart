@@ -524,6 +524,18 @@ abstract class AppLocalizations {
   /// **'Please select the account owner from the list to sync the game stats to their account:'**
   String get accountOwner;
 
+  /// Account owner dropdown option meaning the current user is not one of the players
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m not playing'**
+  String get notPlayingOption;
+
+  /// Tooltip for the badge shown on a standings row linked to another account
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to a friend\'s account'**
+  String get linkedAccountBadge;
+
   /// Cancel button text
   ///
   /// In en, this message translates to:
@@ -800,10 +812,10 @@ abstract class AppLocalizations {
   /// **'Find Friends'**
   String get findFriendsTitle;
 
-  /// Hint text for friend code search input
+  /// Hint text for the friend search input, which accepts either a username or a friend code
   ///
   /// In en, this message translates to:
-  /// **'Enter friend code (e.g. YETI-A3F9)'**
+  /// **'Search by name or friend code (e.g. A3F9K2XQ)'**
   String get friendCodeSearchHint;
 
   /// Message shown after sending a friend request
@@ -812,22 +824,22 @@ abstract class AppLocalizations {
   /// **'Friend request sent!'**
   String get friendRequestSentMessage;
 
-  /// Message shown when friend code search returns no results
+  /// Message shown when a name or friend code search returns no results
   ///
   /// In en, this message translates to:
-  /// **'No user found with that code.'**
+  /// **'No user found.'**
   String get noUserFoundMessage;
 
   /// Prompt shown on the friend search page before searching
   ///
   /// In en, this message translates to:
-  /// **'Enter a friend code to find players.'**
+  /// **'Search by name or friend code to find players.'**
   String get friendCodeSearchPrompt;
 
-  /// Label above friend selection chips on customize player page
+  /// Hint text shown in the owner/friend link dropdown on the customize player page before anything is selected
   ///
   /// In en, this message translates to:
-  /// **'Select a friend'**
+  /// **'Select an account'**
   String get selectFriendLabel;
 
   /// Text shown when a friend is linked to a player slot
@@ -860,6 +872,36 @@ abstract class AppLocalizations {
   /// **'Verify'**
   String get verifyButtonText;
 
+  /// Dropdown entry / fallback label to link a player slot to the signed-in user's own account
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get accountOwnerOptionLabel;
+
+  /// Error shown when a friend PIN is incorrect, with attempts remaining
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN. {count, plural, =1{1 attempt} other{{count} attempts}} remaining.'**
+  String pinIncorrectError(int count);
+
+  /// Error shown when the PIN flow is locked out after too many failed attempts
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again in {minutes} min.'**
+  String pinLockedOutError(int minutes);
+
+  /// Error shown when the PIN could not be verified due to offline or server error
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t verify the PIN. Check your connection and try again.'**
+  String get pinUnavailableError;
+
+  /// Error shown when the selected friend has no PIN set
+  ///
+  /// In en, this message translates to:
+  /// **'This friend hasn\'t set a PIN yet. Ask them to set one in their profile.'**
+  String get pinNotSetError;
+
   /// Label for the friend code display on profile page
   ///
   /// In en, this message translates to:
@@ -877,6 +919,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Friend code copied!'**
   String get friendCodeCopiedMessage;
+
+  /// Helper text explaining the friend code is the unique identifier, unlike username
+  ///
+  /// In en, this message translates to:
+  /// **'Your unique code. Share it so a specific friend can add you exactly — even if someone else shares your username.'**
+  String get friendCodeHelperText;
 
   /// Title for the PIN setup dialog shown to existing users
   ///
@@ -901,6 +949,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add'**
   String get addFriendButtonText;
+
+  /// Action label to block a user
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get blockUserAction;
+
+  /// Title for the block-user confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}?'**
+  String blockUserConfirmTitle(String name);
+
+  /// Body copy for the block-user confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'They\'ll be removed from your friends and won\'t be able to find you or send requests. They won\'t be notified.'**
+  String get blockUserConfirmBody;
+
+  /// Action label to unblock a user
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get unblockUserAction;
+
+  /// Body of the unblock confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to unblock {name}?'**
+  String unblockUserConfirmBody(String name);
+
+  /// Title for the blocked-users management page
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked Users'**
+  String get blockedUsersTitle;
+
+  /// Empty state message for the blocked-users page
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t blocked anyone.'**
+  String get blockedUsersEmpty;
+
+  /// Snackbar error shown when accepting a friend request fails because it predates current permission rules
+  ///
+  /// In en, this message translates to:
+  /// **'This request was sent from an older version. Ask them to re-send it.'**
+  String get legacyRequestAcceptError;
+
+  /// Snackbar error shown when saving the game-over stats to the database fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the game. Check your connection and try again.'**
+  String get gameSaveFailedError;
+
+  /// Title for the change-PIN section on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get changePinTitle;
+
+  /// Description for the change-PIN section on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Your PIN confirms your identity when friends add you to a game.'**
+  String get changePinDescription;
+
+  /// Label for the new-PIN input field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'New PIN'**
+  String get newPinLabel;
+
+  /// Snackbar message shown after the PIN is changed successfully
+  ///
+  /// In en, this message translates to:
+  /// **'PIN updated!'**
+  String get pinChangedMessage;
+
+  /// Snackbar message shown after the profile is saved successfully
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved'**
+  String get profileSavedMessage;
+
+  /// Snackbar error shown when saving the profile fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your profile. Try again.'**
+  String get profileSaveFailedMessage;
+
+  /// Label for the username field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get usernameLabel;
+
+  /// Helper text under the username field explaining its purpose and that it isn't unique
+  ///
+  /// In en, this message translates to:
+  /// **'How friends find and recognize you. Not unique — others may share this name.'**
+  String get usernameHelperText;
+
+  /// Inline error when the username field is empty or whitespace-only
+  ///
+  /// In en, this message translates to:
+  /// **'Username is required'**
+  String get usernameRequiredError;
+
+  /// Inline error when the trimmed username is shorter than 2 characters
+  ///
+  /// In en, this message translates to:
+  /// **'Username must be at least 2 characters'**
+  String get usernameTooShortError;
+
+  /// Inline error when the trimmed username is longer than 30 characters
+  ///
+  /// In en, this message translates to:
+  /// **'Username must be 30 characters or fewer'**
+  String get usernameTooLongError;
+
+  /// Snackbar shown when a profile save is blocked by an invalid username
+  ///
+  /// In en, this message translates to:
+  /// **'Fix your username before saving.'**
+  String get usernameInvalidMessage;
+
+  /// Friendly error shown when a friend search fails
+  ///
+  /// In en, this message translates to:
+  /// **'Search failed. Check your connection and try again.'**
+  String get searchFailedMessage;
+
+  /// Label for the bio field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get bioLabel;
+
+  /// Label for the read-only email field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get emailLabel;
+
+  /// Placeholder shown for an empty profile field when not editing
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get notSetLabel;
+
+  /// Button text to save profile changes when in editing mode
+  ///
+  /// In en, this message translates to:
+  /// **'Save Profile'**
+  String get saveProfileButton;
+
+  /// Button text to enter profile editing mode
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfileButton;
+
+  /// Placeholder shown instead of the friend list on the customize player page when the user is anonymous
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to link friends to players.'**
+  String get signInToLinkFriends;
+
+  /// Placeholder shown instead of the search field on the find-friends page when the user is anonymous
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to add friends.'**
+  String get signInToSearchFriends;
+
+  /// Action label to remove a friend
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeFriendAction;
+
+  /// Title for the remove-friend confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String removeFriendConfirmTitle(String name);
+
+  /// Body copy for the remove-friend confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'They won\'t be notified. You can add each other again anytime.'**
+  String get removeFriendConfirmBody;
+
+  /// Snackbar error shown when submitting the onboarding form fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save profile. Please try again.'**
+  String get onboardingSaveFailedMessage;
+
+  /// Error message shown when the blocked-users page fails to load or update
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your blocked list. Check your connection and try again.'**
+  String get blockedUsersLoadFailedError;
 }
 
 class _AppLocalizationsDelegate

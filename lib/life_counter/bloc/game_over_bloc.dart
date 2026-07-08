@@ -9,13 +9,18 @@ part 'game_over_state.dart';
 class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
   GameOverBloc({
     required List<Player> players,
+    required String currentUserId,
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
   })  : _firebaseDatabaseRepository = firebaseDatabaseRepository,
         super(
           GameOverState(
             standings: List<Player>.from(players)
               ..sort((a, b) => a.placement.compareTo(b.placement)),
-            selectedPlayerId: null,
+            selectedPlayerId: players
+                .where((p) => p.firebaseId == currentUserId)
+                .map((p) => p.id)
+                .cast<String?>()
+                .firstWhere((_) => true, orElse: () => null),
             firstPlayerId: null,
           ),
         ) {
@@ -24,6 +29,9 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
     on<UpdateFirstPlayerEvent>(_onUpdateFirstPlayer);
     on<SendGameOverStatsEvent>(_onSendGameStatsToDatabase);
   }
+
+  /// Dropdown sentinel meaning the current user is not one of the players.
+  static const notPlayingId = 'game_over_not_playing';
 
   final FirebaseDatabaseRepository _firebaseDatabaseRepository;
 
@@ -59,8 +67,20 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
     SendGameOverStatsEvent event,
     Emitter<GameOverState> emit,
   ) async {
-    emit(state.copyWith(status: GameOverStatus.loading));
+    // A second tap during the save round-trip must not create a second
+    // game doc. The loading status is emitted synchronously below, before
+    // this handler's first await, so any later submission started while a
+    // save is in flight sees it here and bails. (A stream transformer like
+    // droppable() would also work, but its cancellation semantics hang
+    // bloc.close() when a save future never completes — e.g. in tests.)
+    if (state.status == GameOverStatus.loading) return;
     if (event.gameModel == null) return;
+    emit(
+      state.copyWith(
+        status: GameOverStatus.loading,
+        exitIntent: event.exitIntent,
+      ),
+    );
 
     // Create a new game model with updated player placements and ownership
     final updatedGameModel = event.gameModel!.copyWith(
@@ -71,31 +91,39 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
         // Update player with new placement and firebase ID if selected
         return player.copyWith(
           placement: Value(index + 1),
-          firebaseId: () => player.id == state.selectedPlayerId
-              ? event.userId
-              : player.firebaseId,
+          firebaseId: () {
+            if (player.id == state.selectedPlayerId) {
+              // Never clobber a slot already linked to another account
+              // (PIN-linked friend); the UI excludes these, this guards it.
+              if (player.firebaseId != null &&
+                  player.firebaseId != event.userId) {
+                return player.firebaseId;
+              }
+              return event.userId;
+            }
+            // The user disowned this slot by selecting a different one (or
+            // notPlaying); unlink it so it doesn't stay tied to their
+            // account. Foreign-linked slots are left untouched.
+            if (player.firebaseId == event.userId) {
+              return null;
+            }
+            return player.firebaseId;
+          },
         );
       }).toList(),
       winnerId: state.standings.first.id,
       startingPlayerId: state.firstPlayerId,
     );
 
-    final docId =
-        await _firebaseDatabaseRepository.saveGameStats(updatedGameModel);
+    try {
+      await _firebaseDatabaseRepository.saveGameStats(updatedGameModel);
+    } on Object catch (_) {
+      emit(state.copyWith(status: GameOverStatus.failure));
+      return;
+    }
 
-    final savedGame = updatedGameModel.copyWith(id: docId);
-
-    // Collect all player firebase IDs (host + friends)
-    final playerFirebaseIds = savedGame.players
-        .map((p) => p.firebaseId)
-        .whereType<String>()
-        .toSet()
-      ..add(event.userId);
-
-    await _firebaseDatabaseRepository.syncGameToPlayers(
-      savedGame,
-      playerFirebaseIds.toList(),
-    );
+    // Fan-out to players' match histories happens server-side
+    // (onGameCreated).
 
     emit(state.copyWith(status: GameOverStatus.success));
   }

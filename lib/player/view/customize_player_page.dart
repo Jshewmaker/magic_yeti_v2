@@ -82,10 +82,13 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
       }
     });
 
-    final isOwner = context.read<PlayerBloc>().state.player.firebaseId != null;
-    context.read<PlayerCustomizationBloc>().add(
-      UpdateAccountOwnership(isOwner: isOwner),
-    );
+    final currentUserId = context.read<AppBloc>().state.user.id;
+    final linkedFirebaseId = context.read<PlayerBloc>().state.player.firebaseId;
+    if (linkedFirebaseId != null && linkedFirebaseId == currentUserId) {
+      context.read<PlayerCustomizationBloc>().add(
+        OwnerSelected(userId: currentUserId),
+      );
+    }
   }
 
   @override
@@ -123,71 +126,119 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
       widget.playerId,
     );
 
-    return BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
-      builder: (context, state) {
-        final commander = state.commander ?? player.commander;
-        return Scaffold(
-          backgroundColor: Colors.transparent,
-          extendBodyBehindAppBar: true,
-          appBar: AppBar(
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<FriendBloc, FriendState>(
+          listenWhen: (previous, current) => current is FriendsLoaded,
+          listener: (context, friendState) {
+            final customState = context.read<PlayerCustomizationBloc>().state;
+            if (customState.isAccountOwner ||
+                customState.selectedFriend != null) {
+              return;
+            }
+            final linkedFirebaseId =
+                context.read<PlayerBloc>().state.player.firebaseId;
+            if (linkedFirebaseId == null) return;
+            final friends = (friendState as FriendsLoaded).friends;
+            FriendModel? match;
+            for (final f in friends) {
+              if (f.userId == linkedFirebaseId) {
+                match = f;
+                break;
+              }
+            }
+            if (match != null) {
+              context.read<PlayerCustomizationBloc>().add(
+                SelectFriend(friend: match),
+              );
+            }
+          },
+        ),
+        BlocListener<PlayerCustomizationBloc, PlayerCustomizationState>(
+          listenWhen: (previous, current) =>
+              previous.isAccountOwner != current.isAccountOwner ||
+              previous.ownerUsername != current.ownerUsername ||
+              previous.selectedFriend != current.selectedFriend,
+          listener: (context, state) {
+            if (state.isAccountOwner) {
+              final owner = state.ownerUsername;
+              if (owner != null && owner.isNotEmpty) {
+                _nameController.text = owner;
+              }
+            } else if (state.selectedFriend != null) {
+              _nameController.text = state.selectedFriend!.username;
+            } else {
+              _nameController.clear();
+            }
+          },
+        ),
+      ],
+      child: BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
+        builder: (context, state) {
+          final commander = state.commander ?? player.commander;
+          return Scaffold(
             backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              CommanderHeroBanner(
-                commander: commander,
-                partner: state.partner,
-                background: state.background,
-                playerColor: player.color,
+            extendBodyBehindAppBar: true,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
               ),
-              ColoredBox(color: AppColors.black.withValues(alpha: 0.45)),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        flex: 39,
-                        child: _Panel(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                _FriendSection(nameController: _nameController),
-                                PlayerIdentityPanel(
-                                  nameController: _nameController,
-                                  nameFocusNode: _nameFocusNode,
-                                  playerColor: player.color,
-                                  onSave: () => _save(context, state),
-                                ),
-                              ],
+            ),
+            body: Stack(
+              fit: StackFit.expand,
+              children: [
+                CommanderHeroBanner(
+                  commander: commander,
+                  partner: state.partner,
+                  background: state.background,
+                  playerColor: player.color,
+                ),
+                ColoredBox(color: AppColors.black.withValues(alpha: 0.45)),
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          flex: 39,
+                          child: _Panel(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  const _FriendSection(),
+                                  PlayerIdentityPanel(
+                                    nameController: _nameController,
+                                    nameFocusNode: _nameFocusNode,
+                                    playerColor: player.color,
+                                    onSave: () => _save(context, state),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        flex: 61,
-                        child: _Panel(
-                          child: CommanderPickerPanel(
-                            searchController: _searchController,
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          flex: 61,
+                          child: _Panel(
+                            child: CommanderPickerPanel(
+                              searchController: _searchController,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -209,82 +260,193 @@ class _Panel extends StatelessWidget {
   }
 }
 
-class _FriendSection extends StatelessWidget {
-  const _FriendSection({required this.nameController});
+class _FriendSection extends StatefulWidget {
+  const _FriendSection();
 
-  final TextEditingController nameController;
+  @override
+  State<_FriendSection> createState() => _FriendSectionState();
+}
+
+class _FriendSectionState extends State<_FriendSection> {
+  int _resetNonce = 0;
+
+  // The menu popup's background is dark (AppColors.surface); Material 3's
+  // default entry text color assumes a light surface and renders
+  // near-illegibly here without this override.
+  static const _entryStyle = ButtonStyle(
+    foregroundColor: WidgetStatePropertyAll(AppColors.white),
+  );
+
+  void _forceReset() {
+    if (mounted) setState(() => _resetNonce++);
+  }
 
   @override
   Widget build(BuildContext context) {
     final customState = context.watch<PlayerCustomizationBloc>().state;
     final friendState = context.watch<FriendBloc>().state;
-    final isLinked =
-        customState.selectedFriend != null && customState.pinValidated;
+    final appState = context.watch<AppBloc>().state;
+    final isAnonymous = appState.status == AppStatus.anonymous;
 
-    // Hide section if no friends loaded and no friend selected
-    final hasFriends =
-        friendState is FriendsLoaded && friendState.friends.isNotEmpty;
-    if (!hasFriends && !isLinked) {
-      return const SizedBox.shrink();
+    // Anonymous users have no friend graph to link against — the callable
+    // backing this list requires an authenticated uid, so show intentional
+    // copy instead of an empty/loading friend list.
+    if (isAnonymous) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xlg,
+          vertical: AppSpacing.sm,
+        ),
+        child: Text(
+          context.l10n.signInToLinkFriends,
+          style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.neutral60,
+          ),
+        ),
+      );
     }
 
     final friends =
         friendState is FriendsLoaded ? friendState.friends : <FriendModel>[];
+    final sortedFriends = List<FriendModel>.from(friends)
+      ..sort(
+        (a, b) =>
+            a.username.toLowerCase().compareTo(b.username.toLowerCase()),
+      );
+
+    final currentUserId = appState.user.id;
+    final confirmedValue = customState.isAccountOwner
+        ? currentUserId
+        : (customState.selectedFriend != null && customState.pinValidated
+            ? customState.selectedFriend!.userId
+            : null);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xlg),
+      // Matches PlayerIdentityPanel's own padding (AppSpacing.md) below it —
+      // this section previously used AppSpacing.xlg, which didn't line up
+      // with its sibling at all.
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section header with optional Clear button
           Row(
             children: [
-              Text(
-                context.l10n.selectFriendLabel,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.neutral60,
+              // Matches the 14px player-color circle + AppSpacing.sm gap
+              // that precedes the name field in PlayerIdentityPanel below,
+              // so this field's content lines up with that one's instead
+              // of sitting under the circle.
+              const SizedBox(width: 14 + AppSpacing.sm),
+              Expanded(
+                child: DropdownMenu<String?>(
+                  key: ValueKey('$confirmedValue-$_resetNonce'),
+                  initialSelection: confirmedValue,
+                  // Without this, DropdownMenu sizes itself to its
+                  // content width regardless of any parent SizedBox — it
+                  // never actually stretched to match the name field
+                  // below it.
+                  expandedInsets: EdgeInsets.zero,
+                  enableFilter: true,
+                  // DropdownMenu.requestFocusOnTap defaults to false on
+                  // mobile platforms (iOS/Android/Fuchsia), which makes
+                  // its internal TextField readOnly — type-to-search
+                  // silently does nothing there without this. This
+                  // app's primary targets are iOS and Android (see
+                  // CLAUDE.md), so enableFilter's whole point (Step 7's
+                  // "filters as you type... on a small simulated device
+                  // (e.g. iPhone SE)") requires this explicitly.
+                  requestFocusOnTap: true,
+                  // Formerly a separate label above the field — moved
+                  // in as the hint so the field carries its own
+                  // description instead of needing a caption beside it.
+                  hintText: context.l10n.selectFriendLabel,
+                  leadingIcon: const Icon(
+                    Icons.person_search,
+                    color: AppColors.neutral60,
+                  ),
+                  // DropdownMenu has its own dedicated theme slot
+                  // (DropdownMenuThemeData) separate from the app's
+                  // general InputDecorationTheme — nothing sets that
+                  // slot anywhere in this app, so without the overrides
+                  // below this field renders in unthemed Material 3
+                  // defaults instead of matching the name field and
+                  // search bar beside it.
+                  textStyle: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 16,
+                  ),
+                  inputDecorationTheme: InputDecorationTheme(
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    isDense: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.sm),
+                      borderSide: const BorderSide(
+                        color: AppColors.neutral60,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.sm),
+                      borderSide: const BorderSide(
+                        color: AppColors.neutral60,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.sm),
+                      borderSide: const BorderSide(
+                        color: AppColors.neutral60,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                  menuStyle: MenuStyle(
+                    backgroundColor: const WidgetStatePropertyAll(
+                      AppColors.surface,
+                    ),
+                    surfaceTintColor: const WidgetStatePropertyAll(
+                      Colors.transparent,
+                    ),
+                    shape: WidgetStatePropertyAll(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSpacing.sm),
+                        side: const BorderSide(color: AppColors.neutral60),
+                      ),
+                    ),
+                  ),
+                  dropdownMenuEntries: [
+                    DropdownMenuEntry(
+                      value: currentUserId,
+                      label: context.l10n.accountOwnerOptionLabel,
+                      style: _entryStyle,
+                    ),
+                    ...sortedFriends.map(
+                      (friend) => DropdownMenuEntry(
+                        value: friend.userId,
+                        label: friend.username,
+                        style: _entryStyle,
+                      ),
+                    ),
+                  ],
+                  // Clearing an existing link now happens via the X
+                  // button in the name field (PlayerIdentityPanel), not
+                  // from this dropdown — every remaining entry is a real
+                  // account, so `value` is never null here in practice.
+                  onSelected: (value) {
+                    if (value == null) return;
+                    if (value == currentUserId) {
+                      context.read<PlayerCustomizationBloc>().add(
+                            OwnerSelected(userId: currentUserId),
+                          );
+                    } else {
+                      final friend = sortedFriends.firstWhere(
+                        (f) => f.userId == value,
+                      );
+                      _showPinDialog(context, friend);
+                    }
+                  },
                 ),
               ),
-              const Spacer(),
-              if (isLinked)
-                TextButton(
-                  onPressed: () {
-                    context
-                        .read<PlayerCustomizationBloc>()
-                        .add(const ClearFriend());
-                    nameController.clear();
-                  },
-                  child: Text(
-                    context.l10n.clearButtonText,
-                    style: const TextStyle(color: AppColors.neutral60),
-                  ),
-                ),
             ],
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          // Friend list
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 160),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const ClampingScrollPhysics(),
-              itemCount: friends.length,
-              separatorBuilder: (_, _) =>
-                  const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, index) {
-                final friend = friends[index];
-                final isSelected = isLinked &&
-                    customState.selectedFriend?.userId == friend.userId;
-                return _FriendTile(
-                  friend: friend,
-                  isSelected: isSelected,
-                  onTap: isSelected
-                      ? null
-                      : () => _showPinDialog(context, friend),
-                );
-              },
-            ),
           ),
           const SizedBox(height: AppSpacing.sm),
         ],
@@ -292,10 +454,35 @@ class _FriendSection extends StatelessWidget {
     );
   }
 
+  String? _pinErrorText(BuildContext context, PlayerCustomizationState state) {
+    final l10n = context.l10n;
+    return switch (state.pinFlowError) {
+      PinFlowError.none => null,
+      PinFlowError.incorrect =>
+        l10n.pinIncorrectError(state.pinAttemptsRemaining),
+      PinFlowError.lockedOut => l10n.pinLockedOutError(
+          state.pinLockedUntil == null
+              ? 15
+              : (state.pinLockedUntil!
+                          .difference(DateTime.now())
+                          .inSeconds /
+                      60)
+                  .ceil()
+                  .clamp(1, 15),
+        ),
+      PinFlowError.unavailable => l10n.pinUnavailableError,
+      PinFlowError.notSet => l10n.pinNotSetError,
+    };
+  }
+
   void _showPinDialog(BuildContext context, FriendModel friend) {
     final pinController = TextEditingController();
     final bloc = context.read<PlayerCustomizationBloc>();
     final l10n = context.l10n;
+
+    // Clear any stale error/lockout state left over from a previous
+    // friend's dialog before this one opens.
+    bloc.add(const ResetPinFlow());
 
     unawaited(
       showDialog<void>(
@@ -307,19 +494,21 @@ class _FriendSection extends StatelessWidget {
                 PlayerCustomizationState>(
               listenWhen: (previous, current) =>
                   previous.pinValidated != current.pinValidated ||
-                  previous.pinError != current.pinError,
+                  previous.pinFlowError != current.pinFlowError,
               listener: (listenerContext, state) {
                 if (state.pinValidated) {
-                  // PIN succeeded — select friend, populate name, close
+                  // PIN succeeded — select friend, close. The page-level
+                  // BlocListener in CustomizePlayerView.build() populates
+                  // the name field once selectedFriend changes.
                   bloc.add(SelectFriend(friend: friend));
-                  nameController.text = friend.username;
                   Navigator.pop(listenerContext);
                 }
-                // pinError is shown reactively via the StatefulBuilder below
+                // pinFlowError is shown reactively via the BlocBuilder below
               },
               child: StatefulBuilder(
                 builder: (dialogContext, setDialogState) {
                   return AlertDialog(
+                    scrollable: true,
                     backgroundColor: AppColors.surface,
                     title: Text(
                       l10n.verifyFriendTitle(friend.username),
@@ -337,7 +526,11 @@ class _FriendSection extends StatelessWidget {
                         BlocBuilder<PlayerCustomizationBloc,
                             PlayerCustomizationState>(
                           buildWhen: (previous, current) =>
-                              previous.pinError != current.pinError,
+                              previous.pinFlowError != current.pinFlowError ||
+                              previous.pinAttemptsRemaining !=
+                                  current.pinAttemptsRemaining ||
+                              previous.pinLockedUntil !=
+                                  current.pinLockedUntil,
                           builder: (context, state) {
                             return TextField(
                               controller: pinController,
@@ -377,9 +570,7 @@ class _FriendSection extends StatelessWidget {
                                     color: AppColors.red,
                                   ),
                                 ),
-                                errorText: state.pinError.isNotEmpty
-                                    ? state.pinError
-                                    : null,
+                                errorText: _pinErrorText(context, state),
                                 errorStyle: const TextStyle(
                                   color: AppColors.red,
                                 ),
@@ -391,26 +582,57 @@ class _FriendSection extends StatelessWidget {
                       ],
                     ),
                     actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(dialogContext),
-                        child: Text(
-                          l10n.cancelTextButton,
-                          style:
-                              const TextStyle(color: AppColors.neutral60),
-                        ),
+                      BlocBuilder<PlayerCustomizationBloc,
+                          PlayerCustomizationState>(
+                        buildWhen: (previous, current) =>
+                            previous.isPinValidating != current.isPinValidating,
+                        builder: (context, state) {
+                          return TextButton(
+                            onPressed: state.isPinValidating
+                                ? null
+                                : () => Navigator.pop(dialogContext),
+                            child: Text(
+                              l10n.cancelTextButton,
+                              style:
+                                  const TextStyle(color: AppColors.neutral60),
+                            ),
+                          );
+                        },
                       ),
-                      FilledButton(
-                        onPressed: pinController.text.length == 4
-                            ? () {
-                                bloc.add(
-                                  ValidatePin(
-                                    pin: pinController.text,
-                                    friendUserId: friend.userId,
-                                  ),
-                                );
-                              }
-                            : null,
-                        child: Text(l10n.verifyButtonText),
+                      BlocBuilder<PlayerCustomizationBloc,
+                          PlayerCustomizationState>(
+                        buildWhen: (previous, current) =>
+                            previous.pinFlowError != current.pinFlowError ||
+                            previous.isPinValidating != current.isPinValidating,
+                        builder: (context, state) {
+                          final isLockedOut =
+                              state.pinFlowError == PinFlowError.lockedOut;
+                          final canSubmit = pinController.text.length == 4 &&
+                              !isLockedOut &&
+                              !state.isPinValidating;
+                          return FilledButton(
+                            onPressed: canSubmit
+                                ? () {
+                                    bloc.add(
+                                      ValidatePin(
+                                        pin: pinController.text,
+                                        friendUserId: friend.userId,
+                                      ),
+                                    );
+                                  }
+                                : null,
+                            child: state.isPinValidating
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.white,
+                                    ),
+                                  )
+                                : Text(l10n.verifyButtonText),
+                          );
+                        },
                       ),
                     ],
                   );
@@ -419,85 +641,14 @@ class _FriendSection extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _FriendTile extends StatelessWidget {
-  const _FriendTile({
-    required this.friend,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  final FriendModel friend;
-  final bool isSelected;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSpacing.md),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.surface.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(AppSpacing.md),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.tertiary
-                : AppColors.neutral60.withValues(alpha: 0.3),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            // Profile picture or first-letter fallback
-            if (friend.profilePictureUrl.isNotEmpty)
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: AppColors.tertiary,
-                backgroundImage: NetworkImage(friend.profilePictureUrl),
-                onBackgroundImageError: (_, _) {},
-              )
-            else
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: AppColors.tertiary,
-                child: Text(
-                  friend.username.isNotEmpty
-                      ? friend.username[0].toUpperCase()
-                      : '?',
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Text(
-                friend.username,
-                style: const TextStyle(
-                  color: AppColors.white,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            if (isSelected)
-              const Icon(
-                Icons.check_circle,
-                color: AppColors.green,
-                size: 20,
-              ),
-          ],
-        ),
-      ),
+      ).then((_) {
+        final confirmed =
+            bloc.state.selectedFriend?.userId == friend.userId &&
+                bloc.state.pinValidated;
+        if (!confirmed) {
+          _forceReset();
+        }
+      }),
     );
   }
 }

@@ -24,6 +24,7 @@ class FriendBloc extends Bloc<FriendEvent, FriendState> {
   FriendBloc({required this.repository}) : super(FriendsLoading()) {
     on<LoadFriends>(_onLoadFriends);
     on<RemoveFriend>(_onRemoveFriend);
+    on<BlockFriend>(_onBlockFriend);
   }
 
   final FirebaseDatabaseRepository repository;
@@ -56,6 +57,22 @@ class FriendBloc extends Bloc<FriendEvent, FriendState> {
       }
     } catch (e) {
       emit(FriendsError('Failed to remove friend: $e'));
+    }
+  }
+
+  Future<void> _onBlockFriend(
+    BlockFriend event,
+    Emitter<FriendState> emit,
+  ) async {
+    try {
+      await repository.blockUser(
+        currentUserId: event.userId,
+        target: event.target,
+      );
+      final friends = await repository.getFriends(event.userId);
+      emit(FriendsLoaded(friends));
+    } on Exception catch (e) {
+      emit(FriendsError('Failed to block friend: $e'));
     }
   }
 }

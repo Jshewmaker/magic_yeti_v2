@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/app_router/app_route.dart';
 import 'package:magic_yeti/app/app_router/go_router_refresh_stream.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/friends_list/blocked_users/view/blocked_users_page.dart';
 import 'package:magic_yeti/friends_list/friends_list_page.dart';
 import 'package:magic_yeti/friends_list/requests/friend_request_page.dart';
 import 'package:magic_yeti/friends_list/search_user/search_user_page.dart';
@@ -91,6 +92,14 @@ class AppRouter {
           pageBuilder: (context, state) => NoTransitionPage(
             name: FriendRequestsPage.routeName,
             child: FriendRequestsPage.pageBuilder(context, state),
+          ),
+        ),
+        AppRoute(
+          name: BlockedUsersPage.routeName,
+          path: BlockedUsersPage.routePath,
+          pageBuilder: (context, state) => NoTransitionPage(
+            name: BlockedUsersPage.routeName,
+            child: BlockedUsersPage.pageBuilder(context, state),
           ),
         ),
         AppRoute(

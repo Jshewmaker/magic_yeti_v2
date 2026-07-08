@@ -1,6 +1,7 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/player/view/bloc/player_customization_bloc.dart';
 import 'package:magic_yeti/player/view/widgets/tracking_preview.dart';
 
@@ -22,8 +23,8 @@ class PlayerIdentityPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
       builder: (context, state) {
-        final isLinked =
-            state.selectedFriend != null && state.pinValidated;
+        final isLinked = state.isAccountOwner ||
+            (state.selectedFriend != null && state.pinValidated);
         return Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
@@ -55,6 +56,18 @@ class PlayerIdentityPanel extends StatelessWidget {
                           color:
                               isLinked ? AppColors.green : AppColors.neutral60,
                         ),
+                        suffixIcon: isLinked
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.cancel,
+                                  color: AppColors.neutral60,
+                                ),
+                                tooltip: context.l10n.clearButtonText,
+                                onPressed: () => context
+                                    .read<PlayerCustomizationBloc>()
+                                    .add(const LinkCleared()),
+                              )
+                            : null,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppSpacing.sm),
                         ),
@@ -173,15 +186,14 @@ class _FriendLinkRow extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
-                'Linked to ${state.selectedFriend?.username ?? ''}',
+                context.l10n.linkedToFriend(
+                  state.isAccountOwner
+                      ? (state.ownerUsername ??
+                          context.l10n.accountOwnerOptionLabel)
+                      : (state.selectedFriend?.username ?? ''),
+                ),
                 style: const TextStyle(color: AppColors.white, fontSize: 13),
               ),
-            ),
-            TextButton(
-              onPressed: () => context
-                  .read<PlayerCustomizationBloc>()
-                  .add(const ClearFriend()),
-              child: const Text('Unlink'),
             ),
           ],
         ),

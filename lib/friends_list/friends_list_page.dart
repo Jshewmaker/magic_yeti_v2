@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/friends_list/blocked_users/view/blocked_users_page.dart';
 import 'package:magic_yeti/friends_list/friends_list/friends_list.dart';
 import 'package:magic_yeti/friends_list/requests/friend_request_page.dart';
 import 'package:magic_yeti/friends_list/search_user/search_user_page.dart';
@@ -63,6 +64,13 @@ class _FriendsListPageState extends State<FriendsListPage> {
                   fontWeight: FontWeight.bold,
                 ),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.block),
+              tooltip: l10n.blockedUsersTitle,
+              onPressed: () => context.push(BlockedUsersPage.routePath),
+            ),
+          ],
           bottom: TabBar(
             tabs: [
               Tab(text: l10n.friendsTitle),
