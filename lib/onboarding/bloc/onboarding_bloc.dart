@@ -2,7 +2,6 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:form_inputs/form_inputs.dart';
-import 'package:image_picker/image_picker.dart';
 
 part 'onboarding_event.dart';
 part 'onboarding_state.dart';
@@ -21,7 +20,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
             bio: existingProfile?.bio ?? '',
             hasExistingPin: (existingProfile?.hasPin ?? false) ||
                 (existingProfile?.pin?.isNotEmpty ?? false),
-            existingImageUrl: existingProfile?.imageUrl,
           ),
         ) {
     on<OnboardingUsernameChanged>(_onUsernameChanged);
@@ -29,7 +27,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<OnboardingBioChanged>(_onBioChanged);
     on<OnboardingStepNext>(_onStepNext);
     on<OnboardingStepBack>(_onStepBack);
-    on<OnboardingProfileImagePicked>(_onProfileImagePicked);
     on<OnboardingSubmitted>(_onSubmitted);
   }
 
@@ -60,7 +57,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     OnboardingStepNext event,
     Emitter<OnboardingState> emit,
   ) {
-    if (state.isStepValid && state.currentStep < 3) {
+    if (state.isStepValid && state.currentStep < 2) {
       emit(state.copyWith(currentStep: state.currentStep + 1));
     }
   }
@@ -74,35 +71,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     }
   }
 
-  void _onProfileImagePicked(
-    OnboardingProfileImagePicked event,
-    Emitter<OnboardingState> emit,
-  ) {
-    emit(
-      state.copyWith(
-        profileImagePath: () =>
-            event.imagePath.isEmpty ? null : event.imagePath,
-      ),
-    );
-  }
-
   Future<void> _onSubmitted(
     OnboardingSubmitted event,
     Emitter<OnboardingState> emit,
   ) async {
     emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
     try {
-      // Upload profile picture if selected
-      String? imageUrl = state.existingImageUrl;
-      if (state.profileImagePath != null) {
-        final file = XFile(state.profileImagePath!);
-        final bytes = await file.readAsBytes();
-        imageUrl = await _firebaseDatabaseRepository.uploadProfilePicture(
-          event.userId,
-          bytes,
-        );
-      }
-
       // Generate friend code if not already present
       final existingProfile = await _firebaseDatabaseRepository
           .getUserProfileOnce(event.userId);
@@ -140,7 +114,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
           email: existingProfile?.email,
           username: state.username.value.trim(),
           bio: state.bio,
-          imageUrl: imageUrl,
+          // Profile-picture upload is disabled until Firebase Storage is
+          // provisioned for the project; preserve any imageUrl already on
+          // the profile rather than clearing it during onboarding.
+          imageUrl: existingProfile?.imageUrl,
           friendCode: friendCode,
           // When a NEW pin was set, setPin already deleted the legacy
           // `pin` field and it must stay deleted (null) here. When

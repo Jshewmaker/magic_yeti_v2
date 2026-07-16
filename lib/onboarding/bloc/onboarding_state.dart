@@ -6,9 +6,7 @@ class OnboardingState extends Equatable {
     this.username = const Username.pure(),
     this.pin = const Pin.pure(),
     this.bio = '',
-    this.profileImagePath,
     this.hasExistingPin = false,
-    this.existingImageUrl,
     this.status = FormzSubmissionStatus.initial,
   });
 
@@ -16,15 +14,13 @@ class OnboardingState extends Equatable {
   final Username username;
   final Pin pin;
   final String bio;
-  final String? profileImagePath;
   final bool hasExistingPin;
-  final String? existingImageUrl;
   final FormzSubmissionStatus status;
 
   /// Per-step validation.
   /// Step 0: username must be valid
   /// Step 1: PIN must be valid OR an existing PIN is already set
-  /// Steps 2-3: always valid (optional fields)
+  /// Step 2: always valid (optional bio field)
   bool get isStepValid {
     switch (currentStep) {
       case 0:
@@ -32,7 +28,6 @@ class OnboardingState extends Equatable {
       case 1:
         return pin.isValid || hasExistingPin;
       case 2:
-      case 3:
         return true;
       default:
         return false;
@@ -44,9 +39,7 @@ class OnboardingState extends Equatable {
     Username? username,
     Pin? pin,
     String? bio,
-    String? Function()? profileImagePath,
     bool? hasExistingPin,
-    String? Function()? existingImageUrl,
     FormzSubmissionStatus? status,
   }) {
     return OnboardingState(
@@ -54,13 +47,7 @@ class OnboardingState extends Equatable {
       username: username ?? this.username,
       pin: pin ?? this.pin,
       bio: bio ?? this.bio,
-      profileImagePath: profileImagePath != null
-          ? profileImagePath()
-          : this.profileImagePath,
       hasExistingPin: hasExistingPin ?? this.hasExistingPin,
-      existingImageUrl: existingImageUrl != null
-          ? existingImageUrl()
-          : this.existingImageUrl,
       status: status ?? this.status,
     );
   }
@@ -71,9 +58,7 @@ class OnboardingState extends Equatable {
         username,
         pin,
         bio,
-        profileImagePath,
         hasExistingPin,
-        existingImageUrl,
         status,
       ];
 }

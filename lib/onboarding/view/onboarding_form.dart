@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_inputs/form_inputs.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/onboarding/onboarding.dart';
@@ -74,7 +72,6 @@ class _OnboardingFormState extends State<OnboardingForm> {
                 children: const [
                   _IdentityStep(),
                   _PinStep(),
-                  _ProfilePictureStep(),
                   _BioStep(),
                 ],
               ),
@@ -95,7 +92,7 @@ class _StepIndicator extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
-        children: List.generate(4, (index) {
+        children: List.generate(3, (index) {
           return Expanded(
             child: Container(
               height: 4,
@@ -264,145 +261,7 @@ class _PinStep extends StatelessWidget {
   }
 }
 
-// Step 3: Profile Picture
-// Uses FutureBuilder to load image bytes for cross-platform preview.
-class _ProfilePictureStep extends StatelessWidget {
-  const _ProfilePictureStep();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<OnboardingBloc, OnboardingState>(
-      buildWhen: (previous, current) =>
-          previous.profileImagePath != current.profileImagePath ||
-          previous.existingImageUrl != current.existingImageUrl ||
-          previous.username != current.username,
-      builder: (context, state) {
-        return _StepLayout(
-          header: 'Add a Profile Picture',
-          explanation: 'Help your friends recognize you. This is optional — '
-              'you can always add one later in your profile.',
-          child: Column(
-            children: [
-              const SizedBox(height: 24),
-              _ProfileImagePreview(
-                imagePath: state.profileImagePath,
-                existingImageUrl: state.existingImageUrl,
-                initial: state.username.value.isNotEmpty
-                    ? state.username.value[0].toUpperCase()
-                    : '?',
-              ),
-              const SizedBox(height: 24),
-              OutlinedButton.icon(
-                onPressed: () async {
-                  final picker = ImagePicker();
-                  final image = await picker.pickImage(
-                    source: ImageSource.gallery,
-                    maxWidth: 512,
-                    maxHeight: 512,
-                    imageQuality: 80,
-                  );
-                  if (image != null && context.mounted) {
-                    context.read<OnboardingBloc>().add(
-                          OnboardingProfileImagePicked(image.path),
-                        );
-                  }
-                },
-                icon: const Icon(
-                  Icons.photo_library,
-                  color: AppColors.tertiary,
-                ),
-                label: const Text(
-                  'Choose from Gallery',
-                  style: TextStyle(color: AppColors.tertiary),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.tertiary),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () {
-                  // Clear any selected image and advance
-                  context.read<OnboardingBloc>().add(
-                        const OnboardingProfileImagePicked(''),
-                      );
-                  context.read<OnboardingBloc>().add(
-                        const OnboardingStepNext(),
-                      );
-                },
-                child: const Text(
-                  'Skip for now',
-                  style: TextStyle(color: AppColors.neutral60),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _ProfileImagePreview extends StatelessWidget {
-  const _ProfileImagePreview({
-    required this.initial,
-    this.imagePath,
-    this.existingImageUrl,
-  });
-
-  final String? imagePath;
-  final String? existingImageUrl;
-  final String initial;
-
-  @override
-  Widget build(BuildContext context) {
-    if (imagePath != null) {
-      // Use XFile.readAsBytes for cross-platform image loading
-      return FutureBuilder<Uint8List>(
-        future: XFile(imagePath!).readAsBytes(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return CircleAvatar(
-              radius: 64,
-              backgroundColor: AppColors.tertiary,
-              backgroundImage: MemoryImage(snapshot.data!),
-            );
-          }
-          return _placeholder();
-        },
-      );
-    }
-    if (existingImageUrl != null && existingImageUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: 64,
-        backgroundColor: AppColors.tertiary,
-        backgroundImage: NetworkImage(existingImageUrl!),
-      );
-    }
-    return _placeholder();
-  }
-
-  Widget _placeholder() {
-    return CircleAvatar(
-      radius: 64,
-      backgroundColor: AppColors.tertiary,
-      child: Text(
-        initial,
-        style: const TextStyle(
-          fontSize: 48,
-          fontWeight: FontWeight.bold,
-          color: AppColors.white,
-        ),
-      ),
-    );
-  }
-}
-
-// Step 4: Bio
+// Step 3: Bio
 class _BioStep extends StatelessWidget {
   const _BioStep();
 

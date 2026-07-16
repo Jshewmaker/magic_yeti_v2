@@ -39,14 +39,6 @@ class OnboardingStepBack extends OnboardingEvent {
   const OnboardingStepBack();
 }
 
-class OnboardingProfileImagePicked extends OnboardingEvent {
-  const OnboardingProfileImagePicked(this.imagePath);
-  final String imagePath;
-
-  @override
-  List<Object?> get props => [imagePath];
-}
-
 class OnboardingSubmitted extends OnboardingEvent {
   const OnboardingSubmitted(this.userId);
   final String userId;
