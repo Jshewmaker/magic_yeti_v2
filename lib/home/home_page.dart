@@ -11,6 +11,7 @@ import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/friends_list/friends_list_page.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
+import 'package:magic_yeti/home/widgets/match_history_skeleton.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/life_counter.dart';
@@ -95,6 +96,7 @@ class _TabletView extends StatelessWidget {
               children: [
                 SectionHeader(
                   title: l10n.matchHistoryTitle,
+                  icon: Icons.people,
                   onMorePressed: () =>
                       context.push(FriendsListPage.routePath),
                 ),
@@ -161,9 +163,16 @@ class SectionHeader extends StatelessWidget {
     required this.title,
     super.key,
     this.onMorePressed,
+    this.icon,
   });
   final String title;
   final VoidCallback? onMorePressed;
+
+  /// Optional icon for the trailing action button. When provided, this icon is
+  /// always shown (e.g. a friends icon for opening the friends list). When
+  /// null, the button shows the user's profile photo, falling back to a
+  /// single-person icon.
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -189,20 +198,49 @@ class SectionHeader extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           if (onMorePressed != null)
-            user.photo == null || user.photo!.isEmpty
-                ? IconButton(
-                    onPressed: onMorePressed,
-                    icon: const Icon(
+            if (icon != null)
+              IconButton(
+                onPressed: onMorePressed,
+                icon: Icon(
+                  icon,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              )
+            else if (user.photo == null || user.photo!.isEmpty)
+              IconButton(
+                onPressed: onMorePressed,
+                icon: const Icon(
+                  Icons.account_circle_sharp,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              )
+            else
+              InkWell(
+                onTap: onMorePressed,
+                child: ClipOval(
+                  child: Image.network(
+                    user.photo!,
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, progress) {
+                      if (progress == null) return child;
+                      return const AppShimmer(
+                        child: SkeletonBone(
+                          width: 40,
+                          height: 40,
+                          shape: BoxShape.circle,
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) => const Icon(
                       Icons.account_circle_sharp,
                       color: AppColors.onSurfaceVariant,
-                    ),
-                  )
-                : InkWell(
-                    onTap: onMorePressed,
-                    child: CircleAvatar(
-                      backgroundImage: NetworkImage(user.photo!),
+                      size: 40,
                     ),
                   ),
+                ),
+              ),
         ],
       ),
     );
@@ -257,7 +295,7 @@ class AccountWidget extends StatelessWidget {
                       matchHistoryState.status ==
                           MatchHistoryStatus.gameNotFound
                   ? StatsOverviewWidget(key: ObjectKey(matchHistoryState))
-                  : const CircularProgressIndicator()
+                  : const StatsOverviewSkeleton()
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -458,7 +496,7 @@ class MatchHistoryPanel extends StatelessWidget {
           switch (state.status) {
             case MatchHistoryStatus.initial:
             case MatchHistoryStatus.loadingHistory:
-              return const Center(child: CircularProgressIndicator());
+              return const MatchHistorySkeleton();
             case MatchHistoryStatus.failure:
               return Center(
                 child: Text(l10n.matchHistoryLoadError),
@@ -961,7 +999,7 @@ class _PhoneView extends StatelessWidget {
           actions: [
             IconButton(
               onPressed: () => context.push(FriendsListPage.routePath),
-              icon: const Icon(Icons.person),
+              icon: const Icon(Icons.people),
             ),
           ],
         ),
