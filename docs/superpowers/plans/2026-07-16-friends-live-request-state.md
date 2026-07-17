@@ -941,14 +941,17 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byIcon(Icons.people));
+      // Tap the dot itself, not the icon's centre: the dot overlaps the
+      // button's tap target, and without IgnorePointer this exact spot
+      // would be dead.
+      await tester.tapAt(tester.getCenter(find.byType(NotificationDot)));
       expect(taps, 1);
     });
   });
 }
 ```
 
-The third test is the one that earns its keep: the dot sits over the button's tap target, and without `IgnorePointer` the most obvious place to tap is dead.
+The third test is the one that earns its keep, and **it must tap the dot's own coordinates via `tapAt`, not `tester.tap(find.byIcon(...))`**. `tester.tap` on the icon hits its *centre*; the dot sits in the *corner*, so a centre tap never touches it and the test passes identically with `IgnorePointer` removed — i.e. it is vacuous. This was caught in review the hard way after being written that way here. Prove the test is real by removing `IgnorePointer` and confirming it fails.
 
 - [ ] **Step 5: Implement BadgedIconButton**
 
