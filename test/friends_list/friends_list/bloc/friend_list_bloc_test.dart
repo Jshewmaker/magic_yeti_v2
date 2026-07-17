@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -36,9 +38,51 @@ void main() {
 
     FriendBloc buildBloc() => FriendBloc(repository: repository);
 
+    group('LoadFriends', () {
+      blocTest<FriendBloc, FriendState>(
+        'emits [loading, loaded] from the stream',
+        setUp: () {
+          when(
+            () => repository.watchFriends('alice'),
+          ).thenAnswer((_) => Stream.value([bob]));
+        },
+        build: buildBloc,
+        act: (bloc) => bloc.add(const LoadFriends('alice')),
+        expect: () => [
+          isA<FriendsLoading>(),
+          isA<FriendsLoaded>().having((s) => s.friends, 'friends', [bob]),
+        ],
+      );
+
+      blocTest<FriendBloc, FriendState>(
+        'emits an empty loaded list and never subscribes when userId is empty',
+        build: buildBloc,
+        act: (bloc) => bloc.add(const LoadFriends('')),
+        expect: () => [
+          isA<FriendsLoaded>().having((s) => s.friends, 'friends', isEmpty),
+        ],
+        verify: (_) {
+          verifyNever(() => repository.watchFriends(any()));
+        },
+      );
+
+      blocTest<FriendBloc, FriendState>(
+        'emits [loading, error] when the stream errors',
+        setUp: () {
+          when(
+            () => repository.watchFriends('alice'),
+          ).thenAnswer((_) => Stream.error(Exception('boom')));
+        },
+        build: buildBloc,
+        act: (bloc) => bloc.add(const LoadFriends('alice')),
+        expect: () => [isA<FriendsLoading>(), isA<FriendsError>()],
+      );
+    });
+
     group('BlockFriend', () {
       blocTest<FriendBloc, FriendState>(
-        'calls repository.blockUser then reloads friends',
+        'calls repository.blockUser and emits nothing on success — the '
+        'watchFriends stream re-emits without the blocked friend',
         setUp: () {
           when(
             () => repository.blockUser(
@@ -46,20 +90,15 @@ void main() {
               target: any(named: 'target'),
             ),
           ).thenAnswer((_) async {});
-          when(() => repository.getFriends('alice'))
-              .thenAnswer((_) async => <FriendModel>[]);
         },
         build: buildBloc,
         seed: () => const FriendsLoaded([bob]),
         act: (bloc) => bloc.add(const BlockFriend('alice', target)),
-        expect: () => [
-          isA<FriendsLoaded>().having((s) => s.friends, 'friends', isEmpty),
-        ],
+        expect: () => <FriendState>[],
         verify: (_) {
           verify(
             () => repository.blockUser(currentUserId: 'alice', target: target),
           ).called(1);
-          verify(() => repository.getFriends('alice')).called(1);
         },
       );
 

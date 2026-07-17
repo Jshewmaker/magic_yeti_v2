@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 
@@ -6,11 +7,12 @@ part 'friend_list_event.dart';
 part 'friend_list_state.dart';
 
 /// Bloc implementation for managing the user's friends list.
-/// It handles loading the list of friends and removing friends.
+/// It handles streaming the list of friends, removing friends, and blocking.
 ///
 /// Key features:
-/// - Loads friends from Firestore
+/// - Subscribes to the repository's friends stream
 /// - Removes friends with confirmation
+/// - Blocks a friend
 ///
 /// @dependencies
 /// - FirebaseDatabaseRepository: For interacting with Firestore
@@ -18,11 +20,11 @@ part 'friend_list_state.dart';
 ///
 /// @notes
 /// - Implements error handling for network issues
-/// - Ensures real-time updates using Firestore sync
-
 class FriendBloc extends Bloc<FriendEvent, FriendState> {
   FriendBloc({required this.repository}) : super(FriendsLoading()) {
-    on<LoadFriends>(_onLoadFriends);
+    // restartable: see MatchHistoryBloc — emit.forEach never completes on its
+    // own, so a re-dispatch must cancel the previous subscription.
+    on<LoadFriends>(_onLoadFriends, transformer: restartable());
     on<RemoveFriend>(_onRemoveFriend);
     on<BlockFriend>(_onBlockFriend);
   }
@@ -33,12 +35,18 @@ class FriendBloc extends Bloc<FriendEvent, FriendState> {
     LoadFriends event,
     Emitter<FriendState> emit,
   ) async {
-    try {
-      final friends = await repository.getFriends(event.userId);
-      emit(FriendsLoaded(friends));
-    } catch (e) {
-      emit(FriendsError('Failed to load friends: $e'));
+    // An empty userId means "no signed-in user": clear and stop listening.
+    if (event.userId.isEmpty) {
+      emit(const FriendsLoaded([]));
+      return;
     }
+
+    emit(FriendsLoading());
+    await emit.forEach<List<FriendModel>>(
+      repository.watchFriends(event.userId),
+      onData: FriendsLoaded.new,
+      onError: (error, _) => FriendsError('Failed to load friends: $error'),
+    );
   }
 
   Future<void> _onRemoveFriend(
@@ -47,14 +55,8 @@ class FriendBloc extends Bloc<FriendEvent, FriendState> {
   ) async {
     try {
       await repository.removeFriend(event.userId, event.friendId);
-      // Remove friend from in-memory list
-      if (state is FriendsLoaded) {
-        final updated = (state as FriendsLoaded)
-            .friends
-            .where((f) => f.userId != event.friendId)
-            .toList();
-        emit(FriendsLoaded(updated));
-      }
+      // No emit: removeFriend deletes both friendList edges, so the stream
+      // re-emits without them.
     } catch (e) {
       emit(FriendsError('Failed to remove friend: $e'));
     }
@@ -69,8 +71,8 @@ class FriendBloc extends Bloc<FriendEvent, FriendState> {
         currentUserId: event.userId,
         target: event.target,
       );
-      final friends = await repository.getFriends(event.userId);
-      emit(FriendsLoaded(friends));
+      // No emit: blockUser deletes both friendList edges in its batch, so the
+      // stream re-emits without them.
     } on Exception catch (e) {
       emit(FriendsError('Failed to block friend: $e'));
     }
