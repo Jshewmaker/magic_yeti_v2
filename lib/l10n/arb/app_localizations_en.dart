@@ -509,6 +509,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'This request was sent from an older version. Ask them to re-send it.';
 
   @override
+  String get noPendingRequests => 'No pending requests';
+
+  @override
   String get gameSaveFailedError =>
       'Couldn\'t save the game. Check your connection and try again.';
 

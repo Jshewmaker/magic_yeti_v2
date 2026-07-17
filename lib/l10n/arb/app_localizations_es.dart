@@ -512,6 +512,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Esta solicitud se envió desde una versión anterior. Pídele que la vuelva a enviar.';
 
   @override
+  String get noPendingRequests => 'No pending requests';
+
+  @override
   String get gameSaveFailedError =>
       'No se pudo guardar la partida. Revisa tu conexión e inténtalo de nuevo.';
 

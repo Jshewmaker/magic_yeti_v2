@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/app_router/app_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/commander_library/commander_library_repository.dart';
+import 'package:magic_yeti/friends_list/requests/bloc/friend_request_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
@@ -75,7 +76,17 @@ class App extends StatelessWidget {
               databaseRepository: context.read<FirebaseDatabaseRepository>(),
             )..add(
                 LoadMatchHistory(
-                  userId: _historyUserId(context.read<AppBloc>().state),
+                  userId: _signedInUserId(context.read<AppBloc>().state),
+                ),
+              ),
+          ),
+          BlocProvider(
+            lazy: false,
+            create: (context) => FriendRequestBloc(
+              repository: context.read<FirebaseDatabaseRepository>(),
+            )..add(
+                LoadFriendRequests(
+                  _signedInUserId(context.read<AppBloc>().state),
                 ),
               ),
           ),
@@ -90,9 +101,9 @@ class App extends StatelessWidget {
   }
 }
 
-/// The user whose match history should be shown: the signed-in user, or
-/// nobody (empty id clears the history) for any other auth state.
-String _historyUserId(AppState state) {
+/// The user whose data should be streamed: the signed-in user, or nobody
+/// (empty id clears the stream and stops listening) for any other auth state.
+String _signedInUserId(AppState state) {
   return state.status == AppStatus.authenticated ? state.user.id : '';
 }
 
@@ -127,16 +138,20 @@ class _AppViewState extends State<AppView> {
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) {
         return DeviceInfoProvider.fromMediaQuery(
-          // Keep the match history subscribed to whoever is signed in;
-          // sign-out clears it. Lives at the app root so it holds no matter
-          // which screen is visible.
+          // Keep the match history and friend requests subscribed to whoever
+          // is signed in; sign-out clears both. Lives at the app root so it
+          // holds no matter which screen is visible.
           child: BlocListener<AppBloc, AppState>(
             listenWhen: (previous, current) =>
-                _historyUserId(previous) != _historyUserId(current),
+                _signedInUserId(previous) != _signedInUserId(current),
             listener: (context, state) {
-              context
-                  .read<MatchHistoryBloc>()
-                  .add(LoadMatchHistory(userId: _historyUserId(state)));
+              final userId = _signedInUserId(state);
+              context.read<MatchHistoryBloc>().add(
+                    LoadMatchHistory(userId: userId),
+                  );
+              context.read<FriendRequestBloc>().add(
+                    LoadFriendRequests(userId),
+                  );
             },
             child: child!,
           ),

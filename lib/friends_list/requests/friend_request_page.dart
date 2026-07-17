@@ -1,5 +1,4 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
@@ -19,13 +18,9 @@ class FriendRequestsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userId = context.read<AppBloc>().state.user.id;
-    return BlocProvider(
-      create: (context) => FriendRequestBloc(
-        repository: context.read<FirebaseDatabaseRepository>(),
-      )..add(LoadFriendRequests(userId)),
-      child: const FriendRequestView(),
-    );
+    // The bloc is provided at the app root so this page and the home
+    // indicator share one subscription.
+    return const FriendRequestView();
   }
 }
 
@@ -50,10 +45,10 @@ class FriendRequestView extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         } else if (state is FriendRequestLoaded) {
           if (state.requests.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
-                'No pending requests',
-                style: TextStyle(color: AppColors.onSurfaceVariant),
+                context.l10n.noPendingRequests,
+                style: const TextStyle(color: AppColors.onSurfaceVariant),
               ),
             );
           }
@@ -109,10 +104,10 @@ class FriendRequestView extends StatelessWidget {
         } else if (state is FriendRequestLegacyAcceptError) {
           // The snackbar (see listener above) carries the actual copy;
           // avoid rendering an empty tab underneath it.
-          return const Center(
+          return Center(
             child: Text(
-              'No pending requests',
-              style: TextStyle(color: AppColors.onSurfaceVariant),
+              context.l10n.noPendingRequests,
+              style: const TextStyle(color: AppColors.onSurfaceVariant),
             ),
           );
         }
