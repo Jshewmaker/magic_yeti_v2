@@ -220,6 +220,7 @@ void main() {
         await tester.pumpWidget(buildSubject(isPhone: isPhone));
         await tester.pumpAndSettle();
 
+        expect(find.byType(BadgedIconButton), findsOneWidget);
         expect(find.byType(NotificationDot), findsNothing);
       });
 
@@ -232,6 +233,7 @@ void main() {
         await tester.pumpWidget(buildSubject(isPhone: isPhone));
         await tester.pumpAndSettle();
 
+        expect(find.byType(BadgedIconButton), findsOneWidget);
         expect(find.byType(NotificationDot), findsNothing);
       });
     }
