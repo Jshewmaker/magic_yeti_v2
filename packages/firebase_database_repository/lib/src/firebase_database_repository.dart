@@ -656,6 +656,43 @@ class FirebaseDatabaseRepository {
     }
   }
 
+  /// Streams the user's friends, updating in real time.
+  Stream<List<FriendModel>> watchFriends(String userId) {
+    return _firebase
+        .collection('friends')
+        .doc(userId)
+        .collection('friendList')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => FriendModel.fromJson(doc.data()))
+              .toList(),
+        );
+  }
+
+  /// Streams the user's incoming pending friend requests, updating in real
+  /// time.
+  ///
+  /// Deliberately the same query as [getFriendRequests] — same equality
+  /// filters, same `list` permission — so this needs no new composite index
+  /// and no rules change. The only difference is a listener instead of a
+  /// one-shot read.
+  Stream<List<FriendRequestModel>> watchFriendRequests(String userId) {
+    return _friendCollection
+        .where('receiverId', isEqualTo: userId)
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => FriendRequestModel.fromJson(
+                  doc.data()! as Map<String, dynamic>,
+                ),
+              )
+              .toList(),
+        );
+  }
+
   /// Declines a friend request by marking its status as declined.
   ///
   /// The doc is retained (not deleted) so a future re-send from the same
