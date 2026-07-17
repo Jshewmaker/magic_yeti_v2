@@ -53,8 +53,9 @@ void main() {
     databaseRepository = _MockFirebaseDatabaseRepository();
     scryfallRepository = _MockScryfallRepository();
 
-    when(() => databaseRepository.getUserProfileOnce(any()))
-        .thenAnswer((_) async => null);
+    when(
+      () => databaseRepository.getUserProfileOnce(any()),
+    ).thenAnswer((_) async => null);
 
     // HomePage's descendants read these three blocs' `.state` synchronously
     // while building — HomeSidePanel and MatchHistoryPanel watch AppBloc /
@@ -66,8 +67,9 @@ void main() {
     // only wants to vary FriendRequestBloc — don't have to also stub the
     // other two. Mocktail matches the most-recently-registered stub, so a
     // test that calls whenListen/when itself simply overrides this default.
-    when(() => appBloc.state)
-        .thenReturn(const AppState.authenticated(authenticatedUser));
+    when(
+      () => appBloc.state,
+    ).thenReturn(const AppState.authenticated(authenticatedUser));
     when(() => matchHistoryBloc.state).thenReturn(
       const MatchHistoryState(
         status: MatchHistoryStatus.loadingHistorySuccess,
@@ -81,8 +83,9 @@ void main() {
     // The Ahem test font renders much wider than production fonts, so give
     // the phone surface extra width while staying under the tablet
     // breakpoint (shortestSide < 600).
-    tester.view.physicalSize =
-        isPhone ? const Size(590, 1100) : const Size(1366, 1024);
+    tester.view.physicalSize = isPhone
+        ? const Size(590, 1100)
+        : const Size(1366, 1024);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
   }
@@ -112,8 +115,9 @@ void main() {
   }
 
   group('HomePage', () {
-    testWidgets('phone layout shows tabs with the game mode panel first',
-        (tester) async {
+    testWidgets('phone layout shows tabs with the game mode panel first', (
+      tester,
+    ) async {
       whenListen(
         appBloc,
         const Stream<AppState>.empty(),
@@ -169,8 +173,9 @@ void main() {
       expect(find.byType(StatsGrid), findsOneWidget);
     });
 
-    testWidgets('shows the match history skeleton while games load',
-        (tester) async {
+    testWidgets('shows the match history skeleton while games load', (
+      tester,
+    ) async {
       whenListen(
         appBloc,
         const Stream<AppState>.empty(),
@@ -199,11 +204,13 @@ void main() {
     for (final isPhone in [true, false]) {
       final layout = isPhone ? 'phone' : 'tablet';
 
-      testWidgets('$layout: shows a dot when a request is pending',
-          (tester) async {
+      testWidgets('$layout: shows a dot when a request is pending', (
+        tester,
+      ) async {
         setViewSize(tester, isPhone: isPhone);
-        when(() => friendRequestBloc.state)
-            .thenReturn(FriendRequestLoaded([pendingRequest]));
+        when(
+          () => friendRequestBloc.state,
+        ).thenReturn(FriendRequestLoaded([pendingRequest]));
 
         await tester.pumpWidget(buildSubject(isPhone: isPhone));
         await tester.pumpAndSettle();
@@ -211,11 +218,13 @@ void main() {
         expect(find.byType(NotificationDot), findsOneWidget);
       });
 
-      testWidgets('$layout: shows no dot when there are no requests',
-          (tester) async {
+      testWidgets('$layout: shows no dot when there are no requests', (
+        tester,
+      ) async {
         setViewSize(tester, isPhone: isPhone);
-        when(() => friendRequestBloc.state)
-            .thenReturn(const FriendRequestLoaded([]));
+        when(
+          () => friendRequestBloc.state,
+        ).thenReturn(const FriendRequestLoaded([]));
 
         await tester.pumpWidget(buildSubject(isPhone: isPhone));
         await tester.pumpAndSettle();
@@ -224,11 +233,13 @@ void main() {
         expect(find.byType(NotificationDot), findsNothing);
       });
 
-      testWidgets('$layout: shows no dot while the stream is erroring',
-          (tester) async {
+      testWidgets('$layout: shows no dot while the stream is erroring', (
+        tester,
+      ) async {
         setViewSize(tester, isPhone: isPhone);
-        when(() => friendRequestBloc.state)
-            .thenReturn(const FriendRequestError('boom'));
+        when(
+          () => friendRequestBloc.state,
+        ).thenReturn(const FriendRequestError('boom'));
 
         await tester.pumpWidget(buildSubject(isPhone: isPhone));
         await tester.pumpAndSettle();

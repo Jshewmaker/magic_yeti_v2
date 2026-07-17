@@ -39,14 +39,16 @@ void main() {
 
     group('getOracleIdByName', () {
       test('returns the oracle id for an exact name match', () async {
-        final oracleId =
-            await client.getOracleIdByName("Atraxa, Praetors' Voice");
+        final oracleId = await client.getOracleIdByName(
+          "Atraxa, Praetors' Voice",
+        );
         expect(oracleId, equals('oracle-atraxa'));
       });
 
       test('matches names case-insensitively', () async {
-        final oracleId =
-            await client.getOracleIdByName("atraxa, praetors' voice");
+        final oracleId = await client.getOracleIdByName(
+          "atraxa, praetors' voice",
+        );
         expect(oracleId, equals('oracle-atraxa'));
       });
 
@@ -93,9 +95,13 @@ void main() {
 
       test('decodes json with a utf8 byte order that round-trips', () async {
         // Sanity check that byte-level decoding matches the fixture contents.
-        final fixture = jsonDecode(
-          File('test/src/fixtures/cards_fixture.json').readAsStringSync(),
-        ) as List<dynamic>;
+        final fixture =
+            jsonDecode(
+                  File(
+                    'test/src/fixtures/cards_fixture.json',
+                  ).readAsStringSync(),
+                )
+                as List<dynamic>;
         final result = await client.searchCards('');
         expect(result.totalCards, equals(fixture.length));
       });

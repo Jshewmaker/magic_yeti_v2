@@ -88,8 +88,9 @@ void main() {
         'a new LoadMatchHistory cancels the previous subscription',
         setUp: () {
           final firstUserGames = StreamController<List<GameModel>>();
-          when(() => databaseRepository.getGames('user-1'))
-              .thenAnswer((_) => firstUserGames.stream);
+          when(
+            () => databaseRepository.getGames('user-1'),
+          ).thenAnswer((_) => firstUserGames.stream);
           when(() => databaseRepository.getGames('user-2')).thenAnswer(
             (_) => Stream.value([newerGame]),
           );
@@ -171,8 +172,9 @@ void main() {
       blocTest<MatchHistoryBloc, MatchHistoryState>(
         'adds the match and lets the games stream deliver the update',
         setUp: () {
-          when(() => databaseRepository.getGame('ROOM'))
-              .thenAnswer((_) async => newerGame);
+          when(
+            () => databaseRepository.getGame('ROOM'),
+          ).thenAnswer((_) async => newerGame);
           when(
             () => databaseRepository.addMatchToPlayerHistory(newerGame, 'p1'),
           ).thenAnswer((_) async {});

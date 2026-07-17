@@ -14,14 +14,14 @@ class _MockScryfallRepository extends Mock implements ScryfallRepository {}
 const _gatedCommander = 'Gated Commander';
 
 Commander _commander(String name) => Commander(
-      name: name,
-      colors: const ['G'],
-      cardType: 'Legendary Creature',
-      imageUrl: '',
-      manaCost: '{G}',
-      oracleText: '',
-      artist: 'Artist',
-    );
+  name: name,
+  colors: const ['G'],
+  cardType: 'Legendary Creature',
+  imageUrl: '',
+  manaCost: '{G}',
+  oracleText: '',
+  artist: 'Artist',
+);
 
 /// Mirrors the minimal single-player [GameModel] fixture used in
 /// `test/home/match_history_bloc/match_history_bloc_test.dart`: a populated
@@ -207,7 +207,8 @@ void main() {
           expect(
             loaded.games.map((game) => game.id).toList(),
             ['recent'],
-            reason: 'games must match the range the state reports; the '
+            reason:
+                'games must match the range the state reports; the '
                 '200-day-old game is outside Last 30 Days',
           );
         },
@@ -254,7 +255,8 @@ void main() {
           expect(
             loaded.games.map((game) => game.id).toList(),
             ['recent'],
-            reason: 'the in-flight allTime compile must not emit its game set '
+            reason:
+                'the in-flight allTime compile must not emit its game set '
                 'under the newer Last 30 Days label',
           );
         },

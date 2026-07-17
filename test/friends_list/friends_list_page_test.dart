@@ -55,8 +55,9 @@ void main() {
     // repository method immediately via LoadFriends. Unrelated to the
     // Requests-tab badge under test, but must be stubbed or the unmocked
     // call throws and fails the test.
-    when(() => databaseRepository.watchFriends(any()))
-        .thenAnswer((_) => const Stream.empty());
+    when(
+      () => databaseRepository.watchFriends(any()),
+    ).thenAnswer((_) => const Stream.empty());
   });
 
   Widget buildSubject() {
@@ -81,8 +82,9 @@ void main() {
 
   group('FriendsListPage', () {
     testWidgets('shows the request count on the Requests tab', (tester) async {
-      when(() => friendRequestBloc.state)
-          .thenReturn(FriendRequestLoaded([request]));
+      when(
+        () => friendRequestBloc.state,
+      ).thenReturn(FriendRequestLoaded([request]));
 
       await tester.pumpWidget(buildSubject());
 
@@ -90,8 +92,9 @@ void main() {
     });
 
     testWidgets('shows no count when there are no requests', (tester) async {
-      when(() => friendRequestBloc.state)
-          .thenReturn(const FriendRequestLoaded([]));
+      when(
+        () => friendRequestBloc.state,
+      ).thenReturn(const FriendRequestLoaded([]));
 
       await tester.pumpWidget(buildSubject());
 
@@ -99,21 +102,23 @@ void main() {
     });
 
     testWidgets(
-        'count clears when the bloc emits an empty list, with no remount '
-        '— the original bug', (tester) async {
-      whenListen(
-        friendRequestBloc,
-        Stream<FriendRequestState>.fromIterable([
-          const FriendRequestLoaded([]),
-        ]),
-        initialState: FriendRequestLoaded([request]),
-      );
+      'count clears when the bloc emits an empty list, with no remount '
+      '— the original bug',
+      (tester) async {
+        whenListen(
+          friendRequestBloc,
+          Stream<FriendRequestState>.fromIterable([
+            const FriendRequestLoaded([]),
+          ]),
+          initialState: FriendRequestLoaded([request]),
+        );
 
-      await tester.pumpWidget(buildSubject());
-      expect(find.text('1'), findsOneWidget);
+        await tester.pumpWidget(buildSubject());
+        expect(find.text('1'), findsOneWidget);
 
-      await tester.pump();
-      expect(find.text('1'), findsNothing);
-    });
+        await tester.pump();
+        expect(find.text('1'), findsNothing);
+      },
+    );
   });
 }
