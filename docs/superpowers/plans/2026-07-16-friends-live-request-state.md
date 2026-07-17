@@ -403,7 +403,7 @@ class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
       // Deliberately no emit on success. acceptFriendRequest ends in a batch
       // delete of the request doc, so the watchFriendRequests query re-emits
       // without it — and Firestore's latency compensation fires the local
-      // listener before the server acks, so it is immediate. Maintaining an
+      // listener before the server acknowledges the write, so it is immediate. Maintaining an
       // in-memory copy here is what let the tab badge go stale.
     } on LegacyFriendRequestException {
       emit(const FriendRequestLegacyAcceptError());
@@ -981,7 +981,7 @@ class BadgedIconButton extends StatelessWidget {
   /// Whether to overlay the dot. False renders a plain [IconButton].
   final bool showBadge;
 
-  /// Icon colour. Null inherits from the ambient [IconTheme] — which is what
+  /// Icon color. Null inherits from the ambient [IconTheme] — which is what
   /// an AppBar action wants.
   final Color? color;
 
@@ -1480,7 +1480,7 @@ git commit -m "feat(home): show a dot on the friends icon for pending requests"
 
 ### Task 8: Delete the dead one-shot reads
 
-Nothing calls `getFriends` or `getFriendRequests` after Tasks 2, 3 and 6. Leaving them is leaving the footgun loaded.
+Nothing calls `getFriends` or `getFriendRequests` after Tasks 2, 3 and 6. Leaving them is leaving the hazard in place — a future contributor reaches for the familiar one-shot read and silently reintroduces the stale badge.
 
 **Files:**
 - Modify: `packages/firebase_database_repository/lib/src/firebase_database_repository.dart` (delete `:622-636`, `:643-657`)
@@ -1518,7 +1518,7 @@ Keep the surrounding assertions in that test's original body if they cover more 
 
 - [ ] **Step 3: Delete the methods**
 
-Remove `getFriends` (`:622-636`) and `getFriendRequests` (`:643-657`) entirely, including their docstrings. In the `blockUser` docstring at `:805`, update the stale prose reference:
+Remove `getFriends` (`:622-636`) and `getFriendRequests` (`:643-657`) entirely, including their doc comments. In the `blockUser` docstring at `:805`, update the stale prose reference:
 
 ```dart
   /// is denied. Declined docs don't need deleting: they're already invisible

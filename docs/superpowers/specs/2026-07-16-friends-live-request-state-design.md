@@ -93,7 +93,8 @@ Stream<List<FriendModel>> watchFriends(String userId);
 
 These **replace** `getFriendRequests` and `getFriends` rather than sitting
 alongside them — every caller converts, so leaving the `.get()` variants would
-just preserve the footgun.
+just leave the hazard in place: the next contributor reaches for the
+familiar one-shot read and the stale badge comes straight back.
 
 `watchFriendRequests` queries `friendRequests` where `receiverId == userId` and
 `status == 'pending'` — byte-for-byte the query `getFriendRequests` already runs,
@@ -136,7 +137,7 @@ same instance, so they cannot diverge, and only one listener is opened.
   `acceptFriendRequest` ends in `batch.delete(...)` on the request doc
   (`packages/firebase_database_repository/lib/src/firebase_database_repository.dart:576`),
   which makes the stream re-emit without it. Firestore's latency compensation
-  fires the local listener before the server acks, so this is instant *and*
+  fires the local listener before the server acknowledges the write, so this is instant *and*
   self-healing — the badge clears because the truth changed, not because someone
   remembered to clear it.
 App-root wiring mirrors `MatchHistoryBloc` exactly: provide the bloc at
@@ -214,7 +215,7 @@ tap Accept
           → home dot hides, tab count decrements
       → watchFriends re-emits with the new friend
           → Friends tab shows them
-  → server acks; no second UI change
+  → server acknowledges the write; no second UI change
 ```
 
 No refresh event, no manual invalidation, no cross-widget wiring. Every surface

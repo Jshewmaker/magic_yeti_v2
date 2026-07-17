@@ -25,7 +25,7 @@ class BadgedIconButton extends StatelessWidget {
   /// Whether to overlay the dot. False renders a plain [IconButton].
   final bool showBadge;
 
-  /// Icon colour. Null inherits from the ambient [IconTheme] — which is what
+  /// Icon color. Null inherits from the ambient [IconTheme] — which is what
   /// an AppBar action wants.
   final Color? color;
 
