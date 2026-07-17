@@ -15,6 +15,7 @@ final class StatsOverviewLoaded extends StatsOverviewState {
   const StatsOverviewLoaded({
     required this.userId,
     required this.games,
+    required this.range,
     required this.uniqueCommanderCount,
     required this.totalWins,
     required this.winPercentage,
@@ -37,6 +38,10 @@ final class StatsOverviewLoaded extends StatsOverviewState {
 
   final String userId;
   final List<GameModel> games;
+
+  /// The time range the [games] were filtered to. Owned here rather than by
+  /// the widget so the dropdown renders from bloc state.
+  final StatsTimeRange range;
   final int uniqueCommanderCount;
   final int totalWins;
   final int winPercentage;
@@ -60,6 +65,7 @@ final class StatsOverviewLoaded extends StatsOverviewState {
   List<Object> get props => [
         userId,
         games,
+        range,
         uniqueCommanderCount,
         totalWins,
         winPercentage,

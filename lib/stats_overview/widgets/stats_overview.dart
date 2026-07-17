@@ -8,17 +8,6 @@ import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/stats_overview/stats_overview.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 
-enum StatsTimeRange {
-  allTime('All Time'),
-  last12Months('Last 12 Months'),
-  last6Months('Last 6 Months'),
-  last3Months('Last 3 Months'),
-  last30Days('Last 30 Days');
-
-  const StatsTimeRange(this.label);
-  final String label;
-}
-
 /// The player's aggregate stats, recomputed whenever the match history
 /// changes or the selected time range changes.
 ///
@@ -47,8 +36,6 @@ class _StatsOverviewView extends StatefulWidget {
 }
 
 class _StatsOverviewViewState extends State<_StatsOverviewView> {
-  StatsTimeRange _selectedRange = StatsTimeRange.allTime;
-
   @override
   void initState() {
     super.initState();
@@ -61,34 +48,18 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
     }
   }
 
-  List<GameModel> _filterGames(List<GameModel> games) {
-    if (_selectedRange == StatsTimeRange.allTime) {
-      return games;
-    }
-    final now = DateTime.now();
-    final cutoff = switch (_selectedRange) {
-      StatsTimeRange.last12Months => DateTime(now.year - 1, now.month, now.day),
-      StatsTimeRange.last6Months => DateTime(now.year, now.month - 6, now.day),
-      StatsTimeRange.last3Months => DateTime(now.year, now.month - 3, now.day),
-      StatsTimeRange.last30Days => now.subtract(const Duration(days: 30)),
-      StatsTimeRange.allTime => now,
-    };
-    return games.where((game) => game.endTime.isAfter(cutoff)).toList();
-  }
-
   void _compileStats(List<GameModel> games) {
     context.read<StatsOverviewBloc>().add(
       CompileStatsOverviewData(
         userId: context.read<AppBloc>().state.user.id,
-        games: _filterGames(games),
+        games: games,
       ),
     );
   }
 
   void _onRangeChanged(StatsTimeRange? range) {
     if (range == null) return;
-    setState(() => _selectedRange = range);
-    _compileStats(context.read<MatchHistoryBloc>().state.games);
+    context.read<StatsOverviewBloc>().add(StatsTimeRangeChanged(range));
   }
 
   @override
@@ -103,7 +74,7 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
           if (state is StatsOverviewLoaded) {
             return Column(
               children: [
-                _buildDropdown(context),
+                _buildDropdown(context, state.range),
                 Expanded(
                   child: StatsGrid(children: _buildStatWidgets(l10n, state)),
                 ),
@@ -113,7 +84,7 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
           if (state is StatsOverviewFailure) {
             return Column(
               children: [
-                _buildDropdown(context),
+                _buildDropdown(context, StatsTimeRange.allTime),
                 const Expanded(
                   child: Center(
                     child: Text('No data available'),
@@ -122,14 +93,14 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
               ],
             );
           }
-          // Initial (match history still loading) and Loading (compiling).
+          // No compiled data yet: initial load, or a compile in flight.
           return const StatsOverviewSkeleton();
         },
       ),
     );
   }
 
-  Widget _buildDropdown(BuildContext context) {
+  Widget _buildDropdown(BuildContext context, StatsTimeRange range) {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
@@ -138,7 +109,7 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
       child: Align(
         alignment: Alignment.centerRight,
         child: DropdownButton<StatsTimeRange>(
-          value: _selectedRange,
+          value: range,
           dropdownColor: Colors.grey[900],
           style: Theme.of(
             context,

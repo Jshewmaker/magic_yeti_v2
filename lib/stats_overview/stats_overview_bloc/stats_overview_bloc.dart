@@ -7,23 +7,74 @@ import 'package:scryfall_repository/scryfall_repository.dart';
 part 'stats_overview_event.dart';
 part 'stats_overview_state.dart';
 
+enum StatsTimeRange {
+  allTime('All Time'),
+  last12Months('Last 12 Months'),
+  last6Months('Last 6 Months'),
+  last3Months('Last 3 Months'),
+  last30Days('Last 30 Days');
+
+  const StatsTimeRange(this.label);
+  final String label;
+}
+
 class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
   StatsOverviewBloc({required ScryfallRepository scryfallRepository})
       : _scryfallRepository = scryfallRepository,
         super(StatsOverviewInitial()) {
     on<CompileStatsOverviewData>(_onCompileStatsOverviewData);
+    on<StatsTimeRangeChanged>(_onTimeRangeChanged);
   }
 
   final ScryfallRepository _scryfallRepository;
+
+  List<GameModel> _allGames = const [];
+  String _userId = '';
+  StatsTimeRange _range = StatsTimeRange.allTime;
 
   Future<void> _onCompileStatsOverviewData(
     CompileStatsOverviewData event,
     Emitter<StatsOverviewState> emit,
   ) async {
-    emit(StatsOverviewLoading());
+    _allGames = event.games;
+    _userId = event.userId;
+    await _emitCompiled(emit);
+  }
+
+  Future<void> _onTimeRangeChanged(
+    StatsTimeRangeChanged event,
+    Emitter<StatsOverviewState> emit,
+  ) async {
+    _range = event.range;
+    await _emitCompiled(emit);
+  }
+
+  List<GameModel> _filterGames(List<GameModel> games) {
+    if (_range == StatsTimeRange.allTime) {
+      return games;
+    }
+    final now = DateTime.now();
+    final cutoff = switch (_range) {
+      StatsTimeRange.last12Months => DateTime(now.year - 1, now.month, now.day),
+      StatsTimeRange.last6Months => DateTime(now.year, now.month - 6, now.day),
+      StatsTimeRange.last3Months => DateTime(now.year, now.month - 3, now.day),
+      StatsTimeRange.last30Days => now.subtract(const Duration(days: 30)),
+      StatsTimeRange.allTime => now,
+    };
+    return games.where((game) => game.endTime.isAfter(cutoff)).toList();
+  }
+
+  /// Filters [_allGames] to [_range], compiles all 18 stats over the
+  /// result, and emits the outcome.
+  ///
+  /// Shared by both event handlers so the compilation logic — including
+  /// oracle ID resolution — lives in exactly one place instead of being
+  /// duplicated between them.
+  Future<void> _emitCompiled(Emitter<StatsOverviewState> emit) async {
     try {
-      final games = await _resolveOracleIds(event.games, event.userId);
-      final userId = event.userId;
+      final filteredGames = _filterGames(_allGames);
+      final games = await _resolveOracleIds(filteredGames, _userId);
+      final userId = _userId;
       // Calculate statistics
       final uniqueCommanderCount =
           _calculateUniqueCommanders(games, userId);
@@ -50,7 +101,8 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
 
       emit(StatsOverviewLoaded(
         userId: userId,
-        games: event.games,
+        games: filteredGames,
+        range: _range,
         uniqueCommanderCount: uniqueCommanderCount,
         totalWins: totalWins,
         winPercentage: winPercentage,

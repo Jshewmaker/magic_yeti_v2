@@ -23,3 +23,15 @@ final class CompileStatsOverviewData extends StatsOverviewEvent {
   @override
   List<Object> get props => [userId, games];
 }
+
+/// Re-filters the games already held by the bloc to a new time range.
+///
+/// The bloc keeps the last compiled game list, so changing the range does
+/// not require the caller to re-supply it.
+final class StatsTimeRangeChanged extends StatsOverviewEvent {
+  const StatsTimeRangeChanged(this.range);
+  final StatsTimeRange range;
+
+  @override
+  List<Object> get props => [range];
+}
