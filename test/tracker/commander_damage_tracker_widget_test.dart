@@ -1,3 +1,4 @@
+import 'package:app_ui/app_ui.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,12 +59,15 @@ Widget buildTestWidget({
   required GameBloc gameBloc,
 }) {
   return MaterialApp(
-    home: MultiBlocProvider(
-      providers: [
-        BlocProvider<PlayerBloc>.value(value: playerBloc),
-        BlocProvider<GameBloc>.value(value: gameBloc),
-      ],
-      child: Scaffold(body: child),
+    home: DeviceInfoProvider(
+      isPhone: true,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<PlayerBloc>.value(value: playerBloc),
+          BlocProvider<GameBloc>.value(value: gameBloc),
+        ],
+        child: Scaffold(body: child),
+      ),
     ),
   );
 }

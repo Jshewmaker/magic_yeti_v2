@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/app_router/app_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
-import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/commander_library/commander_library_repository.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
@@ -75,7 +74,9 @@ class App extends StatelessWidget {
             create: (context) => MatchHistoryBloc(
               databaseRepository: context.read<FirebaseDatabaseRepository>(),
             )..add(
-                LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
+                LoadMatchHistory(
+                  userId: _historyUserId(context.read<AppBloc>().state),
+                ),
               ),
           ),
           BlocProvider(
@@ -87,6 +88,12 @@ class App extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The user whose match history should be shown: the signed-in user, or
+/// nobody (empty id clears the history) for any other auth state.
+String _historyUserId(AppState state) {
+  return state.status == AppStatus.authenticated ? state.user.id : '';
 }
 
 class AppView extends StatefulWidget {
@@ -119,14 +126,20 @@ class _AppViewState extends State<AppView> {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) {
-        // Determine device type at the app root level
-        final mediaQuery = MediaQuery.of(context);
-        final isPhone = mediaQuery.size.shortestSide < 600;
-
-        // Wrap the app with DeviceInfoProvider
-        return DeviceInfoProvider(
-          isPhone: isPhone,
-          child: child!,
+        return DeviceInfoProvider.fromMediaQuery(
+          // Keep the match history subscribed to whoever is signed in;
+          // sign-out clears it. Lives at the app root so it holds no matter
+          // which screen is visible.
+          child: BlocListener<AppBloc, AppState>(
+            listenWhen: (previous, current) =>
+                _historyUserId(previous) != _historyUserId(current),
+            listener: (context, state) {
+              context
+                  .read<MatchHistoryBloc>()
+                  .add(LoadMatchHistory(userId: _historyUserId(state)));
+            },
+            child: child!,
+          ),
         );
       },
       routerConfig: _appRouter.routes,

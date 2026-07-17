@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 /// Skeleton placeholder for the match history list, shown while games load.
 ///
-/// Mirrors the layout of the real `CustomListItem` cards (a large winner
+/// Mirrors the layout of the real `MatchHistoryListItem` cards (a large winner
 /// thumbnail, a column of runner-up thumbnails, and stacked detail lines) so
 /// the transition to real content is seamless.
 class MatchHistorySkeleton extends StatelessWidget {

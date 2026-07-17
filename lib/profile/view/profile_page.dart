@@ -6,7 +6,7 @@ import 'package:form_inputs/form_inputs.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hold_to_confirm_button/hold_to_confirm_button.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
-import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/home/home.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/profile/bloc/profile_bloc.dart';
 import 'package:user_repository/user_repository.dart';

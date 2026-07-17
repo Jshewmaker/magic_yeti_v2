@@ -7,7 +7,10 @@ sealed class MatchHistoryEvent extends Equatable {
   List<Object> get props => [];
 }
 
-/// Event to load match history
+/// Event to (re)subscribe to a user's match history.
+///
+/// Passing an empty [userId] clears the history and cancels any active
+/// subscription (used on sign-out).
 final class LoadMatchHistory extends MatchHistoryEvent {
   const LoadMatchHistory({
     required this.userId,
@@ -31,9 +34,4 @@ final class AddMatchToPlayerHistoryEvent extends MatchHistoryEvent {
 
   @override
   List<Object> get props => [roomId, playerId];
-}
-
-/// Event to clear match history
-final class ClearMatchHistory extends MatchHistoryEvent {
-  const ClearMatchHistory();
 }

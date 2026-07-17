@@ -33,8 +33,7 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       final longestGameDuration = _findLongestGameDuration(games);
       final averagePlacement = _calculateAveragePlacement(games, userId);
       final timesWentFirst = _calculateTimesWentFirst(games, userId);
-      final mostPlayedCommander = _calculateMostPlayedCommander(
-          games, uniqueCommanderCount, userId);
+      final mostPlayedCommander = _calculateMostPlayedCommander(games, userId);
       final averageGameDuration = _calculateAverageGameDuration(games);
       final winRateWhenFirst = _calculateWinRateWhenFirst(games, userId);
       final bestCommander = _calculateBestCommander(games, userId);
@@ -156,14 +155,10 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
     return uniqueCommanders.length;
   }
 
-  String _calculateMostPlayedCommander(
-    List<GameModel> games,
-    int uniqueCommanderCount,
-    String userId,
-  ) {
+  String _calculateMostPlayedCommander(List<GameModel> games, String userId) {
     if (games.isEmpty) return 'No games';
 
-    final commanderKeys = <String>[];
+    final playCounts = <String, int>{};
     final keyToName = <String, String>{};
     for (final game in games) {
       final player = _findPlayerInGame(game, userId);
@@ -171,19 +166,14 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       if (commander == null) continue;
       final key = commander.oracleId ?? commander.name;
       if (key.isEmpty || key == 'null') continue;
-      commanderKeys.add(key);
+      playCounts[key] = (playCounts[key] ?? 0) + 1;
       keyToName[key] = commander.name;
     }
-    if (commanderKeys.isEmpty) return 'No commanders';
-    final mostPlayedKey = commanderKeys.reduce((current, next) {
-      return commanderKeys.where((element) => element == current).length >
-              commanderKeys.where((element) => element == next).length
-          ? current
-          : next;
-    });
-    final mostPlayedCommander = keyToName[mostPlayedKey] ?? mostPlayedKey;
-
-    return mostPlayedCommander;
+    if (playCounts.isEmpty) return 'No commanders';
+    final mostPlayedKey = playCounts.entries
+        .reduce((a, b) => a.value >= b.value ? a : b)
+        .key;
+    return keyToName[mostPlayedKey] ?? mostPlayedKey;
   }
 
   /// Calculate how many times the player went first
