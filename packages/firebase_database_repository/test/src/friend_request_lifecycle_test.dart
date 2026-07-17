@@ -120,11 +120,11 @@ void main() {
       expect(declinedDoc.data()!['status'], 'declined');
     });
 
-    test('getFriendRequests still filters to pending only', () async {
+    test('watchFriendRequests still filters to pending only', () async {
       await repository.addFriendRequest('alice', 'Alice', null, 'bob');
       await repository.addFriendRequest('carol', 'Carol', null, 'bob');
       await repository.declineFriendRequest('alice_bob');
-      final requests = await repository.getFriendRequests('bob');
+      final requests = await repository.watchFriendRequests('bob').first;
       expect(requests.map((r) => r.senderId), ['carol']);
     });
 
