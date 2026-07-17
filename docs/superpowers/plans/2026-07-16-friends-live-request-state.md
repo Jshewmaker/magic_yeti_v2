@@ -12,7 +12,8 @@
 
 ## Global Constraints
 
-- **Lint:** `very_good_analysis` (strict). Run `flutter analyze` before every commit; it must be clean.
+- **Lint:** `very_good_analysis` (strict). Run `flutter analyze` before every commit. It is **not** clean today and never has been — the baselines are **163 issues at root**, **26 in `packages/app_ui`**, **14 in `packages/firebase_database_repository`**. The bar is **no regression against those counts**, not zero. If a count rises, the new issue is yours — fix it. Do **not** fix pre-existing issues: that inflates the diff and buries the signal your change is clean.
+- **Always pipe `flutter test` and `flutter analyze` through `tail -5`.** Raw `flutter test` emits megabytes of carriage-return progress lines that break agent transport — this cost a previous run on this repo roughly five of six dispatches before it was diagnosed. Every command in this plan that omits the pipe should get one.
 - **No new Firestore index or rules deploy.** `watchFriendRequests` must use the exact query `getFriendRequests` uses today (`receiverId ==`, `status == 'pending'`). Any change to the query shape breaks this guarantee and is out of scope.
 - **`setState` rule:** blocs for business logic and server state; `setState` only for view ephemera (a toggle, an expand). Do not "fix" any `setState` not named in this plan — the rest were surveyed and are correct as-is.
 - **The reference implementation for every stream bloc in this plan is `lib/home/match_history_bloc/match_history_bloc.dart`.** It already solves restartable re-subscription and the empty-userId clear. Follow it rather than inventing a variant.
@@ -786,16 +787,22 @@ indicator, so the two surfaces cannot disagree."
 
 ---
 
-### Task 5: NotificationDot in app_ui
+### Task 5: NotificationDot and BadgedIconButton in app_ui
 
 **Files:**
 - Create: `packages/app_ui/lib/src/widgets/notification_dot.dart`
+- Create: `packages/app_ui/lib/src/widgets/badged_icon_button.dart`
 - Modify: `packages/app_ui/lib/src/widgets/widgets.dart`
 - Test: `packages/app_ui/test/src/widgets/notification_dot_test.dart` (create)
+- Test: `packages/app_ui/test/src/widgets/badged_icon_button_test.dart` (create)
 
 **Interfaces:**
 - Consumes: `AppColors` from `app_ui`.
-- Produces: `NotificationDot({Key? key, double size = 10})` — a bare red circle, exported from `package:app_ui/app_ui.dart`.
+- Produces, both exported from `package:app_ui/app_ui.dart`:
+  - `NotificationDot({Key? key, double size = 10})` — a bare red circle.
+  - `BadgedIconButton({required IconData icon, required VoidCallback? onPressed, bool showBadge = false, Color? color, Key? key})` — an `IconButton` with the dot overlaid.
+
+`BadgedIconButton` exists because the dot has two call sites (the phone AppBar and the tablet `SectionHeader`) and the overlay geometry is the fiddly part. Duplicating `Positioned(right: 6, top: 6)` across two layouts is how they drift out of alignment.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -869,6 +876,7 @@ Add to `packages/app_ui/lib/src/widgets/widgets.dart`, keeping alphabetical orde
 
 ```dart
 export 'app_shimmer.dart';
+export 'badged_icon_button.dart';
 export 'hold_to_confirm_button.dart';
 export 'notification_dot.dart';
 export 'scrollable_column.dart';
@@ -877,20 +885,145 @@ export 'stroke_text.dart';
 export 'toast.dart';
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [ ] **Step 4: Write the failing test for BadgedIconButton**
+
+Create `packages/app_ui/test/src/widgets/badged_icon_button_test.dart`:
+
+```dart
+import 'package:app_ui/app_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  group('BadgedIconButton', () {
+    testWidgets('shows the dot when showBadge is true', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: BadgedIconButton(
+              icon: Icons.people,
+              showBadge: true,
+              onPressed: () {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(NotificationDot), findsOneWidget);
+    });
+
+    testWidgets('hides the dot when showBadge is false', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: BadgedIconButton(
+              icon: Icons.people,
+              onPressed: () {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(NotificationDot), findsNothing);
+    });
+
+    testWidgets('the dot does not steal taps from the button', (tester) async {
+      var taps = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: BadgedIconButton(
+              icon: Icons.people,
+              showBadge: true,
+              onPressed: () => taps++,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.people));
+      expect(taps, 1);
+    });
+  });
+}
+```
+
+The third test is the one that earns its keep: the dot sits over the button's tap target, and without `IgnorePointer` the most obvious place to tap is dead.
+
+- [ ] **Step 5: Implement BadgedIconButton**
+
+Create `packages/app_ui/lib/src/widgets/badged_icon_button.dart`:
+
+```dart
+import 'package:app_ui/app_ui.dart';
+import 'package:flutter/material.dart';
+
+/// An [IconButton] with a [NotificationDot] overlaid on its top-right.
+///
+/// Owns the badge geometry so every entry point that can carry a dot places
+/// it identically — the phone AppBar and the tablet section header would
+/// otherwise drift apart.
+class BadgedIconButton extends StatelessWidget {
+  const BadgedIconButton({
+    required this.icon,
+    required this.onPressed,
+    this.showBadge = false,
+    this.color,
+    super.key,
+  });
+
+  final IconData icon;
+  final VoidCallback? onPressed;
+
+  /// Whether to overlay the dot. False renders a plain [IconButton].
+  final bool showBadge;
+
+  /// Icon colour. Null inherits from the ambient [IconTheme] — which is what
+  /// an AppBar action wants.
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          onPressed: onPressed,
+          icon: Icon(icon, color: color),
+        ),
+        if (showBadge)
+          const Positioned(
+            right: 6,
+            top: 6,
+            // The dot overlaps the button's tap target; without this the
+            // centre of the icon would not respond.
+            child: IgnorePointer(child: NotificationDot()),
+          ),
+      ],
+    );
+  }
+}
+```
+
+- [ ] **Step 6: Run both tests to verify they pass**
 
 ```bash
-cd packages/app_ui && flutter test test/src/widgets/notification_dot_test.dart
+cd packages/app_ui && flutter test test/src/widgets/ 2>&1 | tail -5
 ```
 
 Expected: PASS.
 
-- [ ] **Step 5: Analyze and commit**
+- [ ] **Step 7: Analyze and commit**
 
 ```bash
-cd packages/app_ui && flutter analyze
-git add packages/app_ui/lib/src/widgets/notification_dot.dart packages/app_ui/lib/src/widgets/widgets.dart packages/app_ui/test/src/widgets/notification_dot_test.dart
-git commit -m "feat(app_ui): add NotificationDot"
+cd packages/app_ui && flutter analyze 2>&1 | tail -3
+```
+
+Expected: **26 issues** — the app_ui baseline, unchanged.
+
+```bash
+git add packages/app_ui/lib/src/widgets/ packages/app_ui/test/src/widgets/
+git commit -m "feat(app_ui): add NotificationDot and BadgedIconButton"
 ```
 
 ---
@@ -1121,7 +1254,7 @@ at all."
 - Test: `test/home/view/home_page_test.dart` (**extend — this file already exists**)
 
 **Interfaces:**
-- Consumes: `NotificationDot` (Task 5); app-root `FriendRequestBloc` (Task 4).
+- Consumes: `BadgedIconButton` (Task 5); app-root `FriendRequestBloc` (Task 4). Both home entry points render the dot through `BadgedIconButton` — do **not** hand-roll a `Stack`/`Positioned` overlay in this task.
 - Produces: `SectionHeader` gains `bool showBadge` (default `false`).
 
 - [ ] **Step 1: Extend the existing home test**
@@ -1254,31 +1387,19 @@ In `lib/home/widgets/section_header.dart`, extend the constructor and fields:
   final bool showBadge;
 ```
 
-Replace the `icon != null` branch at `:48-56` so the dot overlays the icon:
+Replace the `icon != null` branch at `:48-56` with the shared widget — `BadgedIconButton` owns the `Stack`/`Positioned`/`IgnorePointer` geometry, so this file does not restate it:
 
 ```dart
             if (icon != null)
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    onPressed: onMorePressed,
-                    icon: Icon(
-                      icon,
-                      color: AppColors.onSurfaceVariant,
-                    ),
-                  ),
-                  if (showBadge)
-                    const Positioned(
-                      right: 6,
-                      top: 6,
-                      child: IgnorePointer(child: NotificationDot()),
-                    ),
-                ],
+              BadgedIconButton(
+                icon: icon!,
+                color: AppColors.onSurfaceVariant,
+                showBadge: showBadge,
+                onPressed: onMorePressed,
               )
 ```
 
-`IgnorePointer` matters — the dot sits over the button's tap target, and without it the most obvious place to tap would be dead.
+Leave the `else if` profile-photo branches below it untouched — `showBadge` is only honoured on the explicit-icon path.
 
 - [ ] **Step 4: Wire both home layouts**
 
@@ -1314,25 +1435,15 @@ Tablet — replace `:83-87`:
                 ),
 ```
 
-Phone — replace the `actions` list at `:128-133`:
+Phone — replace the `actions` list at `:128-133`. No `color`: the AppBar's `IconTheme` already supplies it, and hardcoding one here would diverge from every other action:
 
 ```dart
           actions: [
             BlocBuilder<FriendRequestBloc, FriendRequestState>(
-              builder: (context, state) => Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    onPressed: () => context.push(FriendsListPage.routePath),
-                    icon: const Icon(Icons.people),
-                  ),
-                  if (_hasPendingRequests(state))
-                    const Positioned(
-                      right: 6,
-                      top: 6,
-                      child: IgnorePointer(child: NotificationDot()),
-                    ),
-                ],
+              builder: (context, state) => BadgedIconButton(
+                icon: Icons.people,
+                showBadge: _hasPendingRequests(state),
+                onPressed: () => context.push(FriendsListPage.routePath),
               ),
             ),
           ],
