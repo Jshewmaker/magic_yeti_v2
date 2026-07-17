@@ -32,6 +32,11 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
   String _userId = '';
   StatsTimeRange _range = StatsTimeRange.allTime;
 
+  /// Monotonic counter identifying each [_emitCompiled] invocation.
+  ///
+  /// See [_emitCompiled] for why this exists.
+  int _generation = 0;
+
   Future<void> _onCompileStatsOverviewData(
     CompileStatsOverviewData event,
     Emitter<StatsOverviewState> emit,
@@ -49,12 +54,16 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
     await _emitCompiled(emit);
   }
 
-  List<GameModel> _filterGames(List<GameModel> games) {
-    if (_range == StatsTimeRange.allTime) {
+  /// Filters [games] to [range].
+  ///
+  /// [range] is passed in rather than read from `_range` so this stays a pure
+  /// function of its arguments — see [_emitCompiled] for why that matters.
+  List<GameModel> _filterGames(List<GameModel> games, StatsTimeRange range) {
+    if (range == StatsTimeRange.allTime) {
       return games;
     }
     final now = DateTime.now();
-    final cutoff = switch (_range) {
+    final cutoff = switch (range) {
       StatsTimeRange.last12Months => DateTime(now.year - 1, now.month, now.day),
       StatsTimeRange.last6Months => DateTime(now.year, now.month - 6, now.day),
       StatsTimeRange.last3Months => DateTime(now.year, now.month - 3, now.day),
@@ -70,11 +79,37 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
   /// Shared by both event handlers so the compilation logic — including
   /// oracle ID resolution — lives in exactly one place instead of being
   /// duplicated between them.
+  ///
+  /// Both handlers routing through here means invocations can overlap: the
+  /// bloc package processes events concurrently by default, and `on<E>()`
+  /// registers an *independent* subscription per event type. So a
+  /// [CompileStatsOverviewData] (which arrives unprompted from live match
+  /// history updates) can interleave with a [StatsTimeRangeChanged] across
+  /// the `await` below. Per-registration transformers cannot fix that —
+  /// they only serialise same-type events.
+  ///
+  /// Two separate guards make that safe. They solve different halves of the
+  /// problem, so removing either reintroduces a bug:
+  ///
+  /// 1. **Consistency** — `range`/`userId`/`allGames` are captured into
+  ///    locals *before* the await and are the only values read afterwards.
+  ///    Re-reading the mutable fields after the await would pair one
+  ///    invocation's `games` with a different invocation's `range`, e.g.
+  ///    labelling a 12-month game set "Last 30 Days".
+  /// 2. **Ordering** — [_generation] fences the emit, so an invocation that
+  ///    resumes late cannot clobber a newer invocation's result with stale
+  ///    data. Locals alone do not give this: a slow earlier invocation would
+  ///    still emit last, overwriting a newer, correct result.
   Future<void> _emitCompiled(Emitter<StatsOverviewState> emit) async {
+    final generation = ++_generation;
+    final range = _range;
+    final userId = _userId;
+    final allGames = _allGames;
+
+    emit(StatsOverviewLoading());
     try {
-      final filteredGames = _filterGames(_allGames);
-      final games = await _resolveOracleIds(filteredGames, _userId);
-      final userId = _userId;
+      final filteredGames = _filterGames(allGames, range);
+      final games = await _resolveOracleIds(filteredGames, userId);
       // Calculate statistics
       final uniqueCommanderCount =
           _calculateUniqueCommanders(games, userId);
@@ -99,10 +134,14 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       final bestColorCombo = _calculateBestColorCombo(games, userId);
       final bestSingleColor = _calculateBestSingleColor(games, userId);
 
+      // A newer invocation started while we were awaiting; its result is the
+      // one the user is waiting on, so drop ours rather than clobber it.
+      if (generation != _generation) return;
+
       emit(StatsOverviewLoaded(
         userId: userId,
         games: filteredGames,
-        range: _range,
+        range: range,
         uniqueCommanderCount: uniqueCommanderCount,
         totalWins: totalWins,
         winPercentage: winPercentage,
@@ -123,6 +162,9 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
         bestSingleColor: bestSingleColor,
       ));
     } catch (e) {
+      // Fenced for the same reason as the success path: a stale invocation's
+      // failure must not replace a newer invocation's good result.
+      if (generation != _generation) return;
       emit(StatsOverviewFailure(error: e.toString()));
     }
   }
