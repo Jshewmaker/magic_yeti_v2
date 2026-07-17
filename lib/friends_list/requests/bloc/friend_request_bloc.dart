@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 
@@ -8,16 +9,23 @@ part 'friend_request_state.dart';
 /// Bloc implementation for managing friend requests.
 ///
 /// Handles:
-/// - Loading friend requests from Firestore.
+/// - Streaming the user's incoming pending friend requests from Firestore.
 /// - Accepting and declining friend requests.
 ///
+/// Provided at the app root (see `lib/app/view/app.dart`) so the home
+/// indicator and the friends page share one source of truth and open one
+/// listener between them.
+///
 /// @dependencies
-/// - Firebase Firestore: For data storage and retrieval.
-/// - Flutter Bloc: For state management.
+/// - FirebaseDatabaseRepository: For interacting with Firestore
+/// - Flutter Bloc: For state management
 class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
   FriendRequestBloc({required this.repository})
       : super(FriendRequestLoading()) {
-    on<LoadFriendRequests>(_onLoadFriendRequests);
+    // restartable: a new LoadFriendRequests cancels the previous Firestore
+    // subscription instead of queueing behind it (the handler never
+    // completes on its own because the requests stream never closes).
+    on<LoadFriendRequests>(_onLoadFriendRequests, transformer: restartable());
     on<AcceptFriendRequest>(_onAcceptFriendRequest);
     on<DeclineFriendRequest>(_onDeclineFriendRequest);
   }
@@ -27,12 +35,21 @@ class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
     LoadFriendRequests event,
     Emitter<FriendRequestState> emit,
   ) async {
-    try {
-      final requests = await repository.getFriendRequests(event.userId);
-      emit(FriendRequestLoaded(requests));
-    } catch (e) {
-      emit(const FriendRequestError('Failed to load friend requests'));
+    // An empty userId means "no signed-in user": clear any previous requests
+    // and stop listening. Anonymous users have no friend graph, and a
+    // listener opened against a non-uid would take a permission error.
+    if (event.userId.isEmpty) {
+      emit(const FriendRequestLoaded([]));
+      return;
     }
+
+    emit(FriendRequestLoading());
+    await emit.forEach<List<FriendRequestModel>>(
+      repository.watchFriendRequests(event.userId),
+      onData: FriendRequestLoaded.new,
+      onError: (_, __) =>
+          const FriendRequestError('Failed to load friend requests'),
+    );
   }
 
   Future<void> _onAcceptFriendRequest(
@@ -46,14 +63,11 @@ class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
     final priorState = state;
     try {
       await repository.acceptFriendRequest(event.request, event.userId);
-      // Remove accepted request from in-memory list
-      if (state is FriendRequestLoaded) {
-        final updated = (state as FriendRequestLoaded)
-            .requests
-            .where((r) => r.id != event.request.id)
-            .toList();
-        emit(FriendRequestLoaded(updated));
-      }
+      // Deliberately no emit on success. acceptFriendRequest ends in a batch
+      // delete of the request doc, so the watchFriendRequests query re-emits
+      // without it — and Firestore's latency compensation fires the local
+      // listener before the server acks, so it is immediate. Maintaining an
+      // in-memory copy here is what let the tab badge go stale.
     } on LegacyFriendRequestException {
       emit(const FriendRequestLegacyAcceptError());
       if (priorState is FriendRequestLoaded) {
@@ -70,14 +84,8 @@ class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
   ) async {
     try {
       await repository.declineFriendRequest(event.request.id);
-      // Remove declined request from in-memory list
-      if (state is FriendRequestLoaded) {
-        final updated = (state as FriendRequestLoaded)
-            .requests
-            .where((r) => r.id != event.request.id)
-            .toList();
-        emit(FriendRequestLoaded(updated));
-      }
+      // No emit, same reasoning as accept: declining flips status to
+      // 'declined', which drops the doc out of the pending query.
     } catch (e) {
       emit(const FriendRequestError('Failed to decline friend request'));
     }

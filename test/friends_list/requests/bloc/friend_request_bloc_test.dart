@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -72,22 +74,102 @@ void main() {
           ),
         ],
       );
+    });
 
+    group('LoadFriendRequests', () {
       blocTest<FriendRequestBloc, FriendRequestState>(
-        'removes the accepted request from the in-memory list on success',
+        'emits [loading, loaded] from the stream',
         setUp: () {
-          when(() => repository.acceptFriendRequest(request, 'alice'))
-              .thenAnswer((_) async {});
+          when(() => repository.watchFriendRequests('alice')).thenAnswer(
+            (_) => Stream.value([request]),
+          );
         },
         build: buildBloc,
-        seed: () => FriendRequestLoaded([request]),
-        act: (bloc) => bloc.add(AcceptFriendRequest(request, 'alice')),
+        act: (bloc) => bloc.add(const LoadFriendRequests('alice')),
         expect: () => [
-          isA<FriendRequestLoaded>().having(
-            (s) => s.requests,
-            'requests',
-            isEmpty,
-          ),
+          isA<FriendRequestLoading>(),
+          isA<FriendRequestLoaded>()
+              .having((s) => s.requests, 'requests', [request]),
+        ],
+      );
+
+      blocTest<FriendRequestBloc, FriendRequestState>(
+        'emits again when the stream emits an update',
+        setUp: () {
+          when(() => repository.watchFriendRequests('alice')).thenAnswer(
+            (_) => Stream.fromIterable([
+              [request],
+              <FriendRequestModel>[],
+            ]),
+          );
+        },
+        build: buildBloc,
+        act: (bloc) => bloc.add(const LoadFriendRequests('alice')),
+        expect: () => [
+          isA<FriendRequestLoading>(),
+          isA<FriendRequestLoaded>()
+              .having((s) => s.requests, 'requests', [request]),
+          isA<FriendRequestLoaded>()
+              .having((s) => s.requests, 'requests', isEmpty),
+        ],
+      );
+
+      blocTest<FriendRequestBloc, FriendRequestState>(
+        'emits an empty loaded list and never subscribes when userId is empty',
+        build: buildBloc,
+        act: (bloc) => bloc.add(const LoadFriendRequests('')),
+        expect: () => [
+          isA<FriendRequestLoaded>()
+              .having((s) => s.requests, 'requests', isEmpty),
+        ],
+        verify: (_) {
+          verifyNever(() => repository.watchFriendRequests(any()));
+        },
+      );
+
+      blocTest<FriendRequestBloc, FriendRequestState>(
+        'emits [loading, error] when the stream errors',
+        setUp: () {
+          when(() => repository.watchFriendRequests('alice')).thenAnswer(
+            (_) => Stream.error(Exception('boom')),
+          );
+        },
+        build: buildBloc,
+        act: (bloc) => bloc.add(const LoadFriendRequests('alice')),
+        expect: () => [
+          isA<FriendRequestLoading>(),
+          isA<FriendRequestError>(),
+        ],
+      );
+    });
+
+    group('AcceptFriendRequest with a live stream', () {
+      blocTest<FriendRequestBloc, FriendRequestState>(
+        'accepting emits nothing itself — the stream re-emits without the '
+        'request, which is what clears the badge',
+        setUp: () {
+          final controller =
+              StreamController<List<FriendRequestModel>>.broadcast();
+          when(() => repository.watchFriendRequests('alice'))
+              .thenAnswer((_) => controller.stream);
+          when(() => repository.acceptFriendRequest(request, 'alice'))
+              .thenAnswer((_) async {
+            // Stand in for Firestore's latency compensation: the batch delete
+            // makes the live query re-emit without the accepted request.
+            controller.add(<FriendRequestModel>[]);
+          });
+          addTearDown(controller.close);
+        },
+        build: buildBloc,
+        act: (bloc) async {
+          bloc.add(const LoadFriendRequests('alice'));
+          await Future<void>.delayed(Duration.zero);
+          bloc.add(AcceptFriendRequest(request, 'alice'));
+        },
+        expect: () => [
+          isA<FriendRequestLoading>(),
+          isA<FriendRequestLoaded>()
+              .having((s) => s.requests, 'requests', isEmpty),
         ],
       );
     });
