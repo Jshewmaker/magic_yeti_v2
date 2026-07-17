@@ -56,6 +56,37 @@ GameModel _game({
   );
 }
 
+/// Builds a single-player game where the user `alice` carries [opponents] —
+/// the commander-damage clocks recorded against them. Used to exercise
+/// `_calculateTimesKilledByCommander` through the compiled state.
+GameModel _gameWithDamages({
+  required String id,
+  required List<Opponent> opponents,
+}) {
+  final player = Player(
+    id: 'p1',
+    name: 'Player 1',
+    playerNumber: 1,
+    lifePoints: 0,
+    color: 0xFF000000,
+    opponents: opponents,
+    placement: 4,
+    firebaseId: 'alice',
+  );
+  return GameModel(
+    id: id,
+    players: [player],
+    startTime: DateTime(2020),
+    endTime: DateTime(2020, 1, 1, 1),
+    winnerId: 'p1',
+    durationInSeconds: 3600,
+  );
+}
+
+/// A single opponent dealing [damages] to the user.
+Opponent _foeDealing(List<CommanderDamage> damages) =>
+    Opponent(playerId: 'foe', damages: damages);
+
 void main() {
   late ScryfallRepository scryfallRepository;
 
@@ -122,6 +153,75 @@ void main() {
           isA<StatsOverviewLoaded>()
               .having((s) => s.range, 'range', StatsTimeRange.allTime)
               .having((s) => s.games.length, 'games.length', 2),
+        ],
+      );
+    });
+
+    group('timesKilledByCommander', () {
+      blocTest<StatsOverviewBloc, StatsOverviewState>(
+        'does not count a partner pair whose two clocks (13 + 12) each stay '
+        'below 21, even though they sum past it',
+        build: buildBloc,
+        act: (bloc) => bloc.add(
+          CompileStatsOverviewData(
+            userId: 'alice',
+            games: [
+              _gameWithDamages(
+                id: 'split',
+                opponents: [
+                  _foeDealing([
+                    CommanderDamage(
+                      damageType: DamageType.commander,
+                      amount: 13,
+                    ),
+                    CommanderDamage(
+                      damageType: DamageType.partner,
+                      amount: 12,
+                    ),
+                  ]),
+                ],
+              ),
+            ],
+          ),
+        ),
+        expect: () => [
+          isA<StatsOverviewLoading>(),
+          isA<StatsOverviewLoaded>().having(
+            (s) => s.timesKilledByCommander,
+            'timesKilledByCommander',
+            0,
+          ),
+        ],
+      );
+
+      blocTest<StatsOverviewBloc, StatsOverviewState>(
+        'counts a single clock that reaches 21',
+        build: buildBloc,
+        act: (bloc) => bloc.add(
+          CompileStatsOverviewData(
+            userId: 'alice',
+            games: [
+              _gameWithDamages(
+                id: 'lethal',
+                opponents: [
+                  _foeDealing([
+                    CommanderDamage(
+                      damageType: DamageType.commander,
+                      amount: 21,
+                    ),
+                  ]),
+                ],
+              ),
+            ],
+          ),
+        ),
+        expect: () => [
+          isA<StatsOverviewLoading>(),
+          isA<StatsOverviewLoaded>().having(
+            (s) => s.timesKilledByCommander,
+            'timesKilledByCommander',
+            1,
+          ),
         ],
       );
     });

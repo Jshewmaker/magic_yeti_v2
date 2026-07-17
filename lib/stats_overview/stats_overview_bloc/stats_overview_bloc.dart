@@ -504,9 +504,13 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       final player = _findPlayerInGame(game, userId);
       if (player.opponents == null) continue;
       for (final opponent in player.opponents!) {
-        final totalFromOpponent =
-            opponent.damages.fold<int>(0, (sum, d) => sum + d.amount);
-        if (totalFromOpponent >= 21) {
+        // Commander damage is lethal per clock, not in aggregate: a Partner
+        // pair's commander and partner clocks each need to reach 21 on their
+        // own (13 + 12 sums to 25 but kills nobody). Mirrors the game-end
+        // check in `PlayerRepository._checkPlayerDeath`.
+        final landedLethalClock =
+            opponent.damages.any((d) => d.amount >= 21);
+        if (landedLethalClock) {
           count++;
           break;
         }
