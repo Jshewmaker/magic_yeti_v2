@@ -4,7 +4,9 @@ import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/friends_list/friend_stats/view/friend_stats_page.dart';
 import 'package:magic_yeti/friends_list/friends_list/bloc/friend_list_bloc.dart';
 import 'package:magic_yeti/friends_list/widgets/friend_card.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
@@ -53,11 +55,13 @@ class FriendsListView extends StatelessWidget {
             itemBuilder: (context, index) {
               final friend = state.friends[index];
               return FriendCard(
-                initial: friend.username.isNotEmpty
-                    ? friend.username[0]
-                    : '?',
+                initial: friend.username.isNotEmpty ? friend.username[0] : '?',
                 title: friend.username,
                 subtitle: friend.friendCode,
+                onTap: () => context.push(
+                  FriendStatsPage.path(friendId: friend.userId),
+                  extra: friend,
+                ),
                 trailing: PopupMenuButton<_FriendCardAction>(
                   icon: const Icon(
                     Icons.more_vert,
@@ -137,9 +141,9 @@ class FriendsListView extends StatelessWidget {
                   style: const TextStyle(color: AppColors.red),
                 ),
                 onPressed: () {
-                  context
-                      .read<FriendBloc>()
-                      .add(RemoveFriend(userId, friend.userId));
+                  context.read<FriendBloc>().add(
+                    RemoveFriend(userId, friend.userId),
+                  );
                   Navigator.of(dialogContext).pop();
                 },
               ),
@@ -185,16 +189,16 @@ class FriendsListView extends StatelessWidget {
                 ),
                 onPressed: () {
                   context.read<FriendBloc>().add(
-                        BlockFriend(
-                          userId,
-                          BlockedUserModel(
-                            userId: friend.userId,
-                            username: friend.username,
-                            imageUrl: friend.profilePictureUrl,
-                            friendCode: friend.friendCode,
-                          ),
-                        ),
-                      );
+                    BlockFriend(
+                      userId,
+                      BlockedUserModel(
+                        userId: friend.userId,
+                        username: friend.username,
+                        imageUrl: friend.profilePictureUrl,
+                        friendCode: friend.friendCode,
+                      ),
+                    ),
+                  );
                   Navigator.of(dialogContext).pop();
                 },
               ),

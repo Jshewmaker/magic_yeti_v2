@@ -9,10 +9,10 @@ part 'match_details_state.dart';
 class MatchDetailsBloc extends Bloc<MatchDetailsEvent, MatchDetailsState> {
   MatchDetailsBloc({
     required FirebaseDatabaseRepository databaseRepository,
-  })  : _databaseRepository = databaseRepository,
-        super(MatchDetailsInitial()) {
+  }) : _databaseRepository = databaseRepository,
+       super(MatchDetailsInitial()) {
     on<DeleteMatchEvent>(_onDeleteMatch);
-    on<UpdatePlayerOwnership>(_onUpdatePlayerOwnership);
+    on<AssignSeatIdentity>(_onAssignSeatIdentity);
   }
 
   final FirebaseDatabaseRepository _databaseRepository;
@@ -29,35 +29,35 @@ class MatchDetailsBloc extends Bloc<MatchDetailsEvent, MatchDetailsState> {
     }
   }
 
-  Future<void> _onUpdatePlayerOwnership(
-    UpdatePlayerOwnership event,
+  Future<void> _onAssignSeatIdentity(
+    AssignSeatIdentity event,
     Emitter<MatchDetailsState> emit,
   ) async {
     try {
-      // Update the players list, removing the Firebase ID from any player that had it
-      // and assigning it to the selected player
+      final assignedId = event.assignedFirebaseId;
+
+      // Place the identity on the chosen seat and strip it from any other seat
+      // that held it, so one account never occupies two seats.
       final updatedPlayers = event.game.players.map((p) {
-        if (p.id == event.player.id) {
-          // Assign the Firebase ID to the selected player
-          return p.copyWith(firebaseId: () => event.currentUserFirebaseId);
-        } else if (p.firebaseId == event.currentUserFirebaseId) {
-          // Remove the Firebase ID from any other player that had it
+        if (p.id == event.seat.id) {
+          return p.copyWith(firebaseId: () => assignedId);
+        }
+        if (assignedId != null && p.firebaseId == assignedId) {
           return p.copyWith(firebaseId: () => null);
         }
         return p;
       }).toList();
 
-      // Update the game model with the new player list
       final updatedGame = event.game.copyWith(players: updatedPlayers);
 
-      // Save the updated game to Firebase
+      // Written to the owner's own history copy only.
       await _databaseRepository.updateGameStats(
         game: updatedGame,
-        playerId: event.currentUserFirebaseId,
+        playerId: event.ownerUserId,
       );
 
       emit(MatchDetailsSuccess());
-    } catch (error) {
+    } on Object catch (error) {
       emit(MatchDetailsError(error.toString()));
     }
   }

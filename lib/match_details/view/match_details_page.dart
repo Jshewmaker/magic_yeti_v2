@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
@@ -102,38 +104,101 @@ class _MatchDetailsContent extends StatelessWidget {
 
   final String gameId;
 
-  void _handlePlayerSelection(BuildContext context, Player player) {
-    final currentUserFirebaseId = context.read<AppBloc>().state.user.id;
+  /// Opens a sheet to assign the tapped [seat] to the signed-in user, a friend,
+  /// or nobody. Tagging a friend edits only the user's own history copy.
+  void _showSeatAssignmentSheet(BuildContext context, Player seat) {
+    final myId = context.read<AppBloc>().state.user.id;
     final game = context.read<MatchHistoryBloc>().state.games.firstWhere(
-          (game) => game.id == gameId,
-        );
-    // Find the currently assigned player, if any
-    final currentPlayer = game.players.firstWhere(
-      (p) => p.firebaseId == currentUserFirebaseId,
-      orElse: () => player,
+      (game) => game.id == gameId,
     );
+    final bloc = context.read<MatchDetailsBloc>();
+    final repository = context.read<FirebaseDatabaseRepository>();
+    final messenger = ScaffoldMessenger.of(context);
 
-    // Dispatch event to update player ownership
-    context.read<MatchDetailsBloc>().add(
-          UpdatePlayerOwnership(
-            game: game,
-            player: player,
-            currentUserFirebaseId: currentUserFirebaseId,
-          ),
-        );
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: AppColors.surface,
+        builder: (sheetContext) {
+          void assign(String? firebaseId, String label) {
+            bloc.add(
+              AssignSeatIdentity(
+                game: game,
+                seat: seat,
+                assignedFirebaseId: firebaseId,
+                ownerUserId: myId,
+              ),
+            );
+            Navigator.of(sheetContext).pop();
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text('${seat.name} → $label'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
 
-    // Show a confirmation snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: currentPlayer.id != player.id
-            ? Text(
-                context.l10n.changedPlayerMessage(
-                  currentPlayer.name,
-                  player.name,
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Who played ${seat.name}?',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
                 ),
-              )
-            : Text(context.l10n.wasPlayerMessage(player.name)),
-        duration: const Duration(seconds: 2),
+                ListTile(
+                  leading: const Icon(Icons.person, color: Colors.blue),
+                  title: const Text('Me'),
+                  trailing: seat.firebaseId == myId
+                      ? const Icon(Icons.check)
+                      : null,
+                  onTap: () => assign(myId, 'You'),
+                ),
+                StreamBuilder<List<FriendModel>>(
+                  stream: repository.watchFriends(myId),
+                  builder: (context, snapshot) {
+                    final friends = snapshot.data ?? const <FriendModel>[];
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final friend in friends)
+                          ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: AppColors.tertiary,
+                              child: Text(
+                                friend.username.isNotEmpty
+                                    ? friend.username[0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(color: AppColors.white),
+                              ),
+                            ),
+                            title: Text(friend.username),
+                            trailing: seat.firebaseId == friend.userId
+                                ? const Icon(Icons.check)
+                                : null,
+                            onTap: () => assign(friend.userId, friend.username),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                if (seat.firebaseId != null)
+                  ListTile(
+                    leading: const Icon(Icons.person_off_outlined),
+                    title: const Text('Unassign'),
+                    onTap: () => assign(null, 'unassigned'),
+                  ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -185,10 +250,10 @@ class _MatchDetailsContent extends StatelessWidget {
               MatchStandingsWidget(
                 players: game.players,
                 winner: winningPlayer,
-                currentUserFirebaseId: game.hostId,
+                currentUserFirebaseId: context.read<AppBloc>().state.user.id,
                 startingPlayerId: game.startingPlayerId,
                 onSelectPlayer: (player) =>
-                    _handlePlayerSelection(context, player),
+                    _showSeatAssignmentSheet(context, player),
               ),
               const SizedBox(height: 16),
               // Match metadata
@@ -241,8 +306,8 @@ class MatchWinnerWidget extends StatelessWidget {
                   child: CircleAvatar(
                     backgroundImage:
                         winner.commander?.imageUrl.isNotEmpty ?? false
-                            ? NetworkImage(winner.commander!.imageUrl)
-                            : null,
+                        ? NetworkImage(winner.commander!.imageUrl)
+                        : null,
                     backgroundColor: Color(winner.color),
                     radius: 50,
                   ),
@@ -277,10 +342,9 @@ class MatchWinnerWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               '${l10n.gameDuration} ${_formatDuration(gameDuration)}',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyLarge
-                  ?.copyWith(fontWeight: FontWeight.w500),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -304,6 +368,26 @@ class MatchStandingsWidget extends StatelessWidget {
   final String? currentUserFirebaseId;
   final String startingPlayerId;
   final void Function(Player) onSelectPlayer;
+
+  /// Seat identity glyph: the signed-in user, a tagged friend, or an empty
+  /// (assignable) seat.
+  Widget _seatIcon(String? seatFirebaseId, String? currentUserFirebaseId) {
+    if (seatFirebaseId != null && seatFirebaseId == currentUserFirebaseId) {
+      return const Icon(Icons.person, color: Colors.blue, size: 20);
+    }
+    if (seatFirebaseId != null) {
+      return const FaIcon(
+        FontAwesomeIcons.userCheck,
+        color: AppColors.secondary,
+        size: 16,
+      );
+    }
+    return const FaIcon(
+      FontAwesomeIcons.userPlus,
+      color: Colors.grey,
+      size: 16,
+    );
+  }
 
   String _getOrdinalNumber(int number) {
     if (number >= 11 && number <= 13) {
@@ -343,8 +427,8 @@ class MatchStandingsWidget extends StatelessWidget {
                   child: Text(
                     context.l10n.placementColumnHeader,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -352,8 +436,8 @@ class MatchStandingsWidget extends StatelessWidget {
                   child: Text(
                     context.l10n.achievementColumnHeader,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
                   ),
                 ),
                 // Player name and commander header
@@ -361,8 +445,8 @@ class MatchStandingsWidget extends StatelessWidget {
                   child: Text(
                     context.l10n.playerColumnHeader,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
                   ),
                 ),
               ],
@@ -387,27 +471,16 @@ class MatchStandingsWidget extends StatelessWidget {
                       child: Row(
                         spacing: 8,
                         children: [
-                          if (player.firebaseId != currentUserFirebaseId)
-                            IconButton(
-                              onPressed: () => onSelectPlayer(player),
-                              icon: const FaIcon(
-                                FontAwesomeIcons.userPlus,
-                                color: Colors.grey,
-                                size: 16,
-                              ),
+                          IconButton(
+                            tooltip: player.firebaseId == currentUserFirebaseId
+                                ? l10n.youTooltip
+                                : 'Assign this seat',
+                            onPressed: () => onSelectPlayer(player),
+                            icon: _seatIcon(
+                              player.firebaseId,
+                              currentUserFirebaseId,
                             ),
-                          if (player.firebaseId == currentUserFirebaseId)
-                            Tooltip(
-                              triggerMode: TooltipTriggerMode.tap,
-                              message: l10n.youTooltip,
-                              child: const IconButton(
-                                icon: Icon(
-                                  Icons.person,
-                                  color: Colors.blue,
-                                ),
-                                onPressed: null,
-                              ),
-                            ),
+                          ),
                           if (player.id == startingPlayerId)
                             Tooltip(
                               triggerMode: TooltipTriggerMode.tap,
@@ -425,8 +498,8 @@ class MatchStandingsWidget extends StatelessWidget {
                       child: CircleAvatar(
                         backgroundImage:
                             player.commander?.imageUrl.isNotEmpty ?? false
-                                ? NetworkImage(player.commander!.imageUrl)
-                                : null,
+                            ? NetworkImage(player.commander!.imageUrl)
+                            : null,
                         backgroundColor: Color(player.color),
                       ),
                       onTap: () async {
@@ -551,11 +624,11 @@ class _DeleteMatchButton extends StatelessWidget {
                     child: Text(context.l10n.deleteMatchButtonLabel),
                     onProgressCompleted: () async {
                       context.read<MatchDetailsBloc>().add(
-                            DeleteMatchEvent(
-                              gameId: gameId,
-                              userId: context.read<AppBloc>().state.user.id,
-                            ),
-                          );
+                        DeleteMatchEvent(
+                          gameId: gameId,
+                          userId: context.read<AppBloc>().state.user.id,
+                        ),
+                      );
 
                       context.pop();
                     },
