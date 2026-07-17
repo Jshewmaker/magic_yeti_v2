@@ -25,8 +25,8 @@ class MatchHistoryListItem extends StatelessWidget {
         winningPlayer.firebaseId == context.read<AppBloc>().state.user.id;
 
     return InkWell(
-      onTap: () {
-        context.push(
+      onTap: () async {
+        await context.push(
           MatchDetailsPage.path(gameId: game.id!),
         );
       },
@@ -236,7 +236,7 @@ class _GameDetails extends StatelessWidget {
                   winner.name,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    fontSize: textStyle.headlineMedium?.fontSize,
+                    fontSize: textStyle.headlineSmall?.fontSize,
                     height: 0.9, // Reduce the line height
                   ),
                 ),
@@ -246,7 +246,6 @@ class _GameDetails extends StatelessWidget {
                     fontSize: textStyle.titleMedium?.fontSize,
                     color: Colors.black45,
                     fontWeight: FontWeight.w500,
-                    height: 0.9, // Reduce the line height
                   ),
                 ),
               ],

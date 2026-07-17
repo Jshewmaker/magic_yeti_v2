@@ -33,9 +33,9 @@ class FriendsListPage extends StatelessWidget {
           title: Text(
             l10n.friendsTitle,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: AppColors.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           actions: [
             IconButton(
