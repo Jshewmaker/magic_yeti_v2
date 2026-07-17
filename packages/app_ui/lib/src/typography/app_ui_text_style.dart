@@ -6,7 +6,7 @@ abstract class UITextStyle {
   static const _baseTextStyle = TextStyle(
     package: 'app_ui',
     fontWeight: AppFontWeight.regular,
-    fontFamily: 'Teko',
+    fontFamily: 'NunitoSans',
     decoration: TextDecoration.none,
     textBaseline: TextBaseline.alphabetic,
   );

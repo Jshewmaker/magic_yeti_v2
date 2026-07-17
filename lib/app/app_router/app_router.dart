@@ -7,7 +7,7 @@ import 'package:magic_yeti/friends_list/blocked_users/view/blocked_users_page.da
 import 'package:magic_yeti/friends_list/friends_list_page.dart';
 import 'package:magic_yeti/friends_list/requests/friend_request_page.dart';
 import 'package:magic_yeti/friends_list/search_user/search_user_page.dart';
-import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/home/home.dart';
 import 'package:magic_yeti/life_counter/view/game_over_page.dart';
 import 'package:magic_yeti/life_counter/view/view.dart';
 import 'package:magic_yeti/login/login.dart';

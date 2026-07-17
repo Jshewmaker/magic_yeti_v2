@@ -6,8 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_inputs/form_inputs.dart';
 import 'package:go_router/go_router.dart';
-import 'package:magic_yeti/app/utils/device_info_provider.dart';
-import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/home/home.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/login/login.dart';
 import 'package:magic_yeti/reset_password/reset_password.dart';
@@ -18,16 +17,6 @@ class LoginView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPhone = DeviceInfoProvider.of(context).isPhone;
-    return isPhone ? const _PhoneLoginView() : const _TabletLoginView();
-  }
-}
-
-class _TabletLoginView extends StatelessWidget {
-  const _TabletLoginView();
-
-  @override
-  Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
@@ -51,69 +40,39 @@ class _TabletLoginView extends StatelessWidget {
         },
         child: SafeArea(
           minimum: const EdgeInsets.all(AppSpacing.xlg),
-          child: Row(
-            children: [
-              const Expanded(
-                child: ScrollableColumn(
-                  children: [
-                    _LoginContent(),
-                    _LoginActions(),
-                  ],
+          child: AdaptiveLayout(
+            // Phone: form stacked above the artwork.
+            phone: (_) => ScrollableColumn(
+              children: [
+                const _LoginContent(),
+                const _LoginActions(),
+                Expanded(
+                  child: Image.asset(
+                    'assets/icon/icon.png',
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Image.asset(
-                  'assets/icon/icon.png',
-                  fit: BoxFit.fitWidth,
+              ],
+            ),
+            // Tablet: form beside the artwork.
+            tablet: (_) => Row(
+              children: [
+                const Expanded(
+                  child: ScrollableColumn(
+                    children: [
+                      _LoginContent(),
+                      _LoginActions(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PhoneLoginView extends StatelessWidget {
-  const _PhoneLoginView();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(HomePage.routeName),
-        ),
-      ),
-      body: BlocListener<LoginBloc, LoginState>(
-        listener: (context, state) {
-          if (state.status.isSuccess) {
-            context.go(HomePage.routeName);
-          }
-          if (state.status.isFailure) {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(content: Text(l10n.authenticationFailure)),
-              );
-          }
-        },
-        child: SafeArea(
-          minimum: const EdgeInsets.all(AppSpacing.xlg),
-          child: ScrollableColumn(
-            children: [
-              const _LoginContent(),
-              const _LoginActions(),
-              Expanded(
-                child: Image.asset(
-                  'assets/icon/icon.png',
-                  fit: BoxFit.cover,
+                Expanded(
+                  child: Image.asset(
+                    'assets/icon/icon.png',
+                    fit: BoxFit.fitWidth,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

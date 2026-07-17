@@ -181,7 +181,7 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
   @override
   Widget build(BuildContext context) {
     final sizes = TrackerSizes.fromDevice(
-      isPhone: MediaQuery.sizeOf(context).width <= 900,
+      isPhone: DeviceInfoProvider.of(context).isPhone,
     );
     final isExpanded = _animationController.isCompleted;
     final size = isExpanded ? sizes.expandedTileSize : sizes.tileSize;

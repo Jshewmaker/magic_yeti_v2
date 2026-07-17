@@ -1,7 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/stats_overview/widgets/stats_overview_skeleton.dart';
 import 'package:shimmer/shimmer.dart';
 

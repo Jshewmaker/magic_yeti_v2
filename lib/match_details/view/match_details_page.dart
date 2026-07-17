@@ -7,9 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
-import 'package:magic_yeti/app/utils/device_info_provider.dart';
-import 'package:magic_yeti/home/home_page.dart';
-import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
+import 'package:magic_yeti/home/home.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/match_details/match_details.dart';
 import 'package:player_repository/models/player.dart';
@@ -52,58 +50,53 @@ class MatchDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use DeviceInfoProvider to determine if the device is a phone
-    final isPhone = DeviceInfoProvider.of(context).isPhone;
-
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
-
-    return BlocConsumer<MatchDetailsBloc, MatchDetailsState>(
-      listener: (context, state) {
-        if (state is MatchDetailsDeleted) {
-          context.go(HomePage.routeName);
-        } else if (state is MatchDetailsError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.l10n.errorSnackbarMessage(state.error)),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-      },
-      builder: (context, state) {
-        final games = context.watch<MatchHistoryBloc>().state.games;
-        final gameExists = games.any((game) => game.id == gameId);
-        if (!gameExists) {
-          return Scaffold(
-            appBar: AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => context.pop(),
+    return OrientationLock(
+      orientations: const [
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ],
+      child: BlocConsumer<MatchDetailsBloc, MatchDetailsState>(
+        listener: (context, state) {
+          if (state is MatchDetailsDeleted) {
+            context.go(HomePage.routeName);
+          } else if (state is MatchDetailsError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.l10n.errorSnackbarMessage(state.error)),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 2),
               ),
-            ),
-            body: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
+            );
+          }
+        },
+        builder: (context, state) {
+          final games = context.watch<MatchHistoryBloc>().state.games;
+          final gameExists = games.any((game) => game.id == gameId);
+          if (!gameExists) {
+            return Scaffold(
+              appBar: AppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => context.pop(),
+                ),
+              ),
+              body: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
 
-        // Return the appropriate view based on device type
-        return isPhone
-            ? _PhoneMatchDetailsView(gameId: gameId)
-            : _TabletMatchDetailsView(gameId: gameId);
-      },
+          return _MatchDetailsContent(gameId: gameId);
+        },
+      ),
     );
   }
 }
 
-class _PhoneMatchDetailsView extends StatelessWidget {
-  const _PhoneMatchDetailsView({
+class _MatchDetailsContent extends StatelessWidget {
+  const _MatchDetailsContent({
     required this.gameId,
   });
 
@@ -148,12 +141,12 @@ class _PhoneMatchDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
     final games = context.watch<MatchHistoryBloc>().state.games;
     final game = games.firstWhere((game) => game.id == gameId);
     final winningPlayer = game.players.firstWhere(
       (player) => player.id == game.winnerId,
     );
-    final gameDuration = game.durationInSeconds;
 
     return Scaffold(
       appBar: AppBar(
@@ -161,7 +154,8 @@ class _PhoneMatchDetailsView extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: Text(l10n.matchDetailsHeading),
+        // Phones title the app bar; tablets carry the heading in the body.
+        title: isPhone ? Text(l10n.matchDetailsHeading) : null,
         actions: [
           _DeleteMatchButton(gameId: gameId),
         ],
@@ -172,10 +166,17 @@ class _PhoneMatchDetailsView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (!isPhone) ...[
+                Text(
+                  l10n.matchDetailsHeading,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 16),
+              ],
               // Winner card
               MatchWinnerWidget(
                 winner: winningPlayer,
-                gameDuration: gameDuration,
+                gameDuration: game.durationInSeconds,
                 startingPlayerId: game.startingPlayerId,
                 gameId: gameId,
               ),
@@ -197,116 +198,6 @@ class _PhoneMatchDetailsView extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _TabletMatchDetailsView extends StatelessWidget {
-  const _TabletMatchDetailsView({
-    required this.gameId,
-  });
-
-  final String gameId;
-
-  void _handlePlayerSelection(BuildContext context, Player player) {
-    final currentUserFirebaseId = context.read<AppBloc>().state.user.id;
-    final game = context.read<MatchHistoryBloc>().state.games.firstWhere(
-          (game) => game.id == gameId,
-        );
-    // Find the currently assigned player, if any
-    final currentPlayer = game.players.firstWhere(
-      (p) => p.firebaseId == currentUserFirebaseId,
-      orElse: () => player,
-    );
-
-    // Dispatch event to update player ownership
-    context.read<MatchDetailsBloc>().add(
-          UpdatePlayerOwnership(
-            game: game,
-            player: player,
-            currentUserFirebaseId: currentUserFirebaseId,
-          ),
-        );
-
-    // Show a confirmation snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: currentPlayer.id != player.id
-            ? Text(
-                context.l10n.changedPlayerMessage(
-                  currentPlayer.name,
-                  player.name,
-                ),
-              )
-            : Text(context.l10n.wasPlayerMessage(player.name)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final games = context.watch<MatchHistoryBloc>().state.games;
-    final game = games.firstWhere((game) => game.id == gameId);
-    final winningPlayer = game.players.firstWhere(
-      (player) => player.id == game.winnerId,
-    );
-    final gameDuration = game.durationInSeconds;
-
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        actions: [
-          _DeleteMatchButton(gameId: gameId),
-        ],
-      ),
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.matchDetailsHeading,
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 16),
-                      MatchWinnerWidget(
-                        winner: winningPlayer,
-                        gameDuration: gameDuration,
-                        startingPlayerId: game.startingPlayerId,
-                        gameId: gameId,
-                      ),
-                      const SizedBox(height: 16),
-                      MatchStandingsWidget(
-                        players: game.players,
-                        winner: winningPlayer,
-                        currentUserFirebaseId: game.hostId,
-                        startingPlayerId: game.startingPlayerId,
-                        onSelectPlayer: (player) =>
-                            _handlePlayerSelection(context, player),
-                      ),
-                      const SizedBox(height: 16),
-                      MatchMetadataWidget(
-                        game: game,
-                      ),
-                    ],
-                  ),
-                ),
-              ]),
-            ),
-          ),
-        ],
       ),
     );
   }

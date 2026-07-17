@@ -998,6 +998,12 @@ abstract class AppLocalizations {
   /// **'This request was sent from an older version. Ask them to re-send it.'**
   String get legacyRequestAcceptError;
 
+  /// Empty state shown on the friend requests tab when the user has no incoming requests
+  ///
+  /// In en, this message translates to:
+  /// **'No pending requests'**
+  String get noPendingRequests;
+
   /// Snackbar error shown when saving the game-over stats to the database fails
   ///
   /// In en, this message translates to:

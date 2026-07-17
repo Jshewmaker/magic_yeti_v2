@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/app_router/app_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
-import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/commander_library/commander_library_repository.dart';
+import 'package:magic_yeti/friends_list/requests/bloc/friend_request_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
@@ -75,7 +75,19 @@ class App extends StatelessWidget {
             create: (context) => MatchHistoryBloc(
               databaseRepository: context.read<FirebaseDatabaseRepository>(),
             )..add(
-                LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
+                LoadMatchHistory(
+                  userId: _signedInUserId(context.read<AppBloc>().state),
+                ),
+              ),
+          ),
+          BlocProvider(
+            lazy: false,
+            create: (context) => FriendRequestBloc(
+              repository: context.read<FirebaseDatabaseRepository>(),
+            )..add(
+                LoadFriendRequests(
+                  _signedInUserId(context.read<AppBloc>().state),
+                ),
               ),
           ),
           BlocProvider(
@@ -87,6 +99,12 @@ class App extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The user whose data should be streamed: the signed-in user, or nobody
+/// (empty id clears the stream and stops listening) for any other auth state.
+String _signedInUserId(AppState state) {
+  return state.status == AppStatus.authenticated ? state.user.id : '';
 }
 
 class AppView extends StatefulWidget {
@@ -119,14 +137,24 @@ class _AppViewState extends State<AppView> {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) {
-        // Determine device type at the app root level
-        final mediaQuery = MediaQuery.of(context);
-        final isPhone = mediaQuery.size.shortestSide < 600;
-
-        // Wrap the app with DeviceInfoProvider
-        return DeviceInfoProvider(
-          isPhone: isPhone,
-          child: child!,
+        return DeviceInfoProvider.fromMediaQuery(
+          // Keep the match history and friend requests subscribed to whoever
+          // is signed in; sign-out clears both. Lives at the app root so it
+          // holds no matter which screen is visible.
+          child: BlocListener<AppBloc, AppState>(
+            listenWhen: (previous, current) =>
+                _signedInUserId(previous) != _signedInUserId(current),
+            listener: (context, state) {
+              final userId = _signedInUserId(state);
+              context.read<MatchHistoryBloc>().add(
+                    LoadMatchHistory(userId: userId),
+                  );
+              context.read<FriendRequestBloc>().add(
+                    LoadFriendRequests(userId),
+                  );
+            },
+            child: child!,
+          ),
         );
       },
       routerConfig: _appRouter.routes,

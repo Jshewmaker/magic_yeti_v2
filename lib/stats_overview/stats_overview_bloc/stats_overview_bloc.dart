@@ -7,23 +7,109 @@ import 'package:scryfall_repository/scryfall_repository.dart';
 part 'stats_overview_event.dart';
 part 'stats_overview_state.dart';
 
+enum StatsTimeRange {
+  allTime('All Time'),
+  last12Months('Last 12 Months'),
+  last6Months('Last 6 Months'),
+  last3Months('Last 3 Months'),
+  last30Days('Last 30 Days');
+
+  const StatsTimeRange(this.label);
+  final String label;
+}
+
 class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
   StatsOverviewBloc({required ScryfallRepository scryfallRepository})
       : _scryfallRepository = scryfallRepository,
         super(StatsOverviewInitial()) {
     on<CompileStatsOverviewData>(_onCompileStatsOverviewData);
+    on<StatsTimeRangeChanged>(_onTimeRangeChanged);
   }
 
   final ScryfallRepository _scryfallRepository;
+
+  List<GameModel> _allGames = const [];
+  String _userId = '';
+  StatsTimeRange _range = StatsTimeRange.allTime;
+
+  /// Monotonic counter identifying each [_emitCompiled] invocation.
+  ///
+  /// See [_emitCompiled] for why this exists.
+  int _generation = 0;
 
   Future<void> _onCompileStatsOverviewData(
     CompileStatsOverviewData event,
     Emitter<StatsOverviewState> emit,
   ) async {
+    _allGames = event.games;
+    _userId = event.userId;
+    await _emitCompiled(emit);
+  }
+
+  Future<void> _onTimeRangeChanged(
+    StatsTimeRangeChanged event,
+    Emitter<StatsOverviewState> emit,
+  ) async {
+    _range = event.range;
+    await _emitCompiled(emit);
+  }
+
+  /// Filters [games] to [range].
+  ///
+  /// [range] is passed in rather than read from `_range` so this stays a pure
+  /// function of its arguments — see [_emitCompiled] for why that matters.
+  List<GameModel> _filterGames(List<GameModel> games, StatsTimeRange range) {
+    if (range == StatsTimeRange.allTime) {
+      return games;
+    }
+    final now = DateTime.now();
+    final cutoff = switch (range) {
+      StatsTimeRange.last12Months => DateTime(now.year - 1, now.month, now.day),
+      StatsTimeRange.last6Months => DateTime(now.year, now.month - 6, now.day),
+      StatsTimeRange.last3Months => DateTime(now.year, now.month - 3, now.day),
+      StatsTimeRange.last30Days => now.subtract(const Duration(days: 30)),
+      StatsTimeRange.allTime => now,
+    };
+    return games.where((game) => game.endTime.isAfter(cutoff)).toList();
+  }
+
+  /// Filters [_allGames] to [_range], compiles all 18 stats over the
+  /// result, and emits the outcome.
+  ///
+  /// Shared by both event handlers so the compilation logic — including
+  /// oracle ID resolution — lives in exactly one place instead of being
+  /// duplicated between them.
+  ///
+  /// Both handlers routing through here means invocations can overlap: the
+  /// bloc package processes events concurrently by default, and `on<E>()`
+  /// registers an *independent* subscription per event type. So a
+  /// [CompileStatsOverviewData] (which arrives unprompted from live match
+  /// history updates) can interleave with a [StatsTimeRangeChanged] across
+  /// the `await` below. Per-registration transformers cannot fix that —
+  /// they only serialise same-type events.
+  ///
+  /// Two separate guards make that safe. They solve different halves of the
+  /// problem, so removing either reintroduces a bug:
+  ///
+  /// 1. **Consistency** — `range`/`userId`/`allGames` are captured into
+  ///    locals *before* the await and are the only values read afterwards.
+  ///    Re-reading the mutable fields after the await would pair one
+  ///    invocation's `games` with a different invocation's `range`, e.g.
+  ///    labelling a 12-month game set "Last 30 Days".
+  /// 2. **Ordering** — [_generation] fences the emit, so an invocation that
+  ///    resumes late cannot clobber a newer invocation's result with stale
+  ///    data. Locals alone do not give this: a slow earlier invocation would
+  ///    still emit last, overwriting a newer, correct result.
+  Future<void> _emitCompiled(Emitter<StatsOverviewState> emit) async {
+    final generation = ++_generation;
+    final range = _range;
+    final userId = _userId;
+    final allGames = _allGames;
+
     emit(StatsOverviewLoading());
     try {
-      final games = await _resolveOracleIds(event.games, event.userId);
-      final userId = event.userId;
+      final filteredGames = _filterGames(allGames, range);
+      final games = await _resolveOracleIds(filteredGames, userId);
       // Calculate statistics
       final uniqueCommanderCount =
           _calculateUniqueCommanders(games, userId);
@@ -33,8 +119,7 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       final longestGameDuration = _findLongestGameDuration(games);
       final averagePlacement = _calculateAveragePlacement(games, userId);
       final timesWentFirst = _calculateTimesWentFirst(games, userId);
-      final mostPlayedCommander = _calculateMostPlayedCommander(
-          games, uniqueCommanderCount, userId);
+      final mostPlayedCommander = _calculateMostPlayedCommander(games, userId);
       final averageGameDuration = _calculateAverageGameDuration(games);
       final winRateWhenFirst = _calculateWinRateWhenFirst(games, userId);
       final bestCommander = _calculateBestCommander(games, userId);
@@ -49,9 +134,14 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       final bestColorCombo = _calculateBestColorCombo(games, userId);
       final bestSingleColor = _calculateBestSingleColor(games, userId);
 
+      // A newer invocation started while we were awaiting; its result is the
+      // one the user is waiting on, so drop ours rather than clobber it.
+      if (generation != _generation) return;
+
       emit(StatsOverviewLoaded(
         userId: userId,
-        games: event.games,
+        games: filteredGames,
+        range: range,
         uniqueCommanderCount: uniqueCommanderCount,
         totalWins: totalWins,
         winPercentage: winPercentage,
@@ -72,6 +162,9 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
         bestSingleColor: bestSingleColor,
       ));
     } catch (e) {
+      // Fenced for the same reason as the success path: a stale invocation's
+      // failure must not replace a newer invocation's good result.
+      if (generation != _generation) return;
       emit(StatsOverviewFailure(error: e.toString()));
     }
   }
@@ -156,14 +249,10 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
     return uniqueCommanders.length;
   }
 
-  String _calculateMostPlayedCommander(
-    List<GameModel> games,
-    int uniqueCommanderCount,
-    String userId,
-  ) {
+  String _calculateMostPlayedCommander(List<GameModel> games, String userId) {
     if (games.isEmpty) return 'No games';
 
-    final commanderKeys = <String>[];
+    final playCounts = <String, int>{};
     final keyToName = <String, String>{};
     for (final game in games) {
       final player = _findPlayerInGame(game, userId);
@@ -171,19 +260,14 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       if (commander == null) continue;
       final key = commander.oracleId ?? commander.name;
       if (key.isEmpty || key == 'null') continue;
-      commanderKeys.add(key);
+      playCounts[key] = (playCounts[key] ?? 0) + 1;
       keyToName[key] = commander.name;
     }
-    if (commanderKeys.isEmpty) return 'No commanders';
-    final mostPlayedKey = commanderKeys.reduce((current, next) {
-      return commanderKeys.where((element) => element == current).length >
-              commanderKeys.where((element) => element == next).length
-          ? current
-          : next;
-    });
-    final mostPlayedCommander = keyToName[mostPlayedKey] ?? mostPlayedKey;
-
-    return mostPlayedCommander;
+    if (playCounts.isEmpty) return 'No commanders';
+    final mostPlayedKey = playCounts.entries
+        .reduce((a, b) => a.value >= b.value ? a : b)
+        .key;
+    return keyToName[mostPlayedKey] ?? mostPlayedKey;
   }
 
   /// Calculate how many times the player went first

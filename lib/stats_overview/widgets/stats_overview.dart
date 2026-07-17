@@ -2,125 +2,105 @@ import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
-import 'package:magic_yeti/app/utils/device_info_provider.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/stats_overview/stats_overview.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 
-enum StatsTimeRange {
-  allTime('All Time'),
-  last12Months('Last 12 Months'),
-  last6Months('Last 6 Months'),
-  last3Months('Last 3 Months'),
-  last30Days('Last 30 Days');
-
-  const StatsTimeRange(this.label);
-  final String label;
-}
-
-class StatsOverviewWidget extends StatefulWidget {
+/// The player's aggregate stats, recomputed whenever the match history
+/// changes or the selected time range changes.
+///
+/// The [StatsOverviewBloc] is created once for the widget's lifetime; match
+/// history updates flow in through a [BlocListener] rather than by
+/// recreating the bloc.
+class StatsOverviewWidget extends StatelessWidget {
   const StatsOverviewWidget({super.key});
 
   @override
-  State<StatsOverviewWidget> createState() => _StatsOverviewWidgetState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => StatsOverviewBloc(
+        scryfallRepository: context.read<ScryfallRepository>(),
+      ),
+      child: const _StatsOverviewView(),
+    );
+  }
 }
 
-class _StatsOverviewWidgetState extends State<StatsOverviewWidget> {
-  StatsTimeRange _selectedRange = StatsTimeRange.allTime;
+class _StatsOverviewView extends StatefulWidget {
+  const _StatsOverviewView();
 
-  List<GameModel> _filterGames(List<GameModel> games) {
-    if (_selectedRange == StatsTimeRange.allTime) {
-      return games;
+  @override
+  State<_StatsOverviewView> createState() => _StatsOverviewViewState();
+}
+
+class _StatsOverviewViewState extends State<_StatsOverviewView> {
+  @override
+  void initState() {
+    super.initState();
+    // Compile immediately if the match history has already loaded; otherwise
+    // the BlocListener below fires when the games arrive.
+    final matchHistoryState = context.read<MatchHistoryBloc>().state;
+    if (matchHistoryState.status == MatchHistoryStatus.loadingHistorySuccess ||
+        matchHistoryState.status == MatchHistoryStatus.gameNotFound) {
+      _compileStats(matchHistoryState.games);
     }
-    final now = DateTime.now();
-    final cutoff = switch (_selectedRange) {
-      StatsTimeRange.last12Months => DateTime(now.year - 1, now.month, now.day),
-      StatsTimeRange.last6Months => DateTime(now.year, now.month - 6, now.day),
-      StatsTimeRange.last3Months => DateTime(now.year, now.month - 3, now.day),
-      StatsTimeRange.last30Days => now.subtract(const Duration(days: 30)),
-      StatsTimeRange.allTime => now,
-    };
-    return games.where((game) => game.endTime.isAfter(cutoff)).toList();
   }
 
-  void _onRangeChanged(
-    StatsTimeRange? range,
-    BuildContext blocContext,
-  ) {
-    if (range == null) return;
-    setState(() => _selectedRange = range);
-    final allGames = blocContext.read<MatchHistoryBloc>().state.games;
-    blocContext.read<StatsOverviewBloc>().add(
+  void _compileStats(List<GameModel> games) {
+    context.read<StatsOverviewBloc>().add(
       CompileStatsOverviewData(
-        userId: blocContext.read<AppBloc>().state.user.id,
-        games: _filterGames(allGames),
+        userId: context.read<AppBloc>().state.user.id,
+        games: games,
       ),
     );
+  }
+
+  void _onRangeChanged(StatsTimeRange? range) {
+    if (range == null) return;
+    context.read<StatsOverviewBloc>().add(StatsTimeRangeChanged(range));
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final isPhone = DeviceInfoProvider.of(context).isPhone;
-    final allGames = context.read<MatchHistoryBloc>().state.games;
-    return BlocProvider(
-      create: (context) =>
-          StatsOverviewBloc(
-            scryfallRepository: context.read<ScryfallRepository>(),
-          )..add(
-            CompileStatsOverviewData(
-              userId: context.read<AppBloc>().state.user.id,
-              games: _filterGames(allGames),
-            ),
-          ),
+    return BlocListener<MatchHistoryBloc, MatchHistoryState>(
+      listenWhen: (previous, current) =>
+          !identical(previous.games, current.games),
+      listener: (context, state) => _compileStats(state.games),
       child: BlocBuilder<StatsOverviewBloc, StatsOverviewState>(
         builder: (context, state) {
-          if (state is StatsOverviewLoading) {
-            return Column(
-              children: [
-                _buildDropdown(context),
-                const Expanded(
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-              ],
-            );
-          }
           if (state is StatsOverviewLoaded) {
             return Column(
               children: [
-                _buildDropdown(context),
+                _buildDropdown(context, state.range),
                 Expanded(
-                  child: GridView.count(
-                    crossAxisSpacing: 50,
-                    childAspectRatio: isPhone ? .8 : 1.2,
-                    mainAxisSpacing: 10,
-                    crossAxisCount: 3,
-                    children: _buildStatWidgets(l10n, state),
+                  child: StatsGrid(children: _buildStatWidgets(l10n, state)),
+                ),
+              ],
+            );
+          }
+          if (state is StatsOverviewFailure) {
+            return Column(
+              children: [
+                _buildDropdown(context, StatsTimeRange.allTime),
+                const Expanded(
+                  child: Center(
+                    child: Text('No data available'),
                   ),
                 ),
               ],
             );
           }
-          return Column(
-            children: [
-              _buildDropdown(context),
-              const Expanded(
-                child: Center(
-                  child: Text('No data available'),
-                ),
-              ),
-            ],
-          );
+          // No compiled data yet: initial load, or a compile in flight.
+          return const StatsOverviewSkeleton();
         },
       ),
     );
   }
 
-  Widget _buildDropdown(BuildContext blocContext) {
+  Widget _buildDropdown(BuildContext context, StatsTimeRange range) {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
@@ -129,7 +109,7 @@ class _StatsOverviewWidgetState extends State<StatsOverviewWidget> {
       child: Align(
         alignment: Alignment.centerRight,
         child: DropdownButton<StatsTimeRange>(
-          value: _selectedRange,
+          value: range,
           dropdownColor: Colors.grey[900],
           style: Theme.of(
             context,
@@ -150,7 +130,7 @@ class _StatsOverviewWidgetState extends State<StatsOverviewWidget> {
                 ),
               )
               .toList(),
-          onChanged: (range) => _onRangeChanged(range, blocContext),
+          onChanged: _onRangeChanged,
         ),
       ),
     );

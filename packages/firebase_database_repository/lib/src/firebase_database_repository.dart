@@ -618,42 +618,41 @@ class FirebaseDatabaseRepository {
     }
   }
 
-  /// Retrieves the list of friends for a given user.
-  Future<List<FriendModel>> getFriends(String userId) async {
-    try {
-      final snapshot = await _firebase
-          .collection('friends')
-          .doc(userId)
-          .collection('friendList')
-          .get();
-
-      return snapshot.docs
-          .map((doc) => FriendModel.fromJson(doc.data()))
-          .toList();
-    } catch (e) {
-      throw Exception('Failed to retrieve friends: $e');
-    }
+  /// Streams the user's friends, updating in real time.
+  Stream<List<FriendModel>> watchFriends(String userId) {
+    return _firebase
+        .collection('friends')
+        .doc(userId)
+        .collection('friendList')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => FriendModel.fromJson(doc.data()))
+              .toList(),
+        );
   }
 
-  /// Retrieves all incoming friend requests for a given user.
+  /// Streams the user's incoming pending friend requests, updating in real
+  /// time.
   ///
-  /// @param userId The ID of the user whose incoming friend requests are being retrieved.
-  /// @returns Future<List<FriendRequestModel>> A list of friend request data.
-  /// @throws Exception if the friend requests cannot be retrieved.
-  Future<List<FriendRequestModel>> getFriendRequests(String userId) async {
-    try {
-      final snapshot = await _friendCollection
-          .where('receiverId', isEqualTo: userId)
-          .where('status', isEqualTo: 'pending')
-          .get();
-
-      return snapshot.docs
-          .map((doc) =>
-              FriendRequestModel.fromJson(doc.data()! as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      throw Exception('Failed to retrieve friend requests: $e');
-    }
+  /// Deliberately the same query as `getFriendRequests` used — same equality
+  /// filters, same `list` permission — so this needs no new composite index
+  /// and no rules change. The only difference is a listener instead of a
+  /// one-shot read.
+  Stream<List<FriendRequestModel>> watchFriendRequests(String userId) {
+    return _friendCollection
+        .where('receiverId', isEqualTo: userId)
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => FriendRequestModel.fromJson(
+                  doc.data()! as Map<String, dynamic>,
+                ),
+              )
+              .toList(),
+        );
   }
 
   /// Declines a friend request by marking its status as declined.
@@ -802,7 +801,7 @@ class FirebaseDatabaseRepository {
   /// Under the Task 3 rules, `friendRequests` deletes are pending-only —
   /// deleting a nonexistent doc (null `resource.data`) or a declined doc
   /// is denied. Declined docs don't need deleting: they're already invisible
-  /// to [getFriendRequests] and permanently suppress re-sends. Rather than
+  /// to [watchFriendRequests] and permanently suppress re-sends. Rather than
   /// point-getting the deterministic docs (which is rules-denied when the
   /// doc doesn't exist — see [addFriendRequest]), this queries both pending
   /// directions by sender/receiver id, which matches deterministic-id docs

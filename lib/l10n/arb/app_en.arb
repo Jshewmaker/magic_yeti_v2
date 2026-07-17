@@ -860,6 +860,10 @@
   "@legacyRequestAcceptError": {
     "description": "Snackbar error shown when accepting a friend request fails because it predates current permission rules"
   },
+  "noPendingRequests": "No pending requests",
+  "@noPendingRequests": {
+    "description": "Empty state shown on the friend requests tab when the user has no incoming requests"
+  },
   "gameSaveFailedError": "Couldn't save the game. Check your connection and try again.",
   "@gameSaveFailedError": {
     "description": "Snackbar error shown when saving the game-over stats to the database fails"

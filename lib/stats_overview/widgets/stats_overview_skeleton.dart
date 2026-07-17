@@ -1,6 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:magic_yeti/app/utils/device_info_provider.dart';
+import 'package:magic_yeti/stats_overview/widgets/stats_grid.dart';
 
 /// Skeleton placeholder for the stats overview, shown while stats compile.
 ///
@@ -16,7 +16,6 @@ class StatsOverviewSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPhone = DeviceInfoProvider.of(context).isPhone;
     return AppShimmer(
       child: Column(
         children: [
@@ -29,11 +28,7 @@ class StatsOverviewSkeleton extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: GridView.count(
-              crossAxisSpacing: 50,
-              childAspectRatio: isPhone ? .8 : 1.2,
-              mainAxisSpacing: 10,
-              crossAxisCount: 3,
+            child: StatsGrid(
               children: List.generate(
                 itemCount,
                 (_) => const _StatTileSkeleton(),
