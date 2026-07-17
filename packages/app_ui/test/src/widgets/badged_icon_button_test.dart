@@ -49,7 +49,10 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byIcon(Icons.people));
+      // Tap the dot itself, not the icon's centre: the dot overlaps the
+      // button's tap target, and without IgnorePointer this exact spot
+      // would be dead.
+      await tester.tapAt(tester.getCenter(find.byType(NotificationDot)));
       expect(taps, 1);
     });
   });
