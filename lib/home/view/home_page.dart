@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/friends_list/friends_list_page.dart';
+import 'package:magic_yeti/friends_list/requests/bloc/friend_request_bloc.dart';
 import 'package:magic_yeti/home/widgets/widgets.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 
@@ -80,10 +81,14 @@ class _TabletHomeView extends StatelessWidget {
           Expanded(
             child: Column(
               children: [
-                SectionHeader(
-                  title: l10n.matchHistoryTitle,
-                  icon: Icons.people,
-                  onMorePressed: () => context.push(FriendsListPage.routePath),
+                BlocBuilder<FriendRequestBloc, FriendRequestState>(
+                  builder: (context, state) => SectionHeader(
+                    title: l10n.matchHistoryTitle,
+                    icon: Icons.people,
+                    showBadge: _hasPendingRequests(state),
+                    onMorePressed: () =>
+                        context.push(FriendsListPage.routePath),
+                  ),
                 ),
                 const Expanded(
                   child: MatchHistoryPanel(),
@@ -126,9 +131,12 @@ class _PhoneHomeView extends StatelessWidget {
             labelColor: AppColors.onSurfaceVariant,
           ),
           actions: [
-            IconButton(
-              onPressed: () => context.push(FriendsListPage.routePath),
-              icon: const Icon(Icons.people),
+            BlocBuilder<FriendRequestBloc, FriendRequestState>(
+              builder: (context, state) => BadgedIconButton(
+                icon: Icons.people,
+                showBadge: _hasPendingRequests(state),
+                onPressed: () => context.push(FriendsListPage.routePath),
+              ),
             ),
           ],
         ),
@@ -144,3 +152,11 @@ class _PhoneHomeView extends StatelessWidget {
     );
   }
 }
+
+/// True when the signed-in user has at least one pending friend request.
+///
+/// Any non-loaded state (loading, error, the transient legacy-accept error)
+/// reads as false: a dot that might be wrong sends the user to a page to find
+/// nothing, which is worse than no dot.
+bool _hasPendingRequests(FriendRequestState state) =>
+    state is FriendRequestLoaded && state.requests.isNotEmpty;

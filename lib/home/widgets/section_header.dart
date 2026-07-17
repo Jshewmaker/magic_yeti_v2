@@ -11,6 +11,7 @@ class SectionHeader extends StatelessWidget {
     super.key,
     this.onMorePressed,
     this.icon,
+    this.showBadge = false,
   });
 
   final String title;
@@ -21,6 +22,10 @@ class SectionHeader extends StatelessWidget {
   /// null, the button shows the user's profile photo, falling back to a
   /// single-person icon.
   final IconData? icon;
+
+  /// Whether to overlay a [NotificationDot] on the trailing action button,
+  /// marking unseen items behind it. Only honoured when [icon] is set.
+  final bool showBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -47,12 +52,11 @@ class SectionHeader extends StatelessWidget {
           ),
           if (onMorePressed != null)
             if (icon != null)
-              IconButton(
+              BadgedIconButton(
+                icon: icon!,
+                color: AppColors.onSurfaceVariant,
+                showBadge: showBadge,
                 onPressed: onMorePressed,
-                icon: Icon(
-                  icon,
-                  color: AppColors.onSurfaceVariant,
-                ),
               )
             else if (user.photo == null || user.photo!.isEmpty)
               IconButton(
