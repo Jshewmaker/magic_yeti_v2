@@ -1329,6 +1329,10 @@ Then the new group — both layouts, because the dot has two independent call si
         await tester.pumpWidget(buildSubject(isPhone: isPhone));
         await tester.pumpAndSettle();
 
+        // Assert the button IS there, not just that the dot isn't: a bare
+        // findsNothing passes just as happily when the whole friends icon
+        // has silently vanished from the tree.
+        expect(find.byType(BadgedIconButton), findsOneWidget);
         expect(find.byType(NotificationDot), findsNothing);
       });
 
@@ -1341,6 +1345,10 @@ Then the new group — both layouts, because the dot has two independent call si
         await tester.pumpWidget(buildSubject(isPhone: isPhone));
         await tester.pumpAndSettle();
 
+        // Assert the button IS there, not just that the dot isn't: a bare
+        // findsNothing passes just as happily when the whole friends icon
+        // has silently vanished from the tree.
+        expect(find.byType(BadgedIconButton), findsOneWidget);
         expect(find.byType(NotificationDot), findsNothing);
       });
     }
