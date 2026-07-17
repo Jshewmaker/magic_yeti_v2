@@ -79,6 +79,38 @@ void main() {
       );
     });
 
+    group('RemoveFriend', () {
+      blocTest<FriendBloc, FriendState>(
+        'calls repository.removeFriend and emits nothing on success — the '
+        'watchFriends stream re-emits without the removed friend',
+        setUp: () {
+          when(
+            () => repository.removeFriend(any(), any()),
+          ).thenAnswer((_) async {});
+        },
+        build: buildBloc,
+        seed: () => const FriendsLoaded([bob]),
+        act: (bloc) => bloc.add(const RemoveFriend('alice', 'bob')),
+        expect: () => <FriendState>[],
+        verify: (_) {
+          verify(() => repository.removeFriend('alice', 'bob')).called(1);
+        },
+      );
+
+      blocTest<FriendBloc, FriendState>(
+        'emits FriendsError when removeFriend fails',
+        setUp: () {
+          when(
+            () => repository.removeFriend(any(), any()),
+          ).thenThrow(Exception('boom'));
+        },
+        build: buildBloc,
+        seed: () => const FriendsLoaded([bob]),
+        act: (bloc) => bloc.add(const RemoveFriend('alice', 'bob')),
+        expect: () => [isA<FriendsError>()],
+      );
+    });
+
     group('BlockFriend', () {
       blocTest<FriendBloc, FriendState>(
         'calls repository.blockUser and emits nothing on success — the '
