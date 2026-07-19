@@ -163,7 +163,7 @@ void main() {
     'The Beatdown, 21s, and a long commander name',
     (tester) async {
       // Phone-sized viewport — the crash this guards against only shows up
-      // under the 3-column grid's real (bounded) cell height.
+      // under the 2-column grid's real (bounded) cell height.
       tester.view.physicalSize = const Size(360, 800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);

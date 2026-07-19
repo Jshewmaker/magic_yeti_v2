@@ -284,10 +284,15 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final imageUrl = friend?.profilePictureUrl ?? '';
     final since = stats.firstPlayedTogether;
-    final subtitle = since == null
-        ? '${stats.sharedPods} pods together'
-        : '${stats.sharedPods} pods together · since '
-              '${DateFormat('MMM yyyy').format(since)}';
+    // In the no-pods-in-range state the count is 0 and the body below already
+    // says "No shared pods in this range", so a "0 pods together" subtitle
+    // would just be redundant — drop it.
+    final subtitle = stats.sharedPods == 0
+        ? null
+        : since == null
+            ? '${stats.sharedPods} pods together'
+            : '${stats.sharedPods} pods together · since '
+                  '${DateFormat('MMM yyyy').format(since)}';
 
     return Row(
       children: [
@@ -315,12 +320,13 @@ class _Header extends StatelessWidget {
                 friendName,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              Text(
-                subtitle,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.neutral60),
-              ),
+              if (subtitle != null)
+                Text(
+                  subtitle,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.neutral60),
+                ),
             ],
           ),
         ),
