@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/friends_list/friend_stats/view/friend_stats_page.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
+import 'package:magic_yeti/stats_overview/stats_overview.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:player_repository/player_repository.dart';
 import 'package:user_repository/user_repository.dart';
@@ -17,29 +18,34 @@ class _MockMatchHistoryBloc
     extends MockBloc<MatchHistoryEvent, MatchHistoryState>
     implements MatchHistoryBloc {}
 
-Player _seat(String id, String firebaseId, int todMs, {String? commander}) =>
-    Player(
-      id: id,
-      name: 'Name-$id',
-      playerNumber: 0,
-      lifePoints: 40,
-      color: 0xFF000000,
-      opponents: const [],
-      placement: 1,
-      timeOfDeath: todMs,
-      firebaseId: firebaseId,
-      commander: commander == null
-          ? null
-          : Commander(
-              name: commander,
-              colors: const ['G'],
-              cardType: 'Legendary Creature',
-              imageUrl: '',
-              manaCost: '{G}',
-              oracleText: '',
-              artist: 'A',
-            ),
-    );
+Player _seat(
+  String id,
+  String firebaseId,
+  int todMs, {
+  String? commander,
+  List<Opponent> opponents = const [],
+}) => Player(
+  id: id,
+  name: 'Name-$id',
+  playerNumber: 0,
+  lifePoints: 40,
+  color: 0xFF000000,
+  opponents: opponents,
+  placement: 1,
+  timeOfDeath: todMs,
+  firebaseId: firebaseId,
+  commander: commander == null
+      ? null
+      : Commander(
+          name: commander,
+          colors: const ['G'],
+          cardType: 'Legendary Creature',
+          imageUrl: '',
+          manaCost: '{G}',
+          oracleText: '',
+          artist: 'A',
+        ),
+);
 
 /// A shared pod where `me` outlasts `friend` when [meAhead] is true.
 GameModel _pod(String id, {required bool meAhead}) {
@@ -133,8 +139,103 @@ void main() {
 
     // Secondary tiles are present.
     expect(find.text('Pods Won'), findsOneWidget);
-    expect(find.text('Time Alive'), findsOneWidget);
+    expect(find.text('Avg Time Alive'), findsOneWidget);
     expect(find.text('Their Go-To'), findsOneWidget);
+  });
+
+  testWidgets(
+    'does not overflow at phone width with every tile showing, including '
+    'The Beatdown, 21s, and a long commander name',
+    (tester) async {
+      // Phone-sized viewport — the crash this guards against only shows up
+      // under the 3-column grid's real (bounded) cell height.
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      const longCommanderName = "Kroxa, Titan of Death's Hunger";
+      final start = DateTime(2026, 1, 1, 12);
+      final end = DateTime(2026, 1, 1, 14);
+
+      GameModel podWith({required String id, List<Opponent>? friendTakes}) {
+        return GameModel(
+          id: id,
+          winnerId: 'me-seat',
+          startTime: start,
+          endTime: end,
+          durationInSeconds: 7200,
+          players: [
+            _seat('me-seat', 'me', end.millisecondsSinceEpoch),
+            _seat(
+              'friend-seat',
+              'friend',
+              start.millisecondsSinceEpoch + 1000,
+              commander: longCommanderName,
+              opponents: friendTakes ?? const [],
+            ),
+          ],
+        );
+      }
+
+      stubHistory([
+        // The first pod lands a lethal 21 from me onto the friend, and
+        // clears the commander-damage-volume gate (>=21) in one shot —
+        // this makes both "The Beatdown" and "21s" tiles render.
+        podWith(
+          id: '1',
+          friendTakes: [
+            Opponent(
+              playerId: 'me-seat',
+              damages: [
+                CommanderDamage(damageType: DamageType.commander, amount: 21),
+              ],
+            ),
+          ],
+        ),
+        podWith(id: '2'),
+        podWith(id: '3'),
+        podWith(id: '4'),
+        podWith(id: '5'),
+      ]);
+
+      await tester.pumpWidget(buildSubject());
+      await tester.pumpAndSettle();
+
+      // Sanity: the long-caption tiles are actually present, so this test
+      // exercises the overflow-prone cards rather than trivially passing.
+      expect(find.text('The Beatdown'), findsOneWidget);
+      expect(find.text('21s'), findsOneWidget);
+      expect(find.text(longCommanderName), findsOneWidget);
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('shows an in-range empty body when the range hides all pods', (
+    tester,
+  ) async {
+    // Pods dated Jan 2026 — outside a Last-30-Days window as of the run date.
+    stubHistory([
+      _pod('1', meAhead: true),
+      _pod('2', meAhead: true),
+      _pod('3', meAhead: true),
+    ]);
+
+    await tester.pumpWidget(buildSubject());
+    await tester.pumpAndSettle();
+
+    // Open the range dropdown and pick Last 30 Days.
+    await tester.tap(find.byType(DropdownButton<StatsTimeRange>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Last 30 Days').last);
+    await tester.pumpAndSettle();
+
+    // In-range empty message shows, and the dropdown is still available to
+    // widen the range back out.
+    expect(find.textContaining('No shared pods in this range'), findsOneWidget);
+    expect(find.byType(DropdownButton<StatsTimeRange>), findsOneWidget);
+    // Not the all-time "never played" empty state.
+    expect(find.textContaining('No shared pods yet'), findsNothing);
   });
 
   testWidgets('shows the empty state when no pods are shared', (tester) async {

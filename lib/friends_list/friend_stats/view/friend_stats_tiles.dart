@@ -90,7 +90,7 @@ class FriendStatCard extends StatelessWidget {
       color: AppColors.surface,
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -121,14 +121,14 @@ class FriendStatCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             AutoSizeText(
               stat,
               style: theme.textTheme.headlineSmall,
               textAlign: TextAlign.center,
               maxLines: 2,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             AutoSizeText(
               caption,
               style: theme.textTheme.bodySmall?.copyWith(
