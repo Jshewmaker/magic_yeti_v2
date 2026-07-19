@@ -161,22 +161,42 @@ class _FriendStatsBody extends StatelessWidget {
           else ...[
             LedgerHeroTile(stats: stats, friendName: friendName),
             const SizedBox(height: 16),
-            // The grid is intrinsically sized inside a scroll view. Tight
-            // spacing keeps the cards close together; the aspect ratio gives
-            // each cell enough height to fit its title/value/caption without
-            // overflow even for the longest content (a long commander name
-            // plus the two damage tiles) — FriendStatCard has no flex child,
-            // so AutoSizeText shrinks by width, not by the cell's height.
-            GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.72,
-              children: buildFriendStatTiles(stats),
-            ),
+            _StatTiles(stats: stats),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The secondary stat cards, arranged per form factor. Phone: a 2-column grid
+/// whose cells stretch to fill width (short cells → tight, no overflow).
+/// Tablet/wide: a centered wrap of fixed-size cards so they cluster together
+/// instead of stretching across the screen into sparse, oversized cells.
+class _StatTiles extends StatelessWidget {
+  const _StatTiles({required this.stats});
+
+  final FriendHeadToHead stats;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdaptiveLayout(
+      phone: (_) => GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.1,
+        children: buildFriendStatTiles(stats),
+      ),
+      tablet: (_) => Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 12,
+        runSpacing: 12,
+        children: [
+          for (final tile in buildFriendStatTiles(stats))
+            SizedBox(width: 190, height: 150, child: tile),
         ],
       ),
     );

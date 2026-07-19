@@ -118,6 +118,21 @@ void main() {
     );
   }
 
+  Widget buildTabletSubject() {
+    return MaterialApp(
+      home: DeviceInfoProvider(
+        isPhone: false,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<AppBloc>.value(value: appBloc),
+            BlocProvider<MatchHistoryBloc>.value(value: matchHistoryBloc),
+          ],
+          child: const FriendStatsPage(friendId: 'friend', friend: _friend),
+        ),
+      ),
+    );
+  }
+
   testWidgets('renders head-to-head stats for the shared pods', (tester) async {
     stubHistory([
       _pod('1', meAhead: true),
@@ -206,6 +221,79 @@ void main() {
       expect(find.text('The Beatdown'), findsOneWidget);
       expect(find.text('21s'), findsOneWidget);
       expect(find.text(longCommanderName), findsOneWidget);
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'does not overflow at tablet width and renders the Wrap layout, not the '
+    'phone grid, with every tile showing',
+    (tester) async {
+      // Wide viewport — exercises the tablet/wide AdaptiveLayout branch.
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const longCommanderName = "Kroxa, Titan of Death's Hunger";
+      final start = DateTime(2026, 1, 1, 12);
+      final end = DateTime(2026, 1, 1, 14);
+
+      GameModel podWith({required String id, List<Opponent>? friendTakes}) {
+        return GameModel(
+          id: id,
+          winnerId: 'me-seat',
+          startTime: start,
+          endTime: end,
+          durationInSeconds: 7200,
+          players: [
+            _seat('me-seat', 'me', end.millisecondsSinceEpoch),
+            _seat(
+              'friend-seat',
+              'friend',
+              start.millisecondsSinceEpoch + 1000,
+              commander: longCommanderName,
+              opponents: friendTakes ?? const [],
+            ),
+          ],
+        );
+      }
+
+      stubHistory([
+        // The first pod lands a lethal 21 from me onto the friend, and
+        // clears the commander-damage-volume gate (>=21) in one shot —
+        // this makes both "The Beatdown" and "21s" tiles render.
+        podWith(
+          id: '1',
+          friendTakes: [
+            Opponent(
+              playerId: 'me-seat',
+              damages: [
+                CommanderDamage(damageType: DamageType.commander, amount: 21),
+              ],
+            ),
+          ],
+        ),
+        podWith(id: '2'),
+        podWith(id: '3'),
+        podWith(id: '4'),
+        podWith(id: '5'),
+      ]);
+
+      await tester.pumpWidget(buildTabletSubject());
+      await tester.pumpAndSettle();
+
+      // Sanity: the long-caption tiles are actually present, so this test
+      // exercises the overflow-prone cards rather than trivially passing.
+      expect(find.text('The Beatdown'), findsOneWidget);
+      expect(find.text('21s'), findsOneWidget);
+      expect(find.text(longCommanderName), findsOneWidget);
+
+      // The tablet path renders a Wrap of fixed-size cards, not the phone
+      // GridView.
+      expect(find.byType(Wrap), findsWidgets);
+      expect(find.byType(GridView), findsNothing);
 
       expect(tester.takeException(), isNull);
     },
