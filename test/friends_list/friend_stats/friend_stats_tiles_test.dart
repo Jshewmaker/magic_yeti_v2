@@ -129,8 +129,18 @@ void main() {
       await _pump(tester, Column(children: tiles));
 
       // Time Alive tile present but showing the need-more sentinel.
-      expect(find.text('Time Alive'), findsOneWidget);
+      expect(find.text('Avg Time Alive'), findsOneWidget);
       expect(find.text('Need 5+'), findsWidgets);
+    });
+
+    testWidgets('renders captions under the values', (tester) async {
+      final tiles = buildFriendStatTiles(
+        _stats(sharedPods: 5, youWon: 3, theyWon: 1, fieldWon: 1),
+      );
+      await _pump(tester, Column(children: tiles));
+
+      expect(find.text('You · Them · Field'), findsOneWidget);
+      expect(find.text('3·1·1'), findsOneWidget);
     });
   });
 }

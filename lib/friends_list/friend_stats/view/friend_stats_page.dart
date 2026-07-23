@@ -8,7 +8,7 @@ import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/friends_list/friend_stats/friend_stats.dart';
 import 'package:magic_yeti/friends_list/friend_stats/view/friend_stats_tiles.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
-import 'package:magic_yeti/stats_overview/widgets/stats_overview_skeleton.dart';
+import 'package:magic_yeti/stats_overview/stats_overview.dart';
 
 /// Head-to-head stats between the signed-in user and one friend, over the pods
 /// they have played together.
@@ -78,6 +78,11 @@ class _FriendStatsViewState extends State<_FriendStatsView> {
     );
   }
 
+  void _onRangeChanged(StatsTimeRange? range) {
+    if (range == null) return;
+    context.read<FriendStatsBloc>().add(FriendStatsRangeChanged(range));
+  }
+
   String get _friendName => widget.friend?.username ?? 'Friend';
 
   @override
@@ -97,10 +102,12 @@ class _FriendStatsViewState extends State<_FriendStatsView> {
         child: BlocBuilder<FriendStatsBloc, FriendStatsState>(
           builder: (context, state) {
             return switch (state) {
-              FriendStatsLoaded(:final stats) => _FriendStatsBody(
+              FriendStatsLoaded(:final stats, :final range) => _FriendStatsBody(
                 friendName: _friendName,
                 friend: widget.friend,
                 stats: stats,
+                range: range,
+                onRangeChanged: _onRangeChanged,
               ),
               FriendStatsFailure() => const Center(
                 child: Text('Could not load these stats.'),
@@ -119,15 +126,21 @@ class _FriendStatsBody extends StatelessWidget {
     required this.friendName,
     required this.friend,
     required this.stats,
+    required this.range,
+    required this.onRangeChanged,
   });
 
   final String friendName;
   final FriendModel? friend;
   final FriendHeadToHead stats;
+  final StatsTimeRange range;
+  final ValueChanged<StatsTimeRange?> onRangeChanged;
 
   @override
   Widget build(BuildContext context) {
-    if (stats.sharedPods == 0) {
+    // No shared pods in the full history: the "go tag them" empty state. There
+    // is nothing to filter, so the dropdown is omitted here.
+    if (stats.sharedPods == 0 && range == StatsTimeRange.allTime) {
       return _EmptyState(friendName: friendName);
     }
 
@@ -136,19 +149,119 @@ class _FriendStatsBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: _RangeDropdown(range: range, onChanged: onRangeChanged),
+          ),
+          const SizedBox(height: 8),
           _Header(friendName: friendName, friend: friend, stats: stats),
           const SizedBox(height: 16),
-          LedgerHeroTile(stats: stats, friendName: friendName),
-          const SizedBox(height: 16),
-          // The grid is intrinsically sized inside a scroll view.
-          GridView.count(
-            crossAxisCount: 3,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 24,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.85,
-            children: buildFriendStatTiles(stats),
+          if (stats.sharedPods == 0)
+            const _NoPodsInRange()
+          else ...[
+            LedgerHeroTile(stats: stats, friendName: friendName),
+            const SizedBox(height: 16),
+            _StatTiles(stats: stats),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The secondary stat cards, arranged per form factor. Phone: a 2-column grid
+/// whose cells stretch to fill width (short cells → tight, no overflow).
+/// Tablet/wide: a centered wrap of fixed-size cards so they cluster together
+/// instead of stretching across the screen into sparse, oversized cells.
+class _StatTiles extends StatelessWidget {
+  const _StatTiles({required this.stats});
+
+  final FriendHeadToHead stats;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdaptiveLayout(
+      phone: (_) => GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.1,
+        children: buildFriendStatTiles(stats),
+      ),
+      tablet: (_) => Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 12,
+        runSpacing: 12,
+        children: [
+          for (final tile in buildFriendStatTiles(stats))
+            SizedBox(width: 190, height: 150, child: tile),
+        ],
+      ),
+    );
+  }
+}
+
+/// Right-aligned time-range selector, styled like the home stats dropdown.
+class _RangeDropdown extends StatelessWidget {
+  const _RangeDropdown({required this.range, required this.onChanged});
+
+  final StatsTimeRange range;
+  final ValueChanged<StatsTimeRange?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton<StatsTimeRange>(
+      value: range,
+      dropdownColor: Colors.grey[900],
+      style: Theme.of(
+        context,
+      ).textTheme.bodyMedium?.copyWith(color: Colors.blueGrey),
+      underline: Container(height: 1, color: Colors.blueGrey.withAlpha(100)),
+      icon: const Icon(Icons.arrow_drop_down, color: Colors.blueGrey),
+      items: StatsTimeRange.values
+          .map(
+            (r) => DropdownMenuItem<StatsTimeRange>(
+              value: r,
+              child: Text(r.label),
+            ),
+          )
+          .toList(),
+      onChanged: onChanged,
+    );
+  }
+}
+
+/// Shown when the selected range has no shared pods but the friendship does —
+/// distinct from [_EmptyState], and leaves the dropdown visible to widen out.
+class _NoPodsInRange extends StatelessWidget {
+  const _NoPodsInRange();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.filter_alt_off_outlined,
+            size: 48,
+            color: AppColors.tertiary,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No shared pods in this range',
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Try a wider time range.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.neutral60),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -171,10 +284,15 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final imageUrl = friend?.profilePictureUrl ?? '';
     final since = stats.firstPlayedTogether;
-    final subtitle = since == null
-        ? '${stats.sharedPods} pods together'
-        : '${stats.sharedPods} pods together · since '
-              '${DateFormat('MMM yyyy').format(since)}';
+    // In the no-pods-in-range state the count is 0 and the body below already
+    // says "No shared pods in this range", so a "0 pods together" subtitle
+    // would just be redundant — drop it.
+    final subtitle = stats.sharedPods == 0
+        ? null
+        : since == null
+            ? '${stats.sharedPods} pods together'
+            : '${stats.sharedPods} pods together · since '
+                  '${DateFormat('MMM yyyy').format(since)}';
 
     return Row(
       children: [
@@ -202,12 +320,13 @@ class _Header extends StatelessWidget {
                 friendName,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              Text(
-                subtitle,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.neutral60),
-              ),
+              if (subtitle != null)
+                Text(
+                  subtitle,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.neutral60),
+                ),
             ],
           ),
         ),

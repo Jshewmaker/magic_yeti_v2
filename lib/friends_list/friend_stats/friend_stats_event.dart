@@ -22,3 +22,14 @@ final class CompileFriendStats extends FriendStatsEvent {
   @override
   List<Object?> get props => [myId, friendId, games];
 }
+
+/// Change the time window the head-to-head stats are computed over. Reuses the
+/// retained games/ids from the last [CompileFriendStats].
+final class FriendStatsRangeChanged extends FriendStatsEvent {
+  const FriendStatsRangeChanged(this.range);
+
+  final StatsTimeRange range;
+
+  @override
+  List<Object?> get props => [range];
+}
