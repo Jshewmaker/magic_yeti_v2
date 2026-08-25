@@ -198,5 +198,60 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+
+    // The tablet commander-name bound (maxLines: 1 + overflow: ellipsis) was
+    // a delta beyond the brief's two enumerated changes to `_WideContent`.
+    // It's a deliberate, kept fix (prevents a long commander name from
+    // overflowing the fixed-200pt tablet frame) but was previously untested
+    // — nothing in the suite ever rendered a tablet winner with a commander
+    // set. This makes it a documented, asserted behavior instead of a silent
+    // one.
+    testWidgets(
+      'non-compact ellipsizes a long commander name to one line',
+      (tester) async {
+        const longCommanderName =
+            'Tiamat, the Skies’ Fury, Terror of the Five-Headed Dragon';
+        await pumpHero(
+          tester,
+          compact: false,
+          size: const Size(1280, 800),
+          winner: base.copyWith(
+            commander: _testCommander(name: longCommanderName),
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+
+        final commanderText = tester.widget<Text>(
+          find.text(longCommanderName),
+        );
+        expect(commanderText.maxLines, 1);
+        expect(commanderText.overflow, TextOverflow.ellipsis);
+      },
+    );
+
+    // Confirms the tablet path — still a fixed 200pt frame, unlike the
+    // compact path which now grows — has no overflow even when both the
+    // winner name and the commander name are long simultaneously.
+    testWidgets(
+      'non-compact does not overflow with a long winner name and a long '
+      'commander name',
+      (tester) async {
+        const longName = 'Bartholomew Maximilian Featherstonehaugh The Third';
+        const longCommanderName =
+            'Tiamat, the Skies’ Fury, Terror of the Five-Headed Dragon';
+        await pumpHero(
+          tester,
+          compact: false,
+          size: const Size(1280, 800),
+          winner: base.copyWith(
+            name: longName,
+            commander: _testCommander(name: longCommanderName),
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 }
