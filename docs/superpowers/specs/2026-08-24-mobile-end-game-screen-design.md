@@ -183,8 +183,15 @@ solves this with a local `buildSubject({required bool isPhone})`. Follow that
 pattern; **do not** change the shared helper, which many tests depend on.
 
 Existing `game_over_page_test.dart` pins `Size(1280, 800)` and exercises the
-tablet path. It must keep passing without modification — that is the regression
-gate on "tablet look unchanged."
+tablet path. Both of its pump helpers (`pumpGameOverView`,
+`pumpRoutedGameOverView`) render `GameOverView` with no `DeviceInfoProvider` in
+the tree, so once `GameOverView` uses `AdaptiveLayout` they would trip the
+`DeviceInfoProvider.of` assertion. Each helper gains a one-line
+`DeviceInfoProvider.fromMediaQuery` wrapper, which derives `isPhone` from
+MediaQuery and resolves to tablet at the pinned 1280x800.
+
+**Every existing assertion stays byte-for-byte unchanged.** That is the
+regression gate on "tablet look unchanged" — only the harness wrapper moves.
 
 New phone tests at `Size(390, 844)` with `isPhone: true`:
 
