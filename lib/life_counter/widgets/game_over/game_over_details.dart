@@ -22,10 +22,7 @@ class GameOverDetailsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final canSubmit =
-        state.selectedPlayerId != null &&
-        state.firstPlayerId != null &&
-        state.status != GameOverStatus.loading;
+    final canSubmit = canSubmitGameOver(state);
 
     return Container(
       padding: const EdgeInsets.all(20),

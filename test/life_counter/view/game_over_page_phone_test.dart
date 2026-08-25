@@ -103,6 +103,7 @@ void main() {
       List<Player>? players,
       Size physicalSize = const Size(390, 844),
       double textScale = 1,
+      EdgeInsets viewPadding = EdgeInsets.zero,
     }) async {
       tester.view.physicalSize = physicalSize;
       tester.view.devicePixelRatio = 1;
@@ -121,6 +122,7 @@ void main() {
           data: MediaQueryData(
             size: physicalSize,
             textScaler: TextScaler.linear(textScale),
+            padding: viewPadding,
           ),
           child: DeviceInfoProvider(
             isPhone: true,
@@ -170,6 +172,36 @@ void main() {
         844,
       );
     });
+
+    testWidgets(
+      'the action bar fill runs past a home-indicator inset, but its '
+      'buttons still clear it',
+      (tester) async {
+        // Fix 5: _PhoneShell used a plain SafeArea, so the action bar's
+        // Container stopped above the home indicator and the scaffold's
+        // darker background showed through that strip. SafeArea(bottom:
+        // false) plus adding the inset to the bar's own bottom padding
+        // should let the surface fill reach the true screen edge while
+        // the buttons inside still sit above the indicator.
+        const bottomInset = 34.0; // Typical iPhone home-indicator height.
+        await pumpPhoneView(
+          tester,
+          viewPadding: const EdgeInsets.only(bottom: bottomInset),
+        );
+
+        final containerRect = tester.getRect(
+          find.byKey(const Key('game_over_phone_action_bar_container')),
+        );
+        expect(containerRect.bottom, 844);
+
+        // The primary button is the last widget before the bar's own
+        // bottom padding — its bottom edge must clear the indicator.
+        final buttonBottom = tester
+            .getRect(find.byType(ElevatedButton))
+            .bottom;
+        expect(buttonBottom, lessThanOrEqualTo(844 - bottomInset));
+      },
+    );
 
     testWidgets(
       'the drag-indicator icon carries a "Drag to reorder" tooltip, '

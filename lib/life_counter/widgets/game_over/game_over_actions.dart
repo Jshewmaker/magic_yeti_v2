@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
+import 'package:magic_yeti/life_counter/bloc/game_over_bloc.dart';
 import 'package:magic_yeti/life_counter/widgets/game_over/game_over_tokens.dart';
+
+/// Whether the game-over form has everything it needs to submit.
+///
+/// This really belongs on [GameOverState] itself, but this branch's
+/// no-bloc-changes constraint rules that out — it lives here instead of
+/// being computed separately by each shell/panel that needs it.
+bool canSubmitGameOver(GameOverState state) =>
+    state.selectedPlayerId != null &&
+    state.firstPlayerId != null &&
+    state.status != GameOverStatus.loading;
 
 class GameOverActionButton extends StatelessWidget {
   const GameOverActionButton({

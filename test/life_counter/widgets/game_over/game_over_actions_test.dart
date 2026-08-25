@@ -1,10 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:magic_yeti/life_counter/bloc/game_over_bloc.dart';
 import 'package:magic_yeti/life_counter/widgets/game_over/game_over.dart';
 
 import '../../../helpers/pump_app.dart';
 
 void main() {
+  group('canSubmitGameOver', () {
+    const base = GameOverState(
+      standings: [],
+      selectedPlayerId: 'selected',
+      firstPlayerId: 'first',
+    );
+
+    test('true once a first player and an account owner are both chosen', () {
+      expect(canSubmitGameOver(base), isTrue);
+    });
+
+    test('false when no account owner is selected', () {
+      // copyWith can't null out a field (it falls back to `?? this.field`),
+      // so build the state directly instead of via copyWith here.
+      const state = GameOverState(
+        standings: [],
+        selectedPlayerId: null,
+        firstPlayerId: 'first',
+      );
+      expect(canSubmitGameOver(state), isFalse);
+    });
+
+    test('false when no first player is chosen', () {
+      const state = GameOverState(
+        standings: [],
+        selectedPlayerId: 'selected',
+        firstPlayerId: null,
+      );
+      expect(canSubmitGameOver(state), isFalse);
+    });
+
+    test('false while a save is in flight, even with both fields set', () {
+      expect(
+        canSubmitGameOver(base.copyWith(status: GameOverStatus.loading)),
+        isFalse,
+      );
+    });
+
+    test('true again once the save settles into success or failure', () {
+      expect(
+        canSubmitGameOver(base.copyWith(status: GameOverStatus.success)),
+        isTrue,
+      );
+      expect(
+        canSubmitGameOver(base.copyWith(status: GameOverStatus.failure)),
+        isTrue,
+      );
+    });
+  });
+
   group('GameOverActionBar', () {
     Future<void> pumpBar(
       WidgetTester tester, {

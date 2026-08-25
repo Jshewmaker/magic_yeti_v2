@@ -167,12 +167,16 @@ class _PhoneShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final players = state.standings;
     final userId = context.read<AppBloc>().state.user.id;
-    final canSubmit =
-        state.selectedPlayerId != null &&
-        state.firstPlayerId != null &&
-        state.status != GameOverStatus.loading;
+    final canSubmit = canSubmitGameOver(state);
+
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return SafeArea(
+      // The action bar's own Container fill takes over clearing the home
+      // indicator (via bottomInset added to its padding below) so its
+      // surface color runs flush to the screen edge instead of stopping
+      // above a strip of the scaffold's darker background.
+      bottom: false,
       child: Column(
         children: [
           GameOverHeader(canRestoreGame: canRestoreGame, compact: true),
@@ -235,7 +239,7 @@ class _PhoneShell extends StatelessWidget {
           ),
           Container(
             key: const Key('game_over_phone_action_bar_container'),
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomInset),
             decoration: const BoxDecoration(
               color: GameOverTokens.surface,
               border: Border(top: BorderSide(color: GameOverTokens.border)),
