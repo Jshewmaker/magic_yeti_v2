@@ -8,24 +8,32 @@ import 'package:magic_yeti/life_counter/widgets/game_over/game_over_tokens.dart'
 import 'package:magic_yeti/timer/bloc/timer_bloc.dart';
 
 class GameOverHeader extends StatelessWidget {
-  const GameOverHeader({required this.canRestoreGame, super.key});
+  const GameOverHeader({
+    required this.canRestoreGame,
+    this.compact = false,
+    super.key,
+  });
+
   final bool canRestoreGame;
+
+  /// Renders the restore control icon-only so the title keeps the full width.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 8 : 20,
+        vertical: compact ? 10 : 14,
+      ),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: GameOverTokens.border)),
       ),
-      child: Row(
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          SizedBox(
-            width: 140,
-            child: canRestoreGame ? const RestoreGameButton() : null,
-          ),
-          const Spacer(),
           Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
                 'MATCH COMPLETE',
@@ -48,8 +56,11 @@ class GameOverHeader extends StatelessWidget {
               ),
             ],
           ),
-          const Spacer(),
-          const SizedBox(width: 140),
+          if (canRestoreGame)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: RestoreGameButton(compact: compact),
+            ),
         ],
       ),
     );
@@ -57,11 +68,33 @@ class GameOverHeader extends StatelessWidget {
 }
 
 class RestoreGameButton extends StatelessWidget {
-  const RestoreGameButton({super.key});
+  const RestoreGameButton({this.compact = false, super.key});
+
+  final bool compact;
+
+  void _restore(BuildContext context) {
+    final l10n = context.l10n;
+    context.read<TimerBloc>().add(const TimerStartEvent());
+    context.read<GameBloc>()
+      ..add(const GameRestoreRequested())
+      ..add(const GameResumeEvent());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.gameRestoredMessage)),
+    );
+    context.go(GamePage.routePath);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
+    if (compact) {
+      return IconButton(
+        onPressed: () => _restore(context),
+        color: GameOverTokens.textSecondary,
+        tooltip: 'Restore game',
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+      );
+    }
+
     return TextButton.icon(
       style: TextButton.styleFrom(
         foregroundColor: GameOverTokens.textSecondary,
@@ -76,16 +109,7 @@ class RestoreGameButton extends StatelessWidget {
           letterSpacing: 1.5,
         ),
       ),
-      onPressed: () {
-        context.read<TimerBloc>().add(const TimerStartEvent());
-        context.read<GameBloc>()
-          ..add(const GameRestoreRequested())
-          ..add(const GameResumeEvent());
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.gameRestoredMessage)),
-        );
-        context.go(GamePage.routePath);
-      },
+      onPressed: () => _restore(context),
     );
   }
 }
