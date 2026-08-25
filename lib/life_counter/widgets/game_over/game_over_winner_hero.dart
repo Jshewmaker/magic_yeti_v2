@@ -23,7 +23,10 @@ class GameOverWinnerHero extends StatelessWidget {
     final hasArt = winner.commander?.imageUrl.isNotEmpty ?? false;
 
     return Container(
-      height: compact ? 180 : 200,
+      constraints: BoxConstraints(
+        minHeight: compact ? 180 : 200,
+        maxHeight: compact ? double.infinity : 200,
+      ),
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
@@ -34,27 +37,42 @@ class GameOverWinnerHero extends StatelessWidget {
           width: 1.5,
         ),
       ),
+      // `passthrough` hands the content `Padding` below the exact
+      // constraints this `Stack` itself received. For the tablet path those
+      // constraints are already tight at 200 (identical to what `expand`
+      // would produce), so tablet rendering is unaffected. For the compact
+      // path the height constraint is only a floor (180) with no ceiling, so
+      // the content drives the final height and the frame grows with it —
+      // instead of clipping — when a wrapped name and a commander subtitle
+      // don't fit in 180.
       child: Stack(
-        fit: StackFit.expand,
+        fit: StackFit.passthrough,
         children: [
-          // Commander art
+          // Commander art and gradient scrim are `Positioned.fill` so they
+          // always stretch to match the frame's *final* height, which for
+          // the compact path is only known after the content below has been
+          // measured.
           if (hasArt) ...[
-            Image.network(
-              winner.commander!.imageUrl,
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
-              errorBuilder: (_, _, _) => const SizedBox.shrink(),
+            Positioned.fill(
+              child: Image.network(
+                winner.commander!.imageUrl,
+                fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              ),
             ),
             // Gradient scrim
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.black.withValues(alpha: 0.25),
-                    Colors.black.withValues(alpha: 0.72),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withValues(alpha: 0.25),
+                      Colors.black.withValues(alpha: 0.72),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
               ),
             ),
@@ -130,6 +148,7 @@ class _CompactContent extends StatelessWidget {
     final elapsed = context.watch<TimerBloc>().state.elapsedSeconds;
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

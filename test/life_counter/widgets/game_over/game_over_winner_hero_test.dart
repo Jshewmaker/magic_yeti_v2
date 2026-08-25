@@ -12,6 +12,18 @@ import '../../../helpers/pump_app.dart';
 class _MockTimerBloc extends MockBloc<TimerEvent, TimerState>
     implements TimerBloc {}
 
+Commander _testCommander({String name = 'Korvold, Fae-Cursed King'}) {
+  return Commander(
+    name: name,
+    imageUrl: 'https://example.com/commander.jpg',
+    colors: const [],
+    cardType: 'Legendary Creature',
+    manaCost: '{2}{B}{R}{G}',
+    oracleText: 'Test oracle text',
+    artist: 'Test Artist',
+  );
+}
+
 void main() {
   group('GameOverWinnerHero', () {
     late _MockTimerBloc timerBloc;
@@ -38,6 +50,7 @@ void main() {
       required bool compact,
       required Size size,
       Player? winner,
+      double textScale = 1,
     }) async {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
@@ -49,9 +62,15 @@ void main() {
           value: timerBloc,
           child: Scaffold(
             body: SingleChildScrollView(
-              child: GameOverWinnerHero(
-                winner: winner ?? base,
-                compact: compact,
+              child: MediaQuery(
+                data: MediaQueryData(
+                  size: size,
+                  textScaler: TextScaler.linear(textScale),
+                ),
+                child: GameOverWinnerHero(
+                  winner: winner ?? base,
+                  compact: compact,
+                ),
               ),
             ),
           ),
@@ -93,5 +112,91 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('1h 23m'), findsOneWidget);
     });
+
+    // Regression: a wrapped (2-line) winner name combined with a commander
+    // subtitle is the ordinary case for a finished Commander game, not an
+    // edge case. A numerically-tuned fixed height missed this because the
+    // long-name test above uses a winner with no commander set.
+    testWidgets(
+      'compact does not overflow when a wrapped name meets a commander '
+      'subtitle',
+      (tester) async {
+        await pumpHero(
+          tester,
+          compact: true,
+          size: const Size(390, 844),
+          winner: base.copyWith(
+            name: 'Alexandra Fitzgerald Thompson',
+            commander: _testCommander(),
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'compact does not overflow with a wrapped name and a long commander '
+      'name',
+      (tester) async {
+        await pumpHero(
+          tester,
+          compact: true,
+          size: const Size(390, 844),
+          winner: base.copyWith(
+            name: 'Alexandra Fitzgerald Thompson',
+            commander: _testCommander(
+              name:
+                  'Tiamat, the Skies’ Fury, Terror of the Five-Headed '
+                  'Dragon',
+            ),
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'compact does not overflow at a larger text scale with a wrapped '
+      'name and a commander',
+      (tester) async {
+        await pumpHero(
+          tester,
+          compact: true,
+          size: const Size(390, 844),
+          winner: base.copyWith(
+            name: 'Alexandra Fitzgerald Thompson',
+            commander: _testCommander(),
+          ),
+          textScale: 1.5,
+        );
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'compact does not overflow at 2x text scale with a wrapped name and '
+      'a long commander name',
+      (tester) async {
+        await pumpHero(
+          tester,
+          compact: true,
+          size: const Size(390, 844),
+          winner: base.copyWith(
+            name: 'Alexandra Fitzgerald Thompson',
+            commander: _testCommander(
+              name:
+                  'Tiamat, the Skies’ Fury, Terror of the Five-Headed '
+                  'Dragon',
+            ),
+          ),
+          textScale: 2,
+        );
+
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 }
