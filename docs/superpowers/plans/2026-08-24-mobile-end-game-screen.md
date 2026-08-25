@@ -20,6 +20,9 @@
 - Tablet appearance must not change. The existing tablet tests are the regression gate.
 - Phone breakpoint is `shortestSide < 600` (`AppBreakpoints.tablet`). Never hardcode 600.
 - New ARB keys require `flutter gen-l10n --arb-dir="lib/l10n/arb"` before `flutter analyze`.
+- Discarded callback parameters use a single `_` per position (`(_, _, _)`), never
+  `__`/`___`. Repeated `_` is a Dart 3.7+ wildcard and is legal here (SDK floor
+  3.8.0); `__` trips `unnecessary_underscores` and breaks the analyze-clean rule.
 - Commit after every task.
 
 ## File Structure
@@ -584,7 +587,7 @@ void main() {
             slivers: [
               SliverReorderableList(
                 itemCount: 1,
-                onReorder: (_, __) {},
+                onReorder: (_, _) {},
                 itemBuilder: (context, index) => StandingRow(
                   key: ValueKey(player.id),
                   player: player,
@@ -676,7 +679,7 @@ Inside `build`, replace the commander-art `Opacity(...)` block with one that sur
                 player.commander!.imageUrl,
                 fit: BoxFit.cover,
                 alignment: Alignment.topCenter,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
               ),
             ),
 ```
@@ -1012,7 +1015,7 @@ class GameOverWinnerHero extends StatelessWidget {
               winner.commander!.imageUrl,
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
-              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              errorBuilder: (_, _, _) => const SizedBox.shrink(),
             ),
             Container(
               decoration: BoxDecoration(
