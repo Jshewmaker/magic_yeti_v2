@@ -41,7 +41,7 @@ void main() {
             slivers: [
               SliverReorderableList(
                 itemCount: 1,
-                onReorder: (_, __) {},
+                onReorder: (_, _) {},
                 itemBuilder: (context, index) => StandingRow(
                   key: ValueKey(player.id),
                   player: player,

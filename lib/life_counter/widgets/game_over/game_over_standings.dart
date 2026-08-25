@@ -123,7 +123,7 @@ class StandingRow extends StatelessWidget {
                 player.commander!.imageUrl,
                 fit: BoxFit.cover,
                 alignment: Alignment.topCenter,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
               ),
             ),
 
