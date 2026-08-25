@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:magic_yeti/life_counter/bloc/game_over_bloc.dart';
@@ -111,5 +114,108 @@ void main() {
         );
       },
     );
+  });
+
+  group('StandingRow placement label layout', () {
+    // flutter test falls back to the Ahem placeholder font unless a real
+    // font is registered — see
+    // packages/app_ui/test/src/typography/app_ui_text_style_test.dart for
+    // the same pattern. Ahem renders every glyph as a fixed `fontSize`
+    // square, so "1ST"/"2ND"/"3RD"/"4TH" (all 3 characters) would measure
+    // identically and this test would never see the bug it exists to catch:
+    // in the app's real font, "2ND" happens to be a hair wider than the
+    // other three labels, which is exactly why only "2ND" wrapped.
+    const family = 'StandingRowPlacementTestFont';
+
+    late double singleLineHeight;
+
+    setUpAll(() async {
+      final loader = FontLoader(family);
+      final bytes = File(
+        'packages/app_ui/assets/fonts/NunitoSans-Bold.ttf',
+      ).readAsBytesSync();
+      loader.addFont(
+        Future.value(ByteData.view(Uint8List.fromList(bytes).buffer)),
+      );
+      await loader.load();
+
+      // A single, unambiguously-one-line glyph measured under the same
+      // style, used below as the "not wrapped" reference instead of a
+      // hardcoded pixel height that would silently go stale if the label's
+      // font/size/weight ever changed.
+      final painter = TextPainter(
+        text: const TextSpan(
+          text: '1',
+          style: TextStyle(
+            fontFamily: family,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      singleLineHeight = painter.height;
+    });
+
+    const base = Player(
+      id: 'p1',
+      name: 'Player One',
+      playerNumber: 1,
+      lifePoints: 40,
+      color: 0,
+      opponents: [],
+      placement: 1,
+    );
+
+    Future<void> pumpRow(WidgetTester tester, int placement) async {
+      await tester.pumpApp(
+        Scaffold(
+          body: DefaultTextStyle(
+            style: const TextStyle(fontFamily: family),
+            child: StandingRow(
+              player: base.copyWith(name: 'Standing Player $placement'),
+              placement: placement,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    for (final placement in [1, 2, 3, 4]) {
+      final label = GameOverTokens.placementLabel(placement);
+
+      testWidgets(
+        '$label renders on a single line with a clear gap before the name',
+        (tester) async {
+          await pumpRow(tester, placement);
+
+          final labelRect = tester.getRect(find.text(label));
+          final nameRect = tester.getRect(
+            find.text('Standing Player $placement'),
+          );
+
+          // A wrapped label ("2N" over "D") is roughly double a single
+          // line's height — this is what catches "2ND" wrapping when the
+          // fixed box was too narrow for it.
+          expect(
+            labelRect.height,
+            closeTo(singleLineHeight, 2),
+            reason: 'Placement label "$label" wrapped onto multiple lines',
+          );
+
+          // The old fixed-width box put the name flush against the label's
+          // right edge whenever the label's ink nearly filled the box —
+          // this is what catches "3RD"/"4TH" touching the player name with
+          // no visible gap.
+          expect(
+            nameRect.left - labelRect.right,
+            greaterThan(4),
+            reason: 'Placement label "$label" has no gap before the name',
+          );
+        },
+      );
+    }
   });
 }

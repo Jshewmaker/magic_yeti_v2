@@ -119,11 +119,24 @@ class StandingRow extends StatelessWidget {
               Container(width: 4, color: color),
               const SizedBox(width: 14),
 
-              // Placement label
+              // Placement label. Width is sized generously above the widest
+              // label's natural extent (measured ~37pt for "2ND" at this
+              // size/weight/letterSpacing) so it never needs to wrap, and
+              // `maxLines`/`softWrap` make that a hard guarantee rather than
+              // a hope — if a future font or size change ever pushes a label
+              // wider than the box, it clips instead of silently wrapping
+              // into "2N" / "D" again. The gap to the name is its own
+              // SizedBox rather than leftover slack inside this box, so
+              // labels stay column-aligned across rows AND the gap can't
+              // collapse to zero the way it did when a label's ink width
+              // happened to match the box width exactly (the old "3RD"/"4TH"
+              // bug).
               SizedBox(
-                width: 36,
+                width: 44,
                 child: Text(
                   GameOverTokens.placementLabel(placement),
+                  maxLines: 1,
+                  softWrap: false,
                   style: TextStyle(
                     color: color,
                     fontSize: 16,
@@ -132,6 +145,7 @@ class StandingRow extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
 
               // Player + commander name
               Expanded(
