@@ -50,26 +50,8 @@ class GameOverStandingsPanel extends StatelessWidget {
           ReorderableListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            proxyDecorator: (child, index, animation) {
-              return AnimatedBuilder(
-                animation: animation,
-                builder: (context, _) {
-                  final scale = lerpDouble(
-                    1,
-                    1.02,
-                    Curves.easeInOut.transform(animation.value),
-                  )!;
-                  return Transform.scale(
-                    scale: scale,
-                    child: StandingRow(
-                      key: ValueKey('proxy_$index'),
-                      player: state.standings[index],
-                      placement: index + 1,
-                    ),
-                  );
-                },
-              );
-            },
+            buildDefaultDragHandles: false,
+            proxyDecorator: standingsProxyDecorator(state.standings),
             itemCount: state.standings.length,
             onReorder: (oldIndex, newIndex) {
               context.read<GameOverBloc>().add(
@@ -85,6 +67,7 @@ class GameOverStandingsPanel extends StatelessWidget {
                 key: ValueKey(player.id),
                 player: player,
                 placement: index + 1,
+                dragIndex: index,
               );
             },
           ),
@@ -98,11 +81,18 @@ class StandingRow extends StatelessWidget {
   const StandingRow({
     required this.player,
     required this.placement,
+    this.dragIndex,
     super.key,
   });
 
   final Player player;
   final int placement;
+
+  /// Index this row occupies in the surrounding reorderable list. When set,
+  /// the grip becomes the only thing that starts a drag, leaving the rest of
+  /// the row free to scroll the page. Null inside `proxyDecorator`, which
+  /// renders outside the reorderable's scope.
+  final int? dragIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +123,7 @@ class StandingRow extends StatelessWidget {
                 player.commander!.imageUrl,
                 fit: BoxFit.cover,
                 alignment: Alignment.topCenter,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
               ),
             ),
 
@@ -164,6 +155,8 @@ class StandingRow extends StatelessWidget {
                   children: [
                     Text(
                       player.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: GameOverTokens.textPrimary,
                         fontSize: 15,
@@ -173,6 +166,8 @@ class StandingRow extends StatelessWidget {
                     if (player.commander?.name.isNotEmpty ?? false)
                       Text(
                         player.commander!.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: GameOverTokens.textSecondary,
                           fontSize: 11,
@@ -196,18 +191,90 @@ class StandingRow extends StatelessWidget {
                 ),
 
               // Drag handle
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Icon(
-                  Icons.drag_handle_rounded,
-                  color: GameOverTokens.textSecondary,
-                  size: 20,
-                ),
-              ),
+              _DragHandle(dragIndex: dragIndex),
             ],
           ),
         ],
       ),
     );
+  }
+}
+
+/// Builds the floating-row animation used while a [StandingRow] is being
+/// dragged. Shared by the tablet standings panel and the phone shell so both
+/// reorderable lists look the same mid-drag.
+ReorderItemProxyDecorator standingsProxyDecorator(List<Player> standings) {
+  return (child, index, animation) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, _) {
+        final scale = lerpDouble(
+          1,
+          1.02,
+          Curves.easeInOut.transform(animation.value),
+        )!;
+        return Transform.scale(
+          scale: scale,
+          child: StandingRow(
+            key: ValueKey('proxy_$index'),
+            player: standings[index],
+            placement: index + 1,
+          ),
+        );
+      },
+    );
+  };
+}
+
+/// A small uppercase, letter-spaced section label used to head panels in the
+/// game-over layout, with an optional trailing widget (e.g. an info icon).
+class GameOverSectionLabel extends StatelessWidget {
+  const GameOverSectionLabel({required this.label, this.trailing, super.key});
+
+  final String label;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: GameOverTokens.textSecondary,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2.5,
+          ),
+        ),
+        if (trailing != null) ...[
+          const SizedBox(width: 8),
+          trailing!,
+        ],
+      ],
+    );
+  }
+}
+
+class _DragHandle extends StatelessWidget {
+  const _DragHandle({required this.dragIndex});
+
+  final int? dragIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    const handle = Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Icon(
+        Icons.drag_handle_rounded,
+        color: GameOverTokens.textSecondary,
+        size: 20,
+      ),
+    );
+
+    final index = dragIndex;
+    if (index == null) return handle;
+
+    return ReorderableDragStartListener(index: index, child: handle);
   }
 }
