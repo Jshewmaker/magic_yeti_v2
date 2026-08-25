@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_ui/app_ui.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
@@ -113,16 +114,18 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpApp(
-        MultiBlocProvider(
-          providers: [
-            BlocProvider<AppBloc>.value(value: appBloc),
-            BlocProvider<GameBloc>.value(value: gameBloc),
-            BlocProvider<TimerBloc>.value(value: timerBloc),
-            BlocProvider<GameOverBloc>.value(value: gameOverBloc),
-          ],
-          child: RepositoryProvider<PlayerRepository>.value(
-            value: playerRepository,
-            child: const GameOverView(),
+        DeviceInfoProvider.fromMediaQuery(
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<AppBloc>.value(value: appBloc),
+              BlocProvider<GameBloc>.value(value: gameBloc),
+              BlocProvider<TimerBloc>.value(value: timerBloc),
+              BlocProvider<GameOverBloc>.value(value: gameOverBloc),
+            ],
+            child: RepositoryProvider<PlayerRepository>.value(
+              value: playerRepository,
+              child: const GameOverView(),
+            ),
           ),
         ),
       );
@@ -260,16 +263,18 @@ void main() {
           GoRoute(
             path: GameOverPage.routePath,
             name: GameOverPage.routeName,
-            builder: (context, state) => MultiBlocProvider(
-              providers: [
-                BlocProvider<AppBloc>.value(value: appBloc),
-                BlocProvider<GameBloc>.value(value: gameBloc),
-                BlocProvider<TimerBloc>.value(value: timerBloc),
-                BlocProvider<GameOverBloc>.value(value: bloc),
-              ],
-              child: RepositoryProvider<PlayerRepository>.value(
-                value: playerRepository,
-                child: const GameOverView(),
+            builder: (context, state) => DeviceInfoProvider.fromMediaQuery(
+              child: MultiBlocProvider(
+                providers: [
+                  BlocProvider<AppBloc>.value(value: appBloc),
+                  BlocProvider<GameBloc>.value(value: gameBloc),
+                  BlocProvider<TimerBloc>.value(value: timerBloc),
+                  BlocProvider<GameOverBloc>.value(value: bloc),
+                ],
+                child: RepositoryProvider<PlayerRepository>.value(
+                  value: playerRepository,
+                  child: const GameOverView(),
+                ),
               ),
             ),
           ),
