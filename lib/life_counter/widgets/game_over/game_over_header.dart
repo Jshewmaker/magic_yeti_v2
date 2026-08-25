@@ -29,39 +29,45 @@ class GameOverHeader extends StatelessWidget {
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: GameOverTokens.border)),
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'MATCH COMPLETE',
-                style: TextStyle(
-                  color: GameOverTokens.textSecondary,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 3.5,
+      // Forces the header to always span the full available width, even when
+      // canRestoreGame is false and the Stack would otherwise shrink-wrap to
+      // the title text (the border-bottom must span the whole row).
+      child: SizedBox(
+        width: double.infinity,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'MATCH COMPLETE',
+                  style: TextStyle(
+                    color: GameOverTokens.textSecondary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 3.5,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                context.l10n.gameOverTitle,
-                style: const TextStyle(
-                  color: GameOverTokens.textPrimary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
+                const SizedBox(height: 3),
+                Text(
+                  context.l10n.gameOverTitle,
+                  style: const TextStyle(
+                    color: GameOverTokens.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          if (canRestoreGame)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: RestoreGameButton(compact: compact),
+              ],
             ),
-        ],
+            if (canRestoreGame)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: RestoreGameButton(compact: compact),
+              ),
+          ],
+        ),
       ),
     );
   }
