@@ -75,8 +75,9 @@ void main() {
     // in-flight handler.
     GameOverBloc buildGameOverBloc(Completer<String> saveCompleter) {
       final firebaseDatabaseRepository = _MockFirebaseDatabaseRepository();
-      when(() => firebaseDatabaseRepository.saveGameStats(any()))
-          .thenAnswer((_) => saveCompleter.future);
+      when(
+        () => firebaseDatabaseRepository.saveGameStats(any()),
+      ).thenAnswer((_) => saveCompleter.future);
       return GameOverBloc(
         players: [player1, player2],
         currentUserId: 'p1',

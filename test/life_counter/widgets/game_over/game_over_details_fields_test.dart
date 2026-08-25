@@ -47,8 +47,9 @@ void main() {
       WidgetTester tester, {
       required bool compact,
     }) async {
-      tester.view.physicalSize =
-          compact ? const Size(390, 844) : const Size(1280, 800);
+      tester.view.physicalSize = compact
+          ? const Size(390, 844)
+          : const Size(1280, 800);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -71,8 +72,9 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets('renders both dropdowns at phone width without overflow',
-        (tester) async {
+    testWidgets('renders both dropdowns at phone width without overflow', (
+      tester,
+    ) async {
       await pumpFields(tester, compact: true);
 
       expect(tester.takeException(), isNull);
@@ -89,8 +91,9 @@ void main() {
       expect(find.text('Account Owner'), findsOneWidget);
     });
 
-    testWidgets('non-compact keeps the full account owner sentence',
-        (tester) async {
+    testWidgets('non-compact keeps the full account owner sentence', (
+      tester,
+    ) async {
       await pumpFields(tester, compact: false);
 
       expect(find.text('Account Owner'), findsNothing);
@@ -100,8 +103,9 @@ void main() {
       );
     });
 
-    testWidgets('picking a first player dispatches UpdateFirstPlayerEvent',
-        (tester) async {
+    testWidgets('picking a first player dispatches UpdateFirstPlayerEvent', (
+      tester,
+    ) async {
       await pumpFields(tester, compact: true);
 
       await tester.tap(find.byType(DropdownButtonFormField<String>).first);
@@ -112,19 +116,21 @@ void main() {
       verify(() => bloc.add(const UpdateFirstPlayerEvent('a'))).called(1);
     });
 
-    testWidgets('picking an account owner dispatches UpdateSelectedPlayerEvent',
-        (tester) async {
-      await pumpFields(tester, compact: true);
+    testWidgets(
+      'picking an account owner dispatches UpdateSelectedPlayerEvent',
+      (tester) async {
+        await pumpFields(tester, compact: true);
 
-      await tester.tap(
-        find.byKey(const ValueKey('game_over_account_owner_dropdown')),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Bob').last);
-      await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const ValueKey('game_over_account_owner_dropdown')),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Bob').last);
+        await tester.pumpAndSettle();
 
-      verify(() => bloc.add(const UpdateSelectedPlayerEvent('b'))).called(1);
-    });
+        verify(() => bloc.add(const UpdateSelectedPlayerEvent('b'))).called(1);
+      },
+    );
   });
 
   group('GameOverDetailsFields overflow safety with long names', () {
@@ -170,8 +176,9 @@ void main() {
       required bool compact,
       double textScale = 1,
     }) async {
-      tester.view.physicalSize =
-          compact ? const Size(390, 844) : const Size(1280, 800);
+      tester.view.physicalSize = compact
+          ? const Size(390, 844)
+          : const Size(1280, 800);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);

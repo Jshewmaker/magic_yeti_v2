@@ -73,8 +73,7 @@ void main() {
           value: bloc,
           child: Scaffold(
             body: BlocBuilder<GameOverBloc, GameOverState>(
-              builder: (context, state) =>
-                  GameOverStandingsPanel(state: state),
+              builder: (context, state) => GameOverStandingsPanel(state: state),
             ),
           ),
         ),

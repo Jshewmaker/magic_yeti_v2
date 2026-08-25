@@ -166,9 +166,11 @@ void main() {
       // surface fill lives on the wrapping Container (see Fix 1), so that's
       // what must reach the bottom edge, not the bare GameOverActionBar.
       expect(
-        tester.getBottomLeft(
-          find.byKey(const Key('game_over_phone_action_bar_container')),
-        ).dy,
+        tester
+            .getBottomLeft(
+              find.byKey(const Key('game_over_phone_action_bar_container')),
+            )
+            .dy,
         844,
       );
     });
@@ -196,9 +198,7 @@ void main() {
 
         // The primary button is the last widget before the bar's own
         // bottom padding — its bottom edge must clear the indicator.
-        final buttonBottom = tester
-            .getRect(find.byType(ElevatedButton))
-            .bottom;
+        final buttonBottom = tester.getRect(find.byType(ElevatedButton)).bottom;
         expect(buttonBottom, lessThanOrEqualTo(844 - bottomInset));
       },
     );
@@ -249,8 +249,7 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('every standing row is reachable by scrolling',
-        (tester) async {
+    testWidgets('every standing row is reachable by scrolling', (tester) async {
       // A shorter viewport than the other tests: at the default 844pt
       // height, "Fourth Player" already lands on screen at rest (its rect
       // ends at y=649.5, and the pinned action bar only starts at y=669),
@@ -302,8 +301,9 @@ void main() {
       );
     });
 
-    testWidgets('a long player name ellipsizes rather than overflowing',
-        (tester) async {
+    testWidgets('a long player name ellipsizes rather than overflowing', (
+      tester,
+    ) async {
       await pumpPhoneView(
         tester,
         players: [

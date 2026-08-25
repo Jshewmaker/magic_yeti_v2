@@ -59,8 +59,7 @@ class GameOverView extends StatelessWidget {
       child: Scaffold(
         backgroundColor: GameOverTokens.background,
         body: BlocListener<GameOverBloc, GameOverState>(
-          listenWhen: (previous, current) =>
-              previous.status != current.status,
+          listenWhen: (previous, current) => previous.status != current.status,
           listener: (context, state) {
             switch (state.status) {
               case GameOverStatus.success:

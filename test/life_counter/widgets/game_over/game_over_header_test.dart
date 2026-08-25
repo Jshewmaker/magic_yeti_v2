@@ -66,8 +66,9 @@ void main() {
       expect(find.text('MATCH COMPLETE'), findsOneWidget);
     });
 
-    testWidgets('compact hides the restore label but keeps the control',
-        (tester) async {
+    testWidgets('compact hides the restore label but keeps the control', (
+      tester,
+    ) async {
       await pumpHeader(
         tester,
         size: const Size(390, 844),
@@ -88,8 +89,9 @@ void main() {
       expect(find.text('RESTORE GAME'), findsOneWidget);
     });
 
-    testWidgets('omits the restore control when the game cannot be restored',
-        (tester) async {
+    testWidgets('omits the restore control when the game cannot be restored', (
+      tester,
+    ) async {
       await pumpHeader(
         tester,
         size: const Size(1280, 800),
@@ -100,20 +102,21 @@ void main() {
       expect(find.text('RESTORE GAME'), findsNothing);
     });
 
-    testWidgets('spans the full width even when the restore control is absent',
-        (tester) async {
-      await pumpHeader(
-        tester,
-        size: const Size(1280, 800),
-        compact: false,
-        canRestoreGame: false,
-      );
-
-      expect(tester.getSize(find.byType(GameOverHeader)).width, 1280);
-    });
-
     testWidgets(
-        'compact with no restorable game renders without overflow and '
+      'spans the full width even when the restore control is absent',
+      (tester) async {
+        await pumpHeader(
+          tester,
+          size: const Size(1280, 800),
+          compact: false,
+          canRestoreGame: false,
+        );
+
+        expect(tester.getSize(find.byType(GameOverHeader)).width, 1280);
+      },
+    );
+
+    testWidgets('compact with no restorable game renders without overflow and '
         'omits the restore control', (tester) async {
       await pumpHeader(
         tester,

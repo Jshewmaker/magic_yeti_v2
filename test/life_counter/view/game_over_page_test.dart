@@ -23,8 +23,7 @@ import '../../helpers/pump_app.dart';
 
 class MockAppBloc extends MockBloc<AppEvent, AppState> implements AppBloc {}
 
-class MockGameBloc extends MockBloc<GameEvent, GameState>
-    implements GameBloc {}
+class MockGameBloc extends MockBloc<GameEvent, GameState> implements GameBloc {}
 
 class MockTimerBloc extends MockBloc<TimerEvent, TimerState>
     implements TimerBloc {}
@@ -309,8 +308,9 @@ void main() {
       'stays on the page while status is loading (no eager navigation)',
       (tester) async {
         final saveCompleter = Completer<String>();
-        when(() => firebaseDatabaseRepository.saveGameStats(any()))
-            .thenAnswer((_) => saveCompleter.future);
+        when(
+          () => firebaseDatabaseRepository.saveGameStats(any()),
+        ).thenAnswer((_) => saveCompleter.future);
         final bloc = buildGameOverBloc();
         addTearDown(bloc.close);
 
@@ -335,8 +335,9 @@ void main() {
     testWidgets(
       'on success with home intent, listener navigates to home',
       (tester) async {
-        when(() => firebaseDatabaseRepository.saveGameStats(any()))
-            .thenAnswer((_) async => 'saved-id');
+        when(
+          () => firebaseDatabaseRepository.saveGameStats(any()),
+        ).thenAnswer((_) async => 'saved-id');
         final bloc = buildGameOverBloc();
         addTearDown(bloc.close);
 
@@ -356,8 +357,9 @@ void main() {
       'on success with playAgain intent, listener navigates to game page '
       'and dispatches GameReset/Timer events',
       (tester) async {
-        when(() => firebaseDatabaseRepository.saveGameStats(any()))
-            .thenAnswer((_) async => 'saved-id');
+        when(
+          () => firebaseDatabaseRepository.saveGameStats(any()),
+        ).thenAnswer((_) async => 'saved-id');
         final bloc = buildGameOverBloc();
         addTearDown(bloc.close);
 
@@ -380,8 +382,9 @@ void main() {
       'on failure, listener shows a snackbar, re-enables the buttons, and '
       'does not navigate or reset the game',
       (tester) async {
-        when(() => firebaseDatabaseRepository.saveGameStats(any()))
-            .thenThrow(Exception('network error'));
+        when(
+          () => firebaseDatabaseRepository.saveGameStats(any()),
+        ).thenThrow(Exception('network error'));
         final bloc = buildGameOverBloc();
         addTearDown(bloc.close);
 

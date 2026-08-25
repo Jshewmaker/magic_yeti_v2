@@ -89,8 +89,9 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets('stacked bar fits phone width without overflow',
-        (tester) async {
+    testWidgets('stacked bar fits phone width without overflow', (
+      tester,
+    ) async {
       await pumpBar(
         tester,
         stacked: true,
@@ -103,8 +104,9 @@ void main() {
       expect(find.byType(OutlinedButton), findsOneWidget);
     });
 
-    testWidgets('shows the required-fields hint only when disabled',
-        (tester) async {
+    testWidgets('shows the required-fields hint only when disabled', (
+      tester,
+    ) async {
       await pumpBar(
         tester,
         stacked: true,
@@ -122,8 +124,7 @@ void main() {
       expect(find.text('Fill out both fields to continue'), findsNothing);
     });
 
-    testWidgets('disabled buttons do not fire their callbacks',
-        (tester) async {
+    testWidgets('disabled buttons do not fire their callbacks', (tester) async {
       var played = false;
       await pumpBar(
         tester,
@@ -155,8 +156,9 @@ void main() {
       expect(played, isTrue);
     });
 
-    testWidgets('play again renders before return home when stacked',
-        (tester) async {
+    testWidgets('play again renders before return home when stacked', (
+      tester,
+    ) async {
       await pumpBar(
         tester,
         stacked: true,
@@ -169,8 +171,9 @@ void main() {
       expect(playAgainCenter.dy, lessThan(returnHomeCenter.dy));
     });
 
-    testWidgets('stacked bar fits phone width at 2x text scale',
-        (tester) async {
+    testWidgets('stacked bar fits phone width at 2x text scale', (
+      tester,
+    ) async {
       await pumpBar(
         tester,
         stacked: true,
@@ -182,8 +185,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('side-by-side bar fits tablet width without overflow',
-        (tester) async {
+    testWidgets('side-by-side bar fits tablet width without overflow', (
+      tester,
+    ) async {
       await pumpBar(
         tester,
         stacked: false,
@@ -196,8 +200,9 @@ void main() {
       expect(find.byType(OutlinedButton), findsOneWidget);
     });
 
-    testWidgets('side-by-side bar fits tablet width at 2x text scale',
-        (tester) async {
+    testWidgets('side-by-side bar fits tablet width at 2x text scale', (
+      tester,
+    ) async {
       await pumpBar(
         tester,
         stacked: false,
@@ -209,8 +214,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('side-by-side bar fits phone width at 2x text scale',
-        (tester) async {
+    testWidgets('side-by-side bar fits phone width at 2x text scale', (
+      tester,
+    ) async {
       await pumpBar(
         tester,
         stacked: false,
