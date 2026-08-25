@@ -53,23 +53,9 @@ class GameOverStandingsPanel extends StatelessWidget {
             buildDefaultDragHandles: false,
             proxyDecorator: standingsProxyDecorator(state.standings),
             itemCount: state.standings.length,
-            onReorder: (oldIndex, newIndex) {
-              context.read<GameOverBloc>().add(
-                UpdateStandingsEvent(
-                  oldIndex: oldIndex,
-                  newIndex: newIndex,
-                ),
-              );
-            },
-            itemBuilder: (context, index) {
-              final player = state.standings[index];
-              return StandingRow(
-                key: ValueKey(player.id),
-                player: player,
-                placement: index + 1,
-                dragIndex: index,
-              );
-            },
+            onReorder: (oldIndex, newIndex) =>
+                onStandingsReorder(context, oldIndex, newIndex),
+            itemBuilder: standingsItemBuilder(state.standings),
           ),
         ],
       ),
@@ -224,6 +210,33 @@ ReorderItemProxyDecorator standingsProxyDecorator(List<Player> standings) {
       },
     );
   };
+}
+
+/// Builds the itemBuilder used by both the tablet's [ReorderableListView]
+/// and the phone's [SliverReorderableList] so both reorderable lists render
+/// rows identically.
+Widget Function(BuildContext, int) standingsItemBuilder(
+  List<Player> standings,
+) {
+  return (context, index) => StandingRow(
+    key: ValueKey(standings[index].id),
+    player: standings[index],
+    placement: index + 1,
+    dragIndex: index,
+  );
+}
+
+/// Dispatches a standings reorder straight through to [GameOverBloc].
+///
+/// [SliverReorderableList.onReorder] and [ReorderableListView.onReorder]
+/// share the same oldIndex/newIndex convention, and
+/// `GameOverBloc._onUpdateStandings` already does the newIndex-1 adjustment
+/// for a forward move — dispatch the raw indices here. Adjusting again
+/// would silently corrupt the resulting order with no crash.
+void onStandingsReorder(BuildContext context, int oldIndex, int newIndex) {
+  context.read<GameOverBloc>().add(
+    UpdateStandingsEvent(oldIndex: oldIndex, newIndex: newIndex),
+  );
 }
 
 /// A small uppercase, letter-spaced section label used to head panels in the

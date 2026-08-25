@@ -171,6 +171,27 @@ void main() {
       );
     });
 
+    testWidgets(
+      'the drag-indicator icon carries a "Drag to reorder" tooltip, '
+      'matching the tablet',
+      (tester) async {
+        // Fix 4: the phone previously passed a bare Icon as the section
+        // label's trailing widget, with no way to discover the reorder
+        // gesture. The tablet already wraps the same icon in a Tooltip
+        // (see GameOverStandingsPanel) — the phone should carry the exact
+        // same affordance.
+        await pumpPhoneView(tester);
+
+        final tooltip = tester.widget<Tooltip>(
+          find.ancestor(
+            of: find.byIcon(Icons.drag_indicator_rounded),
+            matching: find.byType(Tooltip),
+          ),
+        );
+        expect(tooltip.message, 'Drag to reorder');
+      },
+    );
+
     testWidgets('does not use the tablet two-column row', (tester) async {
       await pumpPhoneView(tester);
 

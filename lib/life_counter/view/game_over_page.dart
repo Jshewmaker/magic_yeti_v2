@@ -190,10 +190,14 @@ class _PhoneShell extends StatelessWidget {
                   sliver: SliverToBoxAdapter(
                     child: GameOverSectionLabel(
                       label: 'FINAL STANDINGS',
-                      trailing: Icon(
-                        Icons.drag_indicator_rounded,
-                        color: GameOverTokens.textSecondary,
-                        size: 15,
+                      trailing: Tooltip(
+                        message: 'Drag to reorder',
+                        waitDuration: Duration(milliseconds: 100),
+                        child: Icon(
+                          Icons.drag_indicator_rounded,
+                          color: GameOverTokens.textSecondary,
+                          size: 15,
+                        ),
                       ),
                     ),
                   ),
@@ -203,20 +207,9 @@ class _PhoneShell extends StatelessWidget {
                   sliver: SliverReorderableList(
                     itemCount: players.length,
                     proxyDecorator: standingsProxyDecorator(players),
-                    onReorder: (oldIndex, newIndex) {
-                      context.read<GameOverBloc>().add(
-                        UpdateStandingsEvent(
-                          oldIndex: oldIndex,
-                          newIndex: newIndex,
-                        ),
-                      );
-                    },
-                    itemBuilder: (context, index) => StandingRow(
-                      key: ValueKey(players[index].id),
-                      player: players[index],
-                      placement: index + 1,
-                      dragIndex: index,
-                    ),
+                    onReorder: (oldIndex, newIndex) =>
+                        onStandingsReorder(context, oldIndex, newIndex),
+                    itemBuilder: standingsItemBuilder(players),
                   ),
                 ),
                 SliverPadding(
