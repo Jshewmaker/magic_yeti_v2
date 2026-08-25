@@ -85,7 +85,7 @@ never have to log in on the host's device.
 
 ## Architecture: direct Firestore wherever rules can express it; functions only where they can't
 
-Firebase's strengths — direct low-latency reads, offline-queued writes, realtime streams —
+Firebase's strengths — direct low-latency reads, offline-queued writes, real-time streams —
 are kept everywhere security rules can express the required check. The enabling structural
 change is **deterministic friend-request doc IDs** (`friendRequests/{senderId}_{receiverId}`):
 rules can't run queries, but they can `exists()`/`get()` known paths, which makes
@@ -132,9 +132,9 @@ rules using deterministic doc IDs:
   path), remove friendship edges both ways (covered by the remove rules), delete/suppress
   requests both ways. A partially-failed batch is self-healing: the block doc alone is the
   security boundary; edge cleanup can be retried.
-- **`setPin`**: client salts + hashes locally (it knows the plaintext anyway) and writes
+- **`setPin`**: client salts + hashes locally (it knows the plain text anyway) and writes
   its own `private/credentials` doc (owner-only rules).
-- **All reads and realtime streams**: friends list, requests, match history, game-code
+- **All reads and real-time streams**: friends list, requests, match history, game-code
   lookup — unchanged direct queries/streams scoped by rules.
 
 **Accepted tradeoff:** a rules denial surfaces as `permission-denied`, so a technically
@@ -191,7 +191,7 @@ caller and return typed error codes (`unauthenticated`, `permission-denied`,
 
 On login, the client moves its **own** `pin` field into `private/credentials` and clears
 the profile field, setting `hasPin: true`. Both migration and `setPin` are direct
-owner-only writes; the client salts + hashes locally (it holds the plaintext PIN in that
+owner-only writes; the client salts + hashes locally (it holds the plain text PIN in that
 moment anyway). The migration runs inside the AppBloc profile load, **before**
 completeness is evaluated, and completeness treats a legacy non-empty `pin` field as
 having a PIN — so already-PIN'd legacy users are never bounced into onboarding. Friends
