@@ -524,6 +524,12 @@ abstract class AppLocalizations {
   /// **'Please select the account owner from the list to sync the game stats to their account:'**
   String get accountOwner;
 
+  /// Short field label for the account owner dropdown, used on phones where the full sentence would wrap to three lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Owner'**
+  String get accountOwnerShort;
+
   /// Account owner dropdown option meaning the current user is not one of the players
   ///
   /// In en, this message translates to:
