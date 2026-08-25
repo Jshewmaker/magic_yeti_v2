@@ -126,4 +126,127 @@ void main() {
       verify(() => bloc.add(const UpdateSelectedPlayerEvent('b'))).called(1);
     });
   });
+
+  group('GameOverDetailsFields overflow safety with long names', () {
+    late _MockGameOverBloc bloc;
+
+    const base = Player(
+      id: 'p1',
+      name: 'Player One',
+      playerNumber: 1,
+      lifePoints: 40,
+      color: 0,
+      opponents: [],
+      placement: 1,
+    );
+
+    // Same long-name fixture style already standardized in
+    // standing_row_test.dart, so overflow coverage stays consistent across
+    // the game-over widgets.
+    const longNameA = 'Bartholomew Maximilian Featherstonehaugh The Third';
+    const longNameB = 'Alexandria Constantinopolous-Winterbottom The Second';
+
+    final longNamePlayers = [
+      base.copyWith(id: 'a', name: longNameA, placement: const Value(1)),
+      base.copyWith(id: 'b', name: longNameB, placement: const Value(2)),
+    ];
+
+    late GameOverState longNameState;
+
+    setUp(() {
+      bloc = _MockGameOverBloc();
+      // Both dropdowns pre-select a long name, so each renders its closed,
+      // selected-item text rather than a placeholder.
+      longNameState = GameOverState(
+        standings: longNamePlayers,
+        selectedPlayerId: 'b',
+        firstPlayerId: 'a',
+      );
+      when(() => bloc.state).thenReturn(longNameState);
+    });
+
+    Future<void> pumpLongNames(
+      WidgetTester tester, {
+      required bool compact,
+      double textScale = 1,
+    }) async {
+      tester.view.physicalSize =
+          compact ? const Size(390, 844) : const Size(1280, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpApp(
+        MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
+          child: BlocProvider<GameOverBloc>.value(
+            value: bloc,
+            child: Scaffold(
+              body: SingleChildScrollView(
+                child: GameOverDetailsFields(
+                  state: longNameState,
+                  players: longNamePlayers,
+                  currentUserId: 'host',
+                  compact: compact,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets(
+      'a long selected name does not overflow at phone width',
+      (tester) async {
+        await pumpLongNames(tester, compact: true);
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'a long selected name does not overflow at tablet width',
+      (tester) async {
+        await pumpLongNames(tester, compact: false);
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'a long selected name does not overflow at tablet width with a 2x '
+      'text scale',
+      (tester) async {
+        await pumpLongNames(tester, compact: false, textScale: 2);
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'a long selected name does not overflow at phone width with a 2x '
+      'text scale',
+      (tester) async {
+        await pumpLongNames(tester, compact: true, textScale: 2);
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'long player names render as single-line, ellipsized text',
+      (tester) async {
+        await pumpLongNames(tester, compact: true);
+
+        final nameTexts = tester.widgetList<Text>(find.text(longNameA));
+        expect(nameTexts, isNotEmpty);
+        for (final text in nameTexts) {
+          expect(text.maxLines, 1);
+          expect(text.overflow, TextOverflow.ellipsis);
+        }
+      },
+    );
+  });
 }
