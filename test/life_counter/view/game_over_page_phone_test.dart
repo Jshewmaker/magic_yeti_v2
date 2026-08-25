@@ -101,8 +101,10 @@ void main() {
       WidgetTester tester, {
       int playerCount = 4,
       List<Player>? players,
+      Size physicalSize = const Size(390, 844),
+      double textScale = 1,
     }) async {
-      tester.view.physicalSize = const Size(390, 844);
+      tester.view.physicalSize = physicalSize;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -115,18 +117,24 @@ void main() {
       addTearDown(bloc.close);
 
       await tester.pumpApp(
-        DeviceInfoProvider(
-          isPhone: true,
-          child: MultiBlocProvider(
-            providers: [
-              BlocProvider<AppBloc>.value(value: appBloc),
-              BlocProvider<GameBloc>.value(value: gameBloc),
-              BlocProvider<TimerBloc>.value(value: timerBloc),
-              BlocProvider<GameOverBloc>.value(value: bloc),
-            ],
-            child: RepositoryProvider<PlayerRepository>.value(
-              value: playerRepository,
-              child: const GameOverView(),
+        MediaQuery(
+          data: MediaQueryData(
+            size: physicalSize,
+            textScaler: TextScaler.linear(textScale),
+          ),
+          child: DeviceInfoProvider(
+            isPhone: true,
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider<AppBloc>.value(value: appBloc),
+                BlocProvider<GameBloc>.value(value: gameBloc),
+                BlocProvider<TimerBloc>.value(value: timerBloc),
+                BlocProvider<GameOverBloc>.value(value: bloc),
+              ],
+              child: RepositoryProvider<PlayerRepository>.value(
+                value: playerRepository,
+                child: const GameOverView(),
+              ),
             ),
           ),
         ),
@@ -151,6 +159,12 @@ void main() {
       await pumpPhoneView(tester);
 
       expect(find.byType(GameOverActionBar), findsOneWidget);
+      // Not just present somewhere in the tree — anchored to the bottom of
+      // the 844pt-tall viewport, outside the scrollable body.
+      expect(
+        tester.getBottomLeft(find.byType(GameOverActionBar)).dy,
+        844,
+      );
     });
 
     testWidgets('does not use the tablet two-column row', (tester) async {
@@ -170,6 +184,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(find.byType(FirstPlayerDropdown), findsOneWidget);
       expect(
         find.byKey(const ValueKey('game_over_account_owner_dropdown')),
         findsOneWidget,
@@ -179,7 +194,15 @@ void main() {
 
     testWidgets('every standing row is reachable by scrolling',
         (tester) async {
-      await pumpPhoneView(tester);
+      // A shorter viewport than the other tests: at the default 844pt
+      // height, "Fourth Player" already lands on screen at rest (its rect
+      // ends at y=649.5, and the pinned action bar only starts at y=669),
+      // so scrollUntilVisible would exit on its first poll without ever
+      // scrolling — proving nothing. At 700pt the fourth row's sliver isn't
+      // built at all until the list actually scrolls.
+      await pumpPhoneView(tester, physicalSize: const Size(390, 700));
+
+      expect(find.text('Fourth Player'), findsNothing);
 
       await tester.scrollUntilVisible(
         find.text('Fourth Player'),
@@ -188,6 +211,7 @@ void main() {
       );
 
       expect(find.text('Fourth Player'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('dragging a grip reorders the standings', (tester) async {
@@ -242,5 +266,19 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets(
+      'renders a 4-player game without overflow at a larger text scale',
+      (tester) async {
+        // Pins the GameOverSectionLabel fix: its "FINAL STANDINGS" label (with
+        // a trailing drag icon) previously had no Flexible/ellipsis and
+        // overflowed the 358pt-wide row at this exact width/scale combination
+        // once the label's text scaled up. Deleting that Flexible wrap should
+        // turn this test red.
+        await pumpPhoneView(tester, textScale: 2);
+
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 }

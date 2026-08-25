@@ -217,5 +217,53 @@ void main() {
 
       expect(find.byType(Icon), findsNothing);
     });
+
+    testWidgets(
+      'does not overflow with a trailing icon at 2x text scale in a '
+      'narrow row',
+      (tester) async {
+        // Reproduces the width (320pt phone minus 16pt padding on each
+        // side) and scale where this label previously overflowed once
+        // combined with a trailing icon in the phone shell's "FINAL
+        // STANDINGS" row (Task 7). The label's Text has no intrinsic width
+        // limit, so without a Flexible wrap + ellipsis this throws a
+        // RenderFlex overflow at this scale.
+        //
+        // A plain SizedBox can't create this constraint on its own here:
+        // as the direct child of MaterialApp.home it sits under the root's
+        // *tight* full-viewport constraints, and BoxConstraints.enforce
+        // clamps a smaller desired width back up to that tight ambient
+        // size instead of shrinking it. Narrowing the actual test viewport
+        // (as every other width-sensitive test in this file's parent
+        // directory does) gives the row a genuinely tight 288pt to lay
+        // out in.
+        tester.view.physicalSize = const Size(288, 100);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpApp(
+          const MediaQuery(
+            data: MediaQueryData(
+              size: Size(288, 100),
+              textScaler: TextScaler.linear(2),
+            ),
+            child: GameOverSectionLabel(
+              label: 'FINAL STANDINGS',
+              trailing: Icon(
+                Icons.drag_indicator_rounded,
+                size: 15,
+              ),
+            ),
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+
+        final text = tester.widget<Text>(find.text('FINAL STANDINGS'));
+        expect(text.overflow, TextOverflow.ellipsis);
+        expect(text.maxLines, 1);
+      },
+    );
   });
 }
