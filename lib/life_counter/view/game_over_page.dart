@@ -1,5 +1,7 @@
+import 'package:app_ui/app_ui.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
@@ -16,7 +18,7 @@ import 'package:player_repository/player_repository.dart';
 class GameOverPage extends StatelessWidget {
   const GameOverPage({super.key});
 
-  factory GameOverPage.pageBuilder(Object _, Object __) =>
+  factory GameOverPage.pageBuilder(Object _, Object _) =>
       const GameOverPage(key: Key('game_over_page'));
 
   static const routeName = 'game_over_page';
@@ -50,69 +52,209 @@ class GameOverView extends StatelessWidget {
     }
 
     final canRestoreGame = context.read<PlayerRepository>().canRestoreGame;
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
 
-    return Scaffold(
-      backgroundColor: GameOverTokens.background,
-      body: BlocListener<GameOverBloc, GameOverState>(
-        listenWhen: (previous, current) => previous.status != current.status,
-        listener: (context, state) {
-          switch (state.status) {
-            case GameOverStatus.success:
-              switch (state.exitIntent) {
-                case GameOverExitIntent.home:
-                  context.go(HomePage.routeName);
-                case GameOverExitIntent.playAgain:
-                  context.read<GameBloc>().add(const GameResetEvent());
-                  context.read<TimerBloc>()
-                    ..add(const TimerResetEvent())
-                    ..add(const TimerStartEvent());
-                  context.go(GamePage.routePath);
-              }
-            case GameOverStatus.failure:
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(context.l10n.gameSaveFailedError)),
+    return OrientationLock(
+      orientations: isPhone ? const [DeviceOrientation.portraitUp] : null,
+      child: Scaffold(
+        backgroundColor: GameOverTokens.background,
+        body: BlocListener<GameOverBloc, GameOverState>(
+          listenWhen: (previous, current) =>
+              previous.status != current.status,
+          listener: (context, state) {
+            switch (state.status) {
+              case GameOverStatus.success:
+                switch (state.exitIntent) {
+                  case GameOverExitIntent.home:
+                    context.go(HomePage.routeName);
+                  case GameOverExitIntent.playAgain:
+                    context.read<GameBloc>().add(const GameResetEvent());
+                    context.read<TimerBloc>()
+                      ..add(const TimerResetEvent())
+                      ..add(const TimerStartEvent());
+                    context.go(GamePage.routePath);
+                }
+              case GameOverStatus.failure:
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(context.l10n.gameSaveFailedError)),
+                );
+              case GameOverStatus.initial:
+              case GameOverStatus.loading:
+                break;
+            }
+          },
+          child: BlocBuilder<GameOverBloc, GameOverState>(
+            builder: (context, state) {
+              return AdaptiveLayout(
+                phone: (_) => _PhoneShell(
+                  state: state,
+                  gameModel: gameModel,
+                  canRestoreGame: canRestoreGame,
+                ),
+                tablet: (_) => _TabletShell(
+                  state: state,
+                  gameModel: gameModel,
+                  canRestoreGame: canRestoreGame,
+                ),
               );
-            case GameOverStatus.initial:
-            case GameOverStatus.loading:
-              break;
-          }
-        },
-        child: BlocBuilder<GameOverBloc, GameOverState>(
-          builder: (context, state) {
-            final players = state.standings;
-            final winner = players.first;
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-            return Column(
+class _TabletShell extends StatelessWidget {
+  const _TabletShell({
+    required this.state,
+    required this.gameModel,
+    required this.canRestoreGame,
+  });
+
+  final GameOverState state;
+  final GameModel gameModel;
+  final bool canRestoreGame;
+
+  @override
+  Widget build(BuildContext context) {
+    final players = state.standings;
+
+    return Column(
+      children: [
+        GameOverHeader(canRestoreGame: canRestoreGame),
+        GameOverWinnerHero(winner: players.first),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                GameOverHeader(canRestoreGame: canRestoreGame),
-                GameOverWinnerHero(winner: winner),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          flex: 5,
-                          child: GameOverStandingsPanel(state: state),
+                  flex: 5,
+                  child: GameOverStandingsPanel(state: state),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 4,
+                  child: GameOverDetailsPanel(
+                    state: state,
+                    players: players,
+                    gameModel: gameModel,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PhoneShell extends StatelessWidget {
+  const _PhoneShell({
+    required this.state,
+    required this.gameModel,
+    required this.canRestoreGame,
+  });
+
+  final GameOverState state;
+  final GameModel gameModel;
+  final bool canRestoreGame;
+
+  @override
+  Widget build(BuildContext context) {
+    final players = state.standings;
+    final userId = context.read<AppBloc>().state.user.id;
+    final canSubmit =
+        state.selectedPlayerId != null &&
+        state.firstPlayerId != null &&
+        state.status != GameOverStatus.loading;
+
+    return SafeArea(
+      child: Column(
+        children: [
+          GameOverHeader(canRestoreGame: canRestoreGame, compact: true),
+          Expanded(
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: GameOverWinnerHero(
+                    winner: players.first,
+                    compact: true,
+                  ),
+                ),
+                const SliverPadding(
+                  padding: EdgeInsets.fromLTRB(16, 4, 16, 10),
+                  sliver: SliverToBoxAdapter(
+                    child: GameOverSectionLabel(
+                      label: 'FINAL STANDINGS',
+                      trailing: Icon(
+                        Icons.drag_indicator_rounded,
+                        color: GameOverTokens.textSecondary,
+                        size: 15,
+                      ),
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverReorderableList(
+                    itemCount: players.length,
+                    proxyDecorator: standingsProxyDecorator(players),
+                    onReorder: (oldIndex, newIndex) {
+                      context.read<GameOverBloc>().add(
+                        UpdateStandingsEvent(
+                          oldIndex: oldIndex,
+                          newIndex: newIndex,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 4,
-                          child: GameOverDetailsPanel(
-                            state: state,
-                            players: players,
-                            gameModel: gameModel,
-                          ),
+                      );
+                    },
+                    itemBuilder: (context, index) => StandingRow(
+                      key: ValueKey(players[index].id),
+                      player: players[index],
+                      placement: index + 1,
+                      dragIndex: index,
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const GameOverSectionLabel(label: 'MATCH DETAILS'),
+                        const SizedBox(height: 14),
+                        GameOverDetailsFields(
+                          state: state,
+                          players: players,
+                          currentUserId: userId,
+                          compact: true,
                         ),
                       ],
                     ),
                   ),
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          ),
+          GameOverActionBar(
+            canSubmit: canSubmit,
+            stacked: true,
+            onReturnHome: () => context.read<GameOverBloc>().add(
+              SendGameOverStatsEvent(gameModel: gameModel, userId: userId),
+            ),
+            onPlayAgain: () => context.read<GameOverBloc>().add(
+              SendGameOverStatsEvent(
+                gameModel: gameModel,
+                userId: userId,
+                exitIntent: GameOverExitIntent.playAgain,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

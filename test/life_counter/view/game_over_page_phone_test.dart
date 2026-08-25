@@ -1,0 +1,246 @@
+import 'package:app_ui/app_ui.dart';
+import 'package:bloc_test/bloc_test.dart';
+import 'package:firebase_database_repository/firebase_database_repository.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/game/bloc/game_bloc.dart';
+import 'package:magic_yeti/life_counter/bloc/game_over_bloc.dart';
+import 'package:magic_yeti/life_counter/view/game_over_page.dart';
+import 'package:magic_yeti/life_counter/widgets/game_over/game_over.dart';
+import 'package:magic_yeti/timer/bloc/timer_bloc.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:player_repository/player_repository.dart';
+import 'package:user_repository/user_repository.dart';
+
+import '../../helpers/pump_app.dart';
+
+class _MockAppBloc extends MockBloc<AppEvent, AppState> implements AppBloc {}
+
+class _MockGameBloc extends MockBloc<GameEvent, GameState>
+    implements GameBloc {}
+
+class _MockTimerBloc extends MockBloc<TimerEvent, TimerState>
+    implements TimerBloc {}
+
+class _MockFirebaseDatabaseRepository extends Mock
+    implements FirebaseDatabaseRepository {}
+
+class _FakeGameModel extends Fake implements GameModel {}
+
+void main() {
+  setUpAll(() => registerFallbackValue(_FakeGameModel()));
+
+  group('GameOverView on a phone', () {
+    late _MockAppBloc appBloc;
+    late _MockGameBloc gameBloc;
+    late _MockTimerBloc timerBloc;
+    late PlayerRepository playerRepository;
+
+    const base = Player(
+      id: 'p1',
+      name: 'Player One',
+      playerNumber: 1,
+      lifePoints: 40,
+      color: 0,
+      opponents: [],
+      placement: 1,
+    );
+
+    final gameModel = GameModel(
+      players: const [],
+      startTime: DateTime(2024),
+      endTime: DateTime(2024),
+      winnerId: 'host-slot',
+      durationInSeconds: 60,
+    );
+
+    List<Player> playersFor(int count) => [
+      base.copyWith(
+        id: 'host-slot',
+        name: 'Host Player',
+        firebaseId: () => 'host',
+        placement: const Value(1),
+      ),
+      base.copyWith(
+        id: 'slot-2',
+        name: 'Second Player',
+        placement: const Value(2),
+      ),
+      if (count == 4) ...[
+        base.copyWith(
+          id: 'slot-3',
+          name: 'Third Player',
+          placement: const Value(3),
+        ),
+        base.copyWith(
+          id: 'slot-4',
+          name: 'Fourth Player',
+          placement: const Value(4),
+        ),
+      ],
+    ];
+
+    setUp(() {
+      appBloc = _MockAppBloc();
+      gameBloc = _MockGameBloc();
+      timerBloc = _MockTimerBloc();
+      playerRepository = PlayerRepository();
+
+      when(() => appBloc.state).thenReturn(
+        const AppState.authenticated(User(id: 'host')),
+      );
+      when(() => gameBloc.state).thenReturn(GameState(gameModel: gameModel));
+      when(() => timerBloc.state).thenReturn(
+        const TimerState(elapsedSeconds: 60),
+      );
+    });
+
+    Future<GameOverBloc> pumpPhoneView(
+      WidgetTester tester, {
+      int playerCount = 4,
+      List<Player>? players,
+    }) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final bloc = GameOverBloc(
+        players: players ?? playersFor(playerCount),
+        currentUserId: 'host',
+        firebaseDatabaseRepository: _MockFirebaseDatabaseRepository(),
+      );
+      addTearDown(bloc.close);
+
+      await tester.pumpApp(
+        DeviceInfoProvider(
+          isPhone: true,
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<AppBloc>.value(value: appBloc),
+              BlocProvider<GameBloc>.value(value: gameBloc),
+              BlocProvider<TimerBloc>.value(value: timerBloc),
+              BlocProvider<GameOverBloc>.value(value: bloc),
+            ],
+            child: RepositoryProvider<PlayerRepository>.value(
+              value: playerRepository,
+              child: const GameOverView(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return bloc;
+    }
+
+    testWidgets('renders a 4-player game without overflow', (tester) async {
+      await pumpPhoneView(tester);
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('renders a 2-player game without overflow', (tester) async {
+      await pumpPhoneView(tester, playerCount: 2);
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('pins the action bar without scrolling', (tester) async {
+      await pumpPhoneView(tester);
+
+      expect(find.byType(GameOverActionBar), findsOneWidget);
+    });
+
+    testWidgets('does not use the tablet two-column row', (tester) async {
+      await pumpPhoneView(tester);
+
+      expect(find.byType(GameOverStandingsPanel), findsNothing);
+      expect(find.byType(GameOverDetailsPanel), findsNothing);
+      expect(find.byType(CustomScrollView), findsOneWidget);
+    });
+
+    testWidgets('scrolling reveals the match details fields', (tester) async {
+      await pumpPhoneView(tester);
+
+      await tester.drag(
+        find.byType(CustomScrollView),
+        const Offset(0, -600),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('game_over_account_owner_dropdown')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('every standing row is reachable by scrolling',
+        (tester) async {
+      await pumpPhoneView(tester);
+
+      await tester.scrollUntilVisible(
+        find.text('Fourth Player'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+
+      expect(find.text('Fourth Player'), findsOneWidget);
+    });
+
+    testWidgets('dragging a grip reorders the standings', (tester) async {
+      final bloc = await pumpPhoneView(tester);
+
+      // ReorderableDragStartListener starts an immediate drag, so no
+      // long-press wait. The first small move exceeds touch slop; the total
+      // drag (250 logical pixels) clears more than two 98pt row slots
+      // (height 90 + 8 margin), so the drop lands unambiguously on the last
+      // slot rather than straddling a swap boundary.
+      final firstGrip = find.byType(ReorderableDragStartListener).first;
+      final gesture = await tester.startGesture(tester.getCenter(firstGrip));
+      await tester.pump(const Duration(milliseconds: 100));
+      await gesture.moveBy(const Offset(0, 30));
+      await tester.pump();
+      await gesture.moveBy(const Offset(0, 220));
+      await tester.pumpAndSettle();
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      // Dragging the host (originally placement 1) all the way down moves it
+      // behind every other standing, verifying the exact resulting order —
+      // not merely that something changed. This also proves the phone shell
+      // dispatches the raw oldIndex/newIndex straight through to
+      // GameOverBloc._onUpdateStandings without adding a second
+      // pre-removal-index adjustment (see the brief's warning): if the shell
+      // *did* double-adjust, this drag would land one slot short of the end.
+      expect(
+        bloc.state.standings.map((p) => p.id).toList(),
+        ['slot-2', 'slot-3', 'slot-4', 'host-slot'],
+      );
+    });
+
+    testWidgets('a long player name ellipsizes rather than overflowing',
+        (tester) async {
+      await pumpPhoneView(
+        tester,
+        players: [
+          base.copyWith(
+            id: 'host-slot',
+            name: 'Bartholomew Maximilian Featherstonehaugh The Third',
+            firebaseId: () => 'host',
+            placement: const Value(1),
+          ),
+          base.copyWith(
+            id: 'slot-2',
+            name: 'Second Player',
+            placement: const Value(2),
+          ),
+        ],
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+}
