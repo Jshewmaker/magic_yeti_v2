@@ -51,8 +51,9 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets('exposes a Block action in the friend card menu',
-        (tester) async {
+    testWidgets('exposes a Block action in the friend card menu', (
+      tester,
+    ) async {
       await pumpFriendsList(tester);
 
       await tester.tap(find.byIcon(Icons.more_vert));
@@ -61,8 +62,7 @@ void main() {
       expect(find.text('Block'), findsOneWidget);
     });
 
-    testWidgets(
-        'confirming Block dispatches BlockFriend with the built '
+    testWidgets('confirming Block dispatches BlockFriend with the built '
         'BlockedUserModel', (tester) async {
       await pumpFriendsList(tester);
 
@@ -91,29 +91,31 @@ void main() {
     });
 
     testWidgets(
-        'confirming Remove renders localized dialog copy and dispatches '
-        'RemoveFriend', (tester) async {
-      await pumpFriendsList(tester);
+      'confirming Remove renders localized dialog copy and dispatches '
+      'RemoveFriend',
+      (tester) async {
+        await pumpFriendsList(tester);
 
-      await tester.tap(find.byIcon(Icons.more_vert));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Remove'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Remove'));
+        await tester.pumpAndSettle();
 
-      final l10n = AppLocalizations.of(
-        tester.element(find.byType(FriendsListView)),
-      );
-      expect(find.text(l10n.removeFriendConfirmTitle('Bob')), findsOneWidget);
-      expect(find.text(l10n.removeFriendConfirmBody), findsOneWidget);
-      expect(find.text(l10n.cancelTextButton), findsOneWidget);
+        final l10n = AppLocalizations.of(
+          tester.element(find.byType(FriendsListView)),
+        );
+        expect(find.text(l10n.removeFriendConfirmTitle('Bob')), findsOneWidget);
+        expect(find.text(l10n.removeFriendConfirmBody), findsOneWidget);
+        expect(find.text(l10n.cancelTextButton), findsOneWidget);
 
-      // Confirmation dialog action button (also labelled "Remove").
-      await tester.tap(find.text('Remove').last);
-      await tester.pumpAndSettle();
+        // Confirmation dialog action button (also labelled "Remove").
+        await tester.tap(find.text('Remove').last);
+        await tester.pumpAndSettle();
 
-      verify(
-        () => friendBloc.add(const RemoveFriend('alice', 'bob')),
-      ).called(1);
-    });
+        verify(
+          () => friendBloc.add(const RemoveFriend('alice', 'bob')),
+        ).called(1);
+      },
+    );
   });
 }

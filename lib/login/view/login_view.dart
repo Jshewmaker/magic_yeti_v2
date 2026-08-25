@@ -158,8 +158,9 @@ class EmailInput extends StatelessWidget {
       decoration: InputDecoration(
         helperText: '',
         labelText: l10n.emailInputLabelText,
-        errorText:
-            email.displayError != null ? l10n.invalidEmailInputErrorText : null,
+        errorText: email.displayError != null
+            ? l10n.invalidEmailInputErrorText
+            : null,
       ),
       autofillHints: const [AutofillHints.email],
       keyboardType: TextInputType.emailAddress,
@@ -207,7 +208,7 @@ class LoginButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: state.valid
           ? () =>
-              context.read<LoginBloc>().add(const LoginCredentialsSubmitted())
+                context.read<LoginBloc>().add(const LoginCredentialsSubmitted())
           : null,
       child: state.status.isInProgress
           ? const CircularProgressIndicator()

@@ -31,8 +31,8 @@ void main() {
       final scryfallRepository = ScryfallRepository();
       final commanderLibraryRepository =
           SharedPreferencesCommanderLibraryRepository(
-        await SharedPreferences.getInstance(),
-      );
+            await SharedPreferences.getInstance(),
+          );
       final user = await userRepository.user.first;
       final appConfigRepository = FakeAppConfigRepository();
       final playerRepository = PlayerRepository()..init();

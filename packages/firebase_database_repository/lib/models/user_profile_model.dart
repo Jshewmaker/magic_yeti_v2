@@ -87,21 +87,20 @@ class UserProfileModel extends Equatable {
     String? pin,
     bool? onboardingComplete,
     bool? hasPin,
-  }) =>
-      UserProfileModel(
-        id: id ?? this.id,
-        email: email ?? this.email,
-        username: username ?? this.username,
-        usernameLower: usernameLower ?? this.usernameLower,
-        bio: bio ?? this.bio,
-        imageUrl: imageUrl ?? this.imageUrl,
-        isNewUser: isNewUser ?? this.isNewUser,
-        isAnonymous: isAnonymous ?? this.isAnonymous,
-        friendCode: friendCode ?? this.friendCode,
-        pin: pin ?? this.pin,
-        onboardingComplete: onboardingComplete ?? this.onboardingComplete,
-        hasPin: hasPin ?? this.hasPin,
-      );
+  }) => UserProfileModel(
+    id: id ?? this.id,
+    email: email ?? this.email,
+    username: username ?? this.username,
+    usernameLower: usernameLower ?? this.usernameLower,
+    bio: bio ?? this.bio,
+    imageUrl: imageUrl ?? this.imageUrl,
+    isNewUser: isNewUser ?? this.isNewUser,
+    isAnonymous: isAnonymous ?? this.isAnonymous,
+    friendCode: friendCode ?? this.friendCode,
+    pin: pin ?? this.pin,
+    onboardingComplete: onboardingComplete ?? this.onboardingComplete,
+    hasPin: hasPin ?? this.hasPin,
+  );
 
   /// Whether the profile satisfies the friends-feature requirements:
   /// onboarded, has a username, and has a PIN (new flag or legacy field).
@@ -112,17 +111,17 @@ class UserProfileModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        email,
-        isNewUser,
-        isAnonymous,
-        username,
-        usernameLower,
-        bio,
-        imageUrl,
-        friendCode,
-        pin,
-        onboardingComplete,
-        hasPin,
-      ];
+    id,
+    email,
+    isNewUser,
+    isAnonymous,
+    username,
+    usernameLower,
+    bio,
+    imageUrl,
+    friendCode,
+    pin,
+    onboardingComplete,
+    hasPin,
+  ];
 }

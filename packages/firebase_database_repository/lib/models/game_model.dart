@@ -58,16 +58,16 @@ class GameModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        hostId,
-        roomId,
-        players,
-        startTime,
-        startingPlayerId,
-        endTime,
-        winnerId,
-        durationInSeconds,
-      ];
+    id,
+    hostId,
+    roomId,
+    players,
+    startTime,
+    startingPlayerId,
+    endTime,
+    winnerId,
+    durationInSeconds,
+  ];
 
   /// Creates a copy of this GameModel with the given fields replaced with the
   /// new values.

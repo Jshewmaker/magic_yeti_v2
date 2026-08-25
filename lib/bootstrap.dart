@@ -14,7 +14,8 @@ import 'package:magic_yeti/firebase_options.dart';
 Future<void> bootstrap(
   Future<Widget> Function(
     FirebaseFirestore firestore,
-  ) builder,
+  )
+  builder,
 ) async {
   WidgetsFlutterBinding.ensureInitialized();
   // Scryfall's image CDN rejects the default Dart User-Agent with HTTP 400.

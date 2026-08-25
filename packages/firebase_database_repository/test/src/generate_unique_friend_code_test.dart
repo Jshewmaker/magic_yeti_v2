@@ -12,14 +12,16 @@ void main() {
   });
 
   group('generateUniqueFriendCode', () {
-    test('is an 8-character uppercase alphanumeric code with no prefix',
-        () async {
-      final code = await repository.generateUniqueFriendCode();
+    test(
+      'is an 8-character uppercase alphanumeric code with no prefix',
+      () async {
+        final code = await repository.generateUniqueFriendCode();
 
-      expect(code, hasLength(8));
-      expect(code, matches(RegExp(r'^[A-Z0-9]{8}$')));
-      expect(code, isNot(contains('-')));
-      expect(code, isNot(startsWith('YETI')));
-    });
+        expect(code, hasLength(8));
+        expect(code, matches(RegExp(r'^[A-Z0-9]{8}$')));
+        expect(code, isNot(contains('-')));
+        expect(code, isNot(startsWith('YETI')));
+      },
+    );
   });
 }

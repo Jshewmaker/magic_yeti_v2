@@ -9,8 +9,8 @@ part 'match_history_state.dart';
 class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
   MatchHistoryBloc({
     required FirebaseDatabaseRepository databaseRepository,
-  })  : _databaseRepository = databaseRepository,
-        super(const MatchHistoryState()) {
+  }) : _databaseRepository = databaseRepository,
+       super(const MatchHistoryState()) {
     // restartable: a new LoadMatchHistory cancels the previous Firestore
     // subscription instead of queueing behind it (the handler never
     // completes on its own because the games stream never closes).

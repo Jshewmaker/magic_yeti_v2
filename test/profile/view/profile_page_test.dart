@@ -37,8 +37,9 @@ void main() {
     setUp(() {
       appBloc = MockAppBloc();
       profileBloc = MockProfileBloc();
-      when(() => appBloc.state)
-          .thenReturn(const AppState.authenticated(authUser));
+      when(
+        () => appBloc.state,
+      ).thenReturn(const AppState.authenticated(authUser));
     });
 
     Future<void> pumpProfile(WidgetTester tester) async {
@@ -54,8 +55,9 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets('shows a loading indicator while the profile loads',
-        (tester) async {
+    testWidgets('shows a loading indicator while the profile loads', (
+      tester,
+    ) async {
       when(() => profileBloc.state).thenReturn(
         const ProfileState(user: authUser, status: ProfileStatus.loading),
       );
@@ -65,8 +67,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets(
-        'renders username/bio from the loaded UserProfileModel, '
+    testWidgets('renders username/bio from the loaded UserProfileModel, '
         'not the auth User', (tester) async {
       when(() => profileBloc.state).thenReturn(
         const ProfileState(
@@ -82,8 +83,9 @@ void main() {
       expect(find.text('Commander enjoyer'), findsOneWidget);
     });
 
-    testWidgets('renders the friend code row with the loaded friend code',
-        (tester) async {
+    testWidgets('renders the friend code row with the loaded friend code', (
+      tester,
+    ) async {
       when(() => profileBloc.state).thenReturn(
         const ProfileState(
           user: authUser,
@@ -98,8 +100,7 @@ void main() {
       expect(find.byIcon(Icons.copy), findsOneWidget);
     });
 
-    testWidgets(
-        'explains that username is not unique and friend code is the '
+    testWidgets('explains that username is not unique and friend code is the '
         'unique identifier', (tester) async {
       when(() => profileBloc.state).thenReturn(
         const ProfileState(
@@ -161,30 +162,33 @@ void main() {
       verify(() => profileBloc.add(const ProfilePinChanged('1234'))).called(1);
     });
 
-    testWidgets('tapping save with a valid pin dispatches ProfilePinSubmitted',
-        (tester) async {
-      when(() => profileBloc.state).thenReturn(
-        const ProfileState(
-          user: authUser,
-          status: ProfileStatus.loaded,
-          profile: loadedProfile,
-          pin: Pin.dirty('1234'),
-        ),
-      );
+    testWidgets(
+      'tapping save with a valid pin dispatches ProfilePinSubmitted',
+      (tester) async {
+        when(() => profileBloc.state).thenReturn(
+          const ProfileState(
+            user: authUser,
+            status: ProfileStatus.loaded,
+            profile: loadedProfile,
+            pin: Pin.dirty('1234'),
+          ),
+        );
 
-      await pumpProfile(tester);
+        await pumpProfile(tester);
 
-      await tester.ensureVisible(
-        find.byKey(const Key('profile_pin_submit_button')),
-      );
-      await tester.tap(find.byKey(const Key('profile_pin_submit_button')));
-      await tester.pump();
+        await tester.ensureVisible(
+          find.byKey(const Key('profile_pin_submit_button')),
+        );
+        await tester.tap(find.byKey(const Key('profile_pin_submit_button')));
+        await tester.pump();
 
-      verify(() => profileBloc.add(const ProfilePinSubmitted())).called(1);
-    });
+        verify(() => profileBloc.add(const ProfilePinSubmitted())).called(1);
+      },
+    );
 
-    testWidgets('shows the pin changed snackbar on pinSaved status',
-        (tester) async {
+    testWidgets('shows the pin changed snackbar on pinSaved status', (
+      tester,
+    ) async {
       whenListen(
         profileBloc,
         Stream.fromIterable([
@@ -212,8 +216,9 @@ void main() {
       expect(find.text('PIN updated!'), findsOneWidget);
     });
 
-    testWidgets('shows the profile saved snackbar on success status',
-        (tester) async {
+    testWidgets('shows the profile saved snackbar on success status', (
+      tester,
+    ) async {
       whenListen(
         profileBloc,
         Stream.fromIterable([
@@ -241,8 +246,9 @@ void main() {
       expect(find.text('Profile saved'), findsOneWidget);
     });
 
-    testWidgets('shows the profile save failed snackbar on failure status',
-        (tester) async {
+    testWidgets('shows the profile save failed snackbar on failure status', (
+      tester,
+    ) async {
       whenListen(
         profileBloc,
         Stream.fromIterable([
@@ -267,12 +273,15 @@ void main() {
       await pumpProfile(tester);
       await tester.pump();
 
-      expect(find.text("Couldn't save your profile. Try again."),
-          findsOneWidget);
+      expect(
+        find.text("Couldn't save your profile. Try again."),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('email field is read-only (no ProfileEmailChanged event)',
-        (tester) async {
+    testWidgets('email field is read-only (no ProfileEmailChanged event)', (
+      tester,
+    ) async {
       when(() => profileBloc.state).thenReturn(
         const ProfileState(
           user: authUser,

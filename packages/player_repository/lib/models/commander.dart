@@ -123,20 +123,20 @@ class Commander extends Equatable {
 
   @override
   List<Object?> get props => [
-        oracleId,
-        name,
-        colors,
-        colorIdentity,
-        typeLine,
-        scryFallUrl,
-        cardType,
-        imageUrl,
-        manaCost,
-        oracleText,
-        edhrecRank,
-        power,
-        toughness,
-        artist,
-        keywords,
-      ];
+    oracleId,
+    name,
+    colors,
+    colorIdentity,
+    typeLine,
+    scryFallUrl,
+    cardType,
+    imageUrl,
+    manaCost,
+    oracleText,
+    edhrecRank,
+    power,
+    toughness,
+    artist,
+    keywords,
+  ];
 }

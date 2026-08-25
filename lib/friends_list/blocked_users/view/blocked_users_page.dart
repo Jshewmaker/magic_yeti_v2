@@ -47,9 +47,9 @@ class BlockedUsersView extends StatelessWidget {
         title: Text(
           l10n.blockedUsersTitle,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppColors.onSurfaceVariant,
-                fontWeight: FontWeight.bold,
-              ),
+            color: AppColors.onSurfaceVariant,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: BlocBuilder<BlockedUsersBloc, BlockedUsersState>(
@@ -77,8 +77,7 @@ class BlockedUsersView extends StatelessWidget {
                   title: blockedUser.username,
                   subtitle: blockedUser.friendCode,
                   trailing: TextButton(
-                    onPressed: () =>
-                        _confirmUnblock(context, blockedUser),
+                    onPressed: () => _confirmUnblock(context, blockedUser),
                     child: Text(
                       l10n.unblockUserAction,
                       style: const TextStyle(color: AppColors.tertiary),
@@ -133,8 +132,8 @@ class BlockedUsersView extends StatelessWidget {
                 ),
                 onPressed: () {
                   context.read<BlockedUsersBloc>().add(
-                        UnblockUser(userId, blockedUser.userId),
-                      );
+                    UnblockUser(userId, blockedUser.userId),
+                  );
                   Navigator.of(dialogContext).pop();
                 },
               ),

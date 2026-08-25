@@ -40,11 +40,11 @@ class _CommanderSearchBarState extends State<CommanderSearchBar> {
 
   void _dispatchSearch() {
     context.read<PlayerCustomizationBloc>().add(
-          CardListRequested(
-            cardName: widget.textController.text,
-            searchBackgrounds: widget.searchBackgrounds,
-          ),
-        );
+      CardListRequested(
+        cardName: widget.textController.text,
+        searchBackgrounds: widget.searchBackgrounds,
+      ),
+    );
   }
 
   void _onChanged(String value) {
@@ -81,8 +81,10 @@ class _CommanderSearchBarState extends State<CommanderSearchBar> {
                 hintText: widget.selectingPartner
                     ? 'Search for partner commander...'
                     : l10n.searchCommanderHintText,
-                prefixIcon:
-                    const Icon(Icons.search, color: AppColors.neutral60),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: AppColors.neutral60,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.sm),
                 ),

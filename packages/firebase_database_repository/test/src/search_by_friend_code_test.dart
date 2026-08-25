@@ -18,8 +18,9 @@ void main() {
   setUp(() {
     functions = _MockFunctions();
     callable = _MockCallable();
-    when(() => functions.httpsCallable('searchByFriendCode'))
-        .thenReturn(callable);
+    when(
+      () => functions.httpsCallable('searchByFriendCode'),
+    ).thenReturn(callable);
     repository = FirebaseDatabaseRepository(
       firebase: FakeFirebaseFirestore(),
       functions: functions,
@@ -29,11 +30,12 @@ void main() {
   void stubResult(Map<String, dynamic> data) {
     final result = _MockResult();
     when(() => result.data).thenReturn(data);
-    when(() => callable.call<dynamic>(any<Map<String, dynamic>>())).thenAnswer((_) async => result);
+    when(
+      () => callable.call<dynamic>(any<Map<String, dynamic>>()),
+    ).thenAnswer((_) async => result);
   }
 
-  test(
-      'found:true payload maps to FriendSearchResult with '
+  test('found:true payload maps to FriendSearchResult with '
       'RelationshipStatus.pendingSent', () async {
     stubResult({
       'found': true,
@@ -54,9 +56,7 @@ void main() {
     expect(result.user?.imageUrl, 'http://x/y.png');
     expect(result.user?.friendCode, 'YETI-A3F9');
     expect(result.relationship, RelationshipStatus.pendingSent);
-    verify(
-      () => callable.call<dynamic>({'code': 'yeti-a3f9'}),
-    ).called(1);
+    verify(() => callable.call<dynamic>({'code': 'yeti-a3f9'})).called(1);
   });
 
   test('found:false payload maps to a not-found FriendSearchResult', () async {
@@ -93,12 +93,9 @@ void main() {
   });
 
   test('other FirebaseFunctionsException throws (not found:false)', () async {
-    when(() => callable.call<dynamic>(any<Map<String, dynamic>>())).thenThrow(
-      FirebaseFunctionsException(
-        code: 'internal',
-        message: 'boom',
-      ),
-    );
+    when(
+      () => callable.call<dynamic>(any<Map<String, dynamic>>()),
+    ).thenThrow(FirebaseFunctionsException(code: 'internal', message: 'boom'));
 
     expect(
       () => repository.searchByFriendCode('YETI-A3F9'),

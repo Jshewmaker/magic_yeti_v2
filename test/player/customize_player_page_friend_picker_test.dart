@@ -79,10 +79,12 @@ void main() {
       db = MockFirebaseDatabaseRepository();
 
       when(() => playerRepository.getPlayerById('p1')).thenReturn(testPlayer);
-      when(() => playerBloc.state)
-          .thenReturn(const PlayerState(player: testPlayer));
-      when(() => appBloc.state)
-          .thenReturn(const AppState.authenticated(User(id: 'alice')));
+      when(
+        () => playerBloc.state,
+      ).thenReturn(const PlayerState(player: testPlayer));
+      when(
+        () => appBloc.state,
+      ).thenReturn(const AppState.authenticated(User(id: 'alice')));
       when(() => friendBloc.state).thenReturn(const FriendsLoaded([bob]));
     });
 
@@ -117,116 +119,121 @@ void main() {
     }
 
     testWidgets(
-        'Verify button shows a spinner while ValidatePin is pending and '
-        'blocks re-submission', (tester) async {
-      final completer = Completer<PinValidationResult>();
-      when(() => db.validatePin(targetUserId: 'bob', pin: '1234'))
-          .thenAnswer((_) => completer.future);
+      'Verify button shows a spinner while ValidatePin is pending and '
+      'blocks re-submission',
+      (tester) async {
+        final completer = Completer<PinValidationResult>();
+        when(
+          () => db.validatePin(targetUserId: 'bob', pin: '1234'),
+        ).thenAnswer((_) => completer.future);
 
-      await pumpCustomizePlayer(tester);
-      // The friend tile list was replaced by a searchable DropdownMenu (see
-      // the 'friend/owner dropdown' group below) — open it before picking
-      // Bob, same as every other test in this file that selects a friend.
-      //
-      // Tap the internal TextField, not find.byType(DropdownMenu<String?>):
-      // production wraps the DropdownMenu in SizedBox(width:
-      // double.infinity) (see _FriendSection), which stretches the
-      // widget's outer bounds far past its internal TextField's actual
-      // clickable area. tester.tap(find.byType(DropdownMenu<String?>)) taps
-      // the geometric center of those stretched outer bounds, which lands
-      // in a dead zone and silently fails to open the menu — confirmed via
-      // an isolated repro (WidgetController.getCenter() on a DropdownMenu
-      // inside SizedBox(width: double.infinity) always misses the hit
-      // test, regardless of surrounding layout). Tapping the TextField
-      // directly opens it reliably.
-      await tester.tap(find.byType(TextField).first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Bob').last);
-      await tester.pumpAndSettle();
+        await pumpCustomizePlayer(tester);
+        // The friend tile list was replaced by a searchable DropdownMenu (see
+        // the 'friend/owner dropdown' group below) — open it before picking
+        // Bob, same as every other test in this file that selects a friend.
+        //
+        // Tap the internal TextField, not find.byType(DropdownMenu<String?>):
+        // production wraps the DropdownMenu in SizedBox(width:
+        // double.infinity) (see _FriendSection), which stretches the
+        // widget's outer bounds far past its internal TextField's actual
+        // clickable area. tester.tap(find.byType(DropdownMenu<String?>)) taps
+        // the geometric center of those stretched outer bounds, which lands
+        // in a dead zone and silently fails to open the menu — confirmed via
+        // an isolated repro (WidgetController.getCenter() on a DropdownMenu
+        // inside SizedBox(width: double.infinity) always misses the hit
+        // test, regardless of surrounding layout). Tapping the TextField
+        // directly opens it reliably.
+        await tester.tap(find.byType(TextField).first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Bob').last);
+        await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField).last, '1234');
-      await tester.pump();
-      await tester.tap(find.widgetWithText(FilledButton, 'Verify'));
-      await tester.pump();
+        await tester.enterText(find.byType(TextField).last, '1234');
+        await tester.pump();
+        await tester.tap(find.widgetWithText(FilledButton, 'Verify'));
+        await tester.pump();
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(find.text('Verify'), findsNothing);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(find.text('Verify'), findsNothing);
 
-      final verifyButton = tester.widget<FilledButton>(
-        find.byType(FilledButton),
-      );
-      expect(verifyButton.onPressed, isNull);
+        final verifyButton = tester.widget<FilledButton>(
+          find.byType(FilledButton),
+        );
+        expect(verifyButton.onPressed, isNull);
 
-      final cancelButton = tester.widget<TextButton>(
-        find.widgetWithText(TextButton, 'Cancel'),
-      );
-      expect(cancelButton.onPressed, isNull);
+        final cancelButton = tester.widget<TextButton>(
+          find.widgetWithText(TextButton, 'Cancel'),
+        );
+        expect(cancelButton.onPressed, isNull);
 
-      completer.complete(const PinValid());
-      await tester.pumpAndSettle();
-    });
+        completer.complete(const PinValid());
+        await tester.pumpAndSettle();
+      },
+    );
 
     testWidgets(
-        'PIN dialog is scrollable on a small screen with the keyboard open',
-        (tester) async {
-      when(() => db.validatePin(targetUserId: 'bob', pin: '1234'))
-          .thenAnswer((_) async => const PinValid());
+      'PIN dialog is scrollable on a small screen with the keyboard open',
+      (tester) async {
+        when(
+          () => db.validatePin(targetUserId: 'bob', pin: '1234'),
+        ).thenAnswer((_) async => const PinValid());
 
-      await pumpCustomizePlayer(tester, size: const Size(375, 667));
-      // CustomizePlayerPage's two-panel Row layout is a pre-existing
-      // landscape-style design that predates this task; several of its
-      // children (TrackingPreview's two Rows, _FriendSection's header Row,
-      // CommanderSearchBar) already overflow horizontally at phone width
-      // with no Expanded/Flexible around non-shrinking content — real,
-      // pre-existing, out-of-scope bugs (flagged separately via a spawned
-      // follow-up), not caused by the PIN dialog fix under test.
-      // _expectOnlyKnownOverflow drains and fingerprints them so this test
-      // still fails loudly on any *different*, unexpected exception.
-      _expectOnlyKnownOverflow(tester.takeException());
+        await pumpCustomizePlayer(tester, size: const Size(375, 667));
+        // CustomizePlayerPage's two-panel Row layout is a pre-existing
+        // landscape-style design that predates this task; several of its
+        // children (TrackingPreview's two Rows, _FriendSection's header Row,
+        // CommanderSearchBar) already overflow horizontally at phone width
+        // with no Expanded/Flexible around non-shrinking content — real,
+        // pre-existing, out-of-scope bugs (flagged separately via a spawned
+        // follow-up), not caused by the PIN dialog fix under test.
+        // _expectOnlyKnownOverflow drains and fingerprints them so this test
+        // still fails loudly on any *different*, unexpected exception.
+        _expectOnlyKnownOverflow(tester.takeException());
 
-      // Open the dropdown by tapping its internal TextField, not
-      // find.byType(DropdownMenu<String?>) — see the detailed comment on
-      // the equivalent line in the 'Verify button shows a spinner...' test
-      // above for why a direct tap on the DropdownMenu itself silently
-      // fails to open it here.
-      await tester.tap(find.byType(TextField).first);
-      await tester.pumpAndSettle();
-      _expectOnlyKnownOverflow(tester.takeException());
-      await tester.tap(find.text('Bob').last);
-      await tester.pumpAndSettle();
-      _expectOnlyKnownOverflow(tester.takeException());
+        // Open the dropdown by tapping its internal TextField, not
+        // find.byType(DropdownMenu<String?>) — see the detailed comment on
+        // the equivalent line in the 'Verify button shows a spinner...' test
+        // above for why a direct tap on the DropdownMenu itself silently
+        // fails to open it here.
+        await tester.tap(find.byType(TextField).first);
+        await tester.pumpAndSettle();
+        _expectOnlyKnownOverflow(tester.takeException());
+        await tester.tap(find.text('Bob').last);
+        await tester.pumpAndSettle();
+        _expectOnlyKnownOverflow(tester.takeException());
 
-      // Simulate the on-screen keyboard opening once the dialog is already
-      // up (dialog opens, user focuses the PIN field, the OS keyboard
-      // slides in) — the realistic sequence.
-      tester.view.viewInsets = const FakeViewPadding(bottom: 300);
-      addTearDown(tester.view.resetViewInsets);
-      await tester.pump();
-      _expectOnlyKnownOverflow(tester.takeException());
+        // Simulate the on-screen keyboard opening once the dialog is already
+        // up (dialog opens, user focuses the PIN field, the OS keyboard
+        // slides in) — the realistic sequence.
+        tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+        addTearDown(tester.view.resetViewInsets);
+        await tester.pump();
+        _expectOnlyKnownOverflow(tester.takeException());
 
-      // NOTE on scope: this test only verifies the *structural* fix
-      // (`scrollable: true` is present on the dialog), not end-to-end
-      // reachability of the Verify button via tester.tap(). An earlier
-      // version of this test tried to drive the full flow (tap the friend
-      // tile, enter the PIN, tap Verify, confirm the dialog dismisses) at
-      // this same small screen + keyboard-inset size. A reviewer verified
-      // empirically — by stripping `scrollable: true` from the production
-      // code in an isolated worktree to reproduce the genuine pre-fix bug —
-      // that the elaborate version still passed against the *broken* code:
-      // at Size(375, 667) with a 300px keyboard inset, the dialog's
-      // Material card comfortably fits either way in this simulated
-      // harness, so tester.tap()/hit-testing never actually discriminates
-      // fixed-vs-broken here. Flutter's widget-test harness doesn't
-      // faithfully reproduce real on-device keyboard occlusion for button
-      // hit-testing at these parameters, so driving taps through the flow
-      // was implying more coverage than it had. `scrollable: true` is the
-      // correct, standard Flutter fix for "dialog content can be pushed
-      // off-screen by the keyboard" — this test verifies that fix is in
-      // place; real on-device reachability is verified manually as part of
-      // this plan's Task 6 (small-simulator manual-verification step).
-      final dialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
-      expect(dialog.scrollable, isTrue);
-    });
+        // NOTE on scope: this test only verifies the *structural* fix
+        // (`scrollable: true` is present on the dialog), not end-to-end
+        // reachability of the Verify button via tester.tap(). An earlier
+        // version of this test tried to drive the full flow (tap the friend
+        // tile, enter the PIN, tap Verify, confirm the dialog dismisses) at
+        // this same small screen + keyboard-inset size. A reviewer verified
+        // empirically — by stripping `scrollable: true` from the production
+        // code in an isolated worktree to reproduce the genuine pre-fix bug —
+        // that the elaborate version still passed against the *broken* code:
+        // at Size(375, 667) with a 300px keyboard inset, the dialog's
+        // Material card comfortably fits either way in this simulated
+        // harness, so tester.tap()/hit-testing never actually discriminates
+        // fixed-vs-broken here. Flutter's widget-test harness doesn't
+        // faithfully reproduce real on-device keyboard occlusion for button
+        // hit-testing at these parameters, so driving taps through the flow
+        // was implying more coverage than it had. `scrollable: true` is the
+        // correct, standard Flutter fix for "dialog content can be pushed
+        // off-screen by the keyboard" — this test verifies that fix is in
+        // place; real on-device reachability is verified manually as part of
+        // this plan's Task 6 (small-simulator manual-verification step).
+        final dialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
+        expect(dialog.scrollable, isTrue);
+      },
+    );
   });
 
   group('CustomizePlayerView name lock', () {
@@ -244,10 +251,12 @@ void main() {
       db = MockFirebaseDatabaseRepository();
 
       when(() => playerRepository.getPlayerById('p1')).thenReturn(testPlayer);
-      when(() => playerBloc.state)
-          .thenReturn(const PlayerState(player: testPlayer));
-      when(() => appBloc.state)
-          .thenReturn(const AppState.authenticated(User(id: 'alice')));
+      when(
+        () => playerBloc.state,
+      ).thenReturn(const PlayerState(player: testPlayer));
+      when(
+        () => appBloc.state,
+      ).thenReturn(const AppState.authenticated(User(id: 'alice')));
       when(() => friendBloc.state).thenReturn(const FriendsLoaded([bob]));
       when(() => db.getUserProfileOnce('alice')).thenAnswer(
         (_) async => const UserProfileModel(id: 'alice', username: 'Alice'),
@@ -255,48 +264,51 @@ void main() {
     });
 
     testWidgets(
-        'locks the name field and shows "Linked to Alice" once the owner '
-        'is confirmed', (tester) async {
-      tester.view.physicalSize = const Size(1600, 1200);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
+      'locks the name field and shows "Linked to Alice" once the owner '
+      'is confirmed',
+      (tester) async {
+        tester.view.physicalSize = const Size(1600, 1200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
 
-      late PlayerCustomizationBloc customizationBloc;
-      await tester.pumpApp(
-        MultiBlocProvider(
-          providers: [
-            BlocProvider<AppBloc>.value(value: appBloc),
-            BlocProvider<FriendBloc>.value(value: friendBloc),
-            BlocProvider<PlayerBloc>.value(value: playerBloc),
-            BlocProvider<PlayerCustomizationBloc>(
-              create: (context) {
-                return customizationBloc = PlayerCustomizationBloc(
-                  scryfallRepository: MockScryfallRepository(),
-                  firebaseDatabaseRepository: db,
-                  commanderLibraryRepository: FakeCommanderLibraryRepository(),
-                );
-              },
+        late PlayerCustomizationBloc customizationBloc;
+        await tester.pumpApp(
+          MultiBlocProvider(
+            providers: [
+              BlocProvider<AppBloc>.value(value: appBloc),
+              BlocProvider<FriendBloc>.value(value: friendBloc),
+              BlocProvider<PlayerBloc>.value(value: playerBloc),
+              BlocProvider<PlayerCustomizationBloc>(
+                create: (context) {
+                  return customizationBloc = PlayerCustomizationBloc(
+                    scryfallRepository: MockScryfallRepository(),
+                    firebaseDatabaseRepository: db,
+                    commanderLibraryRepository:
+                        FakeCommanderLibraryRepository(),
+                  );
+                },
+              ),
+            ],
+            child: RepositoryProvider<PlayerRepository>.value(
+              value: playerRepository,
+              child: const CustomizePlayerView(playerId: 'p1'),
             ),
-          ],
-          child: RepositoryProvider<PlayerRepository>.value(
-            value: playerRepository,
-            child: const CustomizePlayerView(playerId: 'p1'),
           ),
-        ),
-      );
-      await tester.pump();
+        );
+        await tester.pump();
 
-      customizationBloc.add(const OwnerSelected(userId: 'alice'));
-      await tester.pumpAndSettle();
+        customizationBloc.add(const OwnerSelected(userId: 'alice'));
+        await tester.pumpAndSettle();
 
-      final nameField = tester.widget<TextField>(
-        find.byWidgetPredicate(
-          (w) => w is TextField && w.decoration?.hintText == 'Player name',
-        ),
-      );
-      expect(nameField.readOnly, isTrue);
-      expect(find.text('Linked to Alice'), findsOneWidget);
-    });
+        final nameField = tester.widget<TextField>(
+          find.byWidgetPredicate(
+            (w) => w is TextField && w.decoration?.hintText == 'Player name',
+          ),
+        );
+        expect(nameField.readOnly, isTrue);
+        expect(find.text('Linked to Alice'), findsOneWidget);
+      },
+    );
   });
 
   group('CustomizePlayerView rehydration', () {
@@ -335,8 +347,9 @@ void main() {
       playerRepository = MockPlayerRepository();
       db = MockFirebaseDatabaseRepository();
 
-      when(() => appBloc.state)
-          .thenReturn(const AppState.authenticated(User(id: 'alice')));
+      when(
+        () => appBloc.state,
+      ).thenReturn(const AppState.authenticated(User(id: 'alice')));
       when(() => db.getUserProfileOnce('alice')).thenAnswer(
         (_) async => const UserProfileModel(id: 'alice', username: 'Alice'),
       );
@@ -369,42 +382,52 @@ void main() {
     }
 
     testWidgets(
-        'reopening an owner-linked seat re-confirms Me and shows the owner '
-        'username, without needing a fresh selection', (tester) async {
-      when(() => playerRepository.getPlayerById('p1'))
-          .thenReturn(linkedToOwnerPlayer);
-      when(() => playerBloc.state)
-          .thenReturn(const PlayerState(player: linkedToOwnerPlayer));
-      when(() => friendBloc.state).thenReturn(const FriendsLoaded([bob]));
+      'reopening an owner-linked seat re-confirms Me and shows the owner '
+      'username, without needing a fresh selection',
+      (tester) async {
+        when(
+          () => playerRepository.getPlayerById('p1'),
+        ).thenReturn(linkedToOwnerPlayer);
+        when(
+          () => playerBloc.state,
+        ).thenReturn(const PlayerState(player: linkedToOwnerPlayer));
+        when(() => friendBloc.state).thenReturn(const FriendsLoaded([bob]));
 
-      await pump(tester);
-      await tester.pumpAndSettle();
+        await pump(tester);
+        await tester.pumpAndSettle();
 
-      expect(find.text('Linked to Alice'), findsOneWidget);
-    });
+        expect(find.text('Linked to Alice'), findsOneWidget);
+      },
+    );
 
     testWidgets(
-        'reopening a friend-linked seat re-confirms that friend once the '
-        'friend list finishes loading, without a PIN prompt', (tester) async {
-      when(() => playerRepository.getPlayerById('p1'))
-          .thenReturn(linkedToFriendPlayer);
-      when(() => playerBloc.state)
-          .thenReturn(const PlayerState(player: linkedToFriendPlayer));
-      // Starts loading, then transitions to FriendsLoaded — whenListen
-      // drives both the initial `.state` read and the later stream event
-      // that the page's BlocListener reacts to, without a manual re-stub.
-      whenListen<FriendState>(
-        friendBloc,
-        Stream.fromIterable([const FriendsLoaded([bob])]),
-        initialState: FriendsLoading(),
-      );
+      'reopening a friend-linked seat re-confirms that friend once the '
+      'friend list finishes loading, without a PIN prompt',
+      (tester) async {
+        when(
+          () => playerRepository.getPlayerById('p1'),
+        ).thenReturn(linkedToFriendPlayer);
+        when(
+          () => playerBloc.state,
+        ).thenReturn(const PlayerState(player: linkedToFriendPlayer));
+        // Starts loading, then transitions to FriendsLoaded — whenListen
+        // drives both the initial `.state` read and the later stream event
+        // that the page's BlocListener reacts to, without a manual re-stub.
+        whenListen<FriendState>(
+          friendBloc,
+          Stream.fromIterable([
+            const FriendsLoaded([bob]),
+          ]),
+          initialState: FriendsLoading(),
+        );
 
-      await pump(tester);
-      await tester.pumpAndSettle();
+        await pump(tester);
+        await tester.pumpAndSettle();
 
-      expect(find.byType(AlertDialog), findsNothing);
-      expect(find.text('Linked to Bob'), findsOneWidget);
-    });
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(find.text('Linked to Bob'), findsOneWidget);
+      },
+    );
   });
 
   group('CustomizePlayerView friend/owner dropdown', () {
@@ -422,18 +445,21 @@ void main() {
       db = MockFirebaseDatabaseRepository();
 
       when(() => playerRepository.getPlayerById('p1')).thenReturn(testPlayer);
-      when(() => playerBloc.state)
-          .thenReturn(const PlayerState(player: testPlayer));
-      when(() => appBloc.state)
-          .thenReturn(const AppState.authenticated(User(id: 'alice')));
+      when(
+        () => playerBloc.state,
+      ).thenReturn(const PlayerState(player: testPlayer));
+      when(
+        () => appBloc.state,
+      ).thenReturn(const AppState.authenticated(User(id: 'alice')));
       when(() => db.getUserProfileOnce('alice')).thenAnswer(
         (_) async => const UserProfileModel(id: 'alice', username: 'Alice'),
       );
     });
 
     Future<void> pump(WidgetTester tester, {List<FriendModel>? friends}) async {
-      when(() => friendBloc.state)
-          .thenReturn(FriendsLoaded(friends ?? const [bob]));
+      when(
+        () => friendBloc.state,
+      ).thenReturn(FriendsLoaded(friends ?? const [bob]));
       tester.view.physicalSize = const Size(1600, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
@@ -515,8 +541,9 @@ void main() {
       );
     });
 
-    testWidgets('selecting Me dispatches OwnerSelected with no PIN dialog',
-        (tester) async {
+    testWidgets('selecting Me dispatches OwnerSelected with no PIN dialog', (
+      tester,
+    ) async {
       await pump(tester);
 
       // Open via the internal TextField — see the detailed comment on the
@@ -544,8 +571,9 @@ void main() {
       expect(find.text('Verify Bob'), findsOneWidget);
     });
 
-    testWidgets('cancelling the PIN dialog reverts the dropdown display',
-        (tester) async {
+    testWidgets('cancelling the PIN dialog reverts the dropdown display', (
+      tester,
+    ) async {
       await pump(tester);
 
       // Open via the internal TextField — see the detailed comment on the
@@ -636,7 +664,8 @@ void _expectOnlyKnownOverflow(Object? exception) {
   expect(
     _multipleExceptionsPattern.hasMatch(message),
     isTrue,
-    reason: 'Expected only the known, pre-existing, out-of-scope overflow '
+    reason:
+        'Expected only the known, pre-existing, out-of-scope overflow '
         'errors from the underlying page layout (or no exception, or a '
         "single overflow, or the framework's batched-overflow wrapper); "
         'got something else, which could be a real regression: $exception',

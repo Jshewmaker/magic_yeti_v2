@@ -118,20 +118,20 @@ class _IncrementLifeWidgetState extends State<IncrementLifeWidget> {
       child: GestureDetector(
         onTapDown: _handleTapDown,
         onTap: () => context.read<PlayerBloc>().add(
-              UpdatePlayerLifeEvent(
-                decrement: false,
-                playerId: widget.player.id,
-              ),
-            ),
+          UpdatePlayerLifeEvent(
+            decrement: false,
+            playerId: widget.player.id,
+          ),
+        ),
         onLongPressStart: (_) => context.read<PlayerBloc>().add(
-              UpdatePlayerLifeByXEvent(
-                decrement: false,
-                playerId: widget.player.id,
-              ),
-            ),
+          UpdatePlayerLifeByXEvent(
+            decrement: false,
+            playerId: widget.player.id,
+          ),
+        ),
         onLongPressEnd: (_) => context.read<PlayerBloc>().add(
-              const PlayerStopDecrement(),
-            ),
+          const PlayerStopDecrement(),
+        ),
         child: AnimatedContainer(
           decoration: BoxDecoration(
             color: _isTapped ? Colors.white.withAlpha(32) : Colors.transparent,
@@ -142,8 +142,9 @@ class _IncrementLifeWidgetState extends State<IncrementLifeWidget> {
           duration: const Duration(milliseconds: 50),
           child: SizedBox.expand(
             child: Padding(
-              padding:
-                  isPhone ? const EdgeInsets.all(8) : const EdgeInsets.all(64),
+              padding: isPhone
+                  ? const EdgeInsets.all(8)
+                  : const EdgeInsets.all(64),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -200,23 +201,23 @@ class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
       child: GestureDetector(
         onTapDown: _handleTapDown,
         onTap: () => context.read<PlayerBloc>().add(
-              UpdatePlayerLifeEvent(
-                decrement: true,
-                playerId: widget.player.id,
-              ),
-            ),
+          UpdatePlayerLifeEvent(
+            decrement: true,
+            playerId: widget.player.id,
+          ),
+        ),
         onLongPressStart: (_) => context.read<PlayerBloc>().add(
-              UpdatePlayerLifeByXEvent(
-                decrement: true,
-                playerId: widget.player.id,
-              ),
-            ),
+          UpdatePlayerLifeByXEvent(
+            decrement: true,
+            playerId: widget.player.id,
+          ),
+        ),
         onLongPressCancel: () => context.read<PlayerBloc>().add(
-              const PlayerStopDecrement(),
-            ),
+          const PlayerStopDecrement(),
+        ),
         onLongPressEnd: (_) => context.read<PlayerBloc>().add(
-              const PlayerStopDecrement(),
-            ),
+          const PlayerStopDecrement(),
+        ),
         child: AnimatedContainer(
           decoration: BoxDecoration(
             color: _isTapped ? Colors.white.withAlpha(32) : Colors.transparent,
@@ -227,8 +228,9 @@ class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
           duration: const Duration(milliseconds: 50),
           child: SizedBox.expand(
             child: Padding(
-              padding:
-                  isPhone ? const EdgeInsets.all(8) : const EdgeInsets.all(64),
+              padding: isPhone
+                  ? const EdgeInsets.all(8)
+                  : const EdgeInsets.all(64),
               child: Row(
                 children: [
                   const FaIcon(FontAwesomeIcons.minus, size: 36),
@@ -258,11 +260,11 @@ class _LifeTrackerWidget extends StatelessWidget {
       listener: (context, state) {
         if (state.status == PlayerStatus.lifeTotalUpdated) {
           context.read<LifeChangeBloc>().add(
-                LifePointsChanged(
-                  previousLifePoints: lifePoints,
-                  newLifePoints: state.player.lifePoints,
-                ),
-              );
+            LifePointsChanged(
+              previousLifePoints: lifePoints,
+              newLifePoints: state.player.lifePoints,
+            ),
+          );
         }
       },
       builder: (context, state) => Stack(
@@ -366,22 +368,23 @@ class _LifePointChangeAnimationState extends State<_LifePointChangeAnimation>
       vsync: this,
     );
 
-    _opacityAnimation = Tween<double>(
-      begin: 1,
-      end: 0,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.5, 1),
-      ),
-    );
+    _opacityAnimation =
+        Tween<double>(
+          begin: 1,
+          end: 0,
+        ).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.5, 1),
+          ),
+        );
 
     _lastChange = widget.change;
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         context.read<LifeChangeBloc>().add(
-              const LifePointChangeCompleted(),
-            );
+          const LifePointChangeCompleted(),
+        );
       }
     });
     unawaited(_controller.forward());
@@ -521,8 +524,9 @@ class _PlayerNameWidget extends StatelessWidget {
       children: [
         ElevatedButton(
           style: ButtonStyle(
-            backgroundColor:
-                WidgetStateProperty.all(Colors.black.withAlpha(150)),
+            backgroundColor: WidgetStateProperty.all(
+              Colors.black.withAlpha(150),
+            ),
             shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

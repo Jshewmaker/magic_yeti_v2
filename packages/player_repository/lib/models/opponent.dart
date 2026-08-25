@@ -26,10 +26,7 @@ class Opponent {
 
   /// Creates a new instance of the `Opponent` class with the same values
   /// as the current instance
-  Opponent copyWith({
-    String? playerId,
-    List<CommanderDamage>? damages,
-  }) =>
+  Opponent copyWith({String? playerId, List<CommanderDamage>? damages}) =>
       Opponent(
         playerId: playerId ?? this.playerId,
         damages: damages ?? this.damages,

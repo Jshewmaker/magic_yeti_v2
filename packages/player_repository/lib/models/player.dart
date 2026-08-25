@@ -42,8 +42,8 @@ class Player extends Equatable {
     this.state = PlayerModelState.eliminated,
     int? placement,
     int? timeOfDeath,
-  })  : _placement = placement,
-        _timeOfDeath = timeOfDeath;
+  }) : _placement = placement,
+       _timeOfDeath = timeOfDeath;
 
   /// Creates a Player object from a JSON map
   factory Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
@@ -146,18 +146,18 @@ class Player extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        color,
-        commander,
-        partner,
-        background,
-        playerNumber,
-        lifePoints,
-        state,
-        firebaseId,
-        opponents,
-        _placement,
-        _timeOfDeath,
-      ];
+    id,
+    name,
+    color,
+    commander,
+    partner,
+    background,
+    playerNumber,
+    lifePoints,
+    state,
+    firebaseId,
+    opponents,
+    _placement,
+    _timeOfDeath,
+  ];
 }

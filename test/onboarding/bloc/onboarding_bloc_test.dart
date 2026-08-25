@@ -47,12 +47,15 @@ void main() {
     blocTest<OnboardingBloc, OnboardingState>(
       'submit with a new PIN calls setPin and writes hasPin without pin',
       build: () {
-        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
-            .thenAnswer((_) async => null);
-        when(() => firebaseDatabaseRepository.generateUniqueFriendCode())
-            .thenAnswer((_) async => 'YETI-A3F9');
-        when(() => firebaseDatabaseRepository.setPin('u1', '0742'))
-            .thenAnswer((_) async {});
+        when(
+          () => firebaseDatabaseRepository.getUserProfileOnce('u1'),
+        ).thenAnswer((_) async => null);
+        when(
+          () => firebaseDatabaseRepository.generateUniqueFriendCode(),
+        ).thenAnswer((_) async => 'YETI-A3F9');
+        when(
+          () => firebaseDatabaseRepository.setPin('u1', '0742'),
+        ).thenAnswer((_) async {});
         when(
           () => firebaseDatabaseRepository.updateUserProfile(
             'u1',
@@ -67,14 +70,15 @@ void main() {
       ),
       act: (bloc) => bloc.add(const OnboardingSubmitted('u1')),
       verify: (_) {
-        verify(() => firebaseDatabaseRepository.setPin('u1', '0742'))
-            .called(1);
-        final profile = verify(
-          () => firebaseDatabaseRepository.updateUserProfile(
-            'u1',
-            captureAny(),
-          ),
-        ).captured.single as UserProfileModel;
+        verify(() => firebaseDatabaseRepository.setPin('u1', '0742')).called(1);
+        final profile =
+            verify(
+                  () => firebaseDatabaseRepository.updateUserProfile(
+                    'u1',
+                    captureAny(),
+                  ),
+                ).captured.single
+                as UserProfileModel;
         expect(profile.hasPin, isTrue);
         expect(profile.pin, isNull);
         expect(profile.onboardingComplete, isTrue);
@@ -85,12 +89,14 @@ void main() {
       'submit with an untouched pin and an existing PIN keeps hasPin true '
       'without calling setPin',
       build: () {
-        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
-            .thenAnswer(
+        when(
+          () => firebaseDatabaseRepository.getUserProfileOnce('u1'),
+        ).thenAnswer(
           (_) async => const UserProfileModel(id: 'u1', hasPin: true),
         );
-        when(() => firebaseDatabaseRepository.generateUniqueFriendCode())
-            .thenAnswer((_) async => 'YETI-A3F9');
+        when(
+          () => firebaseDatabaseRepository.generateUniqueFriendCode(),
+        ).thenAnswer((_) async => 'YETI-A3F9');
         when(
           () => firebaseDatabaseRepository.updateUserProfile(
             'u1',
@@ -108,12 +114,14 @@ void main() {
       act: (bloc) => bloc.add(const OnboardingSubmitted('u1')),
       verify: (_) {
         verifyNever(() => firebaseDatabaseRepository.setPin(any(), any()));
-        final profile = verify(
-          () => firebaseDatabaseRepository.updateUserProfile(
-            'u1',
-            captureAny(),
-          ),
-        ).captured.single as UserProfileModel;
+        final profile =
+            verify(
+                  () => firebaseDatabaseRepository.updateUserProfile(
+                    'u1',
+                    captureAny(),
+                  ),
+                ).captured.single
+                as UserProfileModel;
         expect(profile.hasPin, isTrue);
         expect(profile.pin, isNull);
       },
@@ -123,13 +131,14 @@ void main() {
       'submit with an untouched pin and an unmigrated legacy PIN preserves '
       'the legacy hash without calling setPin',
       build: () {
-        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
-            .thenAnswer(
-          (_) async =>
-              const UserProfileModel(id: 'u1', pin: 'legacyhash'),
+        when(
+          () => firebaseDatabaseRepository.getUserProfileOnce('u1'),
+        ).thenAnswer(
+          (_) async => const UserProfileModel(id: 'u1', pin: 'legacyhash'),
         );
-        when(() => firebaseDatabaseRepository.generateUniqueFriendCode())
-            .thenAnswer((_) async => 'YETI-A3F9');
+        when(
+          () => firebaseDatabaseRepository.generateUniqueFriendCode(),
+        ).thenAnswer((_) async => 'YETI-A3F9');
         when(
           () => firebaseDatabaseRepository.updateUserProfile(
             'u1',
@@ -147,12 +156,14 @@ void main() {
       act: (bloc) => bloc.add(const OnboardingSubmitted('u1')),
       verify: (_) {
         verifyNever(() => firebaseDatabaseRepository.setPin(any(), any()));
-        final profile = verify(
-          () => firebaseDatabaseRepository.updateUserProfile(
-            'u1',
-            captureAny(),
-          ),
-        ).captured.single as UserProfileModel;
+        final profile =
+            verify(
+                  () => firebaseDatabaseRepository.updateUserProfile(
+                    'u1',
+                    captureAny(),
+                  ),
+                ).captured.single
+                as UserProfileModel;
         expect(profile.pin, 'legacyhash');
         expect(profile.hasPin, isTrue);
       },
@@ -162,12 +173,15 @@ void main() {
       'submit fails without saving the profile when setPin throws '
       '(pins the setPin-before-save ordering)',
       build: () {
-        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
-            .thenAnswer((_) async => null);
-        when(() => firebaseDatabaseRepository.generateUniqueFriendCode())
-            .thenAnswer((_) async => 'YETI-A3F9');
-        when(() => firebaseDatabaseRepository.setPin('u1', '0742'))
-            .thenThrow(Exception('boom'));
+        when(
+          () => firebaseDatabaseRepository.getUserProfileOnce('u1'),
+        ).thenAnswer((_) async => null);
+        when(
+          () => firebaseDatabaseRepository.generateUniqueFriendCode(),
+        ).thenAnswer((_) async => 'YETI-A3F9');
+        when(
+          () => firebaseDatabaseRepository.setPin('u1', '0742'),
+        ).thenThrow(Exception('boom'));
         when(
           () => firebaseDatabaseRepository.updateUserProfile(
             'u1',
@@ -211,8 +225,9 @@ void main() {
     blocTest<OnboardingBloc, OnboardingState>(
       'submit persists the trimmed username',
       build: () {
-        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
-            .thenAnswer(
+        when(
+          () => firebaseDatabaseRepository.getUserProfileOnce('u1'),
+        ).thenAnswer(
           (_) async => const UserProfileModel(id: 'u1', friendCode: 'ABCD1234'),
         );
         when(
@@ -224,10 +239,14 @@ void main() {
         ..add(const OnboardingUsernameChanged('  josh  '))
         ..add(const OnboardingSubmitted('u1')),
       verify: (_) {
-        final saved = verify(
-          () =>
-              firebaseDatabaseRepository.updateUserProfile('u1', captureAny()),
-        ).captured.single as UserProfileModel;
+        final saved =
+            verify(
+                  () => firebaseDatabaseRepository.updateUserProfile(
+                    'u1',
+                    captureAny(),
+                  ),
+                ).captured.single
+                as UserProfileModel;
         expect(saved.username, 'josh');
       },
     );

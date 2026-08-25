@@ -26,8 +26,7 @@ void main() {
       repository = _MockFirebaseDatabaseRepository();
     });
 
-    FriendRequestBloc buildBloc() =>
-        FriendRequestBloc(repository: repository);
+    FriendRequestBloc buildBloc() => FriendRequestBloc(repository: repository);
 
     group('AcceptFriendRequest', () {
       blocTest<FriendRequestBloc, FriendRequestState>(
@@ -36,8 +35,9 @@ void main() {
         'LegacyFriendRequestException, so the page recovers instead of '
         'showing an empty list',
         setUp: () {
-          when(() => repository.acceptFriendRequest(request, 'alice'))
-              .thenThrow(
+          when(
+            () => repository.acceptFriendRequest(request, 'alice'),
+          ).thenThrow(
             const LegacyFriendRequestException(
               message: 'Failed to accept friend request',
               stackTrace: 'stack',
@@ -60,8 +60,9 @@ void main() {
       blocTest<FriendRequestBloc, FriendRequestState>(
         'emits generic FriendRequestError for other failures',
         setUp: () {
-          when(() => repository.acceptFriendRequest(request, 'alice'))
-              .thenThrow(Exception('boom'));
+          when(
+            () => repository.acceptFriendRequest(request, 'alice'),
+          ).thenThrow(Exception('boom'));
         },
         build: buildBloc,
         seed: () => FriendRequestLoaded([request]),
@@ -88,8 +89,9 @@ void main() {
         act: (bloc) => bloc.add(const LoadFriendRequests('alice')),
         expect: () => [
           isA<FriendRequestLoading>(),
-          isA<FriendRequestLoaded>()
-              .having((s) => s.requests, 'requests', [request]),
+          isA<FriendRequestLoaded>().having((s) => s.requests, 'requests', [
+            request,
+          ]),
         ],
       );
 
@@ -107,10 +109,14 @@ void main() {
         act: (bloc) => bloc.add(const LoadFriendRequests('alice')),
         expect: () => [
           isA<FriendRequestLoading>(),
-          isA<FriendRequestLoaded>()
-              .having((s) => s.requests, 'requests', [request]),
-          isA<FriendRequestLoaded>()
-              .having((s) => s.requests, 'requests', isEmpty),
+          isA<FriendRequestLoaded>().having((s) => s.requests, 'requests', [
+            request,
+          ]),
+          isA<FriendRequestLoaded>().having(
+            (s) => s.requests,
+            'requests',
+            isEmpty,
+          ),
         ],
       );
 
@@ -119,8 +125,11 @@ void main() {
         build: buildBloc,
         act: (bloc) => bloc.add(const LoadFriendRequests('')),
         expect: () => [
-          isA<FriendRequestLoaded>()
-              .having((s) => s.requests, 'requests', isEmpty),
+          isA<FriendRequestLoaded>().having(
+            (s) => s.requests,
+            'requests',
+            isEmpty,
+          ),
         ],
         verify: (_) {
           verifyNever(() => repository.watchFriendRequests(any()));
@@ -150,10 +159,12 @@ void main() {
         setUp: () {
           final controller =
               StreamController<List<FriendRequestModel>>.broadcast();
-          when(() => repository.watchFriendRequests('alice'))
-              .thenAnswer((_) => controller.stream);
-          when(() => repository.acceptFriendRequest(request, 'alice'))
-              .thenAnswer((_) async {
+          when(
+            () => repository.watchFriendRequests('alice'),
+          ).thenAnswer((_) => controller.stream);
+          when(
+            () => repository.acceptFriendRequest(request, 'alice'),
+          ).thenAnswer((_) async {
             // Stand in for Firestore's latency compensation: the batch delete
             // makes the live query re-emit without the accepted request.
             controller.add(<FriendRequestModel>[]);
@@ -168,8 +179,11 @@ void main() {
         },
         expect: () => [
           isA<FriendRequestLoading>(),
-          isA<FriendRequestLoaded>()
-              .having((s) => s.requests, 'requests', isEmpty),
+          isA<FriendRequestLoaded>().having(
+            (s) => s.requests,
+            'requests',
+            isEmpty,
+          ),
         ],
       );
     });

@@ -23,7 +23,8 @@ class PlayerIdentityPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
       builder: (context, state) {
-        final isLinked = state.isAccountOwner ||
+        final isLinked =
+            state.isAccountOwner ||
             (state.selectedFriend != null && state.pinValidated);
         return Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -53,8 +54,9 @@ class PlayerIdentityPanel extends StatelessWidget {
                         hintText: 'Player name',
                         prefixIcon: Icon(
                           isLinked ? Icons.link : Icons.edit,
-                          color:
-                              isLinked ? AppColors.green : AppColors.neutral60,
+                          color: isLinked
+                              ? AppColors.green
+                              : AppColors.neutral60,
                         ),
                         suffixIcon: isLinked
                             ? IconButton(
@@ -150,9 +152,9 @@ class _SecondCardSummary extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.close, size: 16),
                   color: AppColors.neutral60,
-                  onPressed: () => context
-                      .read<PlayerCustomizationBloc>()
-                      .add(const SecondCardCleared()),
+                  onPressed: () => context.read<PlayerCustomizationBloc>().add(
+                    const SecondCardCleared(),
+                  ),
                 ),
               ],
             ),
@@ -189,7 +191,7 @@ class _FriendLinkRow extends StatelessWidget {
                 context.l10n.linkedToFriend(
                   state.isAccountOwner
                       ? (state.ownerUsername ??
-                          context.l10n.accountOwnerOptionLabel)
+                            context.l10n.accountOwnerOptionLabel)
                       : (state.selectedFriend?.username ?? ''),
                 ),
                 style: const TextStyle(color: AppColors.white, fontSize: 13),

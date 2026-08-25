@@ -15,8 +15,9 @@ void main() {
       );
     }
 
-    testWidgets('renders a shimmer with a grid of skeleton bones',
-        (tester) async {
+    testWidgets('renders a shimmer with a grid of skeleton bones', (
+      tester,
+    ) async {
       await tester.pumpApp(wrap(isPhone: false));
 
       expect(find.byType(StatsOverviewSkeleton), findsOneWidget);

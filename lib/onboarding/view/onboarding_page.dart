@@ -46,8 +46,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
             }
             return BlocProvider(
               create: (context) => OnboardingBloc(
-                firebaseDatabaseRepository:
-                    context.read<FirebaseDatabaseRepository>(),
+                firebaseDatabaseRepository: context
+                    .read<FirebaseDatabaseRepository>(),
                 existingProfile: snapshot.data,
               ),
               child: const OnboardingForm(),

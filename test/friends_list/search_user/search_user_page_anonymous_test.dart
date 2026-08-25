@@ -40,8 +40,7 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets(
-        'shows signInToSearchFriends copy instead of the search field '
+    testWidgets('shows signInToSearchFriends copy instead of the search field '
         'when anonymous', (tester) async {
       when(() => appBloc.state).thenReturn(
         const AppState.anonymous(User(id: 'anon1')),
@@ -53,8 +52,7 @@ void main() {
       expect(find.byType(TextField), findsNothing);
     });
 
-    testWidgets(
-        'shows the search field (not the anonymous placeholder) '
+    testWidgets('shows the search field (not the anonymous placeholder) '
         'when authenticated', (tester) async {
       when(() => appBloc.state).thenReturn(
         const AppState.authenticated(User(id: 'alice')),

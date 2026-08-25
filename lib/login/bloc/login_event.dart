@@ -44,8 +44,8 @@ class GoogleSignInWebInitialized extends LoginEvent with AnalyticsEventMixin {
 
   @override
   AnalyticsEvent get event => const AnalyticsEvent(
-        'GoogleSignInWebInitialized',
-      );
+    'GoogleSignInWebInitialized',
+  );
 }
 
 class LoginAppleSubmitted extends LoginEvent with AnalyticsEventMixin {

@@ -28,10 +28,12 @@ void main() {
       );
     });
 
-    testWidgets('renders localized copy, not the raw exception',
-        (tester) async {
-      when(() => databaseRepository.searchByUsername(any()))
-          .thenThrow(Exception('boom'));
+    testWidgets('renders localized copy, not the raw exception', (
+      tester,
+    ) async {
+      when(
+        () => databaseRepository.searchByUsername(any()),
+      ).thenThrow(Exception('boom'));
 
       await tester.pumpApp(
         MultiBlocProvider(

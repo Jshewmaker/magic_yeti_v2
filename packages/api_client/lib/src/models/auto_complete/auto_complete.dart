@@ -23,9 +23,5 @@ class AutoComplete extends Equatable {
   final List<String> data;
 
   @override
-  List<Object?> get props => [
-        object,
-        data,
-        totalValues,
-      ];
+  List<Object?> get props => [object, data, totalValues];
 }

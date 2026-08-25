@@ -27,8 +27,7 @@ void main() {
       repository = _MockFirebaseDatabaseRepository();
     });
 
-    BlockedUsersBloc buildBloc() =>
-        BlockedUsersBloc(repository: repository);
+    BlockedUsersBloc buildBloc() => BlockedUsersBloc(repository: repository);
 
     test('initial state is BlockedUsersLoading', () {
       expect(buildBloc().state, isA<BlockedUsersLoading>());
@@ -109,8 +108,7 @@ void main() {
           ).thenAnswer((_) async {});
         },
         build: buildBloc,
-        act: (bloc) =>
-            bloc.add(const UnblockUser('alice', 'bob')),
+        act: (bloc) => bloc.add(const UnblockUser('alice', 'bob')),
         verify: (_) {
           verify(
             () => repository.unblockUser(
@@ -132,8 +130,7 @@ void main() {
           ).thenThrow(Exception('boom'));
         },
         build: buildBloc,
-        act: (bloc) =>
-            bloc.add(const UnblockUser('alice', 'bob')),
+        act: (bloc) => bloc.add(const UnblockUser('alice', 'bob')),
         expect: () => [isA<BlockedUsersError>()],
       );
     });

@@ -31,10 +31,7 @@ class SaveGameStatsException implements Exception {
 /// {@endtemplate}
 class DeleteMatchException implements Exception {
   /// {@macro delete_match_exception}
-  const DeleteMatchException({
-    required this.message,
-    required this.stackTrace,
-  });
+  const DeleteMatchException({required this.message, required this.stackTrace});
 
   /// A description of the error.
   final String message;
@@ -48,10 +45,7 @@ class DeleteMatchException implements Exception {
 /// {@endtemplate}
 class GetGamesException implements Exception {
   /// {@macro get_games_exception}
-  const GetGamesException({
-    required this.message,
-    required this.stackTrace,
-  });
+  const GetGamesException({required this.message, required this.stackTrace});
 
   /// A description of the error.
   final String message;
@@ -99,10 +93,7 @@ class GameNotFoundException implements Exception {
 /// {@endtemplate}
 class GetGameException implements Exception {
   /// {@macro get_game_exception}
-  const GetGameException({
-    required this.message,
-    required this.stackTrace,
-  });
+  const GetGameException({required this.message, required this.stackTrace});
 
   /// A description of the error.
   final String message;
@@ -175,8 +166,8 @@ class FirebaseDatabaseRepository {
   FirebaseDatabaseRepository({
     required FirebaseFirestore firebase,
     FirebaseFunctions? functions,
-  })  : _firebase = firebase,
-        _functionsOverride = functions;
+  }) : _firebase = firebase,
+       _functionsOverride = functions;
 
   final FirebaseFirestore _firebase;
   final FirebaseFunctions? _functionsOverride;
@@ -209,9 +200,10 @@ class FirebaseDatabaseRepository {
   Future<String> saveGameStats(GameModel game) async {
     try {
       final newDoc = _firebase.collection('games').doc();
-      await _firebase.collection('games').doc(newDoc.id).set(
-            game.copyWith(id: newDoc.id).toJson(),
-          );
+      await _firebase
+          .collection('games')
+          .doc(newDoc.id)
+          .set(game.copyWith(id: newDoc.id).toJson());
       return newDoc.id;
     } on Exception catch (error, stackTrace) {
       throw SaveGameStatsException(
@@ -229,14 +221,12 @@ class FirebaseDatabaseRepository {
           .doc(userId)
           .collection('matches')
           .snapshots()
-          .map(
-        (snapshot) {
-          return snapshot.docs.map((doc) {
-            final game = GameModel.fromJson(doc.data());
-            return game;
-          }).toList();
-        },
-      );
+          .map((snapshot) {
+            return snapshot.docs.map((doc) {
+              final game = GameModel.fromJson(doc.data());
+              return game;
+            }).toList();
+          });
     } on Exception catch (e) {
       throw GetGamesException(
         message: e.toString(),
@@ -262,10 +252,7 @@ class FirebaseDatabaseRepository {
         );
       }
     } on FirebaseException catch (error, stackTrace) {
-      throw GetGameException(
-        message: error.toString(),
-        stackTrace: stackTrace,
-      );
+      throw GetGameException(message: error.toString(), stackTrace: stackTrace);
     }
   }
 
@@ -530,8 +517,10 @@ class FirebaseDatabaseRepository {
     String userId,
   ) async {
     try {
-      final senderDoc =
-          await _firebase.collection('users').doc(request.senderId).get();
+      final senderDoc = await _firebase
+          .collection('users')
+          .doc(request.senderId)
+          .get();
       final receiverDoc = await _firebase.collection('users').doc(userId).get();
 
       final senderData = senderDoc.data();
@@ -706,8 +695,10 @@ class FirebaseDatabaseRepository {
       }
     }
 
-    throw Exception('Failed to generate unique friend code after $maxAttempts '
-        'attempts');
+    throw Exception(
+      'Failed to generate unique friend code after $maxAttempts '
+      'attempts',
+    );
   }
 
   /// Searches for a user by their friend code via the block-aware
@@ -966,9 +957,10 @@ class FirebaseDatabaseRepository {
       if (!doc.exists) {
         // No profile at all — create a full one with friend code
         final friendCode = await generateUniqueFriendCode();
-        await _firebase.collection('users').doc(profile.id).set(
-              profile.copyWith(friendCode: friendCode).toJson(),
-            );
+        await _firebase
+            .collection('users')
+            .doc(profile.id)
+            .set(profile.copyWith(friendCode: friendCode).toJson());
         return friendCode;
       }
 
@@ -978,10 +970,9 @@ class FirebaseDatabaseRepository {
 
       // Profile exists but no friend code — add one
       final friendCode = await generateUniqueFriendCode();
-      await _firebase.collection('users').doc(profile.id).set(
-        {'friendCode': friendCode},
-        SetOptions(merge: true),
-      );
+      await _firebase.collection('users').doc(profile.id).set({
+        'friendCode': friendCode,
+      }, SetOptions(merge: true));
       return friendCode;
     } catch (e) {
       return null;
@@ -999,11 +990,10 @@ class FirebaseDatabaseRepository {
           'salt': salt,
           'updatedAt': FieldValue.serverTimestamp(),
         })
-        ..set(
-          _firebase.collection('users').doc(userId),
-          {'hasPin': true, 'pin': FieldValue.delete()},
-          SetOptions(merge: true),
-        );
+        ..set(_firebase.collection('users').doc(userId), {
+          'hasPin': true,
+          'pin': FieldValue.delete(),
+        }, SetOptions(merge: true));
       await batch.commit();
     } catch (e) {
       throw Exception('Failed to set PIN: $e');
@@ -1053,19 +1043,16 @@ class FirebaseDatabaseRepository {
           'updatedAt': FieldValue.serverTimestamp(),
         });
       }
-      batch.set(
-        profileRef,
-        {'hasPin': true, 'pin': FieldValue.delete()},
-        SetOptions(merge: true),
-      );
+      batch.set(profileRef, {
+        'hasPin': true,
+        'pin': FieldValue.delete(),
+      }, SetOptions(merge: true));
       // Fire-and-forget: offline, commit() never completes (Firestore
       // queues it locally and syncs later); awaiting it here would wedge
       // AppBloc's sequential auth-event queue. Local reads already
       // reflect the pending write, and the callable's legacy fallback
       // covers the gap until it syncs.
-      unawaited(
-        batch.commit().catchError((Object _) {}),
-      );
+      unawaited(batch.commit().catchError((Object _) {}));
     } catch (_) {
       // Migration is best-effort on login; the callable's legacy
       // fallback keeps validation working until it succeeds.

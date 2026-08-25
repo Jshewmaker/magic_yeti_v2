@@ -15,10 +15,10 @@ class PlayerCustomizationBloc
     required ScryfallRepository scryfallRepository,
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
     required CommanderLibraryRepository commanderLibraryRepository,
-  })  : _scryfallRepository = scryfallRepository,
-        _firebaseDatabaseRepository = firebaseDatabaseRepository,
-        _library = commanderLibraryRepository,
-        super(const PlayerCustomizationState()) {
+  }) : _scryfallRepository = scryfallRepository,
+       _firebaseDatabaseRepository = firebaseDatabaseRepository,
+       _library = commanderLibraryRepository,
+       super(const PlayerCustomizationState()) {
     on<LibraryRequested>(_onLibraryRequested);
     on<CardListRequested>(_cardListRequested);
     on<CommanderSelected>(_onCommanderSelected);
@@ -179,11 +179,11 @@ class PlayerCustomizationBloc
   ) {
     final cards = event.showOnlyLegendary
         ? state.cardList?.data
-            .where(
-              (card) =>
-                  card.typeLine?.toLowerCase().contains('legendary') ?? false,
-            )
-            .toList()
+              .where(
+                (card) =>
+                    card.typeLine?.toLowerCase().contains('legendary') ?? false,
+              )
+              .toList()
         : state.cardList?.data ?? [];
     emit(
       state.copyWith(
@@ -206,8 +206,9 @@ class PlayerCustomizationBloc
   ) async {
     emit(state.copyWithOwnerSelected());
     try {
-      final profile =
-          await _firebaseDatabaseRepository.getUserProfileOnce(event.userId);
+      final profile = await _firebaseDatabaseRepository.getUserProfileOnce(
+        event.userId,
+      );
       if (profile?.username != null && profile!.username!.isNotEmpty) {
         emit(state.copyWith(ownerUsername: profile.username));
       }

@@ -31,10 +31,10 @@ class CustomizePlayerPage extends StatelessWidget {
         BlocProvider(
           create: (context) => PlayerCustomizationBloc(
             scryfallRepository: context.read<ScryfallRepository>(),
-            firebaseDatabaseRepository:
-                context.read<FirebaseDatabaseRepository>(),
-            commanderLibraryRepository:
-                context.read<CommanderLibraryRepository>(),
+            firebaseDatabaseRepository: context
+                .read<FirebaseDatabaseRepository>(),
+            commanderLibraryRepository: context
+                .read<CommanderLibraryRepository>(),
           )..add(const LibraryRequested()),
         ),
         BlocProvider(
@@ -136,8 +136,11 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
                 customState.selectedFriend != null) {
               return;
             }
-            final linkedFirebaseId =
-                context.read<PlayerBloc>().state.player.firebaseId;
+            final linkedFirebaseId = context
+                .read<PlayerBloc>()
+                .state
+                .player
+                .firebaseId;
             if (linkedFirebaseId == null) return;
             final friends = (friendState as FriendsLoaded).friends;
             FriendModel? match;
@@ -307,20 +310,20 @@ class _FriendSectionState extends State<_FriendSection> {
       );
     }
 
-    final friends =
-        friendState is FriendsLoaded ? friendState.friends : <FriendModel>[];
+    final friends = friendState is FriendsLoaded
+        ? friendState.friends
+        : <FriendModel>[];
     final sortedFriends = List<FriendModel>.from(friends)
       ..sort(
-        (a, b) =>
-            a.username.toLowerCase().compareTo(b.username.toLowerCase()),
+        (a, b) => a.username.toLowerCase().compareTo(b.username.toLowerCase()),
       );
 
     final currentUserId = appState.user.id;
     final confirmedValue = customState.isAccountOwner
         ? currentUserId
         : (customState.selectedFriend != null && customState.pinValidated
-            ? customState.selectedFriend!.userId
-            : null);
+              ? customState.selectedFriend!.userId
+              : null);
 
     return Padding(
       // Matches PlayerIdentityPanel's own padding (AppSpacing.md) below it —
@@ -435,8 +438,8 @@ class _FriendSectionState extends State<_FriendSection> {
                     if (value == null) return;
                     if (value == currentUserId) {
                       context.read<PlayerCustomizationBloc>().add(
-                            OwnerSelected(userId: currentUserId),
-                          );
+                        OwnerSelected(userId: currentUserId),
+                      );
                     } else {
                       final friend = sortedFriends.firstWhere(
                         (f) => f.userId == value,
@@ -458,18 +461,16 @@ class _FriendSectionState extends State<_FriendSection> {
     final l10n = context.l10n;
     return switch (state.pinFlowError) {
       PinFlowError.none => null,
-      PinFlowError.incorrect =>
-        l10n.pinIncorrectError(state.pinAttemptsRemaining),
+      PinFlowError.incorrect => l10n.pinIncorrectError(
+        state.pinAttemptsRemaining,
+      ),
       PinFlowError.lockedOut => l10n.pinLockedOutError(
-          state.pinLockedUntil == null
-              ? 15
-              : (state.pinLockedUntil!
-                          .difference(DateTime.now())
-                          .inSeconds /
-                      60)
+        state.pinLockedUntil == null
+            ? 15
+            : (state.pinLockedUntil!.difference(DateTime.now()).inSeconds / 60)
                   .ceil()
                   .clamp(1, 15),
-        ),
+      ),
       PinFlowError.unavailable => l10n.pinUnavailableError,
       PinFlowError.notSet => l10n.pinNotSetError,
     };
@@ -490,161 +491,173 @@ class _FriendSectionState extends State<_FriendSection> {
         builder: (dialogContext) {
           return BlocProvider.value(
             value: bloc,
-            child: BlocListener<PlayerCustomizationBloc,
-                PlayerCustomizationState>(
-              listenWhen: (previous, current) =>
-                  previous.pinValidated != current.pinValidated ||
-                  previous.pinFlowError != current.pinFlowError,
-              listener: (listenerContext, state) {
-                if (state.pinValidated) {
-                  // PIN succeeded — select friend, close. The page-level
-                  // BlocListener in CustomizePlayerView.build() populates
-                  // the name field once selectedFriend changes.
-                  bloc.add(SelectFriend(friend: friend));
-                  Navigator.pop(listenerContext);
-                }
-                // pinFlowError is shown reactively via the BlocBuilder below
-              },
-              child: StatefulBuilder(
-                builder: (dialogContext, setDialogState) {
-                  return AlertDialog(
-                    scrollable: true,
-                    backgroundColor: AppColors.surface,
-                    title: Text(
-                      l10n.verifyFriendTitle(friend.username),
-                      style: const TextStyle(color: AppColors.white),
-                    ),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          l10n.enterPinPrompt,
-                          style:
-                              const TextStyle(color: AppColors.neutral60),
+            child:
+                BlocListener<PlayerCustomizationBloc, PlayerCustomizationState>(
+                  listenWhen: (previous, current) =>
+                      previous.pinValidated != current.pinValidated ||
+                      previous.pinFlowError != current.pinFlowError,
+                  listener: (listenerContext, state) {
+                    if (state.pinValidated) {
+                      // PIN succeeded — select friend, close. The page-level
+                      // BlocListener in CustomizePlayerView.build() populates
+                      // the name field once selectedFriend changes.
+                      bloc.add(SelectFriend(friend: friend));
+                      Navigator.pop(listenerContext);
+                    }
+                    // pinFlowError is shown reactively via the BlocBuilder below
+                  },
+                  child: StatefulBuilder(
+                    builder: (dialogContext, setDialogState) {
+                      return AlertDialog(
+                        scrollable: true,
+                        backgroundColor: AppColors.surface,
+                        title: Text(
+                          l10n.verifyFriendTitle(friend.username),
+                          style: const TextStyle(color: AppColors.white),
                         ),
-                        const SizedBox(height: AppSpacing.md),
-                        BlocBuilder<PlayerCustomizationBloc,
-                            PlayerCustomizationState>(
-                          buildWhen: (previous, current) =>
-                              previous.pinFlowError != current.pinFlowError ||
-                              previous.pinAttemptsRemaining !=
-                                  current.pinAttemptsRemaining ||
-                              previous.pinLockedUntil !=
-                                  current.pinLockedUntil,
-                          builder: (context, state) {
-                            return TextField(
-                              controller: pinController,
-                              keyboardType: TextInputType.number,
-                              maxLength: 4,
-                              textAlign: TextAlign.center,
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              l10n.enterPinPrompt,
                               style: const TextStyle(
-                                fontSize: 24,
-                                letterSpacing: 8,
-                                color: AppColors.white,
+                                color: AppColors.neutral60,
                               ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: AppColors.surface,
-                                counterText: '',
-                                enabledBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            BlocBuilder<
+                              PlayerCustomizationBloc,
+                              PlayerCustomizationState
+                            >(
+                              buildWhen: (previous, current) =>
+                                  previous.pinFlowError !=
+                                      current.pinFlowError ||
+                                  previous.pinAttemptsRemaining !=
+                                      current.pinAttemptsRemaining ||
+                                  previous.pinLockedUntil !=
+                                      current.pinLockedUntil,
+                              builder: (context, state) {
+                                return TextField(
+                                  controller: pinController,
+                                  keyboardType: TextInputType.number,
+                                  maxLength: 4,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    letterSpacing: 8,
+                                    color: AppColors.white,
+                                  ),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: AppColors.surface,
+                                    counterText: '',
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: AppColors.neutral60,
+                                      ),
+                                    ),
+                                    focusedBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: AppColors.tertiary,
+                                      ),
+                                    ),
+                                    errorBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: AppColors.red,
+                                      ),
+                                    ),
+                                    focusedErrorBorder:
+                                        const OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: AppColors.red,
+                                          ),
+                                        ),
+                                    errorText: _pinErrorText(context, state),
+                                    errorStyle: const TextStyle(
+                                      color: AppColors.red,
+                                    ),
+                                  ),
+                                  onChanged: (_) => setDialogState(() {}),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          BlocBuilder<
+                            PlayerCustomizationBloc,
+                            PlayerCustomizationState
+                          >(
+                            buildWhen: (previous, current) =>
+                                previous.isPinValidating !=
+                                current.isPinValidating,
+                            builder: (context, state) {
+                              return TextButton(
+                                onPressed: state.isPinValidating
+                                    ? null
+                                    : () => Navigator.pop(dialogContext),
+                                child: Text(
+                                  l10n.cancelTextButton,
+                                  style: const TextStyle(
                                     color: AppColors.neutral60,
                                   ),
                                 ),
-                                focusedBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: AppColors.tertiary,
-                                  ),
-                                ),
-                                errorBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: AppColors.red,
-                                  ),
-                                ),
-                                focusedErrorBorder:
-                                    const OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: AppColors.red,
-                                  ),
-                                ),
-                                errorText: _pinErrorText(context, state),
-                                errorStyle: const TextStyle(
-                                  color: AppColors.red,
-                                ),
-                              ),
-                              onChanged: (_) => setDialogState(() {}),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    actions: [
-                      BlocBuilder<PlayerCustomizationBloc,
-                          PlayerCustomizationState>(
-                        buildWhen: (previous, current) =>
-                            previous.isPinValidating != current.isPinValidating,
-                        builder: (context, state) {
-                          return TextButton(
-                            onPressed: state.isPinValidating
-                                ? null
-                                : () => Navigator.pop(dialogContext),
-                            child: Text(
-                              l10n.cancelTextButton,
-                              style:
-                                  const TextStyle(color: AppColors.neutral60),
-                            ),
-                          );
-                        },
-                      ),
-                      BlocBuilder<PlayerCustomizationBloc,
-                          PlayerCustomizationState>(
-                        buildWhen: (previous, current) =>
-                            previous.pinFlowError != current.pinFlowError ||
-                            previous.isPinValidating != current.isPinValidating,
-                        builder: (context, state) {
-                          final isLockedOut =
-                              state.pinFlowError == PinFlowError.lockedOut;
-                          final canSubmit = pinController.text.length == 4 &&
-                              !isLockedOut &&
-                              !state.isPinValidating;
-                          return FilledButton(
-                            onPressed: canSubmit
-                                ? () {
-                                    bloc.add(
-                                      ValidatePin(
-                                        pin: pinController.text,
-                                        friendUserId: friend.userId,
-                                      ),
-                                    );
-                                  }
-                                : null,
-                            child: state.isPinValidating
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppColors.white,
-                                    ),
-                                  )
-                                : Text(l10n.verifyButtonText),
-                          );
-                        },
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
+                              );
+                            },
+                          ),
+                          BlocBuilder<
+                            PlayerCustomizationBloc,
+                            PlayerCustomizationState
+                          >(
+                            buildWhen: (previous, current) =>
+                                previous.pinFlowError != current.pinFlowError ||
+                                previous.isPinValidating !=
+                                    current.isPinValidating,
+                            builder: (context, state) {
+                              final isLockedOut =
+                                  state.pinFlowError == PinFlowError.lockedOut;
+                              final canSubmit =
+                                  pinController.text.length == 4 &&
+                                  !isLockedOut &&
+                                  !state.isPinValidating;
+                              return FilledButton(
+                                onPressed: canSubmit
+                                    ? () {
+                                        bloc.add(
+                                          ValidatePin(
+                                            pin: pinController.text,
+                                            friendUserId: friend.userId,
+                                          ),
+                                        );
+                                      }
+                                    : null,
+                                child: state.isPinValidating
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppColors.white,
+                                        ),
+                                      )
+                                    : Text(l10n.verifyButtonText),
+                              );
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
           );
         },
       ).then((_) {
         final confirmed =
             bloc.state.selectedFriend?.userId == friend.userId &&
-                bloc.state.pinValidated;
+            bloc.state.pinValidated;
         if (!confirmed) {
           _forceReset();
         }

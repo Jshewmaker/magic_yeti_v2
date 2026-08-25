@@ -12,8 +12,7 @@ import 'package:player_repository/models/models.dart';
 class MockPlayerBloc extends MockBloc<PlayerEvent, PlayerState>
     implements PlayerBloc {}
 
-class MockGameBloc extends MockBloc<GameEvent, GameState>
-    implements GameBloc {}
+class MockGameBloc extends MockBloc<GameEvent, GameState> implements GameBloc {}
 
 /// Creates a test player with optional partner.
 Player createTestPlayer({
@@ -192,15 +191,17 @@ void main() {
         );
 
         // Find the container wrapping partner tiles
-        final container = tester.widgetList<Container>(
-          find.byType(Container),
-        ).where((c) {
-          final decoration = c.decoration;
-          if (decoration is BoxDecoration) {
-            return decoration.color == Color(partnerPlayer.color);
-          }
-          return false;
-        });
+        final container = tester
+            .widgetList<Container>(
+              find.byType(Container),
+            )
+            .where((c) {
+              final decoration = c.decoration;
+              if (decoration is BoxDecoration) {
+                return decoration.color == Color(partnerPlayer.color);
+              }
+              return false;
+            });
         expect(container, isNotEmpty);
       },
     );

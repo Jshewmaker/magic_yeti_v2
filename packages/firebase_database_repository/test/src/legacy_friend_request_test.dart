@@ -26,15 +26,11 @@ void main() {
       timestamp: DateTime(2024),
     );
 
-    test(
-        'rethrows FirebaseException permission-denied as '
+    test('rethrows FirebaseException permission-denied as '
         'LegacyFriendRequestException', () async {
       final firestore = _MockFirebaseFirestore();
       when(() => firestore.collection('users')).thenThrow(
-        FirebaseException(
-          plugin: 'cloud_firestore',
-          code: 'permission-denied',
-        ),
+        FirebaseException(plugin: 'cloud_firestore', code: 'permission-denied'),
       );
 
       final repository = FirebaseDatabaseRepository(firebase: firestore);
@@ -56,10 +52,7 @@ void main() {
       await expectLater(
         repository.acceptFriendRequest(request, 'alice'),
         throwsA(
-          allOf(
-            isA<Exception>(),
-            isNot(isA<LegacyFriendRequestException>()),
-          ),
+          allOf(isA<Exception>(), isNot(isA<LegacyFriendRequestException>())),
         ),
       );
     });

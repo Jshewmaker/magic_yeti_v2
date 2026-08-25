@@ -70,11 +70,10 @@ class FriendRequestView extends StatelessWidget {
                       icon: Icons.check,
                       color: AppColors.green,
                       onPressed: () {
-                        final userId =
-                            context.read<AppBloc>().state.user.id;
+                        final userId = context.read<AppBloc>().state.user.id;
                         context.read<FriendRequestBloc>().add(
-                              AcceptFriendRequest(request, userId),
-                            );
+                          AcceptFriendRequest(request, userId),
+                        );
                       },
                     ),
                     const SizedBox(width: 8),
@@ -82,11 +81,10 @@ class FriendRequestView extends StatelessWidget {
                       icon: Icons.close,
                       color: AppColors.red,
                       onPressed: () {
-                        final userId =
-                            context.read<AppBloc>().state.user.id;
+                        final userId = context.read<AppBloc>().state.user.id;
                         context.read<FriendRequestBloc>().add(
-                              DeclineFriendRequest(request, userId),
-                            );
+                          DeclineFriendRequest(request, userId),
+                        );
                       },
                     ),
                   ],

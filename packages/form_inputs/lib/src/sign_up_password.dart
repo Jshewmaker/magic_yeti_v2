@@ -19,8 +19,7 @@ class SignUpPassword extends FormzInput<String, SignUpPasswordValidationError> {
   /// {@macro password}
   const SignUpPassword.dirty([super.value = '']) : super.dirty();
 
-  static final _passwordRegExp =
-      RegExp(r'^.{8,}$');
+  static final _passwordRegExp = RegExp(r'^.{8,}$');
 
   @override
   SignUpPasswordValidationError? validator(String value) {

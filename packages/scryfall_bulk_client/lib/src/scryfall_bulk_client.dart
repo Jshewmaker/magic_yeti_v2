@@ -15,7 +15,7 @@ import 'package:flutter/services.dart';
 class ScryfallBulkClient {
   /// {@macro scryfall_bulk_client}
   ScryfallBulkClient({AssetBundle? assetBundle})
-      : _assetBundle = assetBundle ?? rootBundle;
+    : _assetBundle = assetBundle ?? rootBundle;
 
   final AssetBundle _assetBundle;
 
@@ -85,19 +85,18 @@ class ScryfallBulkClient {
     final jsonList = _decodeJsonList(data);
     return {
       for (final entry in jsonList.cast<Map<String, dynamic>>())
-        if (entry
-            case {
-              'name': final String name,
-              'oracle_id': final String oracleId,
-            })
+        if (entry case {
+          'name': final String name,
+          'oracle_id': final String oracleId,
+        })
           name.toLowerCase(): oracleId,
     };
   }
 
   /// Isolate entry point: decodes the bulk JSON into the full card list.
   static List<MagicCard> _decodeCards(ByteData data) {
-    return _decodeJsonList(data)
-        .map((e) => MagicCard.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return _decodeJsonList(
+      data,
+    ).map((e) => MagicCard.fromJson(e as Map<String, dynamic>)).toList();
   }
 }

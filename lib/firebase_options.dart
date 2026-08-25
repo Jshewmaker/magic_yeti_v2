@@ -74,8 +74,8 @@ class DefaultFirebaseOptions {
     projectId: 'magic-yeti',
     databaseURL: 'https://magic-yeti-default-rtdb.firebaseio.com',
     storageBucket: 'magic-yeti.firebasestorage.app',
-    iosClientId: '370172089725-1rs7sgkqr75d7vpgktilhquv3fkol1k5.apps.googleusercontent.com',
+    iosClientId:
+        '370172089725-1rs7sgkqr75d7vpgktilhquv3fkol1k5.apps.googleusercontent.com',
     iosBundleId: 'com.yetiproductions.magicyeti',
   );
-
 }

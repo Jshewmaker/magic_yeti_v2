@@ -75,8 +75,9 @@ void main() {
       playerRepository = MockPlayerRepository();
 
       when(() => playerRepository.getPlayerById('p1')).thenReturn(player);
-      when(() => playerBloc.state)
-          .thenReturn(const PlayerState(player: player));
+      when(
+        () => playerBloc.state,
+      ).thenReturn(const PlayerState(player: player));
     });
 
     Future<void> pumpCustomizePlayer(WidgetTester tester) async {
@@ -106,8 +107,7 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets(
-        'shows signInToLinkFriends copy instead of the friend list '
+    testWidgets('shows signInToLinkFriends copy instead of the friend list '
         'when anonymous', (tester) async {
       when(() => appBloc.state).thenReturn(
         const AppState.anonymous(User(id: 'anon1')),
@@ -120,8 +120,7 @@ void main() {
       expect(find.text('Bob'), findsNothing);
     });
 
-    testWidgets(
-        'shows the friend list (not the anonymous placeholder) '
+    testWidgets('shows the friend list (not the anonymous placeholder) '
         'when authenticated', (tester) async {
       when(() => appBloc.state).thenReturn(
         const AppState.authenticated(User(id: 'alice')),

@@ -3,25 +3,25 @@ import 'package:player_repository/player_repository.dart';
 
 void main() {
   Commander commander(String name) => Commander(
-        name: name,
-        colors: const ['B'],
-        cardType: 'Legendary Enchantment — Background',
-        imageUrl: 'https://example.com/$name.jpg',
-        manaCost: '',
-        oracleText: '',
-        artist: 'Artist',
-      );
+    name: name,
+    colors: const ['B'],
+    cardType: 'Legendary Enchantment — Background',
+    imageUrl: 'https://example.com/$name.jpg',
+    manaCost: '',
+    oracleText: '',
+    artist: 'Artist',
+  );
 
   Player base() => const Player(
-        id: 'p1',
-        name: 'Sarah',
-        playerNumber: 0,
-        lifePoints: 40,
-        color: 0xFF378ADD,
-        opponents: [],
-        placement: 1,
-        timeOfDeath: 1000,
-      );
+    id: 'p1',
+    name: 'Sarah',
+    playerNumber: 0,
+    lifePoints: 40,
+    color: 0xFF378ADD,
+    opponents: [],
+    placement: 1,
+    timeOfDeath: 1000,
+  );
 
   group('Player.background', () {
     test('defaults to null and round-trips through JSON', () {

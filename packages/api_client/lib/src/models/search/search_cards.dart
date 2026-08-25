@@ -27,11 +27,5 @@ class SearchCards extends Equatable {
   final List<MagicCard> data;
 
   @override
-  List<Object?> get props => [
-        object,
-        totalCards,
-        hasMore,
-        nextPage,
-        data,
-      ];
+  List<Object?> get props => [object, totalCards, hasMore, nextPage, data];
 }

@@ -25,13 +25,13 @@ class App extends StatelessWidget {
     required CommanderLibraryRepository commanderLibraryRepository,
     required User user,
     super.key,
-  })  : _appConfigRepository = appConfigRepository,
-        _userRepository = userRepository,
-        _scryfallRepository = scryfallRepository,
-        _firebaseDatabaseRepository = firebaseDatabaseRepository,
-        _playerRepository = playerRepository,
-        _commanderLibraryRepository = commanderLibraryRepository,
-        _user = user;
+  }) : _appConfigRepository = appConfigRepository,
+       _userRepository = userRepository,
+       _scryfallRepository = scryfallRepository,
+       _firebaseDatabaseRepository = firebaseDatabaseRepository,
+       _playerRepository = playerRepository,
+       _commanderLibraryRepository = commanderLibraryRepository,
+       _user = user;
 
   final FirebaseDatabaseRepository _firebaseDatabaseRepository;
   final ScryfallRepository _scryfallRepository;
@@ -72,23 +72,26 @@ class App extends StatelessWidget {
             ),
           ),
           BlocProvider(
-            create: (context) => MatchHistoryBloc(
-              databaseRepository: context.read<FirebaseDatabaseRepository>(),
-            )..add(
-                LoadMatchHistory(
-                  userId: _signedInUserId(context.read<AppBloc>().state),
+            create: (context) =>
+                MatchHistoryBloc(
+                  databaseRepository: context
+                      .read<FirebaseDatabaseRepository>(),
+                )..add(
+                  LoadMatchHistory(
+                    userId: _signedInUserId(context.read<AppBloc>().state),
+                  ),
                 ),
-              ),
           ),
           BlocProvider(
             lazy: false,
-            create: (context) => FriendRequestBloc(
-              repository: context.read<FirebaseDatabaseRepository>(),
-            )..add(
-                LoadFriendRequests(
-                  _signedInUserId(context.read<AppBloc>().state),
+            create: (context) =>
+                FriendRequestBloc(
+                  repository: context.read<FirebaseDatabaseRepository>(),
+                )..add(
+                  LoadFriendRequests(
+                    _signedInUserId(context.read<AppBloc>().state),
+                  ),
                 ),
-              ),
           ),
           BlocProvider(
             lazy: false,
@@ -147,11 +150,11 @@ class _AppViewState extends State<AppView> {
             listener: (context, state) {
               final userId = _signedInUserId(state);
               context.read<MatchHistoryBloc>().add(
-                    LoadMatchHistory(userId: userId),
-                  );
+                LoadMatchHistory(userId: userId),
+              );
               context.read<FriendRequestBloc>().add(
-                    LoadFriendRequests(userId),
-                  );
+                LoadFriendRequests(userId),
+              );
             },
             child: child!,
           ),

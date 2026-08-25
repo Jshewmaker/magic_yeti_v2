@@ -49,8 +49,9 @@ class PlayerRepository {
   /// If the game has finished, it takes a snapshot of the game state
   /// and declares the winner.
   void checkIfGameFinished(List<Player> players) {
-    final numberOfPlayersEliminated =
-        players.where((p) => p.state == PlayerModelState.eliminated).length;
+    final numberOfPlayersEliminated = players
+        .where((p) => p.state == PlayerModelState.eliminated)
+        .length;
     // Take a snapshot of the game state
     if (numberOfPlayersEliminated == (players.length - 2)) {
       _snapshotGameState();
@@ -58,8 +59,9 @@ class PlayerRepository {
 
     // If only one player is left, declare them the winner
     if ((players.length - numberOfPlayersEliminated) == 1) {
-      final winner =
-          players.firstWhere((p) => p.state == PlayerModelState.active);
+      final winner = players.firstWhere(
+        (p) => p.state == PlayerModelState.active,
+      );
       final updatedWinner = winner.copyWith(
         placement: const Value(1),
         state: PlayerModelState.eliminated,
@@ -134,7 +136,7 @@ class PlayerRepository {
   Player _checkPlayerDeath(Player player) {
     final isLethalCommanderDamage =
         player.opponents?.any((p) => p.damages.any((d) => d.amount >= 21)) ??
-            false;
+        false;
     if (player.lifePoints <= 0 || isLethalCommanderDamage) {
       // Only set death time and placement if they're still active
       if (player.isActive) {

@@ -50,9 +50,9 @@ class SignUpForm extends StatelessWidget {
             if (theme.platform == TargetPlatform.iOS) ...[
               AppleLoginButton(
                 buttonText: l10n.signUpWithAppleButtonText,
-                onPressed: () => context
-                    .read<SignUpBloc>()
-                    .add(const SignUpAppleSubmitted()),
+                onPressed: () => context.read<SignUpBloc>().add(
+                  const SignUpAppleSubmitted(),
+                ),
               ),
             ],
           ],
@@ -77,8 +77,9 @@ class _EmailInput extends StatelessWidget {
       decoration: InputDecoration(
         helperText: '',
         labelText: l10n.emailInputLabelText,
-        errorText:
-            email.displayError != null ? l10n.invalidEmailInputErrorText : null,
+        errorText: email.displayError != null
+            ? l10n.invalidEmailInputErrorText
+            : null,
       ),
       autocorrect: false,
     );

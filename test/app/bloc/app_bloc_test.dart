@@ -38,25 +38,28 @@ void main() {
       );
 
       // Default stub for migrateLegacyPin to avoid errors in existing tests
-      when(() => firebaseDatabaseRepository.migrateLegacyPin(any()))
-          .thenAnswer((_) async {});
+      when(
+        () => firebaseDatabaseRepository.migrateLegacyPin(any()),
+      ).thenAnswer((_) async {});
     });
 
     AppBloc buildBloc() => AppBloc(
-          appConfigRepository: appConfigRepository,
-          userRepository: userRepository,
-          firebaseDatabaseRepository: firebaseDatabaseRepository,
-          user: const User(id: 'initial-user-id'),
-        );
+      appConfigRepository: appConfigRepository,
+      userRepository: userRepository,
+      firebaseDatabaseRepository: firebaseDatabaseRepository,
+      user: const User(id: 'initial-user-id'),
+    );
 
     group('_onUserChanged', () {
       blocTest<AppBloc, AppState>(
         'migrates legacy PIN before evaluating the profile',
         setUp: () {
-          when(() => firebaseDatabaseRepository.migrateLegacyPin('user1'))
-              .thenAnswer((_) async {});
-          when(() => firebaseDatabaseRepository.getUserProfileOnce('user1'))
-              .thenAnswer(
+          when(
+            () => firebaseDatabaseRepository.migrateLegacyPin('user1'),
+          ).thenAnswer((_) async {});
+          when(
+            () => firebaseDatabaseRepository.getUserProfileOnce('user1'),
+          ).thenAnswer(
             (_) async => const UserProfileModel(
               id: 'user1',
               username: 'josh',
@@ -84,8 +87,9 @@ void main() {
       const authenticatedUser = User(id: 'user1', email: 'josh@example.com');
 
       void stubProfile(UserProfileModel? profile) {
-        when(() => firebaseDatabaseRepository.getUserProfileOnce('user1'))
-            .thenAnswer((_) async => profile);
+        when(
+          () => firebaseDatabaseRepository.getUserProfileOnce('user1'),
+        ).thenAnswer((_) async => profile);
       }
 
       blocTest<AppBloc, AppState>(
@@ -101,8 +105,11 @@ void main() {
         build: buildBloc,
         act: (bloc) => bloc.add(const AppUserChanged(authenticatedUser)),
         expect: () => [
-          isA<AppState>()
-              .having((s) => s.status, 'status', AppStatus.authenticated),
+          isA<AppState>().having(
+            (s) => s.status,
+            'status',
+            AppStatus.authenticated,
+          ),
         ],
       );
 
@@ -118,8 +125,11 @@ void main() {
         build: buildBloc,
         act: (bloc) => bloc.add(const AppUserChanged(authenticatedUser)),
         expect: () => [
-          isA<AppState>()
-              .having((s) => s.status, 'status', AppStatus.onboardingRequired),
+          isA<AppState>().having(
+            (s) => s.status,
+            'status',
+            AppStatus.onboardingRequired,
+          ),
         ],
       );
 
@@ -136,8 +146,11 @@ void main() {
         build: buildBloc,
         act: (bloc) => bloc.add(const AppUserChanged(authenticatedUser)),
         expect: () => [
-          isA<AppState>()
-              .having((s) => s.status, 'status', AppStatus.onboardingRequired),
+          isA<AppState>().having(
+            (s) => s.status,
+            'status',
+            AppStatus.onboardingRequired,
+          ),
         ],
       );
 
@@ -154,8 +167,11 @@ void main() {
         build: buildBloc,
         act: (bloc) => bloc.add(const AppUserChanged(authenticatedUser)),
         expect: () => [
-          isA<AppState>()
-              .having((s) => s.status, 'status', AppStatus.authenticated),
+          isA<AppState>().having(
+            (s) => s.status,
+            'status',
+            AppStatus.authenticated,
+          ),
         ],
       );
 
@@ -165,8 +181,11 @@ void main() {
         build: buildBloc,
         act: (bloc) => bloc.add(const AppUserChanged(authenticatedUser)),
         expect: () => [
-          isA<AppState>()
-              .having((s) => s.status, 'status', AppStatus.onboardingRequired),
+          isA<AppState>().having(
+            (s) => s.status,
+            'status',
+            AppStatus.onboardingRequired,
+          ),
         ],
       );
 
@@ -174,14 +193,18 @@ void main() {
         'network failure falls back to authenticated (offline users are '
         'never locked out by the gate)',
         setUp: () {
-          when(() => firebaseDatabaseRepository.getUserProfileOnce('user1'))
-              .thenThrow(Exception('network unavailable'));
+          when(
+            () => firebaseDatabaseRepository.getUserProfileOnce('user1'),
+          ).thenThrow(Exception('network unavailable'));
         },
         build: buildBloc,
         act: (bloc) => bloc.add(const AppUserChanged(authenticatedUser)),
         expect: () => [
-          isA<AppState>()
-              .having((s) => s.status, 'status', AppStatus.authenticated),
+          isA<AppState>().having(
+            (s) => s.status,
+            'status',
+            AppStatus.authenticated,
+          ),
         ],
       );
     });

@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class GoogleLoginButton extends StatelessWidget {
-  const GoogleLoginButton(
-      {required this.buttonText, required this.onPressed, super.key});
+  const GoogleLoginButton({
+    required this.buttonText,
+    required this.onPressed,
+    super.key,
+  });
 
   final String buttonText;
   final VoidCallback onPressed;

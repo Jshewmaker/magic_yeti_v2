@@ -38,26 +38,31 @@ void main() {
       expect(blockDoc.data()!['blockedAt'], isA<Timestamp>());
     });
 
-    test('omits friendCode from the block doc when the target has none',
-        () async {
-      const noCodeTarget = BlockedUserModel(
-        userId: 'carol',
-        username: 'Carol',
-        imageUrl: 'http://x/carol.png',
-      );
-      await repository.blockUser(currentUserId: 'alice', target: noCodeTarget);
+    test(
+      'omits friendCode from the block doc when the target has none',
+      () async {
+        const noCodeTarget = BlockedUserModel(
+          userId: 'carol',
+          username: 'Carol',
+          imageUrl: 'http://x/carol.png',
+        );
+        await repository.blockUser(
+          currentUserId: 'alice',
+          target: noCodeTarget,
+        );
 
-      final blockDoc = await firestore.doc('users/alice/blocks/carol').get();
-      expect(blockDoc.data()!.containsKey('friendCode'), isFalse);
-    });
+        final blockDoc = await firestore.doc('users/alice/blocks/carol').get();
+        expect(blockDoc.data()!.containsKey('friendCode'), isFalse);
+      },
+    );
 
     test('removes both friendship edges', () async {
-      await firestore
-          .doc('friends/alice/friendList/bob')
-          .set({'userId': 'bob'});
-      await firestore
-          .doc('friends/bob/friendList/alice')
-          .set({'userId': 'alice'});
+      await firestore.doc('friends/alice/friendList/bob').set({
+        'userId': 'bob',
+      });
+      await firestore.doc('friends/bob/friendList/alice').set({
+        'userId': 'alice',
+      });
 
       await repository.blockUser(currentUserId: 'alice', target: target);
 
@@ -125,18 +130,17 @@ void main() {
       );
     });
 
-    test(
-        'deletes a seeded legacy pending request (random id, '
+    test('deletes a seeded legacy pending request (random id, '
         'senderId target -> me)', () async {
       await firestore
           .collection('friendRequests')
           .doc('legacyRandomId123')
           .set({
-        'id': 'legacyRandomId123',
-        'senderId': 'bob',
-        'receiverId': 'alice',
-        'status': 'pending',
-      });
+            'id': 'legacyRandomId123',
+            'senderId': 'bob',
+            'receiverId': 'alice',
+            'status': 'pending',
+          });
 
       await repository.blockUser(currentUserId: 'alice', target: target);
 
@@ -146,18 +150,17 @@ void main() {
       );
     });
 
-    test(
-        'deletes a seeded legacy pending request in the other direction '
+    test('deletes a seeded legacy pending request in the other direction '
         '(me -> target)', () async {
       await firestore
           .collection('friendRequests')
           .doc('legacyRandomId456')
           .set({
-        'id': 'legacyRandomId456',
-        'senderId': 'alice',
-        'receiverId': 'bob',
-        'status': 'pending',
-      });
+            'id': 'legacyRandomId456',
+            'senderId': 'alice',
+            'receiverId': 'bob',
+            'status': 'pending',
+          });
 
       await repository.blockUser(currentUserId: 'alice', target: target);
 
@@ -177,10 +180,7 @@ void main() {
         'blockedAt': FieldValue.serverTimestamp(),
       });
 
-      await repository.unblockUser(
-        currentUserId: 'alice',
-        targetUserId: 'bob',
-      );
+      await repository.unblockUser(currentUserId: 'alice', targetUserId: 'bob');
 
       expect(
         (await firestore.doc('users/alice/blocks/bob').get()).exists,
@@ -196,10 +196,7 @@ void main() {
         'blockedAt': FieldValue.serverTimestamp(),
       });
 
-      await repository.unblockUser(
-        currentUserId: 'alice',
-        targetUserId: 'bob',
-      );
+      await repository.unblockUser(currentUserId: 'alice', targetUserId: 'bob');
 
       expect(
         (await firestore.doc('friends/alice/friendList/bob').get()).exists,

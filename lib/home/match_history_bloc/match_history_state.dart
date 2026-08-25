@@ -5,7 +5,7 @@ enum MatchHistoryStatus {
   loadingHistory,
   loadingHistorySuccess,
   gameNotFound,
-  failure
+  failure,
 }
 
 class MatchHistoryState extends Equatable {
@@ -37,9 +37,9 @@ class MatchHistoryState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        games,
-        userId,
-        error,
-      ];
+    status,
+    games,
+    userId,
+    error,
+  ];
 }

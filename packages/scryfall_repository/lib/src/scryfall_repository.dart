@@ -41,8 +41,7 @@ class ScryfallRepository {
   SearchCards _normalizeCards(SearchCards cards) {
     final filtered = cards.data
         .where(
-          (card) =>
-              !(card.imageStatus == 'missing' && card.imageUris == null),
+          (card) => !(card.imageStatus == 'missing' && card.imageUris == null),
         )
         .toList();
 

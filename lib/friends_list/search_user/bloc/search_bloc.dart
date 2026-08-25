@@ -22,8 +22,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   /// legacy `YETI-` + 4-character shape already issued to existing users
   /// before that format changed. Anything else typed into the search box
   /// is treated as a username query instead.
-  static final RegExp _friendCodePattern =
-      RegExp(r'^(YETI-[A-Z0-9]{4}|[A-Z0-9]{8})$');
+  static final RegExp _friendCodePattern = RegExp(
+    r'^(YETI-[A-Z0-9]{4}|[A-Z0-9]{8})$',
+  );
 
   static bool _looksLikeFriendCode(String query) =>
       _friendCodePattern.hasMatch(query.trim().toUpperCase());

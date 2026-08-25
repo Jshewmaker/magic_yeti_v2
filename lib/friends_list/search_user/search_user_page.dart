@@ -26,9 +26,9 @@ class SearchUserPage extends StatelessWidget {
         title: Text(
           context.l10n.findFriendsTitle,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppColors.onSurfaceVariant,
-                fontWeight: FontWeight.bold,
-              ),
+            color: AppColors.onSurfaceVariant,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         leading: IconButton(
           icon: const Icon(
@@ -110,8 +110,8 @@ class SearchUserFormState extends State<SearchUserForm> {
             onSubmitted: (value) {
               if (value.isNotEmpty) {
                 context.read<SearchBloc>().add(
-                      SearchSubmitted(value, currentUserId),
-                    );
+                  SearchSubmitted(value, currentUserId),
+                );
               }
             },
           ),
@@ -134,9 +134,9 @@ class SearchUserFormState extends State<SearchUserForm> {
                     content: Text(message),
                     backgroundColor:
                         state.result == FriendRequestResult.sent ||
-                                state.result == FriendRequestResult.autoAccepted
-                            ? AppColors.green
-                            : AppColors.neutral60,
+                            state.result == FriendRequestResult.autoAccepted
+                        ? AppColors.green
+                        : AppColors.neutral60,
                   ),
                 );
               }
@@ -290,11 +290,11 @@ class _SearchResultCard extends StatelessWidget {
           onPressed: () {
             final appBloc = context.read<AppBloc>();
             context.read<SearchBloc>().add(
-                  AddFriendRequest(
-                    appBloc.state.user.id,
-                    user.id,
-                  ),
-                );
+              AddFriendRequest(
+                appBloc.state.user.id,
+                user.id,
+              ),
+            );
           },
           child: Text(context.l10n.addFriendButtonText),
         );
@@ -315,11 +315,11 @@ class _SearchResultCard extends StatelessWidget {
           onPressed: () {
             final appBloc = context.read<AppBloc>();
             context.read<SearchBloc>().add(
-                  AddFriendRequest(
-                    appBloc.state.user.id,
-                    user.id,
-                  ),
-                );
+              AddFriendRequest(
+                appBloc.state.user.id,
+                user.id,
+              ),
+            );
           },
           child: const Text('Accept'),
         );

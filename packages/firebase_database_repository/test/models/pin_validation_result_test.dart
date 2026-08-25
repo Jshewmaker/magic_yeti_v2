@@ -23,18 +23,14 @@ void main() {
 
     test('subtypes are exhaustively switchable', () {
       String describe(PinValidationResult r) => switch (r) {
-            PinValid() => 'valid',
-            PinInvalid(:final attemptsRemaining) =>
-              'invalid:$attemptsRemaining',
-            PinLockedOut() => 'locked',
-            PinCheckUnavailable() => 'unavailable',
-            PinNotSet() => 'notSet',
-          };
+        PinValid() => 'valid',
+        PinInvalid(:final attemptsRemaining) => 'invalid:$attemptsRemaining',
+        PinLockedOut() => 'locked',
+        PinCheckUnavailable() => 'unavailable',
+        PinNotSet() => 'notSet',
+      };
       expect(describe(const PinValid()), 'valid');
-      expect(
-        describe(const PinInvalid(attemptsRemaining: 2)),
-        'invalid:2',
-      );
+      expect(describe(const PinInvalid(attemptsRemaining: 2)), 'invalid:2');
     });
   });
 }

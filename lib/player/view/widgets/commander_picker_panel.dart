@@ -84,7 +84,8 @@ class _CommanderPickerPanelState extends State<CommanderPickerPanel> {
                 CommanderSearchBar(
                   textController: widget.searchController,
                   selectingPartner: state.selectingSecondCard,
-                  searchBackgrounds: state.selectingSecondCard &&
+                  searchBackgrounds:
+                      state.selectingSecondCard &&
                       state.availablePairing == CommanderPairing.background,
                 ),
               ],
@@ -111,8 +112,9 @@ class _CommanderPickerPanelState extends State<CommanderPickerPanel> {
       case _PickerTab.recent:
         commanders = state.recents;
       case _PickerTab.search:
-        commanders =
-            (state.magicCardList ?? []).map(magicCardToCommander).toList();
+        commanders = (state.magicCardList ?? [])
+            .map(magicCardToCommander)
+            .toList();
     }
 
     if (state.status == PlayerCustomizationStatus.loading) {
@@ -149,16 +151,16 @@ class _CommanderPickerPanelState extends State<CommanderPickerPanel> {
       itemCount: commanders.length,
       itemBuilder: (context, index) {
         final commander = commanders[index];
-        final selected = state.commander != null &&
-            _id(state.commander!) == _id(commander);
+        final selected =
+            state.commander != null && _id(state.commander!) == _id(commander);
         return CommanderCard(
           commander: commander,
           isFavorite: state.favoriteIds.contains(_id(commander)),
           isSelected: selected,
           onTap: () => _select(context, commander),
-          onToggleFavorite: () => context
-              .read<PlayerCustomizationBloc>()
-              .add(CommanderFavoriteToggled(commander)),
+          onToggleFavorite: () => context.read<PlayerCustomizationBloc>().add(
+            CommanderFavoriteToggled(commander),
+          ),
         );
       },
     );
@@ -186,8 +188,7 @@ class _SecondCardBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.people_outline,
-              color: AppColors.tertiary, size: 18),
+          const Icon(Icons.people_outline, color: AppColors.tertiary, size: 18),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
@@ -198,9 +199,9 @@ class _SecondCardBanner extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () => context
-                .read<PlayerCustomizationBloc>()
-                .add(const StartSelectingSecondCard()),
+            onPressed: () => context.read<PlayerCustomizationBloc>().add(
+              const StartSelectingSecondCard(),
+            ),
             child: Text(label),
           ),
         ],
@@ -235,9 +236,9 @@ class _SelectingSecondCardBanner extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () => context
-                .read<PlayerCustomizationBloc>()
-                .add(const CancelSelectingSecondCard()),
+            onPressed: () => context.read<PlayerCustomizationBloc>().add(
+              const CancelSelectingSecondCard(),
+            ),
             child: const Text('Cancel'),
           ),
         ],

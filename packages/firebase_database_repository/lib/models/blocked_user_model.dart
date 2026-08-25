@@ -50,6 +50,11 @@ class BlockedUserModel extends Equatable {
   final DateTime? blockedAt;
 
   @override
-  List<Object?> get props =>
-      [userId, username, imageUrl, friendCode, blockedAt];
+  List<Object?> get props => [
+    userId,
+    username,
+    imageUrl,
+    friendCode,
+    blockedAt,
+  ];
 }

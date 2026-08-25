@@ -56,8 +56,9 @@ void main() {
     }
 
     testWidgets('renders seeded blocked users', (tester) async {
-      when(() => blockedUsersBloc.state)
-          .thenReturn(const BlockedUsersLoaded([bob, carol]));
+      when(
+        () => blockedUsersBloc.state,
+      ).thenReturn(const BlockedUsersLoaded([bob, carol]));
 
       await pumpBlockedUsers(tester);
 
@@ -66,10 +67,12 @@ void main() {
       expect(find.text('YETI-B0B1'), findsOneWidget);
     });
 
-    testWidgets('shows the empty state when there are no blocked users',
-        (tester) async {
-      when(() => blockedUsersBloc.state)
-          .thenReturn(const BlockedUsersLoaded([]));
+    testWidgets('shows the empty state when there are no blocked users', (
+      tester,
+    ) async {
+      when(
+        () => blockedUsersBloc.state,
+      ).thenReturn(const BlockedUsersLoaded([]));
 
       await pumpBlockedUsers(tester);
 
@@ -84,10 +87,12 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('tapping unblock and confirming dispatches UnblockUser',
-        (tester) async {
-      when(() => blockedUsersBloc.state)
-          .thenReturn(const BlockedUsersLoaded([bob]));
+    testWidgets('tapping unblock and confirming dispatches UnblockUser', (
+      tester,
+    ) async {
+      when(
+        () => blockedUsersBloc.state,
+      ).thenReturn(const BlockedUsersLoaded([bob]));
 
       await pumpBlockedUsers(tester);
 

@@ -12,9 +12,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
     required UserRepository userRepository,
     required User userProfile,
-  })  : _firebaseDatabaseRepository = firebaseDatabaseRepository,
-        _userRepository = userRepository,
-        super(ProfileState(user: userProfile)) {
+  }) : _firebaseDatabaseRepository = firebaseDatabaseRepository,
+       _userRepository = userRepository,
+       super(ProfileState(user: userProfile)) {
     on<ProfileLoadRequested>(_onLoadRequested);
     on<ProfileEditingToggled>(_onEditingToggled);
     on<ProfileUsernameChanged>(_onUsernameChanged);
@@ -34,8 +34,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     emit(state.copyWith(status: ProfileStatus.loading));
     try {
-      final profile =
-          await _firebaseDatabaseRepository.getUserProfileOnce(event.userId);
+      final profile = await _firebaseDatabaseRepository.getUserProfileOnce(
+        event.userId,
+      );
       if (profile == null) {
         // A missing profile doc is a failure, not an empty success — the
         // page would otherwise render a silent blank with no retry.

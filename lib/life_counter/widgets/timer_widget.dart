@@ -15,8 +15,8 @@ class TimerWidget extends StatelessWidget {
           return GestureDetector(
             onTap: () =>
                 context.read<TimerBloc>().state.status == TimerStatus.paused
-                    ? context.read<TimerBloc>().add(const TimerResumeEvent())
-                    : context.read<TimerBloc>().add(const TimerPauseEvent()),
+                ? context.read<TimerBloc>().add(const TimerResumeEvent())
+                : context.read<TimerBloc>().add(const TimerPauseEvent()),
             child: Row(
               children: [
                 Text(

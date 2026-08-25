@@ -6,17 +6,16 @@ void main() {
     List<String> keywords = const [],
     String oracleText = '',
     String cardType = 'Legendary Creature',
-  }) =>
-      Commander(
-        name: 'Test',
-        colors: const ['U'],
-        cardType: cardType,
-        imageUrl: 'https://example.com/x.jpg',
-        manaCost: '{U}',
-        oracleText: oracleText,
-        artist: 'Artist',
-        keywords: keywords,
-      );
+  }) => Commander(
+    name: 'Test',
+    colors: const ['U'],
+    cardType: cardType,
+    imageUrl: 'https://example.com/x.jpg',
+    manaCost: '{U}',
+    oracleText: oracleText,
+    artist: 'Artist',
+    keywords: keywords,
+  );
 
   group('commanderPairingFor', () {
     test('plain commander => none', () {
@@ -54,8 +53,11 @@ void main() {
     test('Choose a Background (oracle text) => background', () {
       expect(
         commanderPairingFor(
-          commander(oracleText: 'Choose a Background (You can have a '
-              'Background as a second commander.)'),
+          commander(
+            oracleText:
+                'Choose a Background (You can have a '
+                'Background as a second commander.)',
+          ),
         ),
         CommanderPairing.background,
       );

@@ -68,8 +68,9 @@ void main() {
 
     setUp(() {
       firebaseDatabaseRepository = _MockFirebaseDatabaseRepository();
-      when(() => firebaseDatabaseRepository.saveGameStats(any()))
-          .thenAnswer((_) async => 'saved-game-id');
+      when(
+        () => firebaseDatabaseRepository.saveGameStats(any()),
+      ).thenAnswer((_) async => 'saved-game-id');
     });
 
     GameOverBloc buildBloc({
@@ -106,9 +107,11 @@ void main() {
         SendGameOverStatsEvent(gameModel: gameModel, userId: 'host'),
       ),
       verify: (_) {
-        final saved = verify(
-          () => firebaseDatabaseRepository.saveGameStats(captureAny()),
-        ).captured.single as GameModel;
+        final saved =
+            verify(
+                  () => firebaseDatabaseRepository.saveGameStats(captureAny()),
+                ).captured.single
+                as GameModel;
         final slot = saved.players.firstWhere(
           (p) => p.id == linkedFriendSlot.id,
         );
@@ -131,9 +134,11 @@ void main() {
         SendGameOverStatsEvent(gameModel: gameModel, userId: 'host'),
       ),
       verify: (_) {
-        final saved = verify(
-          () => firebaseDatabaseRepository.saveGameStats(captureAny()),
-        ).captured.single as GameModel;
+        final saved =
+            verify(
+                  () => firebaseDatabaseRepository.saveGameStats(captureAny()),
+                ).captured.single
+                as GameModel;
         expect(saved.players.every((p) => p.firebaseId != 'host'), isTrue);
       },
     );
@@ -155,8 +160,7 @@ void main() {
       verify: (_) {
         // syncGameToPlayers no longer exists on the repository; this test
         // asserts the ONLY repository call is saveGameStats.
-        verify(() => firebaseDatabaseRepository.saveGameStats(any()))
-            .called(1);
+        verify(() => firebaseDatabaseRepository.saveGameStats(any())).called(1);
         verifyNoMoreInteractions(firebaseDatabaseRepository);
       },
     );
@@ -193,8 +197,9 @@ void main() {
         'emits failure status when saveGameStats throws, without '
         'resetting standings',
         setUp: () {
-          when(() => firebaseDatabaseRepository.saveGameStats(any()))
-              .thenThrow(Exception('network error'));
+          when(
+            () => firebaseDatabaseRepository.saveGameStats(any()),
+          ).thenThrow(Exception('network error'));
         },
         build: () => buildBloc(
           players: [hostSelfSlot, otherSlot],
@@ -243,9 +248,12 @@ void main() {
           SendGameOverStatsEvent(gameModel: gameModel, userId: 'host'),
         ),
         verify: (_) {
-          final saved = verify(
-            () => firebaseDatabaseRepository.saveGameStats(captureAny()),
-          ).captured.single as GameModel;
+          final saved =
+              verify(
+                    () =>
+                        firebaseDatabaseRepository.saveGameStats(captureAny()),
+                  ).captured.single
+                  as GameModel;
 
           final oldSelfSlot = saved.players.firstWhere(
             (p) => p.id == hostSelfSlot.id,
@@ -275,9 +283,12 @@ void main() {
           SendGameOverStatsEvent(gameModel: gameModel, userId: 'host'),
         ),
         verify: (_) {
-          final saved = verify(
-            () => firebaseDatabaseRepository.saveGameStats(captureAny()),
-          ).captured.single as GameModel;
+          final saved =
+              verify(
+                    () =>
+                        firebaseDatabaseRepository.saveGameStats(captureAny()),
+                  ).captured.single
+                  as GameModel;
 
           expect(saved.players.every((p) => p.firebaseId != 'host'), isTrue);
           final oldSelfSlot = saved.players.firstWhere(
@@ -302,9 +313,12 @@ void main() {
           SendGameOverStatsEvent(gameModel: gameModel, userId: 'host'),
         ),
         verify: (_) {
-          final saved = verify(
-            () => firebaseDatabaseRepository.saveGameStats(captureAny()),
-          ).captured.single as GameModel;
+          final saved =
+              verify(
+                    () =>
+                        firebaseDatabaseRepository.saveGameStats(captureAny()),
+                  ).captured.single
+                  as GameModel;
 
           final friendSlot = saved.players.firstWhere(
             (p) => p.id == linkedFriendSlot.id,
@@ -316,8 +330,9 @@ void main() {
       blocTest<GameOverBloc, GameOverState>(
         'concurrent submit events save exactly once',
         build: () {
-          when(() => firebaseDatabaseRepository.saveGameStats(any()))
-              .thenAnswer((_) async {
+          when(
+            () => firebaseDatabaseRepository.saveGameStats(any()),
+          ).thenAnswer((_) async {
             await Future<void>.delayed(const Duration(milliseconds: 20));
             return 'doc1';
           });
@@ -348,8 +363,9 @@ void main() {
           ),
         wait: const Duration(milliseconds: 100),
         verify: (_) {
-          verify(() => firebaseDatabaseRepository.saveGameStats(any()))
-              .called(1);
+          verify(
+            () => firebaseDatabaseRepository.saveGameStats(any()),
+          ).called(1);
         },
       );
     });

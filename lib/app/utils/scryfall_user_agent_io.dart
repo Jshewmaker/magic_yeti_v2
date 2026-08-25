@@ -13,6 +13,7 @@ class _MagicYetiHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
-      ..userAgent = 'MagicYeti/1.0 (+https://github.com/Jshewmaker/magic_yeti_v2)';
+      ..userAgent =
+          'MagicYeti/1.0 (+https://github.com/Jshewmaker/magic_yeti_v2)';
   }
 }

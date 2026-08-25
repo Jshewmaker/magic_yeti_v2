@@ -35,9 +35,9 @@ class CommanderCard extends StatelessWidget {
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       const ColoredBox(
-                    color: AppColors.neutral60,
-                    child: Center(child: Icon(Icons.broken_image)),
-                  ),
+                        color: AppColors.neutral60,
+                        child: Center(child: Icon(Icons.broken_image)),
+                      ),
                 )
               else
                 const ColoredBox(

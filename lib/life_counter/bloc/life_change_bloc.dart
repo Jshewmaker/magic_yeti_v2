@@ -19,8 +19,9 @@ class LifeChangeBloc extends Bloc<LifeChangeEvent, LifeChangeState> {
     final newChange = event.newLifePoints - (event.previousLifePoints);
 
     // Accumulate or set the new change
-    final totalChange =
-        state.change != null ? state.change! + newChange : newChange;
+    final totalChange = state.change != null
+        ? state.change! + newChange
+        : newChange;
 
     emit(state.copyWith(change: totalChange));
   }

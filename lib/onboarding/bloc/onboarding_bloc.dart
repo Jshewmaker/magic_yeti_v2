@@ -10,18 +10,20 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   OnboardingBloc({
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
     UserProfileModel? existingProfile,
-  })  : _firebaseDatabaseRepository = firebaseDatabaseRepository,
-        super(
-          OnboardingState(
-            username: existingProfile?.username != null &&
-                    existingProfile!.username!.isNotEmpty
-                ? Username.dirty(existingProfile.username!)
-                : const Username.pure(),
-            bio: existingProfile?.bio ?? '',
-            hasExistingPin: (existingProfile?.hasPin ?? false) ||
-                (existingProfile?.pin?.isNotEmpty ?? false),
-          ),
-        ) {
+  }) : _firebaseDatabaseRepository = firebaseDatabaseRepository,
+       super(
+         OnboardingState(
+           username:
+               existingProfile?.username != null &&
+                   existingProfile!.username!.isNotEmpty
+               ? Username.dirty(existingProfile.username!)
+               : const Username.pure(),
+           bio: existingProfile?.bio ?? '',
+           hasExistingPin:
+               (existingProfile?.hasPin ?? false) ||
+               (existingProfile?.pin?.isNotEmpty ?? false),
+         ),
+       ) {
     on<OnboardingUsernameChanged>(_onUsernameChanged);
     on<OnboardingPinChanged>(_onPinChanged);
     on<OnboardingBioChanged>(_onBioChanged);
@@ -80,7 +82,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       // Generate friend code if not already present
       final existingProfile = await _firebaseDatabaseRepository
           .getUserProfileOnce(event.userId);
-      final friendCode = existingProfile?.friendCode ??
+      final friendCode =
+          existingProfile?.friendCode ??
           await _firebaseDatabaseRepository.generateUniqueFriendCode();
 
       final hasNewPin = state.pin.value.isNotEmpty;

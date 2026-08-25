@@ -28,34 +28,33 @@ void main() {
   });
 
   group('setPin', () {
-    test('writes salted credentials, sets hasPin, removes legacy field',
-        () async {
-      await firestore
-          .collection('users')
-          .doc('u1')
-          .set({'username': 'josh', 'pin': 'legacyhash'});
+    test(
+      'writes salted credentials, sets hasPin, removes legacy field',
+      () async {
+        await firestore.collection('users').doc('u1').set({
+          'username': 'josh',
+          'pin': 'legacyhash',
+        });
 
-      await repository.setPin('u1', '0742');
+        await repository.setPin('u1', '0742');
 
-      final creds = await firestore
-          .doc('users/u1/private/credentials')
-          .get();
-      final salt = creds.data()!['salt'] as String;
-      expect(
-        creds.data()!['pinHash'],
-        FirebaseDatabaseRepository.saltedPinHash('0742', salt),
-      );
+        final creds = await firestore.doc('users/u1/private/credentials').get();
+        final salt = creds.data()!['salt'] as String;
+        expect(
+          creds.data()!['pinHash'],
+          FirebaseDatabaseRepository.saltedPinHash('0742', salt),
+        );
 
-      final profile = await firestore.doc('users/u1').get();
-      expect(profile.data()!['hasPin'], isTrue);
-      expect(profile.data()!.containsKey('pin'), isFalse);
-      expect(profile.data()!['username'], 'josh');
-    });
+        final profile = await firestore.doc('users/u1').get();
+        expect(profile.data()!['hasPin'], isTrue);
+        expect(profile.data()!.containsKey('pin'), isFalse);
+        expect(profile.data()!['username'], 'josh');
+      },
+    );
   });
 
   group('migrateLegacyPin', () {
-    test('moves legacy hash into private credentials with null salt',
-        () async {
+    test('moves legacy hash into private credentials with null salt', () async {
       final legacyHash = FirebaseDatabaseRepository.hashPin('0742');
       await firestore.collection('users').doc('u1').set({'pin': legacyHash});
 
@@ -65,8 +64,7 @@ void main() {
       // microtask queue a turn before asserting on its effects.
       await Future<void>.delayed(Duration.zero);
 
-      final creds =
-          await firestore.doc('users/u1/private/credentials').get();
+      final creds = await firestore.doc('users/u1/private/credentials').get();
       expect(creds.data()!['pinHash'], legacyHash);
       expect(creds.data()!['salt'], isNull);
 
@@ -78,8 +76,7 @@ void main() {
     test('no-ops when there is nothing to migrate', () async {
       await firestore.collection('users').doc('u1').set({'username': 'j'});
       await repository.migrateLegacyPin('u1');
-      final creds =
-          await firestore.doc('users/u1/private/credentials').get();
+      final creds = await firestore.doc('users/u1/private/credentials').get();
       expect(creds.exists, isFalse);
     });
 
@@ -88,17 +85,13 @@ void main() {
         'pinHash': 'saltedHash',
         'salt': 'realsalt',
       });
-      await firestore
-          .collection('users')
-          .doc('u1')
-          .set({'pin': 'staleLegacy'});
+      await firestore.collection('users').doc('u1').set({'pin': 'staleLegacy'});
 
       await repository.migrateLegacyPin('u1');
       // See note above: the batch commit is fire-and-forget.
       await Future<void>.delayed(Duration.zero);
 
-      final creds =
-          await firestore.doc('users/u1/private/credentials').get();
+      final creds = await firestore.doc('users/u1/private/credentials').get();
       expect(creds.data()!['pinHash'], 'saltedHash');
       final profile = await firestore.doc('users/u1').get();
       expect(profile.data()!.containsKey('pin'), isFalse);
@@ -120,25 +113,29 @@ void main() {
       expect(profile.data()!['hasPin'], isTrue);
     });
 
-    test('does not create credentials or set hasPin for a user with none',
-        () async {
-      await firestore.collection('users').doc('u1').set({'username': 'j'});
-      await repository.migrateLegacyPin('u1');
-      await Future<void>.delayed(Duration.zero);
-      final profile = await firestore.doc('users/u1').get();
-      expect(profile.data()!.containsKey('hasPin'), isFalse);
-    });
+    test(
+      'does not create credentials or set hasPin for a user with none',
+      () async {
+        await firestore.collection('users').doc('u1').set({'username': 'j'});
+        await repository.migrateLegacyPin('u1');
+        await Future<void>.delayed(Duration.zero);
+        final profile = await firestore.doc('users/u1').get();
+        expect(profile.data()!.containsKey('hasPin'), isFalse);
+      },
+    );
   });
 
   group('hasPin', () {
-    test('true for hasPin flag, true for legacy field, false otherwise',
-        () async {
-      await firestore.collection('users').doc('a').set({'hasPin': true});
-      await firestore.collection('users').doc('b').set({'pin': 'hash'});
-      await firestore.collection('users').doc('c').set({'username': 'x'});
-      expect(await repository.hasPin('a'), isTrue);
-      expect(await repository.hasPin('b'), isTrue);
-      expect(await repository.hasPin('c'), isFalse);
-    });
+    test(
+      'true for hasPin flag, true for legacy field, false otherwise',
+      () async {
+        await firestore.collection('users').doc('a').set({'hasPin': true});
+        await firestore.collection('users').doc('b').set({'pin': 'hash'});
+        await firestore.collection('users').doc('c').set({'username': 'x'});
+        expect(await repository.hasPin('a'), isTrue);
+        expect(await repository.hasPin('b'), isTrue);
+        expect(await repository.hasPin('c'), isFalse);
+      },
+    );
   });
 }

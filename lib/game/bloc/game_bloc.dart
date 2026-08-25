@@ -16,9 +16,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   GameBloc({
     required PlayerRepository playerRepository,
     required FirebaseDatabaseRepository database,
-  })  : _playerRepository = playerRepository,
-        _database = database,
-        super(const GameState()) {
+  }) : _playerRepository = playerRepository,
+       _database = database,
+       super(const GameState()) {
     on<CreateGameEvent>(_onCreateGame);
     on<GameStartEvent>(_onGameStart);
     on<GamePauseEvent>(_onGamePause);
@@ -75,8 +75,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       _playerRepository.clearPlayers();
     }
     try {
-      final uuidList =
-          List.generate(event.numberOfPlayers, (index) => uuid.v4());
+      final uuidList = List.generate(
+        event.numberOfPlayers,
+        (index) => uuid.v4(),
+      );
       // Create a shuffled copy of the colors list
       final shuffledColors = List<int>.from(_playerColors)..shuffle();
       for (var i = 0; i < event.numberOfPlayers; ++i) {
@@ -244,8 +246,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(state.copyWith(playerList: event.players));
 
     // Then check for game-ending condition
-    final alivePlayers =
-        event.players.where((p) => p.state == PlayerModelState.active).toList();
+    final alivePlayers = event.players
+        .where((p) => p.state == PlayerModelState.active)
+        .toList();
     if (alivePlayers.isEmpty && state.status == GameStatus.running) {
       add(
         GameFinishEvent(

@@ -35,13 +35,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   PlayerBloc({
     required PlayerRepository playerRepository,
     required String playerId,
-  })  : _playerRepository = playerRepository,
-        _playerId = playerId,
-        super(
-          PlayerState(
-            player: playerRepository.getPlayerById(playerId),
-          ),
-        ) {
+  }) : _playerRepository = playerRepository,
+       _playerId = playerId,
+       super(
+         PlayerState(
+           player: playerRepository.getPlayerById(playerId),
+         ),
+       ) {
     on<UpdatePlayerInfoEvent>(_onPlayerInfoUpdate);
     on<UpdatePlayerLifeEvent>(_updatePlayerLifeTotal);
     on<UpdatePlayerLifeByXEvent>(_updatePlayerLifeTotalByX);
@@ -53,13 +53,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     _playerSubscription = _playerRepository.players
         .map(
-      (players) => players.firstWhere((player) => player.id == _playerId),
-    )
+          (players) => players.firstWhere((player) => player.id == _playerId),
+        )
         .listen((player) {
-      if (player.id == _playerId) {
-        add(PlayerRepositoryUpdateEvent(player: player));
-      }
-    });
+          if (player.id == _playerId) {
+            add(PlayerRepositoryUpdateEvent(player: player));
+          }
+        });
   }
 
   final PlayerRepository _playerRepository;
@@ -115,8 +115,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) {
     emit(state.copyWith(status: PlayerStatus.updating));
     final player = _playerRepository.getPlayerById(event.playerId);
-    final newLifePoints =
-        event.decrement ? player.lifePoints - 1 : player.lifePoints + 1;
+    final newLifePoints = event.decrement
+        ? player.lifePoints - 1
+        : player.lifePoints + 1;
 
     final updatedPlayer = player.copyWith(lifePoints: newLifePoints);
 
@@ -150,8 +151,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) {
     emit(state.copyWith(status: PlayerStatus.updating));
     final player = _playerRepository.getPlayerById(event.playerId);
-    final newLifePoints =
-        event.decrement ? player.lifePoints - 10 : player.lifePoints + 10;
+    final newLifePoints = event.decrement
+        ? player.lifePoints - 10
+        : player.lifePoints + 10;
 
     final updatedPlayer = player.copyWith(lifePoints: newLifePoints);
     _playerRepository.updatePlayer(updatedPlayer);

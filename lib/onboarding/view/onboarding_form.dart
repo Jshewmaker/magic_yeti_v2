@@ -39,11 +39,13 @@ class _OnboardingFormState extends State<OnboardingForm> {
       listener: (context, state) {
         // Animate page transitions
         if (_pageController.hasClients) {
-          unawaited(_pageController.animateToPage(
-            state.currentStep,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          ));
+          unawaited(
+            _pageController.animateToPage(
+              state.currentStep,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            ),
+          );
         }
         // Handle submission result
         if (state.status.isSuccess) {
@@ -140,7 +142,8 @@ class _IdentityStepState extends State<_IdentityStep> {
   Widget build(BuildContext context) {
     return _StepLayout(
       header: 'Choose Your Identity',
-      explanation: 'Your username is how other players will find you. '
+      explanation:
+          'Your username is how other players will find you. '
           "It's used for friend requests and game history.",
       showBack: false,
       child: Column(
@@ -152,9 +155,9 @@ class _IdentityStepState extends State<_IdentityStep> {
               return TextField(
                 key: const Key('onboarding_username_input'),
                 controller: _usernameController,
-                onChanged: (value) => context
-                    .read<OnboardingBloc>()
-                    .add(OnboardingUsernameChanged(value)),
+                onChanged: (value) => context.read<OnboardingBloc>().add(
+                  OnboardingUsernameChanged(value),
+                ),
                 style: const TextStyle(color: AppColors.white),
                 decoration: InputDecoration(
                   labelText: 'Username *',
@@ -213,14 +216,13 @@ class _PinStep extends StatelessWidget {
           header: 'Set Your PIN',
           explanation: hasExistingPin
               ? 'Your PIN is already set. Enter a new 4-digit PIN '
-                  'to change it, or tap Next to keep your current one.'
+                    'to change it, or tap Next to keep your current one.'
               : 'Your 4-digit PIN protects your profile when sharing '
-                  'a device during games.',
+                    'a device during games.',
           child: TextField(
             key: const Key('onboarding_pin_input'),
-            onChanged: (value) => context
-                .read<OnboardingBloc>()
-                .add(OnboardingPinChanged(value)),
+            onChanged: (value) =>
+                context.read<OnboardingBloc>().add(OnboardingPinChanged(value)),
             keyboardType: TextInputType.number,
             maxLength: 4,
             textAlign: TextAlign.center,
@@ -272,7 +274,8 @@ class _BioStep extends StatelessWidget {
       builder: (context, state) {
         return _StepLayout(
           header: 'Tell Us About Yourself',
-          explanation: 'Share a bit about your play style or favorite formats. '
+          explanation:
+              'Share a bit about your play style or favorite formats. '
               'Other players can see this on your profile.',
           buttonText: 'Complete',
           isSubmit: true,
@@ -282,9 +285,8 @@ class _BioStep extends StatelessWidget {
             label: 'Bio (Optional)',
             initialValue: context.read<OnboardingBloc>().state.bio,
             maxLines: 3,
-            onChanged: (value) => context
-                .read<OnboardingBloc>()
-                .add(OnboardingBioChanged(value)),
+            onChanged: (value) =>
+                context.read<OnboardingBloc>().add(OnboardingBioChanged(value)),
           ),
         );
       },
@@ -344,9 +346,9 @@ class _StepLayout extends StatelessWidget {
               if (showBack)
                 Expanded(
                   child: TextButton(
-                    onPressed: () => context
-                        .read<OnboardingBloc>()
-                        .add(const OnboardingStepBack()),
+                    onPressed: () => context.read<OnboardingBloc>().add(
+                      const OnboardingStepBack(),
+                    ),
                     child: const Text(
                       'Back',
                       style: TextStyle(color: AppColors.neutral60),
@@ -371,12 +373,12 @@ class _StepLayout extends StatelessWidget {
                                     .user
                                     .id;
                                 context.read<OnboardingBloc>().add(
-                                      OnboardingSubmitted(userId),
-                                    );
+                                  OnboardingSubmitted(userId),
+                                );
                               } else {
                                 context.read<OnboardingBloc>().add(
-                                      const OnboardingStepNext(),
-                                    );
+                                  const OnboardingStepNext(),
+                                );
                               }
                             }
                           : null,

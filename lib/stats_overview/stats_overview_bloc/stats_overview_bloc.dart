@@ -20,8 +20,8 @@ enum StatsTimeRange {
 
 class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
   StatsOverviewBloc({required ScryfallRepository scryfallRepository})
-      : _scryfallRepository = scryfallRepository,
-        super(StatsOverviewInitial()) {
+    : _scryfallRepository = scryfallRepository,
+      super(StatsOverviewInitial()) {
     on<CompileStatsOverviewData>(_onCompileStatsOverviewData);
     on<StatsTimeRangeChanged>(_onTimeRangeChanged);
   }
@@ -111,8 +111,7 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       final filteredGames = _filterGames(allGames, range);
       final games = await _resolveOracleIds(filteredGames, userId);
       // Calculate statistics
-      final uniqueCommanderCount =
-          _calculateUniqueCommanders(games, userId);
+      final uniqueCommanderCount = _calculateUniqueCommanders(games, userId);
       final totalWins = _calculateTotalWins(games, userId);
       final winPercentage = _calculateWinPercentage(games, totalWins);
       final shortestGameDuration = _findShortestGameDuration(games);
@@ -124,13 +123,16 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       final winRateWhenFirst = _calculateWinRateWhenFirst(games, userId);
       final bestCommander = _calculateBestCommander(games, userId);
       final currentStreak = _calculateCurrentStreak(games, userId);
-      final mostCommonOpponent =
-          _calculateMostCommonOpponent(games, userId);
+      final mostCommonOpponent = _calculateMostCommonOpponent(games, userId);
       final nemesis = _calculateNemesis(games, userId);
-      final avgCommanderDamageTaken =
-          _calculateAvgCommanderDamageTaken(games, userId);
-      final timesKilledByCommander =
-          _calculateTimesKilledByCommander(games, userId);
+      final avgCommanderDamageTaken = _calculateAvgCommanderDamageTaken(
+        games,
+        userId,
+      );
+      final timesKilledByCommander = _calculateTimesKilledByCommander(
+        games,
+        userId,
+      );
       final bestColorCombo = _calculateBestColorCombo(games, userId);
       final bestSingleColor = _calculateBestSingleColor(games, userId);
 
@@ -138,29 +140,31 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       // one the user is waiting on, so drop ours rather than clobber it.
       if (generation != _generation) return;
 
-      emit(StatsOverviewLoaded(
-        userId: userId,
-        games: filteredGames,
-        range: range,
-        uniqueCommanderCount: uniqueCommanderCount,
-        totalWins: totalWins,
-        winPercentage: winPercentage,
-        shortestGameDuration: _formatDuration(shortestGameDuration),
-        longestGameDuration: _formatDuration(longestGameDuration),
-        averagePlacement: averagePlacement,
-        timesWentFirst: timesWentFirst,
-        mostPlayedCommander: mostPlayedCommander,
-        averageGameDuration: _formatDuration(averageGameDuration),
-        winRateWhenFirst: winRateWhenFirst,
-        bestCommander: bestCommander,
-        currentStreak: currentStreak,
-        mostCommonOpponent: mostCommonOpponent,
-        nemesis: nemesis,
-        avgCommanderDamageTaken: avgCommanderDamageTaken,
-        timesKilledByCommander: timesKilledByCommander,
-        bestColorCombo: bestColorCombo,
-        bestSingleColor: bestSingleColor,
-      ));
+      emit(
+        StatsOverviewLoaded(
+          userId: userId,
+          games: filteredGames,
+          range: range,
+          uniqueCommanderCount: uniqueCommanderCount,
+          totalWins: totalWins,
+          winPercentage: winPercentage,
+          shortestGameDuration: _formatDuration(shortestGameDuration),
+          longestGameDuration: _formatDuration(longestGameDuration),
+          averagePlacement: averagePlacement,
+          timesWentFirst: timesWentFirst,
+          mostPlayedCommander: mostPlayedCommander,
+          averageGameDuration: _formatDuration(averageGameDuration),
+          winRateWhenFirst: winRateWhenFirst,
+          bestCommander: bestCommander,
+          currentStreak: currentStreak,
+          mostCommonOpponent: mostCommonOpponent,
+          nemesis: nemesis,
+          avgCommanderDamageTaken: avgCommanderDamageTaken,
+          timesKilledByCommander: timesKilledByCommander,
+          bestColorCombo: bestColorCombo,
+          bestSingleColor: bestSingleColor,
+        ),
+      );
     } catch (e) {
       // Fenced for the same reason as the success path: a stale invocation's
       // failure must not replace a newer invocation's good result.
@@ -200,8 +204,9 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
         }
         if (player.partner != null) {
           final resolvedPartner = await resolve(player.partner!);
-          updatedPlayer =
-              updatedPlayer.copyWith(partner: () => resolvedPartner);
+          updatedPlayer = updatedPlayer.copyWith(
+            partner: () => resolvedPartner,
+          );
         }
         players.add(updatedPlayer);
       }
@@ -331,8 +336,10 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
   /// Calculate average game duration in seconds
   int _calculateAverageGameDuration(List<GameModel> games) {
     if (games.isEmpty) return 0;
-    final total =
-        games.fold<int>(0, (sum, game) => sum + game.durationInSeconds);
+    final total = games.fold<int>(
+      0,
+      (sum, game) => sum + game.durationInSeconds,
+    );
     return total ~/ games.length;
   }
 
@@ -508,8 +515,7 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
         // pair's commander and partner clocks each need to reach 21 on their
         // own (13 + 12 sums to 25 but kills nobody). Mirrors the game-end
         // check in `PlayerRepository._checkPlayerDeath`.
-        final landedLethalClock =
-            opponent.damages.any((d) => d.amount >= 21);
+        final landedLethalClock = opponent.damages.any((d) => d.amount >= 21);
         if (landedLethalClock) {
           count++;
           break;
@@ -529,8 +535,7 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       final player = _findPlayerInGame(game, userId);
       final commander = player.commander;
       if (commander == null) continue;
-      final identity =
-          commander.colorIdentity ?? commander.colors;
+      final identity = commander.colorIdentity ?? commander.colors;
       final colors = List<String>.from(identity)..sort();
       final combo = colors.isEmpty ? 'Colorless' : colors.join();
       comboGames[combo] = (comboGames[combo] ?? 0) + 1;
@@ -548,8 +553,7 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       if (entry.value < 3) continue;
       final wins = comboWins[entry.key] ?? 0;
       final rate = wins / entry.value;
-      final tiebreak =
-          entry.value > (comboGames[bestCombo] ?? 0);
+      final tiebreak = entry.value > (comboGames[bestCombo] ?? 0);
       if (rate > bestRate || (rate == bestRate && tiebreak)) {
         bestRate = rate;
         bestCombo = entry.key;
@@ -571,24 +575,19 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       final commander = player.commander;
       if (commander == null) continue;
       final colors = commander.colorIdentity ?? commander.colors;
-      final isWin = game.players
-              .firstWhere((p) => p.id == game.winnerId)
-              .firebaseId ==
+      final isWin =
+          game.players.firstWhere((p) => p.id == game.winnerId).firebaseId ==
           userId;
       if (colors.isEmpty) {
-        colorGames['Colorless'] =
-            (colorGames['Colorless'] ?? 0) + 1;
+        colorGames['Colorless'] = (colorGames['Colorless'] ?? 0) + 1;
         if (isWin) {
-          colorWins['Colorless'] =
-              (colorWins['Colorless'] ?? 0) + 1;
+          colorWins['Colorless'] = (colorWins['Colorless'] ?? 0) + 1;
         }
       } else {
         for (final color in colors) {
-          colorGames[color] =
-              (colorGames[color] ?? 0) + 1;
+          colorGames[color] = (colorGames[color] ?? 0) + 1;
           if (isWin) {
-            colorWins[color] =
-                (colorWins[color] ?? 0) + 1;
+            colorWins[color] = (colorWins[color] ?? 0) + 1;
           }
         }
       }
@@ -600,8 +599,7 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       if (entry.value < 3) continue;
       final wins = colorWins[entry.key] ?? 0;
       final rate = wins / entry.value;
-      final tiebreak =
-          entry.value > (colorGames[bestColor] ?? 0);
+      final tiebreak = entry.value > (colorGames[bestColor] ?? 0);
       if (rate > bestRate || (rate == bestRate && tiebreak)) {
         bestRate = rate;
         bestColor = entry.key;

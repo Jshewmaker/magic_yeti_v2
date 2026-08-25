@@ -51,10 +51,5 @@ class FriendModel extends Equatable {
   final String? friendCode;
 
   @override
-  List<Object?> get props => [
-        userId,
-        username,
-        profilePictureUrl,
-        friendCode,
-      ];
+  List<Object?> get props => [userId, username, profilePictureUrl, friendCode];
 }

@@ -13,11 +13,7 @@ import 'package:firebase_database_repository/models/user_profile_model.dart';
 /// {@endtemplate}
 class FriendSearchResult extends Equatable {
   /// {@macro friend_search_result}
-  const FriendSearchResult({
-    required this.found,
-    this.user,
-    this.relationship,
-  });
+  const FriendSearchResult({required this.found, this.user, this.relationship});
 
   /// Whether a matching user was found (and not hidden by a block).
   final bool found;

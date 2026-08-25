@@ -28,11 +28,9 @@ class ApiClientError implements Exception {
 /// {@endtemplate}
 class ApiClient {
   /// {@macro api_client}
-  ApiClient({
-    required String baseUrl,
-    http.Client? httpClient,
-  })  : _baseUrl = Uri.parse(baseUrl),
-        _httpClient = httpClient ?? http.Client();
+  ApiClient({required String baseUrl, http.Client? httpClient})
+    : _baseUrl = Uri.parse(baseUrl),
+      _httpClient = httpClient ?? http.Client();
 
   final http.Client _httpClient;
   final Uri _baseUrl;
@@ -42,10 +40,7 @@ class ApiClient {
   ///
   /// GET /cards/search
   Future<SearchCards> getCardFullText(String cardName) async {
-    final queryParameters = {
-      'unique': 'art',
-      'q': cardName,
-    };
+    final queryParameters = {'unique': 'art', 'q': cardName};
     final request = _baseUrl.replace(
       path: '/cards/search',
       queryParameters: queryParameters,
@@ -54,10 +49,7 @@ class ApiClient {
     try {
       final response = await _httpClient.get(
         request,
-        headers: {
-          'User-Agent': 'Magic Yeti/1.0',
-          'Accept': 'application/json',
-        },
+        headers: {'User-Agent': 'Magic Yeti/1.0', 'Accept': 'application/json'},
       );
 
       if (response.statusCode != 200) {

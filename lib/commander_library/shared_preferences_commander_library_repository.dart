@@ -31,8 +31,7 @@ class SharedPreferencesCommanderLibraryRepository
   }
 
   Future<void> _write(String key, List<Commander> commanders) async {
-    final encoded =
-        jsonEncode(commanders.map((c) => c.toJson()).toList());
+    final encoded = jsonEncode(commanders.map((c) => c.toJson()).toList());
     await _prefs.setString(key, encoded);
   }
 
@@ -56,8 +55,9 @@ class SharedPreferencesCommanderLibraryRepository
   @override
   Future<bool> toggleFavorite(Commander commander) async {
     final favorites = _read(_favoritesKey);
-    final existing =
-        favorites.indexWhere((c) => _identity(c) == _identity(commander));
+    final existing = favorites.indexWhere(
+      (c) => _identity(c) == _identity(commander),
+    );
     if (existing >= 0) {
       favorites.removeAt(existing);
       await _write(_favoritesKey, favorites);
@@ -70,7 +70,8 @@ class SharedPreferencesCommanderLibraryRepository
 
   @override
   Future<bool> isFavorite(Commander commander) async {
-    return _read(_favoritesKey)
-        .any((c) => _identity(c) == _identity(commander));
+    return _read(
+      _favoritesKey,
+    ).any((c) => _identity(c) == _identity(commander));
   }
 }

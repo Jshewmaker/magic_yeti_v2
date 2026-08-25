@@ -49,13 +49,13 @@ class GameState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        playerList,
-        winner,
-        elapsedSeconds,
-        startTime,
-        firstPlayerId,
-        error,
-        gameModel,
-      ];
+    status,
+    playerList,
+    winner,
+    elapsedSeconds,
+    startTime,
+    firstPlayerId,
+    error,
+    gameModel,
+  ];
 }

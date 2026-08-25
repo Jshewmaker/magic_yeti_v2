@@ -29,10 +29,10 @@ void main() {
   );
 
   ProfileBloc buildBloc() => ProfileBloc(
-        firebaseDatabaseRepository: firebaseDatabaseRepository,
-        userRepository: userRepository,
-        userProfile: authUser,
-      );
+    firebaseDatabaseRepository: firebaseDatabaseRepository,
+    userRepository: userRepository,
+    userProfile: authUser,
+  );
 
   setUpAll(() {
     registerFallbackValue(const UserProfileModel(id: 'fallback'));
@@ -47,8 +47,9 @@ void main() {
     blocTest<ProfileBloc, ProfileState>(
       'loads the profile and emits loaded status',
       build: () {
-        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
-            .thenAnswer((_) async => loadedProfile);
+        when(
+          () => firebaseDatabaseRepository.getUserProfileOnce('u1'),
+        ).thenAnswer((_) async => loadedProfile);
         return buildBloc();
       },
       act: (bloc) => bloc.add(const ProfileLoadRequested('u1')),
@@ -67,8 +68,9 @@ void main() {
     blocTest<ProfileBloc, ProfileState>(
       'emits failure when the load throws',
       build: () {
-        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
-            .thenThrow(Exception('boom'));
+        when(
+          () => firebaseDatabaseRepository.getUserProfileOnce('u1'),
+        ).thenThrow(Exception('boom'));
         return buildBloc();
       },
       act: (bloc) => bloc.add(const ProfileLoadRequested('u1')),
@@ -89,8 +91,9 @@ void main() {
     blocTest<ProfileBloc, ProfileState>(
       'a missing profile doc emits failure, not an empty loaded state',
       build: () {
-        when(() => firebaseDatabaseRepository.getUserProfileOnce('u1'))
-            .thenAnswer((_) async => null);
+        when(
+          () => firebaseDatabaseRepository.getUserProfileOnce('u1'),
+        ).thenAnswer((_) async => null);
         return buildBloc();
       },
       act: (bloc) => bloc.add(const ProfileLoadRequested('u1')),
@@ -145,12 +148,14 @@ void main() {
       ),
       act: (bloc) => bloc.add(const ProfileSubmitted()),
       verify: (_) {
-        final saved = verify(
-          () => firebaseDatabaseRepository.updateUserProfile(
-            'u1',
-            captureAny(),
-          ),
-        ).captured.single as UserProfileModel;
+        final saved =
+            verify(
+                  () => firebaseDatabaseRepository.updateUserProfile(
+                    'u1',
+                    captureAny(),
+                  ),
+                ).captured.single
+                as UserProfileModel;
 
         // Fields explicitly changed by the form.
         expect(saved.username, 'newname');
@@ -245,10 +250,14 @@ void main() {
       ),
       act: (bloc) => bloc.add(const ProfileSubmitted()),
       verify: (_) {
-        final saved = verify(
-          () =>
-              firebaseDatabaseRepository.updateUserProfile('u1', captureAny()),
-        ).captured.single as UserProfileModel;
+        final saved =
+            verify(
+                  () => firebaseDatabaseRepository.updateUserProfile(
+                    'u1',
+                    captureAny(),
+                  ),
+                ).captured.single
+                as UserProfileModel;
         expect(saved.username, 'josh2');
       },
     );
@@ -306,8 +315,9 @@ void main() {
       'ProfilePinSubmitted calls setPin with the entered pin and emits '
       'pinSaved on success (no old-PIN prompt required — decision #5)',
       build: () {
-        when(() => firebaseDatabaseRepository.setPin('u1', '4321'))
-            .thenAnswer((_) async {});
+        when(
+          () => firebaseDatabaseRepository.setPin('u1', '4321'),
+        ).thenAnswer((_) async {});
         return buildBloc();
       },
       seed: () => const ProfileState(
@@ -330,16 +340,16 @@ void main() {
         ),
       ],
       verify: (_) {
-        verify(() => firebaseDatabaseRepository.setPin('u1', '4321'))
-            .called(1);
+        verify(() => firebaseDatabaseRepository.setPin('u1', '4321')).called(1);
       },
     );
 
     blocTest<ProfileBloc, ProfileState>(
       'ProfilePinSubmitted emits failure when setPin throws',
       build: () {
-        when(() => firebaseDatabaseRepository.setPin('u1', '4321'))
-            .thenThrow(Exception('boom'));
+        when(
+          () => firebaseDatabaseRepository.setPin('u1', '4321'),
+        ).thenThrow(Exception('boom'));
         return buildBloc();
       },
       seed: () => const ProfileState(
@@ -408,8 +418,7 @@ void main() {
     blocTest<ProfileBloc, ProfileState>(
       'emits failure when deleteAccount throws',
       build: () {
-        when(() => userRepository.deleteAccount())
-            .thenThrow(Exception('boom'));
+        when(() => userRepository.deleteAccount()).thenThrow(Exception('boom'));
         return buildBloc();
       },
       act: (bloc) => bloc.add(const ProfileDeleted()),

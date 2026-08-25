@@ -290,9 +290,9 @@ class _Header extends StatelessWidget {
     final subtitle = stats.sharedPods == 0
         ? null
         : since == null
-            ? '${stats.sharedPods} pods together'
-            : '${stats.sharedPods} pods together · since '
-                  '${DateFormat('MMM yyyy').format(since)}';
+        ? '${stats.sharedPods} pods together'
+        : '${stats.sharedPods} pods together · since '
+              '${DateFormat('MMM yyyy').format(since)}';
 
     return Row(
       children: [

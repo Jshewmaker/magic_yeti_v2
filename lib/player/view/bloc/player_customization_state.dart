@@ -85,28 +85,28 @@ class PlayerCustomizationState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        name,
-        commander,
-        partner,
-        background,
-        cardList,
-        magicCardList,
-        isAccountOwner,
-        showOnlyLegendary,
-        availablePairing,
-        selectingSecondCard,
-        recents,
-        favorites,
-        favoriteIds,
-        selectedFriend,
-        pinValidated,
-        pinFlowError,
-        pinAttemptsRemaining,
-        pinLockedUntil,
-        isPinValidating,
-        ownerUsername,
-      ];
+    status,
+    name,
+    commander,
+    partner,
+    background,
+    cardList,
+    magicCardList,
+    isAccountOwner,
+    showOnlyLegendary,
+    availablePairing,
+    selectingSecondCard,
+    recents,
+    favorites,
+    favoriteIds,
+    selectedFriend,
+    pinValidated,
+    pinFlowError,
+    pinAttemptsRemaining,
+    pinLockedUntil,
+    isPinValidating,
+    ownerUsername,
+  ];
 
   PlayerCustomizationState copyWith({
     PlayerCustomizationStatus? status,
@@ -150,8 +150,9 @@ class PlayerCustomizationState extends Equatable {
       pinValidated: pinValidated ?? this.pinValidated,
       pinFlowError: pinFlowError ?? this.pinFlowError,
       pinAttemptsRemaining: pinAttemptsRemaining ?? this.pinAttemptsRemaining,
-      pinLockedUntil:
-          pinLockedUntil != null ? pinLockedUntil() : this.pinLockedUntil,
+      pinLockedUntil: pinLockedUntil != null
+          ? pinLockedUntil()
+          : this.pinLockedUntil,
       isPinValidating: isPinValidating ?? this.isPinValidating,
       ownerUsername: ownerUsername ?? this.ownerUsername,
     );

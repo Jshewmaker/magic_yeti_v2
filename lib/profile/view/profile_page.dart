@@ -120,8 +120,9 @@ class ProfileView extends StatelessWidget {
                               Center(
                                 child: CircleAvatar(
                                   radius: 75,
-                                  backgroundImage:
-                                      NetworkImage(profile.imageUrl!),
+                                  backgroundImage: NetworkImage(
+                                    profile.imageUrl!,
+                                  ),
                                 ),
                               ),
                             if (profile.imageUrl == null ||
@@ -129,8 +130,9 @@ class ProfileView extends StatelessWidget {
                               Center(
                                 child: CircleAvatar(
                                   radius: 75,
-                                  backgroundColor:
-                                      Theme.of(context).primaryColor,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).primaryColor,
                                   child: Text(
                                     (profile.username ?? '').isNotEmpty
                                         ? profile.username![0].toUpperCase()
@@ -149,14 +151,14 @@ class ProfileView extends StatelessWidget {
                               helperText: context.l10n.usernameHelperText,
                               errorTextBuilder: (context, state) =>
                                   switch (state.username?.displayError) {
-                                UsernameValidationError.empty =>
-                                  context.l10n.usernameRequiredError,
-                                UsernameValidationError.tooShort =>
-                                  context.l10n.usernameTooShortError,
-                                UsernameValidationError.tooLong =>
-                                  context.l10n.usernameTooLongError,
-                                null => null,
-                              },
+                                    UsernameValidationError.empty =>
+                                      context.l10n.usernameRequiredError,
+                                    UsernameValidationError.tooShort =>
+                                      context.l10n.usernameTooShortError,
+                                    UsernameValidationError.tooLong =>
+                                      context.l10n.usernameTooLongError,
+                                    null => null,
+                                  },
                               onChanged: (value) => context
                                   .read<ProfileBloc>()
                                   .add(ProfileUsernameChanged(value)),
@@ -220,9 +222,9 @@ class _EditProfileButton extends StatelessWidget {
                   if (state.isEditing) {
                     context.read<ProfileBloc>().add(const ProfileSubmitted());
                   } else {
-                    context
-                        .read<ProfileBloc>()
-                        .add(const ProfileEditingToggled());
+                    context.read<ProfileBloc>().add(
+                      const ProfileEditingToggled(),
+                    );
                   }
                 },
           child: Text(
@@ -270,8 +272,9 @@ class _DeleteProfileButton extends StatelessWidget {
                 ),
                 actions: [
                   ElevatedButton(
-                      onPressed: () => context.pop(),
-                      child: const Text('Cancel')),
+                    onPressed: () => context.pop(),
+                    child: const Text('Cancel'),
+                  ),
                   HoldToConfirmButton(
                     child: const Text('Delete Profile'),
                     onProgressCompleted: () {
@@ -279,9 +282,9 @@ class _DeleteProfileButton extends StatelessWidget {
                       // to this account) now runs via a Firestore trigger
                       // on account deletion (see Task 1), so there is no
                       // client-side fan-out cleanup to trigger here.
-                      context
-                          .read<AppBloc>()
-                          .add(const AppUserAccountDeleted());
+                      context.read<AppBloc>().add(
+                        const AppUserAccountDeleted(),
+                      );
                       context.pop();
                     },
                   ),
@@ -423,9 +426,9 @@ class _ChangePinSectionState extends State<_ChangePinSection> {
                       labelText: context.l10n.newPinLabel,
                       counterText: '',
                     ),
-                    onChanged: (value) => context
-                        .read<ProfileBloc>()
-                        .add(ProfilePinChanged(value)),
+                    onChanged: (value) => context.read<ProfileBloc>().add(
+                      ProfilePinChanged(value),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -436,11 +439,12 @@ class _ChangePinSectionState extends State<_ChangePinSection> {
                   builder: (context, state) {
                     return ElevatedButton(
                       key: const Key('profile_pin_submit_button'),
-                      onPressed: state.pin.isValid &&
+                      onPressed:
+                          state.pin.isValid &&
                               state.status != ProfileStatus.loading
-                          ? () => context
-                              .read<ProfileBloc>()
-                              .add(const ProfilePinSubmitted())
+                          ? () => context.read<ProfileBloc>().add(
+                              const ProfilePinSubmitted(),
+                            )
                           : null,
                       child: Text(context.l10n.saveButtonText),
                     );
@@ -474,7 +478,7 @@ class _ProfileField extends StatelessWidget {
   /// status/isEditing changes, so the error must flow through this
   /// widget's own BlocBuilder.
   final String? Function(BuildContext context, ProfileState state)?
-      errorTextBuilder;
+  errorTextBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -504,8 +508,7 @@ class _ProfileField extends StatelessWidget {
                             initialValue: initialValue,
                             decoration: InputDecoration(
                               hintText: 'Enter $label',
-                              errorText:
-                                  errorTextBuilder?.call(context, state),
+                              errorText: errorTextBuilder?.call(context, state),
                             ),
                             onChanged: onChanged,
                           )

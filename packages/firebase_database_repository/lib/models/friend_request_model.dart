@@ -96,12 +96,12 @@ class FriendRequestModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        senderId,
-        receiverId,
-        senderName,
-        senderFriendCode,
-        status,
-        timestamp,
-      ];
+    id,
+    senderId,
+    receiverId,
+    senderName,
+    senderFriendCode,
+    status,
+    timestamp,
+  ];
 }

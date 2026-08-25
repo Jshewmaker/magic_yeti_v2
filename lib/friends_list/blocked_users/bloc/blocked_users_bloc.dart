@@ -15,8 +15,7 @@ part 'blocked_users_state.dart';
 /// - FirebaseDatabaseRepository: For interacting with Firestore
 /// - Flutter Bloc: For state management
 class BlockedUsersBloc extends Bloc<BlockedUsersEvent, BlockedUsersState> {
-  BlockedUsersBloc({required this.repository})
-      : super(BlockedUsersLoading()) {
+  BlockedUsersBloc({required this.repository}) : super(BlockedUsersLoading()) {
     on<LoadBlockedUsers>(_onLoadBlockedUsers);
     on<UnblockUser>(_onUnblockUser);
   }

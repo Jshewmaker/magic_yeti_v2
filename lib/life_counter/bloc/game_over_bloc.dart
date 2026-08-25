@@ -11,19 +11,19 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
     required List<Player> players,
     required String currentUserId,
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
-  })  : _firebaseDatabaseRepository = firebaseDatabaseRepository,
-        super(
-          GameOverState(
-            standings: List<Player>.from(players)
-              ..sort((a, b) => a.placement.compareTo(b.placement)),
-            selectedPlayerId: players
-                .where((p) => p.firebaseId == currentUserId)
-                .map((p) => p.id)
-                .cast<String?>()
-                .firstWhere((_) => true, orElse: () => null),
-            firstPlayerId: null,
-          ),
-        ) {
+  }) : _firebaseDatabaseRepository = firebaseDatabaseRepository,
+       super(
+         GameOverState(
+           standings: List<Player>.from(players)
+             ..sort((a, b) => a.placement.compareTo(b.placement)),
+           selectedPlayerId: players
+               .where((p) => p.firebaseId == currentUserId)
+               .map((p) => p.id)
+               .cast<String?>()
+               .firstWhere((_) => true, orElse: () => null),
+           firstPlayerId: null,
+         ),
+       ) {
     on<UpdateStandingsEvent>(_onUpdateStandings);
     on<UpdateSelectedPlayerEvent>(_onUpdateSelectedPlayer);
     on<UpdateFirstPlayerEvent>(_onUpdateFirstPlayer);

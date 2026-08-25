@@ -21,7 +21,7 @@ part 'friend_request_state.dart';
 /// - Flutter Bloc: For state management
 class FriendRequestBloc extends Bloc<FriendRequestEvent, FriendRequestState> {
   FriendRequestBloc({required this.repository})
-      : super(FriendRequestLoading()) {
+    : super(FriendRequestLoading()) {
     // restartable: a new LoadFriendRequests cancels the previous Firestore
     // subscription instead of queueing behind it (the handler never
     // completes on its own because the requests stream never closes).

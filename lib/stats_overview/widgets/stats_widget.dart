@@ -40,10 +40,9 @@ class StatsWidget extends StatelessWidget {
               Flexible(
                 child: AutoSizeText(
                   title,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleSmall
-                      ?.copyWith(color: Colors.blueGrey),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(color: Colors.blueGrey),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -55,8 +54,7 @@ class StatsWidget extends StatelessWidget {
                     child: Icon(
                       Icons.info_outline,
                       size: 10,
-                      color:
-                          Colors.blueGrey.withAlpha(150),
+                      color: Colors.blueGrey.withAlpha(150),
                     ),
                   ),
                 ),
@@ -68,21 +66,23 @@ class StatsWidget extends StatelessWidget {
   }
 
   void _showTooltip(BuildContext context) {
-    unawaited(showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          title.replaceAll('\n', ' '),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        content: Text(tooltip!),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(
+            title.replaceAll('\n', ' '),
+            style: Theme.of(context).textTheme.titleMedium,
           ),
-        ],
+          content: Text(tooltip!),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 }

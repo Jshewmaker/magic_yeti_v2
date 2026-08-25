@@ -59,8 +59,9 @@ void main() {
     verifyNever(() => bloc.add(any(that: isA<CardListRequested>())));
   });
 
-  testWidgets('live-searches after the debounce at 3+ characters',
-      (tester) async {
+  testWidgets('live-searches after the debounce at 3+ characters', (
+    tester,
+  ) async {
     final controller = TextEditingController();
     addTearDown(controller.dispose);
     await pumpBar(tester, controller);
@@ -73,9 +74,9 @@ void main() {
 
     // Exactly one search fires after the debounce, carrying the typed query.
     await tester.pump(const Duration(milliseconds: 400));
-    final captured = verify(() => bloc.add(captureAny()))
-        .captured
-        .whereType<CardListRequested>();
+    final captured = verify(
+      () => bloc.add(captureAny()),
+    ).captured.whereType<CardListRequested>();
     expect(captured.length, 1);
     expect(captured.single.cardName, 'atr');
   });

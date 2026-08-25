@@ -268,9 +268,7 @@ class _TrackerOverlayState extends State<_TrackerOverlay>
       alignment: isTopEdge ? Alignment.topCenter : Alignment.bottomCenter,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: isTopEdge
-            ? [panel, handle]
-            : [handle, panel],
+        children: isTopEdge ? [panel, handle] : [handle, panel],
       ),
     );
   }

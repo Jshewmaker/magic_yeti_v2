@@ -18,8 +18,9 @@ void main() {
   setUp(() {
     functions = _MockFunctions();
     callable = _MockCallable();
-    when(() => functions.httpsCallable('searchByUsername'))
-        .thenReturn(callable);
+    when(
+      () => functions.httpsCallable('searchByUsername'),
+    ).thenReturn(callable);
     repository = FirebaseDatabaseRepository(
       firebase: FakeFirebaseFirestore(),
       functions: functions,
@@ -29,44 +30,47 @@ void main() {
   void stubResult(Map<String, dynamic> data) {
     final result = _MockResult();
     when(() => result.data).thenReturn(data);
-    when(() => callable.call<dynamic>(any<Map<String, dynamic>>()))
-        .thenAnswer((_) async => result);
+    when(
+      () => callable.call<dynamic>(any<Map<String, dynamic>>()),
+    ).thenAnswer((_) async => result);
   }
 
-  test('maps multiple matches to UserSearchMatch with their relationships',
-      () async {
-    stubResult({
-      'matches': [
-        {
-          'user': {
-            'id': 'josh',
-            'username': 'Josh',
-            'imageUrl': 'http://x/y.png',
-            'friendCode': 'YETI-JOSH',
+  test(
+    'maps multiple matches to UserSearchMatch with their relationships',
+    () async {
+      stubResult({
+        'matches': [
+          {
+            'user': {
+              'id': 'josh',
+              'username': 'Josh',
+              'imageUrl': 'http://x/y.png',
+              'friendCode': 'YETI-JOSH',
+            },
+            'relationship': 'none',
           },
-          'relationship': 'none',
-        },
-        {
-          'user': {
-            'id': 'john',
-            'username': 'John',
-            'imageUrl': '',
-            'friendCode': 'YETI-JOHN',
+          {
+            'user': {
+              'id': 'john',
+              'username': 'John',
+              'imageUrl': '',
+              'friendCode': 'YETI-JOHN',
+            },
+            'relationship': 'friends',
           },
-          'relationship': 'friends',
-        },
-      ],
-    });
+        ],
+      });
 
-    final result = await repository.searchByUsername('jo');
+      final result = await repository.searchByUsername('jo');
 
-    expect(result, hasLength(2));
-    expect(result[0].user.id, 'josh');
-    expect(result[0].relationship, RelationshipStatus.none);
-    expect(result[1].user.id, 'john');
-    expect(result[1].relationship, RelationshipStatus.friends);
-    verify(() => callable.call<dynamic>({'query': 'jo'})).called(1);
-  });
+      expect(result, hasLength(2));
+      expect(result[0].user.id, 'josh');
+      expect(result[0].relationship, RelationshipStatus.none);
+      expect(result[1].user.id, 'john');
+      expect(result[1].relationship, RelationshipStatus.friends);
+      verify(() => callable.call<dynamic>({'query': 'jo'})).called(1);
+    },
+  );
 
   test('empty matches payload maps to an empty list', () async {
     stubResult({'matches': <dynamic>[]});
@@ -91,13 +95,10 @@ void main() {
   });
 
   test('other FirebaseFunctionsException throws a plain Exception', () async {
-    when(() => callable.call<dynamic>(any<Map<String, dynamic>>())).thenThrow(
-      FirebaseFunctionsException(code: 'internal', message: 'boom'),
-    );
+    when(
+      () => callable.call<dynamic>(any<Map<String, dynamic>>()),
+    ).thenThrow(FirebaseFunctionsException(code: 'internal', message: 'boom'));
 
-    expect(
-      () => repository.searchByUsername('jo'),
-      throwsA(isA<Exception>()),
-    );
+    expect(() => repository.searchByUsername('jo'), throwsA(isA<Exception>()));
   });
 }

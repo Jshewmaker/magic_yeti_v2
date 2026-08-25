@@ -50,18 +50,17 @@ Commander cmdr({
   String? oracleId = 'x',
   List<String> keywords = const [],
   String oracleText = '',
-}) =>
-    Commander(
-      oracleId: oracleId,
-      name: name,
-      colors: const ['U'],
-      cardType: 'Legendary Creature',
-      imageUrl: 'https://e/$name.jpg',
-      manaCost: '{U}',
-      oracleText: oracleText,
-      artist: 'A',
-      keywords: keywords,
-    );
+}) => Commander(
+  oracleId: oracleId,
+  name: name,
+  colors: const ['U'],
+  cardType: 'Legendary Creature',
+  imageUrl: 'https://e/$name.jpg',
+  manaCost: '{U}',
+  oracleText: oracleText,
+  artist: 'A',
+  keywords: keywords,
+);
 
 void main() {
   late _MockScryfall scryfall;
@@ -69,10 +68,10 @@ void main() {
   late _FakeLibrary library;
 
   PlayerCustomizationBloc build() => PlayerCustomizationBloc(
-        scryfallRepository: scryfall,
-        firebaseDatabaseRepository: db,
-        commanderLibraryRepository: library,
-      );
+    scryfallRepository: scryfall,
+    firebaseDatabaseRepository: db,
+    commanderLibraryRepository: library,
+  );
 
   setUp(() {
     scryfall = _MockScryfall();
@@ -212,8 +211,11 @@ void main() {
       act: (bloc) =>
           bloc.add(const ValidatePin(pin: '0742', friendUserId: 'friend1')),
       expect: () => [
-        isA<PlayerCustomizationState>()
-            .having((s) => s.isPinValidating, 'isPinValidating', true),
+        isA<PlayerCustomizationState>().having(
+          (s) => s.isPinValidating,
+          'isPinValidating',
+          true,
+        ),
         isA<PlayerCustomizationState>()
             .having((s) => s.isPinValidating, 'isPinValidating', false)
             .having((s) => s.pinValidated, 'pinValidated', true)
@@ -359,8 +361,9 @@ void main() {
     blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
       'confirms isAccountOwner and clears any existing friend selection',
       build: () {
-        when(() => db.getUserProfileOnce('alice'))
-            .thenAnswer((_) async => null);
+        when(
+          () => db.getUserProfileOnce('alice'),
+        ).thenAnswer((_) async => null);
         return build();
       },
       seed: () => const PlayerCustomizationState(
@@ -396,8 +399,9 @@ void main() {
     blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
       'leaves ownerUsername unset if the profile fetch returns null',
       build: () {
-        when(() => db.getUserProfileOnce('alice'))
-            .thenAnswer((_) async => null);
+        when(
+          () => db.getUserProfileOnce('alice'),
+        ).thenAnswer((_) async => null);
         return build();
       },
       act: (bloc) => bloc.add(const OwnerSelected(userId: 'alice')),
@@ -409,8 +413,9 @@ void main() {
     blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
       'still confirms isAccountOwner if the profile fetch throws',
       build: () {
-        when(() => db.getUserProfileOnce('alice'))
-            .thenThrow(Exception('offline'));
+        when(
+          () => db.getUserProfileOnce('alice'),
+        ).thenThrow(Exception('offline'));
         return build();
       },
       act: (bloc) => bloc.add(const OwnerSelected(userId: 'alice')),

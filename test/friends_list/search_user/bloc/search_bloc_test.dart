@@ -184,10 +184,12 @@ void main() {
       'friend-code search with no result falls back to an equally-empty '
       'username search',
       build: () {
-        when(() => repository.searchByFriendCode('YETI-ZZZZ'))
-            .thenAnswer((_) async => const FriendSearchResult(found: false));
-        when(() => repository.searchByUsername('YETI-ZZZZ'))
-            .thenAnswer((_) async => const <UserSearchMatch>[]);
+        when(
+          () => repository.searchByFriendCode('YETI-ZZZZ'),
+        ).thenAnswer((_) async => const FriendSearchResult(found: false));
+        when(
+          () => repository.searchByUsername('YETI-ZZZZ'),
+        ).thenAnswer((_) async => const <UserSearchMatch>[]);
         return buildBloc();
       },
       act: (bloc) => bloc.add(const SearchSubmitted('YETI-ZZZZ', 'me')),
@@ -200,8 +202,9 @@ void main() {
     blocTest<SearchBloc, SearchState>(
       'ArgumentError from the repository surfaces as SearchError',
       build: () {
-        when(() => repository.searchByUsername('a'))
-            .thenThrow(ArgumentError('too short'));
+        when(
+          () => repository.searchByUsername('a'),
+        ).thenThrow(ArgumentError('too short'));
         return buildBloc();
       },
       act: (bloc) => bloc.add(const SearchSubmitted('a', 'me')),
@@ -211,8 +214,9 @@ void main() {
     blocTest<SearchBloc, SearchState>(
       'a plain Exception from the repository surfaces as SearchError',
       build: () {
-        when(() => repository.searchByUsername('targ'))
-            .thenThrow(Exception('unavailable'));
+        when(
+          () => repository.searchByUsername('targ'),
+        ).thenThrow(Exception('unavailable'));
         return buildBloc();
       },
       act: (bloc) => bloc.add(const SearchSubmitted('targ', 'me')),
@@ -232,8 +236,9 @@ void main() {
       'friend code onto the request — never a display name passed in by '
       'the caller',
       build: () {
-        when(() => repository.getUserProfileOnce('me'))
-            .thenAnswer((_) async => meProfile);
+        when(
+          () => repository.getUserProfileOnce('me'),
+        ).thenAnswer((_) async => meProfile);
         when(
           () => repository.addFriendRequest(
             'me',
@@ -281,10 +286,12 @@ void main() {
       'a missing sender profile falls back to an empty name and null '
       'friend code, rather than throwing',
       build: () {
-        when(() => repository.getUserProfileOnce('me'))
-            .thenAnswer((_) async => null);
-        when(() => repository.addFriendRequest('me', '', null, 'target'))
-            .thenAnswer((_) async => FriendRequestResult.sent);
+        when(
+          () => repository.getUserProfileOnce('me'),
+        ).thenAnswer((_) async => null);
+        when(
+          () => repository.addFriendRequest('me', '', null, 'target'),
+        ).thenAnswer((_) async => FriendRequestResult.sent);
         return buildBloc();
       },
       seed: () => const SearchLoaded(
@@ -302,8 +309,9 @@ void main() {
     blocTest<SearchBloc, SearchState>(
       'emits SearchError when addFriendRequest throws',
       build: () {
-        when(() => repository.getUserProfileOnce('me'))
-            .thenAnswer((_) async => meProfile);
+        when(
+          () => repository.getUserProfileOnce('me'),
+        ).thenAnswer((_) async => meProfile);
         when(
           () => repository.addFriendRequest('me', 'Me', 'YETI-ME01', 'target'),
         ).thenThrow(Exception('boom'));
@@ -319,8 +327,9 @@ void main() {
     blocTest<SearchBloc, SearchState>(
       'emits SearchError when the profile lookup itself throws',
       build: () {
-        when(() => repository.getUserProfileOnce('me'))
-            .thenThrow(Exception('offline'));
+        when(
+          () => repository.getUserProfileOnce('me'),
+        ).thenThrow(Exception('offline'));
         return buildBloc();
       },
       seed: () => const SearchLoaded(

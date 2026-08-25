@@ -33,5 +33,4 @@ class AppRoute extends GoRoute {
   });
 
   final AppStatus appStatus;
-
 }

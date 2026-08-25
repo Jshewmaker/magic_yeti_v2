@@ -13,11 +13,7 @@ enum CommanderPairing {
   background,
 }
 
-const _attackingMarkers = [
-  'partner',
-  'friends forever',
-  "doctor's companion",
-];
+const _attackingMarkers = ['partner', 'friends forever', "doctor's companion"];
 
 /// Classifies how [commander] may pair with a second card, based on its
 /// Scryfall keywords and oracle text. Background is checked first because a
@@ -26,13 +22,14 @@ CommanderPairing commanderPairingFor(Commander commander) {
   final keywords = commander.keywords.map((k) => k.toLowerCase()).toList();
   final oracle = commander.oracleText.toLowerCase();
 
-  final isBackground = keywords.any((k) => k.contains('choose a background')) ||
+  final isBackground =
+      keywords.any((k) => k.contains('choose a background')) ||
       oracle.contains('choose a background');
   if (isBackground) return CommanderPairing.background;
 
   final isPartner =
       keywords.any((k) => _attackingMarkers.any((m) => k.contains(m))) ||
-          _attackingMarkers.any(oracle.contains);
+      _attackingMarkers.any(oracle.contains);
   if (isPartner) return CommanderPairing.partner;
 
   return CommanderPairing.none;

@@ -8,10 +8,7 @@ import 'package:firebase_database_repository/models/user_profile_model.dart';
 /// {@endtemplate}
 class UserSearchMatch extends Equatable {
   /// {@macro user_search_match}
-  const UserSearchMatch({
-    required this.user,
-    required this.relationship,
-  });
+  const UserSearchMatch({required this.user, required this.relationship});
 
   /// The matching user's profile.
   final UserProfileModel user;

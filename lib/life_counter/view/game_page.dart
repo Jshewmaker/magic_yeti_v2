@@ -31,9 +31,9 @@ class GamePage extends StatelessWidget {
         if (state.status == GameStatus.finished) {
           context.read<TimerBloc>().add(const TimerPauseEvent());
           final gameLength = context.read<TimerBloc>().state.elapsedSeconds;
-          context
-              .read<GameBloc>()
-              .add(GameUpdateTimerEvent(gameLength: gameLength));
+          context.read<GameBloc>().add(
+            GameUpdateTimerEvent(gameLength: gameLength),
+          );
 
           context.go(GameOverPage.routePath);
         }
