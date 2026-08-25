@@ -99,5 +99,34 @@ void main() {
 
       expect(find.text('RESTORE GAME'), findsNothing);
     });
+
+    testWidgets('spans the full width even when the restore control is absent',
+        (tester) async {
+      await pumpHeader(
+        tester,
+        size: const Size(1280, 800),
+        compact: false,
+        canRestoreGame: false,
+      );
+
+      expect(tester.getSize(find.byType(GameOverHeader)).width, 1280);
+    });
+
+    testWidgets(
+        'compact with no restorable game renders without overflow and '
+        'omits the restore control', (tester) async {
+      await pumpHeader(
+        tester,
+        size: const Size(390, 844),
+        compact: true,
+        canRestoreGame: false,
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('MATCH COMPLETE'), findsOneWidget);
+      expect(find.text('RESTORE GAME'), findsNothing);
+      expect(find.byIcon(Icons.arrow_back_ios_new_rounded), findsNothing);
+      expect(tester.getSize(find.byType(GameOverHeader)).width, 390);
+    });
   });
 }
