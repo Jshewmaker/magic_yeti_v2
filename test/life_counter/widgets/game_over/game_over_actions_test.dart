@@ -170,5 +170,32 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets(
+      'side-by-side bar fits the real tablet details-panel width at 2x '
+      'text scale',
+      (tester) async {
+        // Fix 2: on a 1280pt-wide tablet, GameOverDetailsPanel is the
+        // flex:4-of-9 column (with the standings panel as flex:5, separated
+        // by a 12pt gap and 16pt outer padding on each side), then loses
+        // its own 20pt-per-side Container padding:
+        //   (1280 - 16 - 16 - 12) * 4 / 9 - 20 - 20 ≈ 509pt.
+        // That's the actual width GameOverActionBar's hint row renders at
+        // on the tablet — nothing like the full 1280pt or 390pt widths the
+        // other tests above use. Before Fix 1/2, the tablet hint was a bare
+        // Row(icon, Text) with no Flexible, so at this width and 2x scale
+        // it overflowed horizontally; GameOverRequiredHint's Flexible wrap
+        // must keep it from overflowing here too.
+        await pumpBar(
+          tester,
+          stacked: false,
+          canSubmit: false,
+          size: const Size(509, 800),
+          textScale: 2,
+        );
+
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 }

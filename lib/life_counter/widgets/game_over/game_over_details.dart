@@ -22,7 +22,6 @@ class GameOverDetailsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     final canSubmit =
         state.selectedPlayerId != null &&
         state.firstPlayerId != null &&
@@ -57,67 +56,24 @@ class GameOverDetailsPanel extends StatelessWidget {
 
           const Spacer(),
 
-          // Required-fields hint
-          if (!canSubmit) ...[
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Icon(
-                  Icons.lock_outline_rounded,
-                  color: GameOverTokens.textSecondary,
-                  size: 13,
+          GameOverActionBar(
+            canSubmit: canSubmit,
+            onReturnHome: () {
+              final userId = context.read<AppBloc>().state.user.id;
+              context.read<GameOverBloc>().add(
+                SendGameOverStatsEvent(gameModel: gameModel, userId: userId),
+              );
+            },
+            onPlayAgain: () {
+              final userId = context.read<AppBloc>().state.user.id;
+              context.read<GameOverBloc>().add(
+                SendGameOverStatsEvent(
+                  gameModel: gameModel,
+                  userId: userId,
+                  exitIntent: GameOverExitIntent.playAgain,
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  'Fill out both fields to continue',
-                  style: TextStyle(
-                    color: GameOverTokens.textSecondary.withValues(alpha: 0.8),
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ],
-          const SizedBox(height: 12),
-
-          // Action buttons
-          Row(
-            children: [
-              Expanded(
-                child: GameOverActionButton(
-                  label: l10n.returnToHome,
-                  isPrimary: false,
-                  enabled: canSubmit,
-                  onPressed: () {
-                    final userId = context.read<AppBloc>().state.user.id;
-                    context.read<GameOverBloc>().add(
-                      SendGameOverStatsEvent(
-                        gameModel: gameModel,
-                        userId: userId,
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: GameOverActionButton(
-                  label: l10n.playAgain,
-                  isPrimary: true,
-                  enabled: canSubmit,
-                  onPressed: () {
-                    final userId = context.read<AppBloc>().state.user.id;
-                    context.read<GameOverBloc>().add(
-                      SendGameOverStatsEvent(
-                        gameModel: gameModel,
-                        userId: userId,
-                        exitIntent: GameOverExitIntent.playAgain,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+              );
+            },
           ),
         ],
       ),

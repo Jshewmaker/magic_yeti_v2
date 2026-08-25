@@ -160,9 +160,13 @@ void main() {
 
       expect(find.byType(GameOverActionBar), findsOneWidget);
       // Not just present somewhere in the tree — anchored to the bottom of
-      // the 844pt-tall viewport, outside the scrollable body.
+      // the 844pt-tall viewport, outside the scrollable body. The bar's
+      // surface fill lives on the wrapping Container (see Fix 1), so that's
+      // what must reach the bottom edge, not the bare GameOverActionBar.
       expect(
-        tester.getBottomLeft(find.byType(GameOverActionBar)).dy,
+        tester.getBottomLeft(
+          find.byKey(const Key('game_over_phone_action_bar_container')),
+        ).dy,
         844,
       );
     });

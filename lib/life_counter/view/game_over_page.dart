@@ -240,17 +240,25 @@ class _PhoneShell extends StatelessWidget {
               ],
             ),
           ),
-          GameOverActionBar(
-            canSubmit: canSubmit,
-            stacked: true,
-            onReturnHome: () => context.read<GameOverBloc>().add(
-              SendGameOverStatsEvent(gameModel: gameModel, userId: userId),
+          Container(
+            key: const Key('game_over_phone_action_bar_container'),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            decoration: const BoxDecoration(
+              color: GameOverTokens.surface,
+              border: Border(top: BorderSide(color: GameOverTokens.border)),
             ),
-            onPlayAgain: () => context.read<GameOverBloc>().add(
-              SendGameOverStatsEvent(
-                gameModel: gameModel,
-                userId: userId,
-                exitIntent: GameOverExitIntent.playAgain,
+            child: GameOverActionBar(
+              canSubmit: canSubmit,
+              stacked: true,
+              onReturnHome: () => context.read<GameOverBloc>().add(
+                SendGameOverStatsEvent(gameModel: gameModel, userId: userId),
+              ),
+              onPlayAgain: () => context.read<GameOverBloc>().add(
+                SendGameOverStatsEvent(
+                  gameModel: gameModel,
+                  userId: userId,
+                  exitIntent: GameOverExitIntent.playAgain,
+                ),
               ),
             ),
           ),

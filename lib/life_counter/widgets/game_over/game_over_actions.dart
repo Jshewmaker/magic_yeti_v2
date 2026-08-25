@@ -125,34 +125,27 @@ class GameOverActionBar extends StatelessWidget {
       onPressed: onReturnHome,
     );
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      decoration: const BoxDecoration(
-        color: GameOverTokens.surface,
-        border: Border(top: BorderSide(color: GameOverTokens.border)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (!canSubmit) ...[
-            const GameOverRequiredHint(),
-            const SizedBox(height: 12),
-          ],
-          if (stacked) ...[
-            playAgain,
-            const SizedBox(height: 10),
-            returnHome,
-          ] else
-            Row(
-              children: [
-                Expanded(child: returnHome),
-                const SizedBox(width: 10),
-                Expanded(child: playAgain),
-              ],
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (!canSubmit) ...[
+          const GameOverRequiredHint(),
+          const SizedBox(height: 12),
         ],
-      ),
+        if (stacked) ...[
+          playAgain,
+          const SizedBox(height: 10),
+          returnHome,
+        ] else
+          Row(
+            children: [
+              Expanded(child: returnHome),
+              const SizedBox(width: 10),
+              Expanded(child: playAgain),
+            ],
+          ),
+      ],
     );
   }
 }
