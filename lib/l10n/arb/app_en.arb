@@ -455,6 +455,10 @@
     "type": "text",
     "placeholders": {}
   },
+  "accountOwnerShort": "Account Owner",
+  "@accountOwnerShort": {
+    "description": "Short field label for the account owner dropdown, used on phones where the full sentence would wrap to three lines."
+  },
   "notPlayingOption": "I'm not playing",
   "@notPlayingOption": {
     "description": "Account owner dropdown option meaning the current user is not one of the players",

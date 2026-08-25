@@ -49,57 +49,10 @@ class GameOverDetailsPanel extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Who went first
-          GameOverFieldLabel(label: l10n.whoWentFirst),
-          const SizedBox(height: 8),
-          FirstPlayerDropdown(
-            value: state.firstPlayerId,
-            players: players,
-            onChanged: (v) =>
-                context.read<GameOverBloc>().add(UpdateFirstPlayerEvent(v)),
-          ),
-          const SizedBox(height: 20),
-
-          // Account owner
-          Row(
-            children: [
-              Flexible(
-                child: Text(
-                  l10n.accountOwner,
-                  style: const TextStyle(
-                    color: GameOverTokens.textSecondary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              const Tooltip(
-                triggerMode: TooltipTriggerMode.tap,
-                showDuration: Duration(milliseconds: 3000),
-                message:
-                    'We use this field to sync the data to the\n'
-                    "current logged in user's account.\n"
-                    "Don't worry, a game id will be generated so\n"
-                    'the other players can add this game to their '
-                    'account!',
-                child: Icon(
-                  Icons.info_outline_rounded,
-                  color: GameOverTokens.textSecondary,
-                  size: 14,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          AccountOwnerDropdown(
-            key: const ValueKey('game_over_account_owner_dropdown'),
-            value: state.selectedPlayerId,
+          GameOverDetailsFields(
+            state: state,
             players: players,
             currentUserId: context.read<AppBloc>().state.user.id,
-            onChanged: (v) =>
-                context.read<GameOverBloc>().add(UpdateSelectedPlayerEvent(v)),
           ),
 
           const Spacer(),
@@ -172,6 +125,84 @@ class GameOverDetailsPanel extends StatelessWidget {
   }
 }
 
+class GameOverDetailsFields extends StatelessWidget {
+  const GameOverDetailsFields({
+    required this.state,
+    required this.players,
+    required this.currentUserId,
+    this.compact = false,
+    super.key,
+  });
+
+  final GameOverState state;
+  final List<Player> players;
+  final String currentUserId;
+
+  /// Uses the short account-owner label. The full sentence wraps to three
+  /// lines on a phone, and the adjacent tooltip already carries the detail.
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GameOverFieldLabel(label: l10n.whoWentFirst),
+        const SizedBox(height: 8),
+        FirstPlayerDropdown(
+          value: state.firstPlayerId,
+          players: players,
+          onChanged: (v) =>
+              context.read<GameOverBloc>().add(UpdateFirstPlayerEvent(v)),
+        ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Flexible(
+              child: Text(
+                compact ? l10n.accountOwnerShort : l10n.accountOwner,
+                style: const TextStyle(
+                  color: GameOverTokens.textSecondary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Tooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              showDuration: Duration(milliseconds: 3000),
+              message:
+                  'We use this field to sync the data to the\n'
+                  "current logged in user's account.\n"
+                  "Don't worry, a game id will be generated so\n"
+                  'the other players can add this game to their '
+                  'account!',
+              child: Icon(
+                Icons.info_outline_rounded,
+                color: GameOverTokens.textSecondary,
+                size: 14,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        AccountOwnerDropdown(
+          key: const ValueKey('game_over_account_owner_dropdown'),
+          value: state.selectedPlayerId,
+          players: players,
+          currentUserId: currentUserId,
+          onChanged: (v) =>
+              context.read<GameOverBloc>().add(UpdateSelectedPlayerEvent(v)),
+        ),
+      ],
+    );
+  }
+}
+
 class GameOverFieldLabel extends StatelessWidget {
   const GameOverFieldLabel({required this.label, super.key});
   final String label;
@@ -206,6 +237,7 @@ class FirstPlayerDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
       initialValue: value,
+      isExpanded: true,
       dropdownColor: GameOverTokens.surfaceRaised,
       style: const TextStyle(
         color: GameOverTokens.textPrimary,
@@ -240,7 +272,11 @@ class FirstPlayerDropdown extends StatelessWidget {
           .map(
             (p) => DropdownMenuItem(
               value: p.id,
-              child: Text(p.name),
+              child: Text(
+                p.name,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             ),
           )
           .toList(),
@@ -272,6 +308,7 @@ class AccountOwnerDropdown extends StatelessWidget {
         .toList();
     return DropdownButtonFormField<String>(
       initialValue: value,
+      isExpanded: true,
       dropdownColor: GameOverTokens.surfaceRaised,
       style: const TextStyle(
         color: GameOverTokens.textPrimary,
@@ -304,11 +341,22 @@ class AccountOwnerDropdown extends StatelessWidget {
       ),
       items: [
         ...selectable.map(
-          (p) => DropdownMenuItem(value: p.id, child: Text(p.name)),
+          (p) => DropdownMenuItem(
+            value: p.id,
+            child: Text(
+              p.name,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
         ),
         DropdownMenuItem(
           value: GameOverBloc.notPlayingId,
-          child: Text(context.l10n.notPlayingOption),
+          child: Text(
+            context.l10n.notPlayingOption,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
         ),
       ],
       onChanged: onChanged,
