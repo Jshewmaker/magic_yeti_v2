@@ -111,5 +111,13 @@ void main() {
       await client.searchCards('esika');
       verify(() => assetBundle.loadString(any())).called(1);
     });
+
+    test('deduplicates concurrent first calls into a single load', () async {
+      await Future.wait([
+        client.searchCards('atraxa'),
+        client.getOracleIdByName('Raised by Giants'),
+      ]);
+      verify(() => assetBundle.loadString(any())).called(1);
+    });
   });
 }

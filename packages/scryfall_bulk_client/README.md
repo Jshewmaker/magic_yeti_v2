@@ -9,7 +9,7 @@ from Scryfall's bulk data.
 
 ## The commander index 📇
 
-The bundled asset `assets/cards/commander_index.json` (~4.5 MB) is a compact
+The bundled asset `assets/cards/commander_index.json` (~5 MB) is a compact
 projection of Scryfall's "Unique Artwork" bulk data (~250 MB). It contains only
 commander-eligible cards — those whose type line includes `Legendary` or
 `Background` — and only the fields the app reads (name, oracle ID, type line,
