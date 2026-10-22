@@ -35,6 +35,26 @@ _\*Magic Yeti works on iOS, Android, Web, and Windows._
 
 ---
 
+## Updating the Commander Index 🃏
+
+Commander search works offline using a compact index of commander-eligible
+cards bundled at `packages/scryfall_bulk_client/assets/cards/commander_index.json`.
+To refresh it with cards from newly released sets, run:
+
+```sh
+$ cd packages/scryfall_bulk_client
+$ dart run tool/generate_commander_index.dart
+```
+
+This downloads the latest Scryfall bulk data (~250 MB, deleted afterwards) and
+regenerates the ~5 MB index. Commit the updated asset. Until the index is
+refreshed, brand-new commanders are still searchable online via the Scryfall
+API fallback — they're just not available offline. See the
+[scryfall_bulk_client README](packages/scryfall_bulk_client/README.md) for
+details.
+
+---
+
 ## Running Tests 🧪
 
 To run all unit and widget tests use the following command:

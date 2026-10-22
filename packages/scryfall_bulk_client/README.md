@@ -4,7 +4,51 @@
 [![Powered by Mason](https://img.shields.io/endpoint?url=https%3A%2F%2Ftinyurl.com%2Fmason-badge)](https://github.com/felangel/mason)
 [![License: MIT][license_badge]][license_link]
 
-Dart package for scryfalls bulk data
+Dart package for offline commander search backed by a compact index generated
+from Scryfall's bulk data.
+
+## The commander index 📇
+
+The bundled asset `assets/cards/commander_index.json` (~4.5 MB) is a compact
+projection of Scryfall's "Unique Artwork" bulk data (~250 MB). It contains only
+commander-eligible cards — those whose type line includes `Legendary` or
+`Background` — and only the fields the app reads (name, oracle ID, type line,
+colors, art crop URL, etc.).
+
+### Offline behavior
+
+- **Commander search works offline.** `searchCards` matches against every
+  commander-eligible card in the index, which is the only set of cards the
+  app's commander picker ever displays.
+- **Oracle ID lookup works offline for commander names.** `getOracleIdByName`
+  resolves any name in the index. Names not in the index (non-commander cards,
+  or cards newer than the index) are resolved by `ScryfallRepository` via the
+  Scryfall API when online.
+- **Non-commander card search requires network.** `ScryfallRepository` falls
+  back to the Scryfall API when the index has no match — including brand-new
+  commanders released after the index was generated.
+
+### Regenerating the index
+
+From this package's root, run:
+
+```sh
+dart run tool/generate_commander_index.dart
+```
+
+This downloads the current **Unique Artwork** bulk data file (~250 MB) from
+[Scryfall's bulk data API](https://scryfall.com/docs/api/bulk-data) to a
+temporary location, overwrites `assets/cards/commander_index.json`, and
+deletes the download. Commit the regenerated asset.
+
+To reuse a bulk file you've already downloaded (and optionally write the
+index somewhere else):
+
+```sh
+dart run tool/generate_commander_index.dart path/to/unique-artwork-*.json [output]
+```
+
+Do **not** commit raw bulk files — they are gitignored.
 
 ## Installation 💻
 

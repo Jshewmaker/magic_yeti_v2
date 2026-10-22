@@ -5,3 +5,5 @@
 .packages
 build/
 pubspec.lock
+# Raw Scryfall bulk data downloads (use tool/generate_commander_index.dart)
+assets/cards/unique-artwork-*.json
