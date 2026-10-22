@@ -26,26 +26,22 @@ class ScryfallBulkClient {
   static const _assetPath =
       'packages/scryfall_bulk_client/assets/cards/commander_index.json';
 
-  List<MagicCard>? _cachedCards;
-  Map<String, String>? _oracleIdsByName;
+  /// Cached as futures so concurrent first calls share a single load.
+  Future<List<MagicCard>>? _cardsFuture;
+  Future<Map<String, String>>? _oracleIdsFuture;
 
   /// Loads and caches the commander index asset on first call.
-  Future<List<MagicCard>> _loadCards() async {
-    if (_cachedCards != null) return _cachedCards!;
-    final jsonString = await _assetBundle.loadString(_assetPath);
-    _cachedCards = await compute(_parseCommanderIndex, jsonString);
-    return _cachedCards!;
-  }
+  Future<List<MagicCard>> _loadCards() => _cardsFuture ??= _assetBundle
+      .loadString(_assetPath)
+      .then((jsonString) => compute(_parseCommanderIndex, jsonString));
 
-  Future<Map<String, String>> _loadOracleIds() async {
-    if (_oracleIdsByName != null) return _oracleIdsByName!;
-    final cards = await _loadCards();
-    _oracleIdsByName = {
-      for (final card in cards)
-        if (card.oracleId != null) card.name.toLowerCase(): card.oracleId!,
-    };
-    return _oracleIdsByName!;
-  }
+  Future<Map<String, String>> _loadOracleIds() =>
+      _oracleIdsFuture ??= _loadCards().then(
+        (cards) => {
+          for (final card in cards)
+            if (card.oracleId != null) card.name.toLowerCase(): card.oracleId!,
+        },
+      );
 
   /// Finds a card by exact name (case-insensitive) and returns its oracle ID.
   ///

@@ -3,9 +3,10 @@
 // Usage (run from this package's root):
 //   dart run tool/generate_commander_index.dart [path-to-bulk-json] [output]
 //
-// With no arguments, the current "Unique Artwork" bulk data file (~250MB) is
+// With no arguments, the current "Unique Artwork" bulk data file is
 // downloaded from Scryfall to a temporary location, processed, and deleted.
-// Pass a path to use an already-downloaded bulk file instead. The output
+// Pass a path to use an already-downloaded bulk file instead: a JSON array
+// (.json) or JSON Lines (.jsonl), optionally gzipped (.gz). The output
 // defaults to assets/cards/commander_index.json.
 //
 // Only commander-eligible cards (type line containing "Legendary" or
@@ -44,7 +45,7 @@ Future<void> main(List<String> args) async {
 
   try {
     stdout.writeln('Parsing ${input.path}...');
-    final cards = jsonDecode(input.readAsStringSync()) as List<dynamic>;
+    final cards = _readCards(input);
     final entries = <Map<String, dynamic>>[];
     for (final card in cards.cast<Map<String, dynamic>>()) {
       final entry = projectCard(card);
@@ -81,12 +82,19 @@ Future<File> _downloadUniqueArtworkBulkData() async {
             'No unique_artwork entry in the Scryfall bulk data catalog',
           ),
         );
-    final downloadUri = Uri.parse(uniqueArtwork['download_uri'] as String);
-    final sizeMb = (uniqueArtwork['size'] as int) / (1024 * 1024);
+    // Scryfall now publishes bulk data as gzipped JSON Lines only; older
+    // catalogs exposed a plain JSON array under download_uri.
+    final jsonlUri = uniqueArtwork['jsonl_download_uri'] as String?;
+    final downloadUri = Uri.parse(
+      jsonlUri ?? uniqueArtwork['download_uri'] as String,
+    );
+    final size =
+        (uniqueArtwork['compressed_size'] ?? uniqueArtwork['size']) as int;
+    final sizeMb = size / (1024 * 1024);
 
     final temp = File(
       '${Directory.systemTemp.createTempSync('scryfall_bulk').path}/'
-      'unique_artwork.json',
+      '${downloadUri.pathSegments.last}',
     );
     stdout.writeln(
       'Downloading $downloadUri (${sizeMb.toStringAsFixed(0)} MB)...',
@@ -105,6 +113,23 @@ Future<File> _downloadUniqueArtworkBulkData() async {
   } finally {
     httpClient.close();
   }
+}
+
+/// Reads every card object from a bulk data file, which is either a JSON
+/// array or JSON Lines, optionally gzipped.
+List<dynamic> _readCards(File file) {
+  final bytes = file.readAsBytesSync();
+  final text = utf8.decode(
+    file.path.endsWith('.gz') ? gzip.decode(bytes) : bytes,
+  );
+  if (text.trimLeft().startsWith('[')) {
+    return jsonDecode(text) as List<dynamic>;
+  }
+  return const LineSplitter()
+      .convert(text)
+      .where((line) => line.trim().isNotEmpty)
+      .map(jsonDecode)
+      .toList();
 }
 
 Future<String> _get(HttpClient httpClient, Uri uri) async {
