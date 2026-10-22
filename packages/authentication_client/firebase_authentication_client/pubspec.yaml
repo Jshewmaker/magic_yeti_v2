@@ -17,7 +17,7 @@ dependencies:
   google_sign_in: ^6.2.1
   plugin_platform_interface: ^2.1.2
   rxdart: ^0.28.0
-  sign_in_with_apple: ^5.0.0
+  sign_in_with_apple: ^7.0.1
 
 dev_dependencies:
   flutter_test:
