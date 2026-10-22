@@ -26,12 +26,13 @@ void main() {
       final result = _MockSearchCards();
       // Build cards before stubbing to avoid mocktail _whenCall nesting issue.
       final cards = [
-        buildMagicCard(name: 'Atraxa', typeLine: 'Legendary Creature'),
+        buildMagicCard(),
         buildMagicCard(name: 'Forest', typeLine: 'Basic Land'),
       ];
       when(() => result.data).thenReturn(cards);
-      when(() => repository.getCardFullText(cardName: any(named: 'cardName')))
-          .thenAnswer((_) async => result);
+      when(
+        () => repository.getCardFullText(cardName: any(named: 'cardName')),
+      ).thenAnswer((_) async => result);
     },
     build: build,
     act: (cubit) => cubit.search('a'),
@@ -47,8 +48,9 @@ void main() {
   blocTest<CommanderPickerCubit, CommanderPickerState>(
     'emits [loading, failure] when the repository throws',
     setUp: () {
-      when(() => repository.getCardFullText(cardName: any(named: 'cardName')))
-          .thenThrow(Exception('boom'));
+      when(
+        () => repository.getCardFullText(cardName: any(named: 'cardName')),
+      ).thenThrow(Exception('boom'));
     },
     build: build,
     act: (cubit) => cubit.search('a'),

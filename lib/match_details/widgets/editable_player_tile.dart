@@ -25,8 +25,9 @@ class EditablePlayerTile extends StatefulWidget {
 }
 
 class _EditablePlayerTileState extends State<EditablePlayerTile> {
-  late final TextEditingController _nameController =
-      TextEditingController(text: widget.player.name);
+  late final TextEditingController _nameController = TextEditingController(
+    text: widget.player.name,
+  );
 
   @override
   void dispose() {

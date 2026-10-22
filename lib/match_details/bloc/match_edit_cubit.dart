@@ -9,9 +9,9 @@ class MatchEditCubit extends Cubit<MatchEditState> {
   MatchEditCubit({
     required FirebaseDatabaseRepository databaseRepository,
     required String currentUserId,
-  })  : _databaseRepository = databaseRepository,
-        _currentUserId = currentUserId,
-        super(const MatchEditState());
+  }) : _databaseRepository = databaseRepository,
+       _currentUserId = currentUserId,
+       super(const MatchEditState());
 
   final FirebaseDatabaseRepository _databaseRepository;
   final String _currentUserId;
@@ -44,8 +44,10 @@ class MatchEditCubit extends Cubit<MatchEditState> {
   void setCommander(String playerId, Commander commander) {
     emit(
       state.copyWith(
-        draftPlayers:
-            _replace(playerId, (p) => p.copyWith(commander: commander)),
+        draftPlayers: _replace(
+          playerId,
+          (p) => p.copyWith(commander: commander),
+        ),
       ),
     );
   }
@@ -53,8 +55,10 @@ class MatchEditCubit extends Cubit<MatchEditState> {
   void setPartner(String playerId, Commander? partner) {
     emit(
       state.copyWith(
-        draftPlayers:
-            _replace(playerId, (p) => p.copyWith(partner: () => partner)),
+        draftPlayers: _replace(
+          playerId,
+          (p) => p.copyWith(partner: () => partner),
+        ),
       ),
     );
   }
@@ -62,16 +66,23 @@ class MatchEditCubit extends Cubit<MatchEditState> {
   Future<void> save() async {
     final game = _game;
     if (game == null) return;
+    // A blank name would leave an unlabeled seat in the match history.
+    if (!state.canSave) return;
     emit(state.copyWith(status: MatchEditStatus.saving));
     try {
-      final updated = game.copyWith(players: state.draftPlayers);
+      final updated = game.copyWith(
+        players: [
+          for (final player in state.draftPlayers)
+            player.copyWith(name: player.name.trim()),
+        ],
+      );
       await _databaseRepository.updateGameStats(
         game: updated,
         playerId: _currentUserId,
       );
       _game = updated;
       emit(state.copyWith(status: MatchEditStatus.success));
-    } catch (error) {
+    } on Exception catch (error) {
       emit(
         state.copyWith(
           status: MatchEditStatus.error,

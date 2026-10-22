@@ -27,6 +27,7 @@ MagicCard buildMagicCard({
   String? oracleText = 'text',
   String? power = '4',
   String? toughness = '4',
+  List<String> keywords = const [],
 }) {
   final card = MockMagicCard();
   when(() => card.id).thenReturn(id);
@@ -43,6 +44,7 @@ MagicCard buildMagicCard({
   when(() => card.oracleText).thenReturn(oracleText);
   when(() => card.power).thenReturn(power);
   when(() => card.toughness).thenReturn(toughness);
+  when(() => card.keywords).thenReturn(keywords);
   when(() => card.cardFaces).thenReturn(null);
   return card;
 }

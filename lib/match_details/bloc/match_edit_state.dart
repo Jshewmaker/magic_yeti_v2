@@ -18,6 +18,10 @@ class MatchEditState extends Equatable {
       status == MatchEditStatus.saving ||
       status == MatchEditStatus.error;
 
+  /// Whether every draft player has a non-blank name.
+  bool get canSave =>
+      draftPlayers.every((player) => player.name.trim().isNotEmpty);
+
   MatchEditState copyWith({
     MatchEditStatus? status,
     List<Player>? draftPlayers,

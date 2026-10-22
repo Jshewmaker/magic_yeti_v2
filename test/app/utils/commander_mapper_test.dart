@@ -7,13 +7,7 @@ void main() {
   group('magicCardToCommander', () {
     test('maps MagicCard fields onto a Commander', () {
       final card = buildMagicCard(
-        oracleId: 'oracle-1',
-        name: 'Atraxa',
-        typeLine: 'Legendary Creature',
         scryfallUri: 'https://scryfall.test/atraxa',
-        manaCost: '{G}{W}{U}{B}',
-        power: '4',
-        toughness: '4',
       );
 
       final commander = magicCardToCommander(card);

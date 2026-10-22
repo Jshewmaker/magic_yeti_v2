@@ -655,7 +655,7 @@ class _DeleteMatchButton extends StatelessWidget {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
+      builder: (dialogContext) {
         return BlocProvider.value(
           value: context.read<MatchDetailsBloc>(),
           child: StatefulBuilder(

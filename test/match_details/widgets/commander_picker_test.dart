@@ -18,9 +18,10 @@ void main() {
 
   setUp(() => cubit = _MockCommanderPickerCubit());
 
-  testWidgets('tapping a result card pops with the mapped commander',
-      (tester) async {
-    final card = buildMagicCard(id: 'card-id', name: 'Atraxa');
+  testWidgets('tapping a result card pops with the mapped commander', (
+    tester,
+  ) async {
+    final card = buildMagicCard();
     whenListen(
       cubit,
       const Stream<CommanderPickerState>.empty(),

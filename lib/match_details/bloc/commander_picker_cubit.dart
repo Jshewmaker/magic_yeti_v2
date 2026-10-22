@@ -7,8 +7,8 @@ part 'commander_picker_state.dart';
 
 class CommanderPickerCubit extends Cubit<CommanderPickerState> {
   CommanderPickerCubit({required ScryfallRepository scryfallRepository})
-      : _scryfallRepository = scryfallRepository,
-        super(const CommanderPickerState());
+    : _scryfallRepository = scryfallRepository,
+      super(const CommanderPickerState());
 
   final ScryfallRepository _scryfallRepository;
 

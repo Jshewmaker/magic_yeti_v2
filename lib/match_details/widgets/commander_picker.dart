@@ -8,10 +8,11 @@ import 'package:magic_yeti/match_details/bloc/commander_picker_cubit.dart';
 import 'package:player_repository/player_repository.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 
-typedef PickCommander = Future<Commander?> Function(
-  BuildContext context, {
-  required bool selectingPartner,
-});
+typedef PickCommander =
+    Future<Commander?> Function(
+      BuildContext context, {
+      required bool selectingPartner,
+    });
 
 /// Opens a full-screen commander picker and resolves to the chosen [Commander],
 /// or `null` if dismissed.
@@ -132,7 +133,8 @@ class _ResultsGrid extends StatelessWidget {
               itemCount: state.cards.length,
               itemBuilder: (context, index) {
                 final card = state.cards[index];
-                final imageUrl = card.imageUris?.normal ??
+                final imageUrl =
+                    card.imageUris?.normal ??
                     card.cardFaces?.first.imageUris?.normal ??
                     '';
                 return GestureDetector(
@@ -146,9 +148,9 @@ class _ResultsGrid extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) =>
                           const ColoredBox(
-                        color: AppColors.neutral60,
-                        child: Center(child: Icon(Icons.broken_image)),
-                      ),
+                            color: AppColors.neutral60,
+                            child: Center(child: Icon(Icons.broken_image)),
+                          ),
                     ),
                   ),
                 );

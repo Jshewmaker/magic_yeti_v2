@@ -10,25 +10,24 @@ class _MockDatabaseRepository extends Mock
     implements FirebaseDatabaseRepository {}
 
 Player _player(String id, String name) => Player(
-      id: id,
-      name: name,
-      playerNumber: 1,
-      lifePoints: 40,
-      color: 0xFF000000,
-      opponents: const [],
-      state: PlayerModelState.eliminated,
-      placement: 1,
-      timeOfDeath: 0,
-    );
+  id: id,
+  name: name,
+  playerNumber: 1,
+  lifePoints: 40,
+  color: 0xFF000000,
+  opponents: const [],
+  placement: 1,
+  timeOfDeath: 0,
+);
 
 GameModel _game() => GameModel(
-      id: 'game-1',
-      players: [_player('p1', 'Alice'), _player('p2', 'Bob')],
-      startTime: DateTime(2026, 1, 1),
-      endTime: DateTime(2026, 1, 1, 1),
-      winnerId: 'p1',
-      durationInSeconds: 3600,
-    );
+  id: 'game-1',
+  players: [_player('p1', 'Alice'), _player('p2', 'Bob')],
+  startTime: DateTime(2026),
+  endTime: DateTime(2026, 1, 1, 1),
+  winnerId: 'p1',
+  durationInSeconds: 3600,
+);
 
 const _commander = Commander(
   name: 'Atraxa',
@@ -48,9 +47,9 @@ void main() {
   setUp(() => repository = _MockDatabaseRepository());
 
   MatchEditCubit build() => MatchEditCubit(
-        databaseRepository: repository,
-        currentUserId: 'user-1',
-      );
+    databaseRepository: repository,
+    currentUserId: 'user-1',
+  );
 
   blocTest<MatchEditCubit, MatchEditState>(
     'startEditing seeds the draft and enters editing',
@@ -151,12 +150,14 @@ void main() {
     },
     verify: (cubit) {
       expect(cubit.state.status, MatchEditStatus.success);
-      final captured = verify(
-        () => repository.updateGameStats(
-          game: captureAny(named: 'game'),
-          playerId: 'user-1',
-        ),
-      ).captured.single as GameModel;
+      final captured =
+          verify(
+                () => repository.updateGameStats(
+                  game: captureAny(named: 'game'),
+                  playerId: 'user-1',
+                ),
+              ).captured.single
+              as GameModel;
       expect(
         captured.players.firstWhere((p) => p.id == 'p1').name,
         'Alicia',
@@ -183,6 +184,60 @@ void main() {
       expect(cubit.state.status, MatchEditStatus.error);
       expect(cubit.state.isEditing, true);
       expect(cubit.state.draftPlayers.length, 2);
+    },
+  );
+
+  blocTest<MatchEditCubit, MatchEditState>(
+    'save trims player names before persisting',
+    setUp: () {
+      when(
+        () => repository.updateGameStats(
+          game: any(named: 'game'),
+          playerId: any(named: 'playerId'),
+        ),
+      ).thenAnswer((_) async {});
+    },
+    build: build,
+    act: (cubit) async {
+      cubit
+        ..startEditing(_game())
+        ..updateName('p1', '  Alicia  ');
+      await cubit.save();
+    },
+    verify: (cubit) {
+      final captured =
+          verify(
+                () => repository.updateGameStats(
+                  game: captureAny(named: 'game'),
+                  playerId: 'user-1',
+                ),
+              ).captured.single
+              as GameModel;
+      expect(
+        captured.players.firstWhere((p) => p.id == 'p1').name,
+        'Alicia',
+      );
+    },
+  );
+
+  blocTest<MatchEditCubit, MatchEditState>(
+    'save does nothing when a player name is blank',
+    build: build,
+    act: (cubit) async {
+      cubit
+        ..startEditing(_game())
+        ..updateName('p1', '   ');
+      await cubit.save();
+    },
+    verify: (cubit) {
+      expect(cubit.state.canSave, isFalse);
+      expect(cubit.state.status, MatchEditStatus.editing);
+      verifyNever(
+        () => repository.updateGameStats(
+          game: any(named: 'game'),
+          playerId: any(named: 'playerId'),
+        ),
+      );
     },
   );
 }

@@ -31,7 +31,8 @@ class MatchDetailsAppBarActions extends StatelessWidget {
               IconButton(
                 tooltip: l10n.saveButtonLabel,
                 icon: const Icon(Icons.check),
-                onPressed: state.status == MatchEditStatus.saving
+                onPressed:
+                    state.status == MatchEditStatus.saving || !state.canSave
                     ? null
                     : () => context.read<MatchEditCubit>().save(),
               ),

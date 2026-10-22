@@ -24,25 +24,24 @@ const _picked = Commander(
 );
 
 GameModel _game() => GameModel(
-      id: 'g1',
-      players: [
-        Player(
-          id: 'p1',
-          name: 'Alice',
-          playerNumber: 1,
-          lifePoints: 40,
-          color: 0xFF000000,
-          opponents: const [],
-          state: PlayerModelState.eliminated,
-          placement: 1,
-          timeOfDeath: 0,
-        ),
-      ],
-      startTime: DateTime(2026),
-      endTime: DateTime(2026, 1, 1, 1),
-      winnerId: 'p1',
-      durationInSeconds: 10,
-    );
+  id: 'g1',
+  players: const [
+    Player(
+      id: 'p1',
+      name: 'Alice',
+      playerNumber: 1,
+      lifePoints: 40,
+      color: 0xFF000000,
+      opponents: [],
+      placement: 1,
+      timeOfDeath: 0,
+    ),
+  ],
+  startTime: DateTime(2026),
+  endTime: DateTime(2026, 1, 1, 1),
+  winnerId: 'p1',
+  durationInSeconds: 10,
+);
 
 void main() {
   late MatchEditCubit cubit;
@@ -60,7 +59,7 @@ void main() {
         value: cubit,
         child: SingleChildScrollView(
           child: MatchEditPlayersList(
-            pickCommander: (_, {required bool selectingPartner}) async => null,
+            pickCommander: (_, {required selectingPartner}) async => null,
           ),
         ),
       ),
@@ -68,15 +67,15 @@ void main() {
     expect(find.text('Alice'), findsOneWidget);
   });
 
-  testWidgets('selecting a commander from the picker updates the draft',
-      (tester) async {
+  testWidgets('selecting a commander from the picker updates the draft', (
+    tester,
+  ) async {
     await tester.pumpApp(
       BlocProvider.value(
         value: cubit,
         child: SingleChildScrollView(
           child: MatchEditPlayersList(
-            pickCommander: (_, {required bool selectingPartner}) async =>
-                _picked,
+            pickCommander: (_, {required selectingPartner}) async => _picked,
           ),
         ),
       ),

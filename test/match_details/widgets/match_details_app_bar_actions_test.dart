@@ -13,25 +13,24 @@ class _MockDatabaseRepository extends Mock
     implements FirebaseDatabaseRepository {}
 
 GameModel _game() => GameModel(
-      id: 'g1',
-      players: [
-        Player(
-          id: 'p1',
-          name: 'Alice',
-          playerNumber: 1,
-          lifePoints: 40,
-          color: 0xFF000000,
-          opponents: const [],
-          state: PlayerModelState.eliminated,
-          placement: 1,
-          timeOfDeath: 0,
-        ),
-      ],
-      startTime: DateTime(2026),
-      endTime: DateTime(2026, 1, 1, 1),
-      winnerId: 'p1',
-      durationInSeconds: 10,
-    );
+  id: 'g1',
+  players: const [
+    Player(
+      id: 'p1',
+      name: 'Alice',
+      playerNumber: 1,
+      lifePoints: 40,
+      color: 0xFF000000,
+      opponents: [],
+      placement: 1,
+      timeOfDeath: 0,
+    ),
+  ],
+  startTime: DateTime(2026),
+  endTime: DateTime(2026, 1, 1, 1),
+  winnerId: 'p1',
+  durationInSeconds: 10,
+);
 
 void main() {
   late MatchEditCubit cubit;
@@ -44,18 +43,18 @@ void main() {
   });
 
   Widget subject() => BlocProvider.value(
-        value: cubit,
-        child: Scaffold(
-          appBar: AppBar(
-            actions: [
-              MatchDetailsAppBarActions(
-                game: _game(),
-                deleteAction: const Icon(Icons.delete_outline),
-              ),
-            ],
+    value: cubit,
+    child: Scaffold(
+      appBar: AppBar(
+        actions: [
+          MatchDetailsAppBarActions(
+            game: _game(),
+            deleteAction: const Icon(Icons.delete_outline),
           ),
-        ),
-      );
+        ],
+      ),
+    ),
+  );
 
   testWidgets('shows edit + delete when viewing', (tester) async {
     await tester.pumpApp(subject());
@@ -63,8 +62,9 @@ void main() {
     expect(find.byIcon(Icons.delete_outline), findsOneWidget);
   });
 
-  testWidgets('tapping edit enters editing and shows save/cancel',
-      (tester) async {
+  testWidgets('tapping edit enters editing and shows save/cancel', (
+    tester,
+  ) async {
     await tester.pumpApp(subject());
     await tester.tap(find.byIcon(Icons.edit));
     await tester.pump();
