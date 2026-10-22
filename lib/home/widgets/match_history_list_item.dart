@@ -234,6 +234,8 @@ class _GameDetails extends StatelessWidget {
               children: [
                 Text(
                   winner.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: textStyle.headlineSmall?.fontSize,
@@ -242,6 +244,8 @@ class _GameDetails extends StatelessWidget {
                 ),
                 Text(
                   winner.commander?.name ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: textStyle.titleMedium?.fontSize,
                     color: Colors.black45,
@@ -253,10 +257,14 @@ class _GameDetails extends StatelessWidget {
             const Spacer(),
             Row(
               children: [
-                Text(
-                  ' ${l10n.gameId}: ${game.roomId}',
-                  style: textStyle.labelLarge?.copyWith(
-                    color: Colors.black45,
+                Flexible(
+                  child: Text(
+                    ' ${l10n.gameId}: ${game.roomId}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textStyle.labelLarge?.copyWith(
+                      color: Colors.black45,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -303,12 +311,16 @@ class _IconDetailRow extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: Colors.black45),
         const SizedBox(width: 4),
-        Text(
-          text,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Colors.black45,
-            fontWeight: FontWeight.w500,
+        Flexible(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black45,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ],

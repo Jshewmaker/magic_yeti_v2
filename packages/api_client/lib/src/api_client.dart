@@ -64,4 +64,36 @@ class ApiClient {
       throw ApiClientError(error: error, stackTrace: stackTrace);
     }
   }
+
+  /// Looks up a card by exact name (case-insensitive) and returns its
+  /// oracle ID, or `null` if no card matches.
+  ///
+  /// GET /cards/named?exact=
+  Future<String?> getOracleIdByName(String cardName) async {
+    final request = _baseUrl.replace(
+      path: '/cards/named',
+      queryParameters: {'exact': cardName},
+    );
+
+    try {
+      final response = await _httpClient.get(
+        request,
+        headers: {'User-Agent': 'Magic Yeti/1.0', 'Accept': 'application/json'},
+      );
+
+      if (response.statusCode == 404) return null;
+      if (response.statusCode != 200) {
+        throw ApiClientError(
+          error: '${response.statusCode} - ${response.body}',
+          stackTrace: StackTrace.current,
+        );
+      }
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      return json['oracle_id'] as String?;
+    } on ApiClientError {
+      rethrow;
+    } catch (error, stackTrace) {
+      throw ApiClientError(error: error, stackTrace: stackTrace);
+    }
+  }
 }

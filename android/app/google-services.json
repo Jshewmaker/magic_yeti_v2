@@ -51,6 +51,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "370172089725-6pfi7v78fbpfb8fj3dqfpmhl4afkec2a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yetiproductions.magicyeti",
+            "certificate_hash": "a2cde2541decf17fb3f709fe227fc89a432b9ddc"
+          }
+        },
+        {
           "client_id": "370172089725-4iirn3oq3hdso7o85sus2185r3spehom.apps.googleusercontent.com",
           "client_type": 3
         }

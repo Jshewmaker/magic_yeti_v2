@@ -14,17 +14,28 @@ class ScryfallRepository {
   final ApiClient _apiClient;
   final ScryfallBulkClient _bulkClient;
 
-  /// Looks up the oracle ID for a commander name using the local bulk data.
+  /// Looks up the oracle ID for a commander name.
   ///
-  /// Returns `null` if the card is not found.
+  /// Checks the bundled commander index first (works offline), then falls
+  /// back to the Scryfall API for names not in the index (e.g. cards
+  /// released after the index was generated).
+  ///
+  /// Returns `null` if the card is not found or the API is unreachable.
   Future<String?> getOracleIdByName(String cardName) async {
-    return _bulkClient.getOracleIdByName(cardName);
+    final localId = await _bulkClient.getOracleIdByName(cardName);
+    if (localId != null) return localId;
+
+    try {
+      return await _apiClient.getOracleIdByName(cardName);
+    } on Exception {
+      return null;
+    }
   }
 
   /// Retrieves full text search results for a specific card name.
   ///
-  /// Searches the local bulk data asset first. If no results are found,
-  /// falls back to the Scryfall API.
+  /// Searches the bundled commander index first (works offline). If no
+  /// results are found, falls back to the Scryfall API.
   ///
   /// Filters out cards with missing images and normalizes double-faced card
   /// image URIs before returning.
