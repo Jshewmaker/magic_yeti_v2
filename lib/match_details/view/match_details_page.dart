@@ -33,10 +33,20 @@ class MatchDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => MatchDetailsBloc(
-        databaseRepository: context.read<FirebaseDatabaseRepository>(),
-      ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => MatchDetailsBloc(
+            databaseRepository: context.read<FirebaseDatabaseRepository>(),
+          ),
+        ),
+        BlocProvider(
+          create: (context) => MatchEditCubit(
+            databaseRepository: context.read<FirebaseDatabaseRepository>(),
+            currentUserId: context.read<AppBloc>().state.user.id,
+          ),
+        ),
+      ],
       child: MatchDetailsView(gameId: gameId),
     );
   }
@@ -59,39 +69,62 @@ class MatchDetailsView extends StatelessWidget {
         DeviceOrientation.landscapeRight,
         DeviceOrientation.landscapeLeft,
       ],
-      child: BlocConsumer<MatchDetailsBloc, MatchDetailsState>(
+      child: BlocListener<MatchEditCubit, MatchEditState>(
+        listenWhen: (prev, curr) => prev.status != curr.status,
         listener: (context, state) {
-          if (state is MatchDetailsDeleted) {
-            context.go(HomePage.routeName);
-          } else if (state is MatchDetailsError) {
+          if (state.status == MatchEditStatus.success) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(context.l10n.errorSnackbarMessage(state.error)),
+                content: Text(context.l10n.matchUpdatedMessage),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          } else if (state.status == MatchEditStatus.error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  context.l10n.errorSnackbarMessage(state.errorMessage),
+                ),
                 backgroundColor: Colors.red,
                 duration: const Duration(seconds: 2),
               ),
             );
           }
         },
-        builder: (context, state) {
-          final games = context.watch<MatchHistoryBloc>().state.games;
-          final gameExists = games.any((game) => game.id == gameId);
-          if (!gameExists) {
-            return Scaffold(
-              appBar: AppBar(
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => context.pop(),
+        child: BlocConsumer<MatchDetailsBloc, MatchDetailsState>(
+          listener: (context, state) {
+            if (state is MatchDetailsDeleted) {
+              context.go(HomePage.routeName);
+            } else if (state is MatchDetailsError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(context.l10n.errorSnackbarMessage(state.error)),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 2),
                 ),
-              ),
-              body: const Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
+              );
+            }
+          },
+          builder: (context, state) {
+            final games = context.watch<MatchHistoryBloc>().state.games;
+            final gameExists = games.any((game) => game.id == gameId);
+            if (!gameExists) {
+              return Scaffold(
+                appBar: AppBar(
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => context.pop(),
+                  ),
+                ),
+                body: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
 
-          return _MatchDetailsContent(gameId: gameId);
-        },
+            return _MatchDetailsContent(gameId: gameId);
+          },
+        ),
       ),
     );
   }
@@ -222,47 +255,64 @@ class _MatchDetailsContent extends StatelessWidget {
         // Phones title the app bar; tablets carry the heading in the body.
         title: isPhone ? Text(l10n.matchDetailsHeading) : null,
         actions: [
-          _DeleteMatchButton(gameId: gameId),
+          MatchDetailsAppBarActions(
+            game: game,
+            deleteAction: _DeleteMatchButton(gameId: gameId),
+          ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (!isPhone) ...[
-                Text(
-                  l10n.matchDetailsHeading,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 16),
-              ],
-              // Winner card
-              MatchWinnerWidget(
-                winner: winningPlayer,
-                gameDuration: game.durationInSeconds,
-                startingPlayerId: game.startingPlayerId,
-                gameId: gameId,
+      body: BlocBuilder<MatchEditCubit, MatchEditState>(
+        builder: (context, editState) {
+          if (editState.isEditing) {
+            return const SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: MatchEditPlayersList(),
+            );
+          }
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!isPhone) ...[
+                    Text(
+                      l10n.matchDetailsHeading,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  // Winner card
+                  MatchWinnerWidget(
+                    winner: winningPlayer,
+                    gameDuration: game.durationInSeconds,
+                    startingPlayerId: game.startingPlayerId,
+                    gameId: gameId,
+                  ),
+                  const SizedBox(height: 16),
+                  // Players standings
+                  MatchStandingsWidget(
+                    players: game.players,
+                    winner: winningPlayer,
+                    currentUserFirebaseId: context
+                        .read<AppBloc>()
+                        .state
+                        .user
+                        .id,
+                    startingPlayerId: game.startingPlayerId,
+                    onSelectPlayer: (player) =>
+                        _showSeatAssignmentSheet(context, player),
+                  ),
+                  const SizedBox(height: 16),
+                  // Match metadata
+                  MatchMetadataWidget(
+                    game: game,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              // Players standings
-              MatchStandingsWidget(
-                players: game.players,
-                winner: winningPlayer,
-                currentUserFirebaseId: context.read<AppBloc>().state.user.id,
-                startingPlayerId: game.startingPlayerId,
-                onSelectPlayer: (player) =>
-                    _showSeatAssignmentSheet(context, player),
-              ),
-              const SizedBox(height: 16),
-              // Match metadata
-              MatchMetadataWidget(
-                game: game,
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -605,7 +655,7 @@ class _DeleteMatchButton extends StatelessWidget {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
+      builder: (dialogContext) {
         return BlocProvider.value(
           value: context.read<MatchDetailsBloc>(),
           child: StatefulBuilder(
