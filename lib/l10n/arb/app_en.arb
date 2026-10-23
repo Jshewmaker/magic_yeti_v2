@@ -1009,6 +1009,38 @@
   "matchUpdatedMessage": "Match updated",
   "@matchUpdatedMessage": {
     "description": "Snackbar confirmation shown after saving match edits"
+  },
+  "searchCardHintText": "Search for a card",
+  "@searchCardHintText": {
+    "description": "Hint text in the card search field of a two-player (non-Commander) game"
+  },
+  "searchCardEmptyText": "Search for a card to represent your deck",
+  "@searchCardEmptyText": {
+    "description": "Shown in the card picker of a two-player game before any search"
+  },
+  "deckCardLabel": "Deck card",
+  "@deckCardLabel": {
+    "description": "Label above the card that represents a player's deck in a two-player game"
+  },
+  "noDeckCardSelected": "No card selected",
+  "@noDeckCardSelected": {
+    "description": "Shown when a player in a two-player game has not picked a deck card"
+  },
+  "matchFormatAll": "All games",
+  "@matchFormatAll": {
+    "description": "Home screen filter option that shows every game"
+  },
+  "matchFormatCommander": "EDH",
+  "@matchFormatCommander": {
+    "description": "Home screen filter option that shows only Commander (EDH) games, which have more than two players"
+  },
+  "matchFormatConstructed": "Constructed",
+  "@matchFormatConstructed": {
+    "description": "Home screen filter option that shows only two-player constructed games (Standard, Modern, and so on)"
+  },
+  "noMatchesForFilter": "No games match this filter",
+  "@noMatchesForFilter": {
+    "description": "Shown in the match history when the selected format filter hides every game"
   }
 }
 

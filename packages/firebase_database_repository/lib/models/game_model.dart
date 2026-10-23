@@ -56,6 +56,12 @@ class GameModel extends Equatable {
   /// Converts this GameModel to a JSON map
   Map<String, dynamic> toJson() => _$GameModelToJson(this);
 
+  /// Whether this was a Commander (EDH) game.
+  ///
+  /// The format is not stored. A game with more than two players is a
+  /// Commander game; a two-player game is a 1v1 constructed game.
+  bool get isCommanderGame => players.length > 2;
+
   @override
   List<Object?> get props => [
     id,

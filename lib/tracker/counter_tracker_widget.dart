@@ -19,13 +19,18 @@ class CounterTrackerWidget extends StatelessWidget {
       create: (context) => CounterBloc(),
       child: BlocBuilder<CounterBloc, CounterState>(
         builder: (context, state) {
+          // Tap adds one. Hold subtracts one, and keeps subtracting until
+          // the finger lifts.
           return GestureDetector(
-            onTap: () =>
-                context.read<CounterBloc>().add(CounterIncrementPressed()),
-            onLongPress: () =>
-                context.read<CounterBloc>().add(CounterDecrementPressed()),
-            onLongPressUp: () =>
-                context.read<CounterBloc>().add(CounterStopDecrementing()),
+            onTap: () => context.read<CounterBloc>().add(
+              const CounterIncrementPressed(),
+            ),
+            onLongPressStart: (_) => context.read<CounterBloc>().add(
+              const CounterDecrementPressed(),
+            ),
+            onLongPressEnd: (_) => context.read<CounterBloc>().add(
+              const CounterStopDecrementing(),
+            ),
             child: Container(
               height: sizes.tileSize,
               width: sizes.tileSize,

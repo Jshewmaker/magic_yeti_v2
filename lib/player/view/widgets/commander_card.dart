@@ -7,7 +7,7 @@ class CommanderCard extends StatelessWidget {
     required this.commander,
     required this.isFavorite,
     required this.onTap,
-    required this.onToggleFavorite,
+    this.onToggleFavorite,
     this.isSelected = false,
     super.key,
   });
@@ -16,7 +16,9 @@ class CommanderCard extends StatelessWidget {
   final bool isFavorite;
   final bool isSelected;
   final VoidCallback onTap;
-  final VoidCallback onToggleFavorite;
+
+  /// Toggles the favorite star. When null, the star is not shown.
+  final VoidCallback? onToggleFavorite;
 
   @override
   Widget build(BuildContext context) {
@@ -51,25 +53,28 @@ class CommanderCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppSpacing.sm),
                   ),
                 ),
-              Positioned(
-                top: 2,
-                right: 2,
-                child: GestureDetector(
-                  onTap: onToggleFavorite,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: AppColors.black.withValues(alpha: 0.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isFavorite ? Icons.star : Icons.star_border,
-                      size: 18,
-                      color: isFavorite ? AppColors.secondary : AppColors.white,
+              if (onToggleFavorite != null)
+                Positioned(
+                  top: 2,
+                  right: 2,
+                  child: GestureDetector(
+                    onTap: onToggleFavorite,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: AppColors.black.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isFavorite ? Icons.star : Icons.star_border,
+                        size: 18,
+                        color: isFavorite
+                            ? AppColors.secondary
+                            : AppColors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
               Positioned(
                 left: 0,
                 right: 0,

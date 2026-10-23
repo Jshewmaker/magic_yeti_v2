@@ -26,6 +26,7 @@ class TrackerWidgets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Rebuild when any commander art changes so the damage tiles show it.
     context.select<GameBloc, List<(String?, String?)>>(
       (bloc) => bloc.state.playerList
           .map(
@@ -36,6 +37,9 @@ class TrackerWidgets extends StatelessWidget {
           )
           .toList(),
     );
+    final isCommanderGame = context.select<GameBloc, bool>(
+      (bloc) => bloc.state.isCommanderGame,
+    );
 
     final players = context.read<GameBloc>().state.playerList;
     final sizes = TrackerSizes.fromDevice(
@@ -43,104 +47,111 @@ class TrackerWidgets extends StatelessWidget {
     );
     return BlocProvider(
       create: (context) => TrackerBloc(),
-      child: BlocBuilder<TrackerBloc, TrackerState>(
-        builder: (context, state) {
-          final status = context.select<GameBloc, GameStatus>(
-            (bloc) => bloc.state.status,
-          );
-
-          if (status == GameStatus.reset) {
-            context.read<TrackerBloc>().add(const ResetTrackerIcons());
-          }
-          return RotatedBox(
-            quarterTurns: rotate ? 0 : 2,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: .8),
-              ),
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  if (players.length > 2)
-                    ...players.map(
-                      (player) {
-                        return Row(
-                          children: [
-                            CommanderDamageTracker(
-                              player: player,
-                              commanderPlayerId: player.id,
-                              playerId: playerId,
+      child: BlocListener<GameBloc, GameState>(
+        listenWhen: (previous, current) =>
+            previous.status != current.status &&
+            current.status == GameStatus.reset,
+        listener: (context, _) =>
+            context.read<TrackerBloc>().add(const ResetTrackerIcons()),
+        child: BlocBuilder<TrackerBloc, TrackerState>(
+          builder: (context, state) {
+            return RotatedBox(
+              quarterTurns: rotate ? 0 : 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: .8),
+                ),
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    // 1v1 formats have no commander damage.
+                    if (isCommanderGame)
+                      ...players.map(
+                        (player) {
+                          return Row(
+                            children: [
+                              CommanderDamageTracker(
+                                player: player,
+                                commanderPlayerId: player.id,
+                                playerId: playerId,
+                              ),
+                              const SizedBox(
+                                width: AppSpacing.xs,
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ...state.icons.map(
+                      (icon) => Row(
+                        // Keyed by icon so removing one tracker does not hand
+                        // its count to the next one in the list.
+                        key: ValueKey(icon),
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(10),
                             ),
-                            const SizedBox(
-                              width: AppSpacing.xs,
+                            child: CounterTrackerWidget(
+                              icon: Icon(
+                                icon,
+                                size: sizes.iconSize,
+                                color: AppColors.white.withValues(alpha: .5),
+                              ),
                             ),
-                          ],
-                        );
-                      },
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                        ],
+                      ),
                     ),
-                  ...state.icons.map(
-                    (icon) => Row(
+                    Row(
                       children: [
                         ClipRRect(
                           borderRadius: const BorderRadius.all(
                             Radius.circular(10),
                           ),
-                          child: CounterTrackerWidget(
-                            icon: Icon(
-                              icon,
-                              size: sizes.iconSize,
-                              color: AppColors.white.withValues(alpha: .5),
+                          child: Container(
+                            width: sizes.tileSize,
+                            height: sizes.tileSize,
+                            color: AppColors.white.withValues(alpha: .5),
+                            child: IconButton(
+                              icon: Icon(
+                                FontAwesomeIcons.plus,
+                                color: AppColors.white,
+                                size: sizes.buttonIconSize,
+                              ),
+                              onPressed: () async {
+                                final result = await _dialogBuilder(
+                                  context,
+                                  state.icons,
+                                );
+                                if (result != null && context.mounted) {
+                                  final (isAdd, icon) = result;
+                                  context.read<TrackerBloc>().add(
+                                    isAdd
+                                        ? AddTrackerIcon(icon)
+                                        : RemoveTrackerIcon(icon),
+                                  );
+                                }
+                              },
                             ),
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.xs),
+                        const SizedBox(
+                          width: AppSpacing.xs,
+                        ),
                       ],
                     ),
-                  ),
-                  Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(10),
-                        ),
-                        child: Container(
-                          width: sizes.tileSize,
-                          height: sizes.tileSize,
-                          color: AppColors.white.withValues(alpha: .5),
-                          child: IconButton(
-                            icon: Icon(
-                              FontAwesomeIcons.plus,
-                              color: AppColors.white,
-                              size: sizes.buttonIconSize,
-                            ),
-                            onPressed: () async {
-                              final result = await _dialogBuilder(
-                                context,
-                                state.icons,
-                              );
-                              if (result != null && context.mounted) {
-                                final (isAdd, icon) = result;
-                                context.read<TrackerBloc>().add(
-                                  isAdd
-                                      ? AddTrackerIcon(icon)
-                                      : RemoveTrackerIcon(icon),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        width: AppSpacing.xs,
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -167,8 +178,11 @@ class TrackerWidgets extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 5,
+                  // Sized by extent, not a fixed count, so the labels fit
+                  // on a narrow phone dialog.
+                  child: GridView.extent(
+                    maxCrossAxisExtent: 96,
+                    childAspectRatio: 0.9,
                     children: [
                       ...iconMap.entries.map(
                         (entry) {
@@ -196,6 +210,8 @@ class TrackerWidgets extends StatelessWidget {
                               ),
                               Text(
                                 entry.value,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   color: AppColors.white,
                                   fontSize: 12,

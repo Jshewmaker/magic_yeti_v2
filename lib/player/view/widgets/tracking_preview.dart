@@ -43,9 +43,11 @@ class TrackingPreview extends StatelessWidget {
             children: [
               const Icon(Icons.gavel, size: 17, color: AppColors.white),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                clockLabel,
-                style: const TextStyle(fontSize: 13, color: AppColors.white),
+              Expanded(
+                child: Text(
+                  clockLabel,
+                  style: const TextStyle(fontSize: 13, color: AppColors.white),
+                ),
               ),
             ],
           ),

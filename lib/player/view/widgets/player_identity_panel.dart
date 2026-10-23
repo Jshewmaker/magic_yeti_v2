@@ -11,6 +11,8 @@ class PlayerIdentityPanel extends StatelessWidget {
     required this.nameFocusNode,
     required this.playerColor,
     required this.onSave,
+    this.isCommanderGame = true,
+    this.savedCardName,
     super.key,
   });
 
@@ -18,6 +20,13 @@ class PlayerIdentityPanel extends StatelessWidget {
   final FocusNode nameFocusNode;
   final int playerColor;
   final VoidCallback onSave;
+
+  /// When false, the player picks a card to represent a 1v1 deck, and there
+  /// is no commander damage to preview.
+  final bool isCommanderGame;
+
+  /// The card this player already has, shown until a new one is picked.
+  final String? savedCardName;
 
   @override
   Widget build(BuildContext context) {
@@ -81,18 +90,29 @@ class PlayerIdentityPanel extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               _FriendLinkRow(isLinked: isLinked),
               const SizedBox(height: AppSpacing.md),
-              const Text(
-                'Commander',
-                style: TextStyle(fontSize: 12, color: AppColors.neutral60),
+              Text(
+                isCommanderGame ? 'Commander' : context.l10n.deckCardLabel,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.neutral60,
+                ),
               ),
               const SizedBox(height: AppSpacing.xs),
-              _SecondCardSummary(state: state),
-              const SizedBox(height: AppSpacing.lg),
-              TrackingPreview(
-                damageClocks: state.damageClocks,
-                colorIdentity: state.colorIdentity,
+              _SecondCardSummary(
+                state: state,
+                savedCardName: savedCardName,
+                emptyText: isCommanderGame
+                    ? 'No commander selected'
+                    : context.l10n.noDeckCardSelected,
               ),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.lg),
+              if (isCommanderGame) ...[
+                TrackingPreview(
+                  damageClocks: state.damageClocks,
+                  colorIdentity: state.colorIdentity,
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
               FilledButton.icon(
                 icon: const Icon(Icons.check, size: 18),
                 label: const Text('Save player'),
@@ -114,13 +134,19 @@ class PlayerIdentityPanel extends StatelessWidget {
 }
 
 class _SecondCardSummary extends StatelessWidget {
-  const _SecondCardSummary({required this.state});
+  const _SecondCardSummary({
+    required this.state,
+    required this.emptyText,
+    this.savedCardName,
+  });
 
   final PlayerCustomizationState state;
+  final String emptyText;
+  final String? savedCardName;
 
   @override
   Widget build(BuildContext context) {
-    final commanderName = state.commander?.name ?? 'No commander selected';
+    final commanderName = state.commander?.name ?? savedCardName ?? emptyText;
     final second = state.partner ?? state.background;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

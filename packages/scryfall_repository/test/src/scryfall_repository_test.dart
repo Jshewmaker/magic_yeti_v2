@@ -291,5 +291,32 @@ void main() {
         expect(results.data.single.imageUris, faceUris);
       });
     });
+
+    group('searchAllCards', () {
+      test('queries the API without reading the commander index', () async {
+        when(() => apiClient.getCardFullText(any())).thenAnswer(
+          (_) async => _results([_card(name: 'Lightning Bolt')]),
+        );
+
+        final results = await repository.searchAllCards(cardName: 'bolt');
+
+        expect(results.data.single.name, 'Lightning Bolt');
+        verify(() => apiClient.getCardFullText('bolt')).called(1);
+        verifyNever(() => bulkClient.searchCards(any()));
+      });
+
+      test('filters out cards with missing images', () async {
+        when(() => apiClient.getCardFullText(any())).thenAnswer(
+          (_) async => _results([
+            _card(name: 'Lightning Bolt'),
+            _card(name: 'No Image', imageStatus: 'missing', imageUris: null),
+          ]),
+        );
+
+        final results = await repository.searchAllCards(cardName: 'bolt');
+
+        expect(results.data, hasLength(1));
+      });
+    });
   });
 }

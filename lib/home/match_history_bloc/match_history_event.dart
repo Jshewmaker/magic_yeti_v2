@@ -35,3 +35,13 @@ final class AddMatchToPlayerHistoryEvent extends MatchHistoryEvent {
   @override
   List<Object> get props => [roomId, playerId];
 }
+
+/// Shows only the games of one format on the home screen.
+final class MatchFormatFilterChanged extends MatchHistoryEvent {
+  const MatchFormatFilterChanged(this.filter);
+
+  final MatchFormatFilter filter;
+
+  @override
+  List<Object> get props => [filter];
+}

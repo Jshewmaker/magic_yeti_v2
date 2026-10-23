@@ -4,124 +4,72 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/life_counter/widgets/widgets.dart';
-import 'package:magic_yeti/player/player.dart';
-import 'package:magic_yeti/tracker/tracker.dart';
-import 'package:player_repository/player_repository.dart';
 
+/// Game layout for 1v1 formats (Standard, Modern, and so on).
+///
+/// Built for a phone laid flat between two players: each player gets half of
+/// the screen, the top half turned to face the player across the table, with
+/// the game controls in a bar between them. There is no commander damage.
+///
+/// The player areas run to the edges of the screen. Only the tracker drawers
+/// stay inside the safe area, clear of the notch and the home indicator.
 class TwoPlayerGame extends StatelessWidget {
   const TwoPlayerGame({super.key});
+
+  static const _innerRadius = Radius.circular(20);
 
   @override
   Widget build(BuildContext context) {
     final playerList = context.read<GameBloc>().state.playerList;
-    final orientation = MediaQuery.of(context).orientation;
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
+    final safeArea = MediaQuery.paddingOf(context);
 
-    return Scaffold(
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
+    return OrientationLock(
+      // The top and bottom halves only work in portrait on a phone. A tablet
+      // has room for them either way.
+      orientations: isPhone
+          ? const [DeviceOrientation.portraitUp]
+          : const [
+              DeviceOrientation.portraitUp,
+              DeviceOrientation.landscapeLeft,
+              DeviceOrientation.landscapeRight,
+            ],
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return orientation == Orientation.portrait
-                ? Column(
-                    children: [
-                      Expanded(
-                        child: _PlayerSection(
-                          playerId: playerList[1].id,
-                          rotate: true,
-                        ),
-                      ),
-                      const RotatedBox(
-                        quarterTurns: 3,
-                        child: CenterControlColumn(
-                          onPressed: null,
-                        ),
-                      ),
-                      Expanded(
-                        child: _PlayerSection(
-                          playerId: playerList[0].id,
-                          rotate: false,
-                        ),
-                      ),
-                    ],
-                  )
-                : Row(
-                    children: [
-                      Expanded(
-                        child: _PlayerColumn(
-                          topPlayerId: playerList[1].id,
-                          bottomPlayerId: playerList[0].id,
-                        ),
-                      ),
-                      const CenterControlColumn(onPressed: null),
-                    ],
-                  );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _PlayerColumn extends StatelessWidget {
-  const _PlayerColumn({
-    required this.topPlayerId,
-    required this.bottomPlayerId,
-  });
-
-  final String topPlayerId;
-  final String bottomPlayerId;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: _PlayerSection(
-            playerId: topPlayerId,
-            rotate: true,
+        child: Scaffold(
+          body: Column(
+            children: [
+              PlayerTile(
+                playerId: playerList[1].id,
+                rotate: true,
+                leftSideTracker: true,
+                // Only the corners that face the control bar are rounded.
+                borderRadius: const BorderRadius.vertical(
+                  bottom: _innerRadius,
+                ),
+                fitLifeToTile: true,
+                trackerPadding: EdgeInsets.only(top: safeArea.top),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+                child: CenterControlColumn(
+                  onPressed: null,
+                  direction: Axis.horizontal,
+                ),
+              ),
+              PlayerTile(
+                playerId: playerList[0].id,
+                rotate: false,
+                leftSideTracker: true,
+                borderRadius: const BorderRadius.vertical(
+                  top: _innerRadius,
+                ),
+                fitLifeToTile: true,
+                trackerPadding: EdgeInsets.only(bottom: safeArea.bottom),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: AppSpacing.lg),
-        Expanded(
-          child: _PlayerSection(
-            playerId: bottomPlayerId,
-            rotate: false,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _PlayerSection extends StatelessWidget {
-  const _PlayerSection({
-    required this.playerId,
-    required this.rotate,
-  });
-
-  final String playerId;
-  final bool rotate;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => PlayerBloc(
-        playerRepository: context.read<PlayerRepository>(),
-        playerId: playerId,
-      ),
-      child: Stack(
-        alignment: Alignment.topLeft,
-        children: [
-          LifeCounterWidget(
-            rotate: rotate,
-            leftSideTracker: true,
-          ),
-          TrackerWidgets(
-            rotate: !rotate,
-            playerId: playerId,
-            leftSideTracker: true,
-          ),
-        ],
       ),
     );
   }
