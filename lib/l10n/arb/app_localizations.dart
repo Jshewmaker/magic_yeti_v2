@@ -1213,6 +1213,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Match updated'**
   String get matchUpdatedMessage;
+
+  /// Hint text in the card search field of a two-player (non-Commander) game
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a card'**
+  String get searchCardHintText;
+
+  /// Shown in the card picker of a two-player game before any search
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a card to represent your deck'**
+  String get searchCardEmptyText;
+
+  /// Label above the card that represents a player's deck in a two-player game
+  ///
+  /// In en, this message translates to:
+  /// **'Deck card'**
+  String get deckCardLabel;
+
+  /// Shown when a player in a two-player game has not picked a deck card
+  ///
+  /// In en, this message translates to:
+  /// **'No card selected'**
+  String get noDeckCardSelected;
+
+  /// Home screen filter option that shows every game
+  ///
+  /// In en, this message translates to:
+  /// **'All games'**
+  String get matchFormatAll;
+
+  /// Home screen filter option that shows only Commander (EDH) games, which have more than two players
+  ///
+  /// In en, this message translates to:
+  /// **'EDH'**
+  String get matchFormatCommander;
+
+  /// Home screen filter option that shows only two-player constructed games (Standard, Modern, and so on)
+  ///
+  /// In en, this message translates to:
+  /// **'Constructed'**
+  String get matchFormatConstructed;
+
+  /// Shown in the match history when the selected format filter hides every game
+  ///
+  /// In en, this message translates to:
+  /// **'No games match this filter'**
+  String get noMatchesForFilter;
 }
 
 class _AppLocalizationsDelegate

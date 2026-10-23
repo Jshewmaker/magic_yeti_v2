@@ -1,3 +1,4 @@
+import 'package:api_client/api_client.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,9 +8,13 @@ import 'package:mocktail/mocktail.dart';
 import 'package:player_repository/player_repository.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 
+import '../helpers/card_fixtures.dart';
+
 class _MockScryfall extends Mock implements ScryfallRepository {}
 
 class _MockDb extends Mock implements FirebaseDatabaseRepository {}
+
+class _MockSearchCards extends Mock implements SearchCards {}
 
 class _FakeLibrary implements CommanderLibraryRepository {
   final List<Commander> recents = [];
@@ -456,6 +461,69 @@ void main() {
         expect(bloc.state.isAccountOwner, isFalse);
         expect(bloc.state.selectedFriend, isNull);
         expect(bloc.state.pinValidated, isFalse);
+      },
+    );
+  });
+
+  group('two-player (non-Commander) game', () {
+    PlayerCustomizationBloc buildOneVsOne() => PlayerCustomizationBloc(
+      scryfallRepository: scryfall,
+      firebaseDatabaseRepository: db,
+      commanderLibraryRepository: library,
+      isCommanderGame: false,
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'searches every card and keeps non-legendary results',
+      setUp: () {
+        final cards = [
+          buildMagicCard(name: 'Lightning Bolt', typeLine: 'Instant'),
+          buildMagicCard(name: 'Goblin Guide', typeLine: 'Creature — Goblin'),
+        ];
+        final results = _MockSearchCards();
+        when(() => results.data).thenReturn(cards);
+        when(
+          () => scryfall.searchAllCards(cardName: any(named: 'cardName')),
+        ).thenAnswer((_) async => results);
+      },
+      build: buildOneVsOne,
+      act: (bloc) => bloc.add(const CardListRequested(cardName: 'bolt')),
+      verify: (bloc) {
+        expect(bloc.state.status, PlayerCustomizationStatus.success);
+        expect(
+          bloc.state.magicCardList!.map((c) => c.name),
+          ['Lightning Bolt', 'Goblin Guide'],
+        );
+        verify(() => scryfall.searchAllCards(cardName: 'bolt')).called(1);
+        verifyNever(
+          () => scryfall.getCardFullText(cardName: any(named: 'cardName')),
+        );
+      },
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'emits failure when the search fails',
+      setUp: () => when(
+        () => scryfall.searchAllCards(cardName: any(named: 'cardName')),
+      ).thenThrow(Exception('offline')),
+      build: buildOneVsOne,
+      act: (bloc) => bloc.add(const CardListRequested(cardName: 'bolt')),
+      verify: (bloc) =>
+          expect(bloc.state.status, PlayerCustomizationStatus.failure),
+    );
+
+    blocTest<PlayerCustomizationBloc, PlayerCustomizationState>(
+      'selecting a card offers no partner and skips the commander recents',
+      build: buildOneVsOne,
+      act: (bloc) => bloc.add(
+        CommanderSelected(
+          cmdr(name: 'Thrasios', keywords: const ['Partner']),
+        ),
+      ),
+      verify: (bloc) {
+        expect(bloc.state.commander?.name, 'Thrasios');
+        expect(bloc.state.availablePairing, CommanderPairing.none);
+        expect(library.recents, isEmpty);
       },
     );
   });

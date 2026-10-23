@@ -30,13 +30,14 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<GameRestoreRequested>(_onGameRestoreRequested);
 
     // Subscribe to player updates and emit them immediately
-    _playerRepository.players.listen((players) {
+    _playersSubscription = _playerRepository.players.listen((players) {
       add(PlayerRepositoryUpdateEvent(players: players));
     });
   }
 
   final PlayerRepository _playerRepository;
   final FirebaseDatabaseRepository _database;
+  late final StreamSubscription<List<Player>> _playersSubscription;
   Timer? _gameTimer;
 
   List<Player> get _players => _playerRepository.getPlayers();
@@ -145,7 +146,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameResetEvent event,
     Emitter<GameState> emit,
   ) async {
-    emit(state.copyWith(status: GameStatus.loading));
+    // Trackers listen for this status to clear their counters.
+    emit(state.copyWith(status: GameStatus.reset));
     _gameTimer?.cancel();
 
     // Reset players
@@ -289,7 +291,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   @override
-  Future<void> close() {
+  Future<void> close() async {
+    await _playersSubscription.cancel();
     return super.close();
   }
 }

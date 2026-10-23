@@ -15,9 +15,11 @@ class PlayerCustomizationBloc
     required ScryfallRepository scryfallRepository,
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
     required CommanderLibraryRepository commanderLibraryRepository,
+    bool isCommanderGame = true,
   }) : _scryfallRepository = scryfallRepository,
        _firebaseDatabaseRepository = firebaseDatabaseRepository,
        _library = commanderLibraryRepository,
+       _isCommanderGame = isCommanderGame,
        super(const PlayerCustomizationState()) {
     on<LibraryRequested>(_onLibraryRequested);
     on<CardListRequested>(_cardListRequested);
@@ -39,6 +41,11 @@ class PlayerCustomizationBloc
   final ScryfallRepository _scryfallRepository;
   final FirebaseDatabaseRepository _firebaseDatabaseRepository;
   final CommanderLibraryRepository _library;
+
+  /// When false, the player picks any card to represent a 1v1 deck: search
+  /// covers every card, there is no partner or background, and the pick is
+  /// kept out of the device's commander recents.
+  final bool _isCommanderGame;
 
   String _id(Commander c) => c.oracleId ?? c.name;
 
@@ -63,6 +70,19 @@ class PlayerCustomizationBloc
   ) async {
     emit(state.copyWith(status: PlayerCustomizationStatus.loading));
     try {
+      if (!_isCommanderGame) {
+        final cardList = await _scryfallRepository.searchAllCards(
+          cardName: event.cardName,
+        );
+        emit(
+          state.copyWith(
+            status: PlayerCustomizationStatus.success,
+            cardList: cardList,
+            filteredCards: cardList.data,
+          ),
+        );
+        return;
+      }
       final cardList = await _scryfallRepository.getCardFullText(
         cardName: event.cardName,
       );
@@ -87,6 +107,19 @@ class PlayerCustomizationBloc
     CommanderSelected event,
     Emitter<PlayerCustomizationState> emit,
   ) async {
+    if (!_isCommanderGame) {
+      emit(
+        state.copyWith(
+          status: PlayerCustomizationStatus.success,
+          commander: () => event.commander,
+          partner: () => null,
+          background: () => null,
+          availablePairing: CommanderPairing.none,
+          selectingSecondCard: false,
+        ),
+      );
+      return;
+    }
     await _library.addRecent(event.commander);
     final recents = await _library.getRecents();
     emit(

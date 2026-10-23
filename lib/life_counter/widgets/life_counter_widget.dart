@@ -4,6 +4,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/life_counter/bloc/life_change_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
 import 'package:magic_yeti/player/view/customize_player_page.dart';
@@ -11,32 +12,43 @@ import 'package:magic_yeti/timer/widgets/auto_resume_timer_wrapper.dart';
 import 'package:player_repository/player_repository.dart';
 
 class LifeCounterWidget extends StatelessWidget {
-  LifeCounterWidget({
+  const LifeCounterWidget({
     required this.leftSideTracker,
     this.rotate = false,
+    this.borderRadius,
+    this.fitLifeToTile = false,
     super.key,
   });
   final bool rotate;
   final bool leftSideTracker;
 
-  final textController = TextEditingController();
+  /// Overrides the default rounding, which rounds only the corners that
+  /// face away from the center column.
+  final BorderRadius? borderRadius;
+
+  /// Sizes the life total to the space it has, instead of a fixed size.
+  final bool fitLifeToTile;
 
   @override
   Widget build(BuildContext context) {
     final player = context.watch<PlayerBloc>().state.player;
-    textController.text = player.name;
+    final isCommanderGame = context.select<GameBloc, bool>(
+      (bloc) => bloc.state.isCommanderGame,
+    );
     return BlocProvider(
       create: (context) => LifeChangeBloc(),
       child: ClipRRect(
-        borderRadius: leftSideTracker
-            ? const BorderRadius.only(
-                topRight: Radius.circular(20),
-                bottomRight: Radius.circular(20),
-              )
-            : const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                bottomLeft: Radius.circular(20),
-              ),
+        borderRadius:
+            borderRadius ??
+            (leftSideTracker
+                ? const BorderRadius.only(
+                    topRight: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  )
+                : const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    bottomLeft: Radius.circular(20),
+                  )),
         child: RotatedBox(
           quarterTurns: rotate ? 2 : 0,
           child: Stack(
@@ -46,7 +58,10 @@ class LifeCounterWidget extends StatelessWidget {
                 rotate: rotate,
                 leftSideTracker: true,
               ),
-              _LifeTrackerWidget(lifePoints: player.lifePoints),
+              _LifeTrackerWidget(
+                lifePoints: player.lifePoints,
+                fitToTile: fitLifeToTile,
+              ),
               AutoResumeTimerWrapper(
                 child: Row(
                   children: [
@@ -56,7 +71,7 @@ class LifeCounterWidget extends StatelessWidget {
                 ),
               ),
               _PlayerNameWidget(
-                name: textController.text,
+                name: player.name,
                 onPressed: () async {
                   await Navigator.push(
                     context,
@@ -65,6 +80,7 @@ class LifeCounterWidget extends StatelessWidget {
                         value: context.read<PlayerBloc>(),
                         child: CustomizePlayerPage(
                           playerId: player.id,
+                          isCommanderGame: isCommanderGame,
                         ),
                       ),
                     ),
@@ -250,9 +266,11 @@ class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
 class _LifeTrackerWidget extends StatelessWidget {
   const _LifeTrackerWidget({
     required this.lifePoints,
+    required this.fitToTile,
   });
 
   final int lifePoints;
+  final bool fitToTile;
 
   @override
   Widget build(BuildContext context) {
@@ -280,7 +298,7 @@ class _LifeTrackerWidget extends StatelessWidget {
               ),
             )
           else
-            _LifeText(player: state.player),
+            _LifeText(player: state.player, fitToTile: fitToTile),
         ],
       ),
     );
@@ -290,22 +308,34 @@ class _LifeTrackerWidget extends StatelessWidget {
 class _LifeText extends StatelessWidget {
   const _LifeText({
     required this.player,
+    required this.fitToTile,
   });
 
   final Player player;
+  final bool fitToTile;
 
   @override
   Widget build(BuildContext context) {
     final isPhone = DeviceInfoProvider.of(context).isPhone;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: StrokeText(
-          text: '${player.lifePoints}',
-          fontSize: isPhone ? 48 : 180,
-          color: AppColors.white,
-        ),
-      ),
+    final fixedSize = isPhone ? 48.0 : 180.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // A two-player tile is half the screen, so a fixed phone size
+        // looks tiny there. Scale from the smaller side of the tile.
+        final fontSize = fitToTile
+            ? (constraints.biggest.shortestSide * 0.38).clamp(48.0, 220.0)
+            : fixedSize;
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: StrokeText(
+              text: '${player.lifePoints}',
+              fontSize: fontSize,
+              color: AppColors.white,
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -522,19 +552,26 @@ class _PlayerNameWidget extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton(
-          style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all(
-              Colors.black.withAlpha(150),
-            ),
-            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        Flexible(
+          child: ElevatedButton(
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all(
+                Colors.black.withAlpha(150),
+              ),
+              shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
+            onPressed: onPressed,
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
-          onPressed: onPressed,
-          child: Text(name, style: const TextStyle(color: Colors.white)),
         ),
       ],
     );

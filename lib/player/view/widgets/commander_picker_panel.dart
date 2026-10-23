@@ -11,9 +11,17 @@ import 'package:player_repository/player_repository.dart';
 enum _PickerTab { favorites, recent, search }
 
 class CommanderPickerPanel extends StatefulWidget {
-  const CommanderPickerPanel({required this.searchController, super.key});
+  const CommanderPickerPanel({
+    required this.searchController,
+    this.isCommanderGame = true,
+    super.key,
+  });
 
   final TextEditingController searchController;
+
+  /// When false, the panel is a plain card search: no favorites, recents,
+  /// partners, or backgrounds, which are all Commander concepts.
+  final bool isCommanderGame;
 
   @override
   State<CommanderPickerPanel> createState() => _CommanderPickerPanelState();
@@ -43,36 +51,41 @@ class _CommanderPickerPanelState extends State<CommanderPickerPanel> {
   Widget build(BuildContext context) {
     return BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
       builder: (context, state) {
-        final tab = _tab ?? _defaultTab(state);
+        final isCommanderGame = widget.isCommanderGame;
+        final tab = isCommanderGame
+            ? _tab ?? _defaultTab(state)
+            : _PickerTab.search;
 
         return Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SegmentedButton<_PickerTab>(
-                segments: const [
-                  ButtonSegment(
-                    value: _PickerTab.favorites,
-                    label: Text('Favorites'),
-                    icon: Icon(Icons.star_border),
-                  ),
-                  ButtonSegment(
-                    value: _PickerTab.recent,
-                    label: Text('Recent'),
-                    icon: Icon(Icons.history),
-                  ),
-                  ButtonSegment(
-                    value: _PickerTab.search,
-                    label: Text('Search'),
-                    icon: Icon(Icons.search),
-                  ),
-                ],
-                selected: {tab},
-                onSelectionChanged: (s) => setState(() => _tab = s.first),
-              ),
+              if (isCommanderGame)
+                SegmentedButton<_PickerTab>(
+                  segments: const [
+                    ButtonSegment(
+                      value: _PickerTab.favorites,
+                      label: Text('Favorites'),
+                      icon: Icon(Icons.star_border),
+                    ),
+                    ButtonSegment(
+                      value: _PickerTab.recent,
+                      label: Text('Recent'),
+                      icon: Icon(Icons.history),
+                    ),
+                    ButtonSegment(
+                      value: _PickerTab.search,
+                      label: Text('Search'),
+                      icon: Icon(Icons.search),
+                    ),
+                  ],
+                  selected: {tab},
+                  onSelectionChanged: (s) => setState(() => _tab = s.first),
+                ),
               const SizedBox(height: AppSpacing.sm),
-              if (state.commander != null &&
+              if (isCommanderGame &&
+                  state.commander != null &&
                   state.availablePairing != CommanderPairing.none &&
                   !state.selectingSecondCard &&
                   state.partner == null &&
@@ -83,6 +96,9 @@ class _CommanderPickerPanelState extends State<CommanderPickerPanel> {
                 const SizedBox(height: AppSpacing.sm),
                 CommanderSearchBar(
                   textController: widget.searchController,
+                  hintText: isCommanderGame
+                      ? null
+                      : context.l10n.searchCardHintText,
                   selectingPartner: state.selectingSecondCard,
                   searchBackgrounds:
                       state.selectingSecondCard &&
@@ -133,36 +149,48 @@ class _CommanderPickerPanelState extends State<CommanderPickerPanel> {
     if (commanders.isEmpty) {
       return Center(
         child: Text(
-          tab == _PickerTab.search
+          !widget.isCommanderGame
+              ? context.l10n.searchCardEmptyText
+              : tab == _PickerTab.search
               ? 'Search for a commander above'
               : 'Nothing here yet — try Search',
+          textAlign: TextAlign.center,
           style: const TextStyle(color: AppColors.neutral60),
         ),
       );
     }
 
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        childAspectRatio: 0.72,
-        crossAxisSpacing: AppSpacing.sm,
-        mainAxisSpacing: AppSpacing.sm,
+    return LayoutBuilder(
+      builder: (context, constraints) => GridView.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          // Three columns on a portrait phone, where four make the cards
+          // too small to read.
+          crossAxisCount: constraints.maxWidth < 400 ? 3 : 4,
+          childAspectRatio: 0.72,
+          crossAxisSpacing: AppSpacing.sm,
+          mainAxisSpacing: AppSpacing.sm,
+        ),
+        itemCount: commanders.length,
+        itemBuilder: (context, index) {
+          final commander = commanders[index];
+          final selected =
+              state.commander != null &&
+              _id(state.commander!) == _id(commander);
+          return CommanderCard(
+            commander: commander,
+            isFavorite: state.favoriteIds.contains(_id(commander)),
+            isSelected: selected,
+            onTap: () => _select(context, commander),
+            // Favorites are the device's commander library, so a 1v1 deck
+            // card is not added to them.
+            onToggleFavorite: widget.isCommanderGame
+                ? () => context.read<PlayerCustomizationBloc>().add(
+                    CommanderFavoriteToggled(commander),
+                  )
+                : null,
+          );
+        },
       ),
-      itemCount: commanders.length,
-      itemBuilder: (context, index) {
-        final commander = commanders[index];
-        final selected =
-            state.commander != null && _id(state.commander!) == _id(commander);
-        return CommanderCard(
-          commander: commander,
-          isFavorite: state.favoriteIds.contains(_id(commander)),
-          isSelected: selected,
-          onTap: () => _select(context, commander),
-          onToggleFavorite: () => context.read<PlayerCustomizationBloc>().add(
-            CommanderFavoriteToggled(commander),
-          ),
-        );
-      },
     );
   }
 }

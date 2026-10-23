@@ -10,19 +10,26 @@ import 'package:player_repository/player_repository.dart';
 class _MockFirebaseDatabaseRepository extends Mock
     implements FirebaseDatabaseRepository {}
 
-GameModel _game({required String id, required DateTime endTime}) {
-  final player = Player(
-    id: 'p1',
-    name: 'Player 1',
-    playerNumber: 1,
-    lifePoints: 40,
-    color: 0xFF000000,
-    opponents: const [],
-    placement: 1,
-  );
+GameModel _game({
+  required String id,
+  required DateTime endTime,
+  int playerCount = 1,
+}) {
+  final players = [
+    for (var i = 1; i <= playerCount; i++)
+      Player(
+        id: 'p$i',
+        name: 'Player $i',
+        playerNumber: i,
+        lifePoints: 40,
+        color: 0xFF000000,
+        opponents: const [],
+        placement: i,
+      ),
+  ];
   return GameModel(
     id: id,
-    players: [player],
+    players: players,
     startTime: endTime.subtract(const Duration(hours: 1)),
     endTime: endTime,
     winnerId: 'p1',
@@ -192,6 +199,78 @@ void main() {
           verify(
             () => databaseRepository.addMatchToPlayerHistory(newerGame, 'p1'),
           ).called(1);
+        },
+      );
+    });
+
+    group('format filter', () {
+      final commanderGame = _game(
+        id: 'edh',
+        endTime: DateTime(2026, 3, 1),
+        playerCount: 4,
+      );
+      final constructedGame = _game(
+        id: '1v1',
+        endTime: DateTime(2026, 2, 1),
+        playerCount: 2,
+      );
+      final loaded = MatchHistoryState(
+        status: MatchHistoryStatus.loadingHistorySuccess,
+        userId: 'user-1',
+        games: [commanderGame, constructedGame],
+      );
+
+      test('shows every game by default', () {
+        expect(loaded.formatFilter, MatchFormatFilter.all);
+        expect(loaded.filteredGames, [commanderGame, constructedGame]);
+      });
+
+      test('EDH keeps games with more than two players', () {
+        expect(
+          loaded
+              .copyWith(formatFilter: MatchFormatFilter.commander)
+              .filteredGames,
+          [commanderGame],
+        );
+      });
+
+      test('constructed keeps two-player games', () {
+        expect(
+          loaded
+              .copyWith(formatFilter: MatchFormatFilter.constructed)
+              .filteredGames,
+          [constructedGame],
+        );
+      });
+
+      blocTest<MatchHistoryBloc, MatchHistoryState>(
+        'MatchFormatFilterChanged sets the filter and keeps all games',
+        build: buildBloc,
+        seed: () => loaded,
+        act: (bloc) => bloc.add(
+          const MatchFormatFilterChanged(MatchFormatFilter.constructed),
+        ),
+        expect: () => [
+          loaded.copyWith(formatFilter: MatchFormatFilter.constructed),
+        ],
+        verify: (bloc) =>
+            expect(bloc.state.games, [commanderGame, constructedGame]),
+      );
+
+      blocTest<MatchHistoryBloc, MatchHistoryState>(
+        'keeps the filter when new games arrive',
+        setUp: () {
+          when(() => databaseRepository.getGames('user-1')).thenAnswer(
+            (_) => Stream.value([commanderGame, constructedGame]),
+          );
+        },
+        build: buildBloc,
+        act: (bloc) => bloc
+          ..add(const MatchFormatFilterChanged(MatchFormatFilter.commander))
+          ..add(const LoadMatchHistory(userId: 'user-1')),
+        verify: (bloc) {
+          expect(bloc.state.formatFilter, MatchFormatFilter.commander);
+          expect(bloc.state.filteredGames, [commanderGame]);
         },
       );
     });

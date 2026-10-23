@@ -632,4 +632,28 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get matchUpdatedMessage => 'Partida actualizada';
+
+  @override
+  String get searchCardHintText => 'Busca una carta';
+
+  @override
+  String get searchCardEmptyText => 'Busca una carta que represente tu mazo';
+
+  @override
+  String get deckCardLabel => 'Carta del mazo';
+
+  @override
+  String get noDeckCardSelected => 'Ninguna carta seleccionada';
+
+  @override
+  String get matchFormatAll => 'Todas las partidas';
+
+  @override
+  String get matchFormatCommander => 'EDH';
+
+  @override
+  String get matchFormatConstructed => 'Construido';
+
+  @override
+  String get noMatchesForFilter => 'Ninguna partida coincide con este filtro';
 }

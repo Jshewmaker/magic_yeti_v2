@@ -11,12 +11,16 @@ class CommanderSearchBar extends StatefulWidget {
     required this.textController,
     required this.selectingPartner,
     this.searchBackgrounds = false,
+    this.hintText,
     super.key,
   });
 
   final TextEditingController textController;
   final bool selectingPartner;
   final bool searchBackgrounds;
+
+  /// Replaces the default commander hint text.
+  final String? hintText;
 
   @override
   State<CommanderSearchBar> createState() => _CommanderSearchBarState();
@@ -78,9 +82,11 @@ class _CommanderSearchBarState extends State<CommanderSearchBar> {
               onChanged: _onChanged,
               onSubmitted: (_) => _searchNow(),
               decoration: InputDecoration(
-                hintText: widget.selectingPartner
-                    ? 'Search for partner commander...'
-                    : l10n.searchCommanderHintText,
+                hintText:
+                    widget.hintText ??
+                    (widget.selectingPartner
+                        ? 'Search for partner commander...'
+                        : l10n.searchCommanderHintText),
                 prefixIcon: const Icon(
                   Icons.search,
                   color: AppColors.neutral60,

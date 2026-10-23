@@ -18,10 +18,15 @@ import 'package:scryfall_repository/scryfall_repository.dart';
 class CustomizePlayerPage extends StatelessWidget {
   const CustomizePlayerPage({
     required this.playerId,
+    this.isCommanderGame = true,
     super.key,
   });
 
   final String playerId;
+
+  /// When false, the player picks any card to represent a 1v1 deck instead
+  /// of a commander.
+  final bool isCommanderGame;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +40,7 @@ class CustomizePlayerPage extends StatelessWidget {
                 .read<FirebaseDatabaseRepository>(),
             commanderLibraryRepository: context
                 .read<CommanderLibraryRepository>(),
+            isCommanderGame: isCommanderGame,
           )..add(const LibraryRequested()),
         ),
         BlocProvider(
@@ -43,7 +49,10 @@ class CustomizePlayerPage extends StatelessWidget {
           )..add(LoadFriends(userId)),
         ),
       ],
-      child: CustomizePlayerView(playerId: playerId),
+      child: CustomizePlayerView(
+        playerId: playerId,
+        isCommanderGame: isCommanderGame,
+      ),
     );
   }
 }
@@ -51,10 +60,12 @@ class CustomizePlayerPage extends StatelessWidget {
 class CustomizePlayerView extends StatefulWidget {
   const CustomizePlayerView({
     required this.playerId,
+    this.isCommanderGame = true,
     super.key,
   });
 
   final String playerId;
+  final bool isCommanderGame;
 
   @override
   State<CustomizePlayerView> createState() => _CustomizePlayerViewState();
@@ -203,37 +214,24 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
                 SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          flex: 39,
-                          child: _Panel(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  const _FriendSection(),
-                                  PlayerIdentityPanel(
-                                    nameController: _nameController,
-                                    nameFocusNode: _nameFocusNode,
-                                    playerColor: player.color,
-                                    onSave: () => _save(context, state),
-                                  ),
-                                ],
-                              ),
-                            ),
+                    child: _ResponsiveLayout(
+                      identity: Column(
+                        children: [
+                          const _FriendSection(),
+                          PlayerIdentityPanel(
+                            nameController: _nameController,
+                            nameFocusNode: _nameFocusNode,
+                            playerColor: player.color,
+                            isCommanderGame: widget.isCommanderGame,
+                            savedCardName: player.commander?.name,
+                            onSave: () => _save(context, state),
                           ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          flex: 61,
-                          child: _Panel(
-                            child: CommanderPickerPanel(
-                              searchController: _searchController,
-                            ),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      picker: CommanderPickerPanel(
+                        searchController: _searchController,
+                        isCommanderGame: widget.isCommanderGame,
+                      ),
                     ),
                   ),
                 ),
@@ -242,6 +240,56 @@ class _CustomizePlayerViewState extends State<CustomizePlayerView> {
           );
         },
       ),
+    );
+  }
+}
+
+/// Puts the identity panel beside the card picker in landscape, and above
+/// it in portrait, where side-by-side panels are too narrow on a phone.
+class _ResponsiveLayout extends StatelessWidget {
+  const _ResponsiveLayout({required this.identity, required this.picker});
+
+  final Widget identity;
+  final Widget picker;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isPortrait = constraints.maxHeight > constraints.maxWidth;
+        if (!isPortrait) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                flex: 39,
+                child: _Panel(
+                  child: SingleChildScrollView(child: identity),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(flex: 61, child: _Panel(child: picker)),
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // The identity panel takes its natural height, but never more
+            // than half, so the picker keeps room when the keyboard is up.
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: constraints.maxHeight / 2,
+              ),
+              child: _Panel(
+                child: SingleChildScrollView(child: identity),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Expanded(child: _Panel(child: picker)),
+          ],
+        );
+      },
     );
   }
 }

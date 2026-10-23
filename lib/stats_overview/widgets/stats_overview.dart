@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
+import 'package:magic_yeti/home/widgets/match_format_filter.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/stats_overview/stats_overview.dart';
@@ -44,7 +45,7 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
     final matchHistoryState = context.read<MatchHistoryBloc>().state;
     if (matchHistoryState.status == MatchHistoryStatus.loadingHistorySuccess ||
         matchHistoryState.status == MatchHistoryStatus.gameNotFound) {
-      _compileStats(matchHistoryState.games);
+      _compileStats(matchHistoryState.filteredGames);
     }
   }
 
@@ -65,10 +66,16 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    // The stats follow the same EDH / constructed filter as the match
+    // history.
+    final formatFilter = context.select<MatchHistoryBloc, MatchFormatFilter>(
+      (bloc) => bloc.state.formatFilter,
+    );
     return BlocListener<MatchHistoryBloc, MatchHistoryState>(
       listenWhen: (previous, current) =>
-          !identical(previous.games, current.games),
-      listener: (context, state) => _compileStats(state.games),
+          !identical(previous.games, current.games) ||
+          previous.formatFilter != current.formatFilter,
+      listener: (context, state) => _compileStats(state.filteredGames),
       child: BlocBuilder<StatsOverviewBloc, StatsOverviewState>(
         builder: (context, state) {
           if (state is StatsOverviewLoaded) {
@@ -76,7 +83,14 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
               children: [
                 _buildDropdown(context, state.range),
                 Expanded(
-                  child: StatsGrid(children: _buildStatWidgets(l10n, state)),
+                  child: StatsGrid(
+                    children: _buildStatWidgets(
+                      l10n,
+                      state,
+                      showCommanderDamage:
+                          formatFilter != MatchFormatFilter.constructed,
+                    ),
+                  ),
                 ),
               ],
             );
@@ -106,31 +120,40 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
         horizontal: 16,
         vertical: 8,
       ),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: DropdownButton<StatsTimeRange>(
-          value: range,
-          dropdownColor: Colors.grey[900],
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: Colors.blueGrey),
-          underline: Container(
-            height: 1,
-            color: Colors.blueGrey.withAlpha(100),
-          ),
-          icon: const Icon(
-            Icons.arrow_drop_down,
-            color: Colors.blueGrey,
-          ),
-          items: StatsTimeRange.values
-              .map(
-                (range) => DropdownMenuItem<StatsTimeRange>(
-                  value: range,
-                  child: Text(range.label),
-                ),
-              )
-              .toList(),
-          onChanged: _onRangeChanged,
+      // Full width, so the filter sits left and the range sits right. Wraps
+      // onto two lines when both dropdowns do not fit side by side.
+      child: SizedBox(
+        width: double.infinity,
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            const MatchFormatFilterDropdown(),
+            DropdownButton<StatsTimeRange>(
+              value: range,
+              dropdownColor: Colors.grey[900],
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.blueGrey),
+              underline: Container(
+                height: 1,
+                color: Colors.blueGrey.withAlpha(100),
+              ),
+              icon: const Icon(
+                Icons.arrow_drop_down,
+                color: Colors.blueGrey,
+              ),
+              items: StatsTimeRange.values
+                  .map(
+                    (range) => DropdownMenuItem<StatsTimeRange>(
+                      value: range,
+                      child: Text(range.label),
+                    ),
+                  )
+                  .toList(),
+              onChanged: _onRangeChanged,
+            ),
+          ],
         ),
       ),
     );
@@ -138,8 +161,9 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
 
   List<Widget> _buildStatWidgets(
     AppLocalizations l10n,
-    StatsOverviewLoaded state,
-  ) {
+    StatsOverviewLoaded state, {
+    required bool showCommanderDamage,
+  }) {
     return [
       StatsWidget(
         title: l10n.winRateTitle,
@@ -234,21 +258,24 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
             'The opponent who has beaten you '
             'the most (min 3 games)',
       ),
-      StatsWidget(
-        title: l10n.avgCommanderDamageTakenTitle,
-        stat: state.avgCommanderDamageTaken,
-        tooltip:
-            'Average total commander damage '
-            'you receive per game',
-      ),
-      StatsWidget(
-        title: l10n.timesKilledByCommanderTitle,
-        stat: state.timesKilledByCommander.toString(),
-        tooltip:
-            'Games where you took 21+ '
-            'commander damage from a single '
-            'opponent',
-      ),
+      // 1v1 constructed games have no commander damage.
+      if (showCommanderDamage) ...[
+        StatsWidget(
+          title: l10n.avgCommanderDamageTakenTitle,
+          stat: state.avgCommanderDamageTaken,
+          tooltip:
+              'Average total commander damage '
+              'you receive per game',
+        ),
+        StatsWidget(
+          title: l10n.timesKilledByCommanderTitle,
+          stat: state.timesKilledByCommander.toString(),
+          tooltip:
+              'Games where you took 21+ '
+              'commander damage from a single '
+              'opponent',
+        ),
+      ],
       StatsWidget(
         title: l10n.bestColorComboTitle,
         stat: state.bestColorCombo,
