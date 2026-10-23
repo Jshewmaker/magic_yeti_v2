@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
+import 'package:magic_yeti/game_tags/game_tag.dart';
 import 'package:player_repository/player_repository.dart';
 
 part 'match_edit_state.dart';
@@ -24,6 +25,7 @@ class MatchEditCubit extends Cubit<MatchEditState> {
       state.copyWith(
         status: MatchEditStatus.editing,
         draftPlayers: List<Player>.of(game.players),
+        draftGameTags: List<String>.of(game.tags),
       ),
     );
   }
@@ -63,6 +65,21 @@ class MatchEditCubit extends Cubit<MatchEditState> {
     );
   }
 
+  void toggleGameTag(GameTag tag) {
+    emit(state.copyWith(draftGameTags: tag.toggleIn(state.draftGameTags)));
+  }
+
+  void togglePlayerTag(String playerId, GameTag tag) {
+    emit(
+      state.copyWith(
+        draftPlayers: _replace(
+          playerId,
+          (p) => p.copyWith(tags: tag.toggleIn(p.tags)),
+        ),
+      ),
+    );
+  }
+
   Future<void> save() async {
     final game = _game;
     if (game == null) return;
@@ -75,6 +92,7 @@ class MatchEditCubit extends Cubit<MatchEditState> {
           for (final player in state.draftPlayers)
             player.copyWith(name: player.name.trim()),
         ],
+        tags: state.draftGameTags,
       );
       await _databaseRepository.updateGameStats(
         game: updated,

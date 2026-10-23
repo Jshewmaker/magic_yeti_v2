@@ -229,6 +229,12 @@ class _PhoneShell extends StatelessWidget {
                           currentUserId: userId,
                           compact: true,
                         ),
+                        const SizedBox(height: 28),
+                        GameOverSectionLabel(
+                          label: context.l10n.gameTagsHeading.toUpperCase(),
+                        ),
+                        const SizedBox(height: 14),
+                        GameOverTagsSection(state: state),
                       ],
                     ),
                   ),

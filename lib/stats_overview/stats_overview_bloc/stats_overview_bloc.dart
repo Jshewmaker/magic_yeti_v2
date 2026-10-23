@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
+import 'package:magic_yeti/game_tags/game_tag.dart';
 import 'package:player_repository/player_repository.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 
@@ -24,6 +25,7 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
       super(StatsOverviewInitial()) {
     on<CompileStatsOverviewData>(_onCompileStatsOverviewData);
     on<StatsTimeRangeChanged>(_onTimeRangeChanged);
+    on<StatsTagFilterChanged>(_onTagFilterChanged);
   }
 
   final ScryfallRepository _scryfallRepository;
@@ -31,6 +33,7 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
   List<GameModel> _allGames = const [];
   String _userId = '';
   StatsTimeRange _range = StatsTimeRange.allTime;
+  GameTag? _tag;
 
   /// Monotonic counter identifying each [_emitCompiled] invocation.
   ///
@@ -52,6 +55,52 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
   ) async {
     _range = event.range;
     await _emitCompiled(emit);
+  }
+
+  Future<void> _onTagFilterChanged(
+    StatsTagFilterChanged event,
+    Emitter<StatsOverviewState> emit,
+  ) async {
+    _tag = event.tag;
+    await _emitCompiled(emit);
+  }
+
+  /// Keeps the games that carry [tag]: on the game itself for a game tag, or
+  /// on the user's own seat for a player tag. A null [tag] keeps every game.
+  ///
+  /// Pure for the same reason as [_filterGames].
+  List<GameModel> _filterByTag(
+    List<GameModel> games,
+    GameTag? tag,
+    String userId,
+  ) {
+    if (tag == null) return games;
+    return games
+        .where((game) => _gameTagIds(game, userId).contains(tag.id))
+        .toList();
+  }
+
+  /// The tag ids that apply to [userId] in [game]: the game tags plus the
+  /// tags on the user's own seat. Only an exact `firebaseId` match counts —
+  /// unlike [_findPlayerInGame], never fall back to another player's seat.
+  Set<String> _gameTagIds(GameModel game, String userId) => {
+    ...game.tags,
+    for (final player in game.players)
+      if (player.firebaseId == userId) ...player.tags,
+  };
+
+  /// The known tags used in any of [games], in catalog order, plus
+  /// [selected] so the active filter never vanishes from the picker.
+  List<GameTag> _availableTags(
+    List<GameModel> games,
+    String userId,
+    GameTag? selected,
+  ) {
+    final ids = {
+      for (final game in games) ..._gameTagIds(game, userId),
+      if (selected != null) selected.id,
+    };
+    return GameTag.fromIds(ids);
   }
 
   /// Filters [games] to [range].
@@ -105,10 +154,15 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
     final range = _range;
     final userId = _userId;
     final allGames = _allGames;
+    final tag = _tag;
 
     emit(StatsOverviewLoading());
     try {
-      final filteredGames = _filterGames(allGames, range);
+      final filteredGames = _filterByTag(
+        _filterGames(allGames, range),
+        tag,
+        userId,
+      );
       final games = await _resolveOracleIds(filteredGames, userId);
       // Calculate statistics
       final uniqueCommanderCount = _calculateUniqueCommanders(games, userId);
@@ -145,6 +199,8 @@ class StatsOverviewBloc extends Bloc<StatsOverviewEvent, StatsOverviewState> {
           userId: userId,
           games: filteredGames,
           range: range,
+          tag: tag,
+          availableTags: _availableTags(allGames, userId, tag),
           uniqueCommanderCount: uniqueCommanderCount,
           totalWins: totalWins,
           winPercentage: winPercentage,

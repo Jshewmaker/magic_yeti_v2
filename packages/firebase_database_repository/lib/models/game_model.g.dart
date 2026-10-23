@@ -19,6 +19,9 @@ GameModel _$GameModelFromJson(Map<String, dynamic> json) => GameModel(
   hostId: json['hostId'] as String? ?? '',
   startingPlayerId: json['startingPlayerId'] as String? ?? '',
   roomId: json['roomId'] as String? ?? '',
+  tags:
+      (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
   id: json['id'] as String?,
 );
 
@@ -32,4 +35,5 @@ Map<String, dynamic> _$GameModelToJson(GameModel instance) => <String, dynamic>{
   'endTime': instance.endTime.toIso8601String(),
   'winnerId': instance.winnerId,
   'durationInSeconds': instance.durationInSeconds,
+  'tags': instance.tags,
 };

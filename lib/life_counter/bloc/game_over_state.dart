@@ -10,6 +10,8 @@ class GameOverState extends Equatable {
     this.gameModel,
     this.status = GameOverStatus.initial,
     this.exitIntent = GameOverExitIntent.home,
+    this.gameTags = const [],
+    this.hasSuggestedTags = false,
   });
 
   final List<Player> standings;
@@ -23,6 +25,14 @@ class GameOverState extends Equatable {
   /// destination without needing to inspect the event directly.
   final GameOverExitIntent exitIntent;
 
+  /// Ids of the tags for the whole game. Player tags live on each player in
+  /// [standings], so they follow the player when the standings change.
+  final List<String> gameTags;
+
+  /// Whether the app selected some tags from the game data when the screen
+  /// opened. The view then explains why tags are already selected.
+  final bool hasSuggestedTags;
+
   GameOverState copyWith({
     List<Player>? standings,
     GameModel? gameModel,
@@ -30,6 +40,7 @@ class GameOverState extends Equatable {
     String? firstPlayerId,
     GameOverStatus? status,
     GameOverExitIntent? exitIntent,
+    List<String>? gameTags,
   }) {
     return GameOverState(
       standings: standings ?? this.standings,
@@ -38,6 +49,8 @@ class GameOverState extends Equatable {
       firstPlayerId: firstPlayerId ?? this.firstPlayerId,
       status: status ?? this.status,
       exitIntent: exitIntent ?? this.exitIntent,
+      gameTags: gameTags ?? this.gameTags,
+      hasSuggestedTags: hasSuggestedTags,
     );
   }
 
@@ -49,5 +62,7 @@ class GameOverState extends Equatable {
     gameModel,
     status,
     exitIntent,
+    gameTags,
+    hasSuggestedTags,
   ];
 }

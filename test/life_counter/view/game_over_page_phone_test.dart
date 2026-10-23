@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
+import 'package:magic_yeti/game_tags/game_tags.dart';
 import 'package:magic_yeti/life_counter/bloc/game_over_bloc.dart';
 import 'package:magic_yeti/life_counter/view/game_over_page.dart';
 import 'package:magic_yeti/life_counter/widgets/game_over/game_over.dart';
@@ -337,5 +338,104 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+
+    group('tags', () {
+      testWidgets('tapping a game tag pill toggles the tag', (tester) async {
+        final bloc = await pumpPhoneView(tester);
+        final pill = find.byKey(const ValueKey('tag_pill_bracket_3'));
+
+        await tester.scrollUntilVisible(
+          pill,
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+        // scrollUntilVisible stops once the pill is built, which can still
+        // be below the fold; bring it fully on screen before the tap.
+        await tester.ensureVisible(pill);
+        await tester.pumpAndSettle();
+        await tester.tap(pill);
+        await tester.pump();
+
+        expect(bloc.state.gameTags, contains(GameTag.bracket3.id));
+      });
+
+      testWidgets('explains the tags that the app selected', (tester) async {
+        await pumpPhoneView(tester);
+        final hint = find.text(
+          'Some tags were selected from the game data. '
+          'Tap a tag to clear it.',
+        );
+
+        await tester.scrollUntilVisible(
+          hint,
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+
+        expect(hint, findsOneWidget);
+      });
+
+      testWidgets(
+        'the row tag button opens the sheet, and a tap there tags the player',
+        (tester) async {
+          final bloc = await pumpPhoneView(tester);
+
+          await tester.tap(
+            find.byKey(const ValueKey('edit_player_tags_host-slot')),
+          );
+          await tester.pumpAndSettle();
+
+          expect(find.text('Tags for Host Player'), findsOneWidget);
+
+          await tester.tap(find.byKey(const ValueKey('tag_pill_t1_sol_ring')));
+          await tester.pump();
+
+          final host = bloc.state.standings.firstWhere(
+            (p) => p.id == 'host-slot',
+          );
+          expect(host.tags, contains(GameTag.t1SolRing.id));
+
+          expect(find.text('Save'), findsOneWidget);
+          await tester.tap(find.byKey(const Key('player_tags_sheet_done')));
+          await tester.pumpAndSettle();
+
+          expect(find.text('Tags for Host Player'), findsNothing);
+          // The row now shows the new tag.
+          expect(find.text('Turn 1 Sol Ring'), findsOneWidget);
+          expect(tester.takeException(), isNull);
+        },
+      );
+
+      testWidgets(
+        'rows with many tags and long commander names do not overflow '
+        'at 2x text scale',
+        (tester) async {
+          const commander = Commander(
+            name: 'Kenrith, the Returned King of the Very Long Name',
+            colors: ['W'],
+            cardType: 'Legendary Creature',
+            imageUrl: '',
+            manaCost: '{W}',
+            oracleText: '',
+            artist: 'Artist',
+          );
+          final players = [
+            for (final player in playersFor(4))
+              player.copyWith(
+                commander: commander,
+                tags: [
+                  for (final tag in GameTagGroup.mana.tags) tag.id,
+                  GameTag.commanderTax6.id,
+                ],
+              ),
+          ];
+
+          await pumpPhoneView(tester, players: players, textScale: 2);
+
+          expect(find.text('+3'), findsWidgets);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    });
   });
 }

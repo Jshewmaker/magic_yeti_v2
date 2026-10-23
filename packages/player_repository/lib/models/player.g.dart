@@ -28,6 +28,9 @@ Player _$PlayerFromJson(Map<String, dynamic> json) => Player(
   state:
       $enumDecodeNullable(_$PlayerModelStateEnumMap, json['state']) ??
       PlayerModelState.eliminated,
+  tags:
+      (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
   placement: (json['placement'] as num?)?.toInt(),
   timeOfDeath: (json['timeOfDeath'] as num?)?.toInt(),
 );
@@ -46,6 +49,7 @@ Map<String, dynamic> _$PlayerToJson(Player instance) => <String, dynamic>{
   'placement': instance.placement,
   'timeOfDeath': instance.timeOfDeath,
   'opponents': instance.opponents?.map((e) => e.toJson()).toList(),
+  'tags': instance.tags,
 };
 
 const _$PlayerModelStateEnumMap = {

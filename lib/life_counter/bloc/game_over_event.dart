@@ -38,6 +38,27 @@ class UpdateFirstPlayerEvent extends GameOverEvent {
   List<Object?> get props => [playerId];
 }
 
+/// Switches [tag] on or off for the whole game.
+class ToggleGameTagEvent extends GameOverEvent {
+  const ToggleGameTagEvent(this.tag);
+
+  final GameTag tag;
+
+  @override
+  List<Object?> get props => [tag];
+}
+
+/// Switches [tag] on or off for the player with [playerId].
+class TogglePlayerTagEvent extends GameOverEvent {
+  const TogglePlayerTagEvent({required this.playerId, required this.tag});
+
+  final String playerId;
+  final GameTag tag;
+
+  @override
+  List<Object?> get props => [playerId, tag];
+}
+
 /// Where the view should navigate after a successful save.
 enum GameOverExitIntent { home, playAgain }
 

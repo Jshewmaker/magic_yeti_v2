@@ -19,6 +19,7 @@ class GameModel extends Equatable {
     this.hostId = '',
     this.startingPlayerId = '',
     this.roomId = '',
+    this.tags = const [],
     this.id,
   });
 
@@ -53,6 +54,10 @@ class GameModel extends Equatable {
   /// Total duration of the game in seconds
   final int durationInSeconds;
 
+  /// Ids of the tags that describe the whole game, for example `bracket_3`.
+  /// Tags for one player live on that [Player] instead.
+  final List<String> tags;
+
   /// Converts this GameModel to a JSON map
   Map<String, dynamic> toJson() => _$GameModelToJson(this);
 
@@ -67,6 +72,7 @@ class GameModel extends Equatable {
     endTime,
     winnerId,
     durationInSeconds,
+    tags,
   ];
 
   /// Creates a copy of this GameModel with the given fields replaced with the
@@ -81,6 +87,7 @@ class GameModel extends Equatable {
     String? winnerId,
     String? startingPlayerId,
     int? durationInSeconds,
+    List<String>? tags,
   }) {
     return GameModel(
       id: id ?? this.id,
@@ -92,6 +99,7 @@ class GameModel extends Equatable {
       endTime: endTime ?? this.endTime,
       winnerId: winnerId ?? this.winnerId,
       durationInSeconds: durationInSeconds ?? this.durationInSeconds,
+      tags: tags ?? this.tags,
     );
   }
 }

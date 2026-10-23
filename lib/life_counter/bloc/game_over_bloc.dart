@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
+import 'package:magic_yeti/game_tags/game_tags.dart';
 import 'package:player_repository/player_repository.dart';
 
 part 'game_over_event.dart';
@@ -12,22 +13,35 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
     required String currentUserId,
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
   }) : _firebaseDatabaseRepository = firebaseDatabaseRepository,
-       super(
-         GameOverState(
-           standings: List<Player>.from(players)
-             ..sort((a, b) => a.placement.compareTo(b.placement)),
-           selectedPlayerId: players
-               .where((p) => p.firebaseId == currentUserId)
-               .map((p) => p.id)
-               .cast<String?>()
-               .firstWhere((_) => true, orElse: () => null),
-           firstPlayerId: null,
-         ),
-       ) {
+       super(_initialState(players, currentUserId)) {
     on<UpdateStandingsEvent>(_onUpdateStandings);
     on<UpdateSelectedPlayerEvent>(_onUpdateSelectedPlayer);
     on<UpdateFirstPlayerEvent>(_onUpdateFirstPlayer);
+    on<ToggleGameTagEvent>(_onToggleGameTag);
+    on<TogglePlayerTagEvent>(_onTogglePlayerTag);
     on<SendGameOverStatsEvent>(_onSendGameStatsToDatabase);
+  }
+
+  static GameOverState _initialState(
+    List<Player> players,
+    String currentUserId,
+  ) {
+    final sorted = List<Player>.from(players)
+      ..sort((a, b) => a.placement.compareTo(b.placement));
+    final standings = withSuggestedPlayerTags(sorted);
+    final gameTags = suggestedGameTags(sorted);
+    return GameOverState(
+      standings: standings,
+      selectedPlayerId: players
+          .where((p) => p.firebaseId == currentUserId)
+          .map((p) => p.id)
+          .cast<String?>()
+          .firstWhere((_) => true, orElse: () => null),
+      firstPlayerId: null,
+      gameTags: gameTags,
+      hasSuggestedTags:
+          gameTags.isNotEmpty || standings.any((p) => p.tags.isNotEmpty),
+    );
   }
 
   /// Dropdown sentinel meaning the current user is not one of the players.
@@ -46,7 +60,9 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
     } else {
       newStandings.insert(event.newIndex, player);
     }
-    emit(state.copyWith(standings: newStandings));
+    emit(
+      state.copyWith(standings: followFirstOut(state.standings, newStandings)),
+    );
   }
 
   void _onUpdateSelectedPlayer(
@@ -61,6 +77,30 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
     Emitter<GameOverState> emit,
   ) {
     emit(state.copyWith(firstPlayerId: event.playerId));
+  }
+
+  void _onToggleGameTag(
+    ToggleGameTagEvent event,
+    Emitter<GameOverState> emit,
+  ) {
+    emit(state.copyWith(gameTags: event.tag.toggleIn(state.gameTags)));
+  }
+
+  void _onTogglePlayerTag(
+    TogglePlayerTagEvent event,
+    Emitter<GameOverState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        standings: [
+          for (final player in state.standings)
+            if (player.id == event.playerId)
+              player.copyWith(tags: event.tag.toggleIn(player.tags))
+            else
+              player,
+        ],
+      ),
+    );
   }
 
   Future<void> _onSendGameStatsToDatabase(
@@ -113,6 +153,7 @@ class GameOverBloc extends Bloc<GameOverEvent, GameOverState> {
       }).toList(),
       winnerId: state.standings.first.id,
       startingPlayerId: state.firstPlayerId,
+      tags: state.gameTags,
     );
 
     try {
