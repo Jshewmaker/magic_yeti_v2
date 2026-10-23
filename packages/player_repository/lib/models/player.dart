@@ -40,6 +40,7 @@ class Player extends Equatable {
     this.background,
     this.firebaseId,
     this.state = PlayerModelState.eliminated,
+    this.tags = const [],
     int? placement,
     int? timeOfDeath,
   }) : _placement = placement,
@@ -108,6 +109,11 @@ class Player extends Equatable {
   /// A list representing the damage dealt to the player by each opponent's commander.
   final List<Opponent>? opponents;
 
+  /// Ids of the tags added to this player at the end of the game, for
+  /// example `t1_sol_ring`. The app holds the tag catalog; this list holds
+  /// only the stable ids, so a label change never breaks a saved game.
+  final List<String> tags;
+
   /// Creates a new player object with the same values as the current player
   Player copyWith({
     String? id,
@@ -123,6 +129,7 @@ class Player extends Equatable {
     Value<int?>? placement,
     Value<int?>? timeOfDeath,
     List<Opponent>? opponents,
+    List<String>? tags,
   }) {
     return Player(
       firebaseId: firebaseId != null ? firebaseId() : this.firebaseId,
@@ -138,6 +145,7 @@ class Player extends Equatable {
       placement: placement != null ? placement.value : _placement,
       timeOfDeath: timeOfDeath != null ? timeOfDeath.value : _timeOfDeath,
       opponents: opponents ?? this.opponents,
+      tags: tags ?? this.tags,
     );
   }
 
@@ -157,6 +165,7 @@ class Player extends Equatable {
     state,
     firebaseId,
     opponents,
+    tags,
     _placement,
     _timeOfDeath,
   ];

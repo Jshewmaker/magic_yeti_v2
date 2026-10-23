@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:magic_yeti/game_tags/game_tags.dart';
 import 'package:magic_yeti/stats_overview/stats_overview.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:player_repository/player_repository.dart';
@@ -359,6 +360,138 @@ void main() {
                 'the in-flight allTime compile must not emit its game set '
                 'under the newer Last 30 Days label',
           );
+        },
+      );
+    });
+
+    group('tag filter', () {
+      final bracket3Game = oldGame.copyWith(
+        id: 'b3',
+        tags: const ['bracket_3'],
+      );
+      final bracket2Game = oldGame.copyWith(
+        id: 'b2',
+        tags: const ['bracket_2'],
+      );
+      final solRingGame = oldGame.copyWith(
+        id: 'sol',
+        players: [
+          oldGame.players.single.copyWith(tags: const ['t1_sol_ring']),
+        ],
+      );
+      // Another seat holds the tag, not alice: must not match her filter.
+      final friendSolRingGame = oldGame.copyWith(
+        id: 'friend-sol',
+        players: [
+          oldGame.players.single,
+          oldGame.players.single.copyWith(
+            id: 'p2',
+            firebaseId: () => 'bob',
+            tags: const ['t1_sol_ring', 'great_opener'],
+          ),
+        ],
+      );
+      final games = [
+        bracket3Game,
+        bracket2Game,
+        solRingGame,
+        friendSolRingGame,
+      ];
+
+      CompileStatsOverviewData compile() =>
+          CompileStatsOverviewData(userId: 'alice', games: games);
+
+      blocTest<StatsOverviewBloc, StatsOverviewState>(
+        'lists only the tags in the user games, and no tag is selected',
+        build: buildBloc,
+        act: (bloc) => bloc.add(compile()),
+        verify: (bloc) {
+          final state = bloc.state as StatsOverviewLoaded;
+          expect(state.tag, isNull);
+          expect(state.games, hasLength(4));
+          // great_opener is only on bob's seat, so alice cannot filter by it.
+          expect(state.availableTags, [
+            GameTag.bracket2,
+            GameTag.bracket3,
+            GameTag.t1SolRing,
+          ]);
+        },
+      );
+
+      blocTest<StatsOverviewBloc, StatsOverviewState>(
+        'a game tag keeps only the games with that tag',
+        build: buildBloc,
+        act: (bloc) => bloc
+          ..add(compile())
+          ..add(const StatsTagFilterChanged(GameTag.bracket3)),
+        verify: (bloc) {
+          final state = bloc.state as StatsOverviewLoaded;
+          expect(state.tag, GameTag.bracket3);
+          expect(state.games.map((g) => g.id), ['b3']);
+          expect(state.totalWins, 1);
+        },
+      );
+
+      blocTest<StatsOverviewBloc, StatsOverviewState>(
+        "a player tag matches only the user's own seat",
+        build: buildBloc,
+        act: (bloc) => bloc
+          ..add(compile())
+          ..add(const StatsTagFilterChanged(GameTag.t1SolRing)),
+        verify: (bloc) {
+          final state = bloc.state as StatsOverviewLoaded;
+          expect(state.games.map((g) => g.id), ['sol']);
+        },
+      );
+
+      blocTest<StatsOverviewBloc, StatsOverviewState>(
+        'clearing the filter shows every game again',
+        build: buildBloc,
+        act: (bloc) => bloc
+          ..add(compile())
+          ..add(const StatsTagFilterChanged(GameTag.bracket3))
+          ..add(const StatsTagFilterChanged(null)),
+        verify: (bloc) {
+          final state = bloc.state as StatsOverviewLoaded;
+          expect(state.tag, isNull);
+          expect(state.games, hasLength(4));
+        },
+      );
+
+      blocTest<StatsOverviewBloc, StatsOverviewState>(
+        'keeps the selected tag in the list when no game has it any more',
+        build: buildBloc,
+        act: (bloc) => bloc
+          ..add(compile())
+          ..add(const StatsTagFilterChanged(GameTag.bracket3))
+          ..add(
+            CompileStatsOverviewData(userId: 'alice', games: [bracket2Game]),
+          ),
+        verify: (bloc) {
+          final state = bloc.state as StatsOverviewLoaded;
+          expect(state.games, isEmpty);
+          expect(state.availableTags, [GameTag.bracket2, GameTag.bracket3]);
+        },
+      );
+
+      blocTest<StatsOverviewBloc, StatsOverviewState>(
+        'combines with the time range',
+        build: buildBloc,
+        act: (bloc) => bloc
+          ..add(
+            CompileStatsOverviewData(
+              userId: 'alice',
+              games: [
+                bracket3Game,
+                newGame.copyWith(id: 'new-b3', tags: const ['bracket_3']),
+              ],
+            ),
+          )
+          ..add(const StatsTagFilterChanged(GameTag.bracket3))
+          ..add(const StatsTimeRangeChanged(StatsTimeRange.last30Days)),
+        verify: (bloc) {
+          final state = bloc.state as StatsOverviewLoaded;
+          expect(state.games.map((g) => g.id), ['new-b3']);
         },
       );
     });

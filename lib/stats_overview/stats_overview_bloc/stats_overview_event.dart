@@ -4,7 +4,7 @@ sealed class StatsOverviewEvent extends Equatable {
   const StatsOverviewEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 final class LoadStatsOverview extends StatsOverviewEvent {
@@ -34,4 +34,13 @@ final class StatsTimeRangeChanged extends StatsOverviewEvent {
 
   @override
   List<Object> get props => [range];
+}
+
+/// Limits the stats to the games that carry [tag]. Null shows every game.
+final class StatsTagFilterChanged extends StatsOverviewEvent {
+  const StatsTagFilterChanged(this.tag);
+  final GameTag? tag;
+
+  @override
+  List<Object?> get props => [tag];
 }

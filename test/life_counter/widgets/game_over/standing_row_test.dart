@@ -56,6 +56,82 @@ void main() {
       await tester.pump();
     }
 
+    testWidgets(
+      'the placement bar fills the row, which stays 90 tall without tags',
+      (tester) async {
+        await pumpRow(tester, base);
+
+        final bar = find.byWidgetPredicate(
+          (widget) => widget is Container && widget.constraints?.maxWidth == 4,
+        );
+        // 90 tall plus the 8 bottom margin; the drag tests rely on it.
+        expect(tester.getSize(find.byType(StandingRow)).height, 98);
+        // The bar fills the row inside its 1px border.
+        expect(tester.getSize(bar), const Size(4, 88));
+      },
+    );
+
+    testWidgets('maxVisibleTags shows three tags on a wide row', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1000, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpApp(
+        Scaffold(
+          body: StandingRow(
+            player: base.copyWith(
+              tags: const [
+                'mana_screwed',
+                'great_opener',
+                't1_sol_ring',
+                'clutch_topdeck',
+              ],
+            ),
+            placement: 1,
+            maxVisibleTags: 3,
+          ),
+        ),
+      );
+
+      expect(find.text('Mana screwed'), findsOneWidget);
+      expect(find.text('Great opener'), findsOneWidget);
+      expect(find.text('Turn 1 Sol Ring'), findsOneWidget);
+      expect(find.text('+1'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('without onEditTags there is no tag button', (tester) async {
+      await pumpRow(tester, base.copyWith(tags: const ['t1_sol_ring']));
+
+      expect(find.byKey(const ValueKey('edit_player_tags_p1')), findsNothing);
+      // The tags still show.
+      expect(find.text('Turn 1 Sol Ring'), findsOneWidget);
+    });
+
+    testWidgets('PlayerTagsLine shows two tags and a count for the rest', (
+      tester,
+    ) async {
+      await pumpRow(
+        tester,
+        base.copyWith(
+          tags: const [
+            'mana_screwed',
+            'great_opener',
+            't1_sol_ring',
+            'from_a_newer_app',
+          ],
+        ),
+      );
+
+      expect(find.text('Mana screwed'), findsOneWidget);
+      expect(find.text('Great opener'), findsOneWidget);
+      // The unknown id is not shown and not counted.
+      expect(find.text('+1'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('a very long player name ellipsizes instead of overflowing', (
       tester,
     ) async {
