@@ -13,28 +13,27 @@ import '../../helpers/helpers.dart';
 
 class _MockAppBloc extends MockBloc<AppEvent, AppState> implements AppBloc {}
 
-Player _seat(String id, {required int placement, String? commander}) =>
-    Player(
-      id: id,
-      name: 'Name-$id',
-      playerNumber: 0,
-      lifePoints: 40,
-      color: 0xFF000000,
-      opponents: const [],
-      placement: placement,
-      firebaseId: id,
-      commander: commander == null
-          ? null
-          : Commander(
-              name: commander,
-              colors: const ['G'],
-              cardType: 'Legendary Creature',
-              imageUrl: '',
-              manaCost: '{G}',
-              oracleText: '',
-              artist: 'A',
-            ),
-    );
+Player _seat(String id, {required int placement, String? commander}) => Player(
+  id: id,
+  name: 'Name-$id',
+  playerNumber: 0,
+  lifePoints: 40,
+  color: 0xFF000000,
+  opponents: const [],
+  placement: placement,
+  firebaseId: id,
+  commander: commander == null
+      ? null
+      : Commander(
+          name: commander,
+          colors: const ['G'],
+          cardType: 'Legendary Creature',
+          imageUrl: '',
+          manaCost: '{G}',
+          oracleText: '',
+          artist: 'A',
+        ),
+);
 
 void main() {
   group('MatchHistoryListItem', () {

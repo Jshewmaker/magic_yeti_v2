@@ -49,8 +49,10 @@ class PlayerTagsSheet extends StatelessWidget {
                 TextButton(
                   key: const Key('player_tags_sheet_done'),
                   onPressed: () => Navigator.of(context).pop(),
+                  // Each tap already updates the draft, so this only closes
+                  // the sheet; "Save" tells the user the picks are kept.
                   child: Text(
-                    MaterialLocalizations.of(context).closeButtonLabel,
+                    l10n.saveButtonLabel,
                     style: TextStyle(color: palette.accent),
                   ),
                 ),

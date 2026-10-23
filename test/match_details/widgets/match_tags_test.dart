@@ -125,6 +125,7 @@ void main() {
       await tester.pump();
       expect(cubit.state.draftPlayers[1].tags, ['clutch_topdeck']);
 
+      expect(find.text('Save'), findsOneWidget);
       await tester.tap(find.byKey(const Key('player_tags_sheet_done')));
       await tester.pumpAndSettle();
 

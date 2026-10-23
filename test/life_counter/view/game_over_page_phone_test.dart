@@ -395,6 +395,7 @@ void main() {
           );
           expect(host.tags, contains(GameTag.t1SolRing.id));
 
+          expect(find.text('Save'), findsOneWidget);
           await tester.tap(find.byKey(const Key('player_tags_sheet_done')));
           await tester.pumpAndSettle();
 
