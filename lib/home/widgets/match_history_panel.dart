@@ -2,6 +2,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
+import 'package:magic_yeti/home/widgets/match_format_filter.dart';
 import 'package:magic_yeti/home/widgets/match_history_list_item.dart';
 import 'package:magic_yeti/home/widgets/match_history_skeleton.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
@@ -46,10 +47,31 @@ class MatchHistoryPanel extends StatelessWidget {
                   ),
                 );
               }
-              return ListView.builder(
-                itemCount: state.games.length,
-                itemBuilder: (context, index) =>
-                    MatchHistoryListItem(game: state.games[index]),
+              final games = state.filteredGames;
+              return Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: MatchFormatFilterDropdown(),
+                    ),
+                  ),
+                  Expanded(
+                    child: games.isEmpty
+                        ? Center(
+                            child: Text(
+                              l10n.noMatchesForFilter,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: games.length,
+                            itemBuilder: (context, index) =>
+                                MatchHistoryListItem(game: games[index]),
+                          ),
+                  ),
+                ],
               );
           }
         },

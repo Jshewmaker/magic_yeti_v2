@@ -13,23 +13,43 @@ import 'package:magic_yeti/timer/bloc/timer_bloc.dart';
 /// Central control column containing game controls and utilities.
 /// Displays reset button, timer widget, and dice icon.
 /// Positioned between the two player columns for easy access.
+///
+/// Set [direction] to [Axis.horizontal] to lay the controls out as a bar,
+/// for the two-player layout where the players sit at the top and bottom.
 class CenterControlColumn extends StatelessWidget {
-  const CenterControlColumn({required this.onPressed, super.key});
+  const CenterControlColumn({
+    required this.onPressed,
+    this.direction = Axis.vertical,
+    super.key,
+  });
 
+  /// Collapses the column. When null, the collapse button is not shown.
   final VoidCallback? onPressed;
+  final Axis direction;
 
   @override
   Widget build(BuildContext context) {
     final textStyle = Theme.of(context).textTheme;
     final l10n = context.l10n;
+    final isVertical = direction == Axis.vertical;
 
-    return Column(
+    return Flex(
+      direction: direction,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _ResetButton(textStyle: textStyle, l10n: l10n),
         const _PauseResumeButton(),
-        const TimerWidget(),
-        _DiceIcon(onPressed: onPressed),
+        if (isVertical)
+          const TimerWidget()
+        else
+          // Shrinks the timer text, so the bar fits the narrowest phones.
+          const Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: TimerWidget(quarterTurns: 0),
+            ),
+          ),
+        if (onPressed != null) _DiceIcon(onPressed: onPressed),
         _HomeButton(textStyle: textStyle, l10n: l10n),
       ],
     );

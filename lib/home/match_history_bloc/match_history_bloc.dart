@@ -16,6 +16,7 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
     // completes on its own because the games stream never closes).
     on<LoadMatchHistory>(_onLoadMatchHistory, transformer: restartable());
     on<AddMatchToPlayerHistoryEvent>(_addMatchToPlayerHistory);
+    on<MatchFormatFilterChanged>(_onFormatFilterChanged);
   }
 
   final FirebaseDatabaseRepository _databaseRepository;
@@ -62,6 +63,13 @@ class MatchHistoryBloc extends Bloc<MatchHistoryEvent, MatchHistoryState> {
         );
       },
     );
+  }
+
+  void _onFormatFilterChanged(
+    MatchFormatFilterChanged event,
+    Emitter<MatchHistoryState> emit,
+  ) {
+    emit(state.copyWith(formatFilter: event.filter));
   }
 
   Future<void> _addMatchToPlayerHistory(

@@ -627,6 +627,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchUpdatedMessage => 'Match updated';
 
   @override
+  String get searchCardHintText => 'Search for a card';
+
+  @override
+  String get searchCardEmptyText => 'Search for a card to represent your deck';
+
+  @override
+  String get deckCardLabel => 'Deck card';
+
+  @override
+  String get noDeckCardSelected => 'No card selected';
+
+  @override
+  String get matchFormatAll => 'All games';
+
+  @override
+  String get matchFormatCommander => 'EDH';
+
+  @override
+  String get matchFormatConstructed => 'Constructed';
+
+  @override
+  String get noMatchesForFilter => 'No games match this filter';
+
+  @override
   String get gameTagsHeading => 'Tags';
 
   @override

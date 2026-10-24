@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/game_tags/game_tags.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
+import 'package:magic_yeti/home/widgets/match_format_filter.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/stats_overview/stats_overview.dart';
@@ -45,7 +46,7 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
     final matchHistoryState = context.read<MatchHistoryBloc>().state;
     if (matchHistoryState.status == MatchHistoryStatus.loadingHistorySuccess ||
         matchHistoryState.status == MatchHistoryStatus.gameNotFound) {
-      _compileStats(matchHistoryState.games);
+      _compileStats(matchHistoryState.filteredGames);
     }
   }
 
@@ -70,10 +71,16 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    // The stats follow the same EDH / constructed filter as the match
+    // history.
+    final formatFilter = context.select<MatchHistoryBloc, MatchFormatFilter>(
+      (bloc) => bloc.state.formatFilter,
+    );
     return BlocListener<MatchHistoryBloc, MatchHistoryState>(
       listenWhen: (previous, current) =>
-          !identical(previous.games, current.games),
-      listener: (context, state) => _compileStats(state.games),
+          !identical(previous.games, current.games) ||
+          previous.formatFilter != current.formatFilter,
+      listener: (context, state) => _compileStats(state.filteredGames),
       child: BlocBuilder<StatsOverviewBloc, StatsOverviewState>(
         builder: (context, state) {
           if (state is StatsOverviewLoaded) {
@@ -86,7 +93,14 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
                   availableTags: state.availableTags,
                 ),
                 Expanded(
-                  child: StatsGrid(children: _buildStatWidgets(l10n, state)),
+                  child: StatsGrid(
+                    children: _buildStatWidgets(
+                      l10n,
+                      state,
+                      showCommanderDamage:
+                          formatFilter != MatchFormatFilter.constructed,
+                    ),
+                  ),
                 ),
               ],
             );
@@ -110,8 +124,8 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
     );
   }
 
-  /// The tag filter (only when the user has tagged games) and the time
-  /// range, right-aligned.
+  /// The format filter on the left; the tag filter (only when the user has
+  /// tagged games) and the time range on the right.
   Widget _buildFilters(
     BuildContext context, {
     required StatsTimeRange range,
@@ -124,49 +138,65 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
         horizontal: 16,
         vertical: 8,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          if (availableTags.isNotEmpty) ...[
-            Flexible(
-              child: _styledDropdown<GameTag?>(
-                key: const Key('stats_tag_filter'),
-                context: context,
-                // Fills the Flexible so a long tag label ellipsizes.
-                isExpanded: true,
-                value: tag,
-                items: [
-                  DropdownMenuItem<GameTag?>(
-                    child: Text(l10n.statsTagFilterAll),
-                  ),
-                  for (final option in availableTags)
-                    DropdownMenuItem<GameTag?>(
-                      value: option,
-                      child: Text(
-                        option.label(l10n),
-                        overflow: TextOverflow.ellipsis,
+      // Full width, so the format filter sits left and the tag and range
+      // filters sit right. Wraps onto two lines when they do not fit side by
+      // side.
+      child: SizedBox(
+        width: double.infinity,
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            const MatchFormatFilterDropdown(),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (availableTags.isNotEmpty) ...[
+                  Flexible(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 160),
+                      child: _styledDropdown<GameTag?>(
+                        key: const Key('stats_tag_filter'),
+                        context: context,
+                        // Fills the box so a long tag label ellipsizes.
+                        isExpanded: true,
+                        value: tag,
+                        items: [
+                          DropdownMenuItem<GameTag?>(
+                            child: Text(l10n.statsTagFilterAll),
+                          ),
+                          for (final option in availableTags)
+                            DropdownMenuItem<GameTag?>(
+                              value: option,
+                              child: Text(
+                                option.label(l10n),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                        onChanged: _onTagChanged,
                       ),
                     ),
-                ],
-                onChanged: _onTagChanged,
-              ),
-            ),
-            const SizedBox(width: 16),
-          ],
-          _styledDropdown<StatsTimeRange>(
-            context: context,
-            value: range,
-            items: StatsTimeRange.values
-                .map(
-                  (range) => DropdownMenuItem<StatsTimeRange>(
-                    value: range,
-                    child: Text(range.label),
                   ),
-                )
-                .toList(),
-            onChanged: _onRangeChanged,
-          ),
-        ],
+                  const SizedBox(width: 16),
+                ],
+                _styledDropdown<StatsTimeRange>(
+                  context: context,
+                  value: range,
+                  items: StatsTimeRange.values
+                      .map(
+                        (range) => DropdownMenuItem<StatsTimeRange>(
+                          value: range,
+                          child: Text(range.label),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: _onRangeChanged,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -202,8 +232,9 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
 
   List<Widget> _buildStatWidgets(
     AppLocalizations l10n,
-    StatsOverviewLoaded state,
-  ) {
+    StatsOverviewLoaded state, {
+    required bool showCommanderDamage,
+  }) {
     return [
       StatsWidget(
         title: l10n.winRateTitle,
@@ -298,21 +329,24 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
             'The opponent who has beaten you '
             'the most (min 3 games)',
       ),
-      StatsWidget(
-        title: l10n.avgCommanderDamageTakenTitle,
-        stat: state.avgCommanderDamageTaken,
-        tooltip:
-            'Average total commander damage '
-            'you receive per game',
-      ),
-      StatsWidget(
-        title: l10n.timesKilledByCommanderTitle,
-        stat: state.timesKilledByCommander.toString(),
-        tooltip:
-            'Games where you took 21+ '
-            'commander damage from a single '
-            'opponent',
-      ),
+      // 1v1 constructed games have no commander damage.
+      if (showCommanderDamage) ...[
+        StatsWidget(
+          title: l10n.avgCommanderDamageTakenTitle,
+          stat: state.avgCommanderDamageTaken,
+          tooltip:
+              'Average total commander damage '
+              'you receive per game',
+        ),
+        StatsWidget(
+          title: l10n.timesKilledByCommanderTitle,
+          stat: state.timesKilledByCommander.toString(),
+          tooltip:
+              'Games where you took 21+ '
+              'commander damage from a single '
+              'opponent',
+        ),
+      ],
       StatsWidget(
         title: l10n.bestColorComboTitle,
         stat: state.bestColorCombo,

@@ -49,6 +49,16 @@ class ScryfallRepository {
     return _normalizeCards(apiResults);
   }
 
+  /// Searches every card on Scryfall by name, not only commanders.
+  ///
+  /// Skips the bundled commander index, which holds only commanders, and so
+  /// needs a network connection. Filters and normalizes the results the same
+  /// way as [getCardFullText].
+  Future<SearchCards> searchAllCards({required String cardName}) async {
+    final apiResults = await _apiClient.getCardFullText(cardName);
+    return _normalizeCards(apiResults);
+  }
+
   SearchCards _normalizeCards(SearchCards cards) {
     final filtered = cards.data
         .where(
