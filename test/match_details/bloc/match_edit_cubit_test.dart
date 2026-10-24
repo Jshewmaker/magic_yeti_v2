@@ -2,6 +2,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:magic_yeti/game_tags/game_tags.dart';
 import 'package:magic_yeti/match_details/bloc/match_edit_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:player_repository/player_repository.dart';
@@ -240,4 +241,79 @@ void main() {
       );
     },
   );
+
+  group('tags', () {
+    GameModel taggedGame() => _game().copyWith(
+      tags: const ['bracket_2'],
+      players: [
+        _player('p1', 'Alice').copyWith(tags: const ['t1_sol_ring']),
+        _player('p2', 'Bob'),
+      ],
+    );
+
+    blocTest<MatchEditCubit, MatchEditState>(
+      'startEditing copies the saved game tags into the draft',
+      build: build,
+      act: (cubit) => cubit.startEditing(taggedGame()),
+      verify: (cubit) {
+        expect(cubit.state.draftGameTags, ['bracket_2']);
+        expect(cubit.state.draftPlayers.first.tags, ['t1_sol_ring']);
+      },
+    );
+
+    blocTest<MatchEditCubit, MatchEditState>(
+      'toggleGameTag replaces the bracket',
+      build: build,
+      act: (cubit) => cubit
+        ..startEditing(taggedGame())
+        ..toggleGameTag(GameTag.bracket4),
+      verify: (cubit) => expect(cubit.state.draftGameTags, ['bracket_4']),
+    );
+
+    blocTest<MatchEditCubit, MatchEditState>(
+      'togglePlayerTag changes only that player',
+      build: build,
+      act: (cubit) => cubit
+        ..startEditing(taggedGame())
+        ..togglePlayerTag('p1', GameTag.t1SolRing)
+        ..togglePlayerTag('p2', GameTag.manaFlooded),
+      verify: (cubit) {
+        expect(cubit.state.draftPlayers[0].tags, isEmpty);
+        expect(cubit.state.draftPlayers[1].tags, ['mana_flooded']);
+      },
+    );
+
+    blocTest<MatchEditCubit, MatchEditState>(
+      'save writes the draft tags',
+      setUp: () {
+        when(
+          () => repository.updateGameStats(
+            game: any(named: 'game'),
+            playerId: any(named: 'playerId'),
+          ),
+        ).thenAnswer((_) async {});
+      },
+      build: build,
+      act: (cubit) async {
+        cubit
+          ..startEditing(taggedGame())
+          ..toggleGameTag(GameTag.endCombo)
+          ..togglePlayerTag('p2', GameTag.savedTheTable);
+        await cubit.save();
+      },
+      verify: (cubit) {
+        final captured =
+            verify(
+                  () => repository.updateGameStats(
+                    game: captureAny(named: 'game'),
+                    playerId: 'user-1',
+                  ),
+                ).captured.single
+                as GameModel;
+        expect(captured.tags, ['bracket_2', 'end_combo']);
+        expect(captured.players[0].tags, ['t1_sol_ring']);
+        expect(captured.players[1].tags, ['saved_the_table']);
+      },
+    );
+  });
 }

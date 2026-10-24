@@ -632,4 +632,136 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get matchUpdatedMessage => 'Partida actualizada';
+
+  @override
+  String get gameTagsHeading => 'Etiquetas';
+
+  @override
+  String get gameTagsAutoHint =>
+      'Algunas etiquetas se seleccionaron con los datos de la partida. Toca una etiqueta para quitarla.';
+
+  @override
+  String get playerTagsButtonTooltip => 'Etiquetar jugador';
+
+  @override
+  String playerTagsSheetTitle(String name) {
+    return 'Etiquetas de $name';
+  }
+
+  @override
+  String get noTagsLabel => 'Sin etiquetas';
+
+  @override
+  String get statsTagFilterAll => 'Todas las partidas';
+
+  @override
+  String get tagGroupPowerLevel => 'Nivel de poder';
+
+  @override
+  String get tagGroupEnding => 'Cómo terminó';
+
+  @override
+  String get tagGroupPace => 'Ritmo';
+
+  @override
+  String get tagGroupMana => 'Maná';
+
+  @override
+  String get tagGroupKeyPlays => 'Jugadas clave';
+
+  @override
+  String get tagGroupEliminations => 'Eliminaciones';
+
+  @override
+  String get tagBracket1 => 'Bracket 1';
+
+  @override
+  String get tagBracket2 => 'Bracket 2';
+
+  @override
+  String get tagBracket3 => 'Bracket 3';
+
+  @override
+  String get tagBracket4 => 'Bracket 4';
+
+  @override
+  String get tagBracket5 => 'cEDH (Bracket 5)';
+
+  @override
+  String get tagBracket1Tooltip => 'Exhibición';
+
+  @override
+  String get tagBracket2Tooltip => 'Básico';
+
+  @override
+  String get tagBracket3Tooltip => 'Mejorado';
+
+  @override
+  String get tagBracket4Tooltip => 'Optimizado';
+
+  @override
+  String get tagBracket5Tooltip => 'EDH competitivo';
+
+  @override
+  String get tagEndCombat => 'Victoria en combate';
+
+  @override
+  String get tagEndCombo => 'Victoria por combo';
+
+  @override
+  String get tagEndCommanderDamage => 'Daño de comandante';
+
+  @override
+  String get tagEndDrain => 'Drenaje / daño directo';
+
+  @override
+  String get tagEndPoison => 'Veneno / infectar';
+
+  @override
+  String get tagEndAltWin => 'Victoria alternativa';
+
+  @override
+  String get tagEndConceded => 'La mesa se rindió';
+
+  @override
+  String get tagPaceFast => 'Partida rápida';
+
+  @override
+  String get tagPaceLong => 'Partida larga';
+
+  @override
+  String get tagFeelClose => 'Partida reñida';
+
+  @override
+  String get tagManaScrewed => 'Sin tierras';
+
+  @override
+  String get tagManaFlooded => 'Inundado de tierras';
+
+  @override
+  String get tagManaColorScrewed => 'Sin colores';
+
+  @override
+  String get tagGreatOpener => 'Gran mano inicial';
+
+  @override
+  String get tagT1SolRing => 'Sol Ring en turno 1';
+
+  @override
+  String get tagSavedTheTable => 'Salvó la mesa';
+
+  @override
+  String get tagClutchTopdeck => 'Robo decisivo';
+
+  @override
+  String get tagCommanderTax6 => 'Impuesto de comandante 6+';
+
+  @override
+  String get tagKoCommanderDamage => 'KO por comandante';
+
+  @override
+  String get tagCommanderKill => 'Eliminó con comandante';
+
+  @override
+  String get tagFirstOut => 'Primero en caer';
 }

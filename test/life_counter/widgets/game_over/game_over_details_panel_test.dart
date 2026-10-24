@@ -155,6 +155,21 @@ void main() {
       },
     );
 
+    testWidgets('shows the game tags, and a tap toggles one', (tester) async {
+      final bloc = buildGameOverBloc(Completer<String>());
+      addTearDown(bloc.close);
+
+      await pumpPanel(tester, bloc);
+      final pill = find.byKey(const ValueKey('tag_pill_bracket_5'));
+      await tester.ensureVisible(pill);
+      await tester.pumpAndSettle();
+      await tester.tap(pill);
+      await tester.pump();
+
+      expect(bloc.state.gameTags, contains('bracket_5'));
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets(
       'tapping return home dispatches SendGameOverStatsEvent with home '
       'intent, reusing the same dispatch the panel used to inline',

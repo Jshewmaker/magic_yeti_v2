@@ -5,6 +5,8 @@ import 'package:magic_yeti/app/bloc/app_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/bloc/game_over_bloc.dart';
 import 'package:magic_yeti/life_counter/widgets/game_over/game_over_actions.dart';
+import 'package:magic_yeti/life_counter/widgets/game_over/game_over_standings.dart';
+import 'package:magic_yeti/life_counter/widgets/game_over/game_over_tags.dart';
 import 'package:magic_yeti/life_counter/widgets/game_over/game_over_tokens.dart';
 import 'package:player_repository/player_repository.dart';
 
@@ -45,13 +47,30 @@ class GameOverDetailsPanel extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          GameOverDetailsFields(
-            state: state,
-            players: players,
-            currentUserId: context.read<AppBloc>().state.user.id,
+          // Scrolls so the tags and large text scales fit the fixed-height
+          // panel; the action bar below stays pinned.
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GameOverDetailsFields(
+                    state: state,
+                    players: players,
+                    currentUserId: context.read<AppBloc>().state.user.id,
+                  ),
+                  const SizedBox(height: 24),
+                  GameOverSectionLabel(
+                    label: context.l10n.gameTagsHeading.toUpperCase(),
+                  ),
+                  const SizedBox(height: 14),
+                  GameOverTagsSection(state: state),
+                ],
+              ),
+            ),
           ),
 
-          const Spacer(),
+          const SizedBox(height: 16),
 
           GameOverActionBar(
             canSubmit: canSubmit,

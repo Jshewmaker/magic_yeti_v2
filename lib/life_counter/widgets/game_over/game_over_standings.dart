@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/bloc/game_over_bloc.dart';
+import 'package:magic_yeti/life_counter/widgets/game_over/game_over_tags.dart';
 import 'package:magic_yeti/life_counter/widgets/game_over/game_over_tokens.dart';
 import 'package:player_repository/player_repository.dart';
 
@@ -51,11 +52,17 @@ class GameOverStandingsPanel extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             buildDefaultDragHandles: false,
-            proxyDecorator: standingsProxyDecorator(state.standings),
+            proxyDecorator: standingsProxyDecorator(
+              state.standings,
+              maxVisibleTags: _tabletVisibleTags,
+            ),
             itemCount: state.standings.length,
             onReorder: (oldIndex, newIndex) =>
                 onStandingsReorder(context, oldIndex, newIndex),
-            itemBuilder: standingsItemBuilder(state.standings),
+            itemBuilder: standingsItemBuilder(
+              state.standings,
+              maxVisibleTags: _tabletVisibleTags,
+            ),
           ),
         ],
       ),
@@ -63,16 +70,28 @@ class GameOverStandingsPanel extends StatelessWidget {
   }
 }
 
+/// The tablet panel's rows are wide enough for three tags.
+const _tabletVisibleTags = 3;
+
 class StandingRow extends StatelessWidget {
   const StandingRow({
     required this.player,
     required this.placement,
     this.dragIndex,
+    this.onEditTags,
+    this.maxVisibleTags = 2,
     super.key,
   });
 
   final Player player;
   final int placement;
+
+  /// Opens the player's tag sheet. Null inside `proxyDecorator`, which
+  /// renders outside the [GameOverBloc] scope; the button is then hidden.
+  final VoidCallback? onEditTags;
+
+  /// How many tags fit on the row before the "+N" count.
+  final int maxVisibleTags;
 
   /// Index this row occupies in the surrounding reorderable list. When set,
   /// the grip becomes the only thing that starts a drag, leaving the rest of
@@ -87,7 +106,6 @@ class StandingRow extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      height: 90,
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
@@ -99,100 +117,131 @@ class StandingRow extends StatelessWidget {
         ),
       ),
       child: Stack(
-        fit: StackFit.expand,
         children: [
           // Commander art as subtle background
           if (hasArt)
-            Opacity(
-              opacity: 0.2,
-              child: Image.network(
-                player.commander!.imageUrl,
-                fit: BoxFit.cover,
-                alignment: Alignment.topCenter,
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.2,
+                child: Image.network(
+                  player.commander!.imageUrl,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                ),
               ),
             ),
 
-          Row(
-            children: [
-              // Placement color bar
-              Container(width: 4, color: color),
-              const SizedBox(width: 14),
+          // The row is 90 tall by default: 88 here plus the 1px border on
+          // each side. A row with tags at a large text scale grows instead
+          // of overflowing. IntrinsicHeight gives the row a definite
+          // height, so the placement bar fills it top to bottom and the
+          // content stays centered.
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 88),
+            child: IntrinsicHeight(
+              child: Row(
+                children: [
+                  // Placement color bar
+                  Container(width: 4, color: color),
+                  const SizedBox(width: 14),
 
-              // Placement label. Width is sized generously above the widest
-              // label's natural extent (measured ~37pt for "2ND" at this
-              // size/weight/letterSpacing) so it never needs to wrap, and
-              // `maxLines`/`softWrap` make that a hard guarantee rather than
-              // a hope — if a future font or size change ever pushes a label
-              // wider than the box, it clips instead of silently wrapping
-              // into "2N" / "D" again. The gap to the name is its own
-              // SizedBox rather than leftover slack inside this box, so
-              // labels stay column-aligned across rows AND the gap can't
-              // collapse to zero the way it did when a label's ink width
-              // happened to match the box width exactly (the old "3RD"/"4TH"
-              // bug).
-              SizedBox(
-                width: 44,
-                child: Text(
-                  GameOverTokens.placementLabel(placement),
-                  maxLines: 1,
-                  softWrap: false,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Player + commander name
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      player.name,
+                  // Placement label. Width is sized generously above the widest
+                  // label's natural extent (measured ~37pt for "2ND" at this
+                  // size/weight/letterSpacing) so it never needs to wrap, and
+                  // `maxLines`/`softWrap` make that a hard guarantee rather
+                  // than a hope — if a future font or size change ever pushes a
+                  // label wider than the box, it clips instead of silently
+                  // wrapping into "2N" / "D" again. The gap to the name is its
+                  // own SizedBox rather than leftover slack inside this box, so
+                  // labels stay column-aligned across rows AND the gap can't
+                  // collapse to zero the way it did when a label's ink width
+                  // happened to match the box width exactly (the old
+                  // "3RD"/"4TH" bug).
+                  SizedBox(
+                    width: 44,
+                    child: Text(
+                      GameOverTokens.placementLabel(placement),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: GameOverTokens.textPrimary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                      softWrap: false,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1,
                       ),
                     ),
-                    if (player.commander?.name.isNotEmpty ?? false)
-                      Text(
-                        player.commander!.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: GameOverTokens.textSecondary,
-                          fontSize: 11,
+                  ),
+                  const SizedBox(width: 8),
+
+                  // Player + commander name
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          player.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: GameOverTokens.textPrimary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (player.commander?.name.isNotEmpty ?? false)
+                          Text(
+                            player.commander!.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: GameOverTokens.textSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                        if (player.tags.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          PlayerTagsLine(
+                            player: player,
+                            maxVisible: maxVisibleTags,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  if (onEditTags != null)
+                    IconButton(
+                      key: ValueKey('edit_player_tags_${player.id}'),
+                      tooltip: context.l10n.playerTagsButtonTooltip,
+                      onPressed: onEditTags,
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(
+                        Icons.sell_outlined,
+                        color: GameOverTokens.textSecondary,
+                        size: 18,
+                      ),
+                    ),
+
+                  if (player.firebaseId != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Tooltip(
+                        message: context.l10n.linkedAccountBadge,
+                        child: const Icon(
+                          Icons.link_rounded,
+                          color: GameOverTokens.accent,
+                          size: 16,
                         ),
                       ),
-                  ],
-                ),
-              ),
-
-              if (player.firebaseId != null)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: Tooltip(
-                    message: context.l10n.linkedAccountBadge,
-                    child: const Icon(
-                      Icons.link_rounded,
-                      color: GameOverTokens.accent,
-                      size: 16,
                     ),
-                  ),
-                ),
 
-              // Drag handle
-              _DragHandle(dragIndex: dragIndex),
-            ],
+                  // Drag handle
+                  _DragHandle(dragIndex: dragIndex),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -203,7 +252,10 @@ class StandingRow extends StatelessWidget {
 /// Builds the floating-row animation used while a [StandingRow] is being
 /// dragged. Shared by the tablet standings panel and the phone shell so both
 /// reorderable lists look the same mid-drag.
-ReorderItemProxyDecorator standingsProxyDecorator(List<Player> standings) {
+ReorderItemProxyDecorator standingsProxyDecorator(
+  List<Player> standings, {
+  int maxVisibleTags = 2,
+}) {
   return (child, index, animation) {
     return AnimatedBuilder(
       animation: animation,
@@ -219,6 +271,7 @@ ReorderItemProxyDecorator standingsProxyDecorator(List<Player> standings) {
             key: ValueKey('proxy_$index'),
             player: standings[index],
             placement: index + 1,
+            maxVisibleTags: maxVisibleTags,
           ),
         );
       },
@@ -230,13 +283,19 @@ ReorderItemProxyDecorator standingsProxyDecorator(List<Player> standings) {
 /// and the phone's [SliverReorderableList] so both reorderable lists render
 /// rows identically.
 Widget Function(BuildContext, int) standingsItemBuilder(
-  List<Player> standings,
-) {
+  List<Player> standings, {
+  int maxVisibleTags = 2,
+}) {
   return (context, index) => StandingRow(
     key: ValueKey(standings[index].id),
     player: standings[index],
     placement: index + 1,
     dragIndex: index,
+    maxVisibleTags: maxVisibleTags,
+    onEditTags: () => showGameOverPlayerTagsSheet(
+      context,
+      playerId: standings[index].id,
+    ),
   );
 }
 
