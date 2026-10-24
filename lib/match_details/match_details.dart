@@ -6,3 +6,4 @@ export 'widgets/commander_picker.dart';
 export 'widgets/editable_player_tile.dart';
 export 'widgets/match_details_app_bar_actions.dart';
 export 'widgets/match_edit_players_list.dart';
+export 'widgets/match_tags.dart';

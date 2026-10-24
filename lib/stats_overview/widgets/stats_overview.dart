@@ -2,6 +2,7 @@ import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/game_tags/game_tags.dart';
 import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
 import 'package:magic_yeti/home/widgets/match_format_filter.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
@@ -63,6 +64,10 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
     context.read<StatsOverviewBloc>().add(StatsTimeRangeChanged(range));
   }
 
+  void _onTagChanged(GameTag? tag) {
+    context.read<StatsOverviewBloc>().add(StatsTagFilterChanged(tag));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -81,7 +86,12 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
           if (state is StatsOverviewLoaded) {
             return Column(
               children: [
-                _buildDropdown(context, state.range),
+                _buildFilters(
+                  context,
+                  range: state.range,
+                  tag: state.tag,
+                  availableTags: state.availableTags,
+                ),
                 Expanded(
                   child: StatsGrid(
                     children: _buildStatWidgets(
@@ -98,7 +108,7 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
           if (state is StatsOverviewFailure) {
             return Column(
               children: [
-                _buildDropdown(context, StatsTimeRange.allTime),
+                _buildFilters(context, range: StatsTimeRange.allTime),
                 const Expanded(
                   child: Center(
                     child: Text('No data available'),
@@ -114,14 +124,23 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
     );
   }
 
-  Widget _buildDropdown(BuildContext context, StatsTimeRange range) {
+  /// The format filter on the left; the tag filter (only when the user has
+  /// tagged games) and the time range on the right.
+  Widget _buildFilters(
+    BuildContext context, {
+    required StatsTimeRange range,
+    GameTag? tag,
+    List<GameTag> availableTags = const [],
+  }) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 8,
       ),
-      // Full width, so the filter sits left and the range sits right. Wraps
-      // onto two lines when both dropdowns do not fit side by side.
+      // Full width, so the format filter sits left and the tag and range
+      // filters sit right. Wraps onto two lines when they do not fit side by
+      // side.
       child: SizedBox(
         width: double.infinity,
         child: Wrap(
@@ -129,33 +148,85 @@ class _StatsOverviewViewState extends State<_StatsOverviewView> {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             const MatchFormatFilterDropdown(),
-            DropdownButton<StatsTimeRange>(
-              value: range,
-              dropdownColor: Colors.grey[900],
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.blueGrey),
-              underline: Container(
-                height: 1,
-                color: Colors.blueGrey.withAlpha(100),
-              ),
-              icon: const Icon(
-                Icons.arrow_drop_down,
-                color: Colors.blueGrey,
-              ),
-              items: StatsTimeRange.values
-                  .map(
-                    (range) => DropdownMenuItem<StatsTimeRange>(
-                      value: range,
-                      child: Text(range.label),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (availableTags.isNotEmpty) ...[
+                  Flexible(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 160),
+                      child: _styledDropdown<GameTag?>(
+                        key: const Key('stats_tag_filter'),
+                        context: context,
+                        // Fills the box so a long tag label ellipsizes.
+                        isExpanded: true,
+                        value: tag,
+                        items: [
+                          DropdownMenuItem<GameTag?>(
+                            child: Text(l10n.statsTagFilterAll),
+                          ),
+                          for (final option in availableTags)
+                            DropdownMenuItem<GameTag?>(
+                              value: option,
+                              child: Text(
+                                option.label(l10n),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                        onChanged: _onTagChanged,
+                      ),
                     ),
-                  )
-                  .toList(),
-              onChanged: _onRangeChanged,
+                  ),
+                  const SizedBox(width: 16),
+                ],
+                _styledDropdown<StatsTimeRange>(
+                  context: context,
+                  value: range,
+                  items: StatsTimeRange.values
+                      .map(
+                        (range) => DropdownMenuItem<StatsTimeRange>(
+                          value: range,
+                          child: Text(range.label),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: _onRangeChanged,
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _styledDropdown<T>({
+    required BuildContext context,
+    required T value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+    bool isExpanded = false,
+    Key? key,
+  }) {
+    return DropdownButton<T>(
+      key: key,
+      value: value,
+      isExpanded: isExpanded,
+      dropdownColor: Colors.grey[900],
+      style: Theme.of(
+        context,
+      ).textTheme.bodyMedium?.copyWith(color: Colors.blueGrey),
+      underline: Container(
+        height: 1,
+        color: Colors.blueGrey.withAlpha(100),
+      ),
+      icon: const Icon(
+        Icons.arrow_drop_down,
+        color: Colors.blueGrey,
+      ),
+      items: items,
+      onChanged: onChanged,
     );
   }
 

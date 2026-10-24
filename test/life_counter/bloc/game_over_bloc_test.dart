@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:magic_yeti/game_tags/game_tags.dart';
 import 'package:magic_yeti/life_counter/bloc/game_over_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:player_repository/player_repository.dart';
@@ -369,5 +370,150 @@ void main() {
         },
       );
     });
+  });
+
+  group('GameOverBloc tags', () {
+    late FirebaseDatabaseRepository firebaseDatabaseRepository;
+
+    Opponent lethalFrom(String sourceId) => Opponent(
+      playerId: sourceId,
+      damages: [
+        CommanderDamage(damageType: DamageType.commander, amount: 21),
+      ],
+    );
+
+    Player seat(
+      String id, {
+      required int placement,
+      List<Opponent> opponents = const [],
+    }) => Player(
+      id: id,
+      name: id,
+      playerNumber: placement,
+      lifePoints: 0,
+      color: 0,
+      opponents: opponents,
+      placement: placement,
+    );
+
+    // 'b' finished second, killed by the winner's commander.
+    final winner = seat('a', placement: 1);
+    final runnerUp = seat('b', placement: 2, opponents: [lethalFrom('a')]);
+    final third = seat('c', placement: 3);
+
+    final gameModel = GameModel(
+      players: const [],
+      startTime: DateTime(2024),
+      endTime: DateTime(2024),
+      winnerId: 'a',
+      durationInSeconds: 60,
+    );
+
+    setUp(() {
+      firebaseDatabaseRepository = _MockFirebaseDatabaseRepository();
+      when(
+        () => firebaseDatabaseRepository.saveGameStats(any()),
+      ).thenAnswer((_) async => 'saved-game-id');
+    });
+
+    GameOverBloc buildBloc(List<Player> players) => GameOverBloc(
+      players: players,
+      currentUserId: 'host',
+      firebaseDatabaseRepository: firebaseDatabaseRepository,
+    );
+
+    List<String> tagsOf(GameOverState state, String id) =>
+        state.standings.firstWhere((p) => p.id == id).tags;
+
+    test('selects the tags that the game data proves', () {
+      final bloc = buildBloc([third, runnerUp, winner]);
+
+      expect(tagsOf(bloc.state, 'a'), [GameTag.commanderKill.id]);
+      expect(tagsOf(bloc.state, 'b'), [GameTag.koCommanderDamage.id]);
+      expect(tagsOf(bloc.state, 'c'), [GameTag.firstOut.id]);
+      expect(bloc.state.gameTags, [GameTag.endCommanderDamage.id]);
+      expect(bloc.state.hasSuggestedTags, isTrue);
+    });
+
+    test('hasSuggestedTags is false for a one-player game', () {
+      final bloc = buildBloc([seat('a', placement: 1)]);
+      expect(bloc.state.gameTags, isEmpty);
+      expect(bloc.state.hasSuggestedTags, isFalse);
+    });
+
+    blocTest<GameOverBloc, GameOverState>(
+      'ToggleGameTagEvent adds a tag and replaces an exclusive one',
+      build: () => buildBloc([winner, third]),
+      act: (bloc) => bloc
+        ..add(const ToggleGameTagEvent(GameTag.bracket2))
+        ..add(const ToggleGameTagEvent(GameTag.bracket3))
+        ..add(const ToggleGameTagEvent(GameTag.feelClose)),
+      expect: () => [
+        isA<GameOverState>().having((s) => s.gameTags, 'gameTags', [
+          'bracket_2',
+        ]),
+        isA<GameOverState>().having((s) => s.gameTags, 'gameTags', [
+          'bracket_3',
+        ]),
+        isA<GameOverState>().having((s) => s.gameTags, 'gameTags', [
+          'bracket_3',
+          'feel_close',
+        ]),
+      ],
+    );
+
+    blocTest<GameOverBloc, GameOverState>(
+      'TogglePlayerTagEvent changes only that player',
+      build: () => buildBloc([winner, third]),
+      act: (bloc) => bloc
+        ..add(const TogglePlayerTagEvent(playerId: 'a', tag: GameTag.t1SolRing))
+        ..add(const TogglePlayerTagEvent(playerId: 'c', tag: GameTag.firstOut)),
+      verify: (bloc) {
+        expect(tagsOf(bloc.state, 'a'), ['t1_sol_ring']);
+        // 'c' was first out by default; the second toggle cleared it.
+        expect(tagsOf(bloc.state, 'c'), isEmpty);
+      },
+    );
+
+    blocTest<GameOverBloc, GameOverState>(
+      'reordering the standings moves first out to the new last player',
+      build: () => buildBloc([winner, runnerUp, third]),
+      // Drag 'b' (index 1) to the end.
+      act: (bloc) =>
+          bloc.add(const UpdateStandingsEvent(oldIndex: 1, newIndex: 3)),
+      verify: (bloc) {
+        expect(bloc.state.standings.map((p) => p.id), ['a', 'c', 'b']);
+        expect(tagsOf(bloc.state, 'c'), isEmpty);
+        expect(tagsOf(bloc.state, 'b'), [
+          GameTag.koCommanderDamage.id,
+          GameTag.firstOut.id,
+        ]);
+      },
+    );
+
+    blocTest<GameOverBloc, GameOverState>(
+      'saving writes the game tags and the player tags',
+      build: () => buildBloc([winner, third]),
+      act: (bloc) => bloc
+        ..add(const ToggleGameTagEvent(GameTag.bracket4))
+        ..add(
+          const TogglePlayerTagEvent(playerId: 'a', tag: GameTag.greatOpener),
+        )
+        ..add(SendGameOverStatsEvent(gameModel: gameModel, userId: 'host')),
+      verify: (_) {
+        final saved =
+            verify(
+                  () => firebaseDatabaseRepository.saveGameStats(captureAny()),
+                ).captured.single
+                as GameModel;
+        expect(saved.tags, ['bracket_4']);
+        expect(saved.players.firstWhere((p) => p.id == 'a').tags, [
+          'great_opener',
+        ]);
+        expect(saved.players.firstWhere((p) => p.id == 'c').tags, [
+          'first_out',
+        ]);
+      },
+    );
   });
 }

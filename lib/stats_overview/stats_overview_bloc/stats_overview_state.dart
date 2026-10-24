@@ -4,7 +4,7 @@ sealed class StatsOverviewState extends Equatable {
   const StatsOverviewState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 final class StatsOverviewInitial extends StatsOverviewState {}
@@ -34,6 +34,8 @@ final class StatsOverviewLoaded extends StatsOverviewState {
     required this.timesKilledByCommander,
     required this.bestColorCombo,
     required this.bestSingleColor,
+    this.tag,
+    this.availableTags = const [],
   });
 
   final String userId;
@@ -42,6 +44,12 @@ final class StatsOverviewLoaded extends StatsOverviewState {
   /// The time range the [games] were filtered to. Owned here rather than by
   /// the widget so the dropdown renders from bloc state.
   final StatsTimeRange range;
+
+  /// The tag the [games] were filtered to, or null for every game.
+  final GameTag? tag;
+
+  /// The tags the user can filter by: every known tag in their games.
+  final List<GameTag> availableTags;
   final int uniqueCommanderCount;
   final int totalWins;
   final int winPercentage;
@@ -62,10 +70,12 @@ final class StatsOverviewLoaded extends StatsOverviewState {
   final String bestSingleColor;
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
     userId,
     games,
     range,
+    tag,
+    availableTags,
     uniqueCommanderCount,
     totalWins,
     winPercentage,
@@ -95,5 +105,5 @@ final class StatsOverviewFailure extends StatsOverviewState {
   final String error;
 
   @override
-  List<Object> get props => [error];
+  List<Object?> get props => [error];
 }

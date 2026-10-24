@@ -266,7 +266,13 @@ class _MatchDetailsContent extends StatelessWidget {
           if (editState.isEditing) {
             return const SingleChildScrollView(
               padding: EdgeInsets.all(16),
-              child: MatchEditPlayersList(),
+              child: Column(
+                children: [
+                  MatchEditPlayersList(),
+                  SizedBox(height: 16),
+                  MatchEditGameTags(),
+                ],
+              ),
             );
           }
           return SingleChildScrollView(
@@ -303,6 +309,8 @@ class _MatchDetailsContent extends StatelessWidget {
                     onSelectPlayer: (player) =>
                         _showSeatAssignmentSheet(context, player),
                   ),
+                  const SizedBox(height: 16),
+                  MatchTagsWidget(game: game),
                   const SizedBox(height: 16),
                   // Match metadata
                   MatchMetadataWidget(

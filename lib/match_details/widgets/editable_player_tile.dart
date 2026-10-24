@@ -1,6 +1,7 @@
 // lib/match_details/widgets/editable_player_tile.dart
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:magic_yeti/game_tags/game_tags.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:player_repository/player_repository.dart';
 
@@ -11,6 +12,7 @@ class EditablePlayerTile extends StatefulWidget {
     required this.onTapCommander,
     required this.onTapPartner,
     required this.onRemovePartner,
+    this.onTapTags,
     super.key,
   });
 
@@ -19,6 +21,9 @@ class EditablePlayerTile extends StatefulWidget {
   final VoidCallback onTapCommander;
   final VoidCallback onTapPartner;
   final VoidCallback onRemovePartner;
+
+  /// Opens the player's tag sheet. The tags row is hidden when null.
+  final VoidCallback? onTapTags;
 
   @override
   State<EditablePlayerTile> createState() => _EditablePlayerTileState();
@@ -110,6 +115,15 @@ class _EditablePlayerTileState extends State<EditablePlayerTile> {
                         ),
                       ],
                     ),
+                  if (widget.onTapTags != null) ...[
+                    TagPillSummary(ids: player.tags),
+                    TextButton.icon(
+                      key: ValueKey('edit-tags-${player.id}'),
+                      onPressed: widget.onTapTags,
+                      icon: const Icon(Icons.sell_outlined, size: 16),
+                      label: Text(l10n.playerTagsButtonTooltip),
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/match_details/bloc/match_edit_cubit.dart';
 import 'package:magic_yeti/match_details/widgets/commander_picker.dart';
 import 'package:magic_yeti/match_details/widgets/editable_player_tile.dart';
+import 'package:magic_yeti/match_details/widgets/match_tags.dart';
 
 class MatchEditPlayersList extends StatelessWidget {
   const MatchEditPlayersList({
@@ -45,6 +46,8 @@ class MatchEditPlayersList extends StatelessWidget {
                 onTapPartner: () => _pickPartner(context, player.id),
                 onRemovePartner: () =>
                     context.read<MatchEditCubit>().setPartner(player.id, null),
+                onTapTags: () =>
+                    showMatchEditPlayerTagsSheet(context, playerId: player.id),
               ),
           ],
         );

@@ -1261,6 +1261,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No games match this filter'**
   String get noMatchesForFilter;
+
+  /// Heading for the tag section on the game over screen and match details
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get gameTagsHeading;
+
+  /// Hint under the tag section when the app selected tags automatically
+  ///
+  /// In en, this message translates to:
+  /// **'Some tags were selected from the game data. Tap a tag to clear it.'**
+  String get gameTagsAutoHint;
+
+  /// Tooltip for the button that opens the player tag sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Tag player'**
+  String get playerTagsButtonTooltip;
+
+  /// Title of the sheet that edits one player's tags
+  ///
+  /// In en, this message translates to:
+  /// **'Tags for {name}'**
+  String playerTagsSheetTitle(String name);
+
+  /// Shown on match details when a game has no tags
+  ///
+  /// In en, this message translates to:
+  /// **'No tags'**
+  String get noTagsLabel;
+
+  /// Stats filter option that shows games with any tags
+  ///
+  /// In en, this message translates to:
+  /// **'All games'**
+  String get statsTagFilterAll;
+
+  /// Tag group: the bracket of the game
+  ///
+  /// In en, this message translates to:
+  /// **'Power level'**
+  String get tagGroupPowerLevel;
+
+  /// Tag group: how the winner won
+  ///
+  /// In en, this message translates to:
+  /// **'How it ended'**
+  String get tagGroupEnding;
+
+  /// Tag group: how fast or close the game was
+  ///
+  /// In en, this message translates to:
+  /// **'Pace'**
+  String get tagGroupPace;
+
+  /// Tag group: a player's mana and draws
+  ///
+  /// In en, this message translates to:
+  /// **'Mana'**
+  String get tagGroupMana;
+
+  /// Tag group: a player's important plays
+  ///
+  /// In en, this message translates to:
+  /// **'Key plays'**
+  String get tagGroupKeyPlays;
+
+  /// Tag group: how a player was eliminated or eliminated others
+  ///
+  /// In en, this message translates to:
+  /// **'Eliminations'**
+  String get tagGroupEliminations;
+
+  /// Tag: Commander Bracket 1
+  ///
+  /// In en, this message translates to:
+  /// **'Bracket 1'**
+  String get tagBracket1;
+
+  /// Tag: Commander Bracket 2
+  ///
+  /// In en, this message translates to:
+  /// **'Bracket 2'**
+  String get tagBracket2;
+
+  /// Tag: Commander Bracket 3
+  ///
+  /// In en, this message translates to:
+  /// **'Bracket 3'**
+  String get tagBracket3;
+
+  /// Tag: Commander Bracket 4
+  ///
+  /// In en, this message translates to:
+  /// **'Bracket 4'**
+  String get tagBracket4;
+
+  /// Tag: Commander Bracket 5, competitive EDH
+  ///
+  /// In en, this message translates to:
+  /// **'cEDH (Bracket 5)'**
+  String get tagBracket5;
+
+  /// Official name of Commander Bracket 1
+  ///
+  /// In en, this message translates to:
+  /// **'Exhibition'**
+  String get tagBracket1Tooltip;
+
+  /// Official name of Commander Bracket 2
+  ///
+  /// In en, this message translates to:
+  /// **'Core'**
+  String get tagBracket2Tooltip;
+
+  /// Official name of Commander Bracket 3
+  ///
+  /// In en, this message translates to:
+  /// **'Upgraded'**
+  String get tagBracket3Tooltip;
+
+  /// Official name of Commander Bracket 4
+  ///
+  /// In en, this message translates to:
+  /// **'Optimized'**
+  String get tagBracket4Tooltip;
+
+  /// Official name of Commander Bracket 5
+  ///
+  /// In en, this message translates to:
+  /// **'Competitive EDH'**
+  String get tagBracket5Tooltip;
+
+  /// Tag: the winner won with combat damage
+  ///
+  /// In en, this message translates to:
+  /// **'Combat win'**
+  String get tagEndCombat;
+
+  /// Tag: the winner won with a combo
+  ///
+  /// In en, this message translates to:
+  /// **'Combo win'**
+  String get tagEndCombo;
+
+  /// Tag: the winner won with commander damage
+  ///
+  /// In en, this message translates to:
+  /// **'Commander damage'**
+  String get tagEndCommanderDamage;
+
+  /// Tag: the winner won with life drain or burn
+  ///
+  /// In en, this message translates to:
+  /// **'Drain / burn'**
+  String get tagEndDrain;
+
+  /// Tag: the winner won with poison counters
+  ///
+  /// In en, this message translates to:
+  /// **'Poison / infect'**
+  String get tagEndPoison;
+
+  /// Tag: the winner won with an alternate win condition
+  ///
+  /// In en, this message translates to:
+  /// **'Alternate win'**
+  String get tagEndAltWin;
+
+  /// Tag: the other players conceded
+  ///
+  /// In en, this message translates to:
+  /// **'Table conceded'**
+  String get tagEndConceded;
+
+  /// Tag: the game was fast
+  ///
+  /// In en, this message translates to:
+  /// **'Fast game'**
+  String get tagPaceFast;
+
+  /// Tag: the game was long
+  ///
+  /// In en, this message translates to:
+  /// **'Long grind'**
+  String get tagPaceLong;
+
+  /// Tag: every player had a chance to win
+  ///
+  /// In en, this message translates to:
+  /// **'Close game'**
+  String get tagFeelClose;
+
+  /// Tag: the player drew too few lands
+  ///
+  /// In en, this message translates to:
+  /// **'Mana screwed'**
+  String get tagManaScrewed;
+
+  /// Tag: the player drew too many lands
+  ///
+  /// In en, this message translates to:
+  /// **'Mana flooded'**
+  String get tagManaFlooded;
+
+  /// Tag: the player could not get the right colors of mana
+  ///
+  /// In en, this message translates to:
+  /// **'Color screwed'**
+  String get tagManaColorScrewed;
+
+  /// Tag: the player had a great opening hand
+  ///
+  /// In en, this message translates to:
+  /// **'Great opener'**
+  String get tagGreatOpener;
+
+  /// Tag: the player cast Sol Ring on turn 1
+  ///
+  /// In en, this message translates to:
+  /// **'Turn 1 Sol Ring'**
+  String get tagT1SolRing;
+
+  /// Tag: the player stopped another player from winning
+  ///
+  /// In en, this message translates to:
+  /// **'Saved the table'**
+  String get tagSavedTheTable;
+
+  /// Tag: the player drew the card they needed
+  ///
+  /// In en, this message translates to:
+  /// **'Clutch topdeck'**
+  String get tagClutchTopdeck;
+
+  /// Tag: the player paid 6 or more commander tax
+  ///
+  /// In en, this message translates to:
+  /// **'Commander tax 6+'**
+  String get tagCommanderTax6;
+
+  /// Tag: the player was eliminated by commander damage
+  ///
+  /// In en, this message translates to:
+  /// **'Commander dmg KO'**
+  String get tagKoCommanderDamage;
+
+  /// Tag: the player's commander eliminated another player
+  ///
+  /// In en, this message translates to:
+  /// **'Commander kill'**
+  String get tagCommanderKill;
+
+  /// Tag: the player was eliminated first
+  ///
+  /// In en, this message translates to:
+  /// **'First out'**
+  String get tagFirstOut;
 }
 
 class _AppLocalizationsDelegate

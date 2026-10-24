@@ -649,4 +649,136 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noMatchesForFilter => 'No games match this filter';
+
+  @override
+  String get gameTagsHeading => 'Tags';
+
+  @override
+  String get gameTagsAutoHint =>
+      'Some tags were selected from the game data. Tap a tag to clear it.';
+
+  @override
+  String get playerTagsButtonTooltip => 'Tag player';
+
+  @override
+  String playerTagsSheetTitle(String name) {
+    return 'Tags for $name';
+  }
+
+  @override
+  String get noTagsLabel => 'No tags';
+
+  @override
+  String get statsTagFilterAll => 'All games';
+
+  @override
+  String get tagGroupPowerLevel => 'Power level';
+
+  @override
+  String get tagGroupEnding => 'How it ended';
+
+  @override
+  String get tagGroupPace => 'Pace';
+
+  @override
+  String get tagGroupMana => 'Mana';
+
+  @override
+  String get tagGroupKeyPlays => 'Key plays';
+
+  @override
+  String get tagGroupEliminations => 'Eliminations';
+
+  @override
+  String get tagBracket1 => 'Bracket 1';
+
+  @override
+  String get tagBracket2 => 'Bracket 2';
+
+  @override
+  String get tagBracket3 => 'Bracket 3';
+
+  @override
+  String get tagBracket4 => 'Bracket 4';
+
+  @override
+  String get tagBracket5 => 'cEDH (Bracket 5)';
+
+  @override
+  String get tagBracket1Tooltip => 'Exhibition';
+
+  @override
+  String get tagBracket2Tooltip => 'Core';
+
+  @override
+  String get tagBracket3Tooltip => 'Upgraded';
+
+  @override
+  String get tagBracket4Tooltip => 'Optimized';
+
+  @override
+  String get tagBracket5Tooltip => 'Competitive EDH';
+
+  @override
+  String get tagEndCombat => 'Combat win';
+
+  @override
+  String get tagEndCombo => 'Combo win';
+
+  @override
+  String get tagEndCommanderDamage => 'Commander damage';
+
+  @override
+  String get tagEndDrain => 'Drain / burn';
+
+  @override
+  String get tagEndPoison => 'Poison / infect';
+
+  @override
+  String get tagEndAltWin => 'Alternate win';
+
+  @override
+  String get tagEndConceded => 'Table conceded';
+
+  @override
+  String get tagPaceFast => 'Fast game';
+
+  @override
+  String get tagPaceLong => 'Long grind';
+
+  @override
+  String get tagFeelClose => 'Close game';
+
+  @override
+  String get tagManaScrewed => 'Mana screwed';
+
+  @override
+  String get tagManaFlooded => 'Mana flooded';
+
+  @override
+  String get tagManaColorScrewed => 'Color screwed';
+
+  @override
+  String get tagGreatOpener => 'Great opener';
+
+  @override
+  String get tagT1SolRing => 'Turn 1 Sol Ring';
+
+  @override
+  String get tagSavedTheTable => 'Saved the table';
+
+  @override
+  String get tagClutchTopdeck => 'Clutch topdeck';
+
+  @override
+  String get tagCommanderTax6 => 'Commander tax 6+';
+
+  @override
+  String get tagKoCommanderDamage => 'Commander dmg KO';
+
+  @override
+  String get tagCommanderKill => 'Commander kill';
+
+  @override
+  String get tagFirstOut => 'First out';
 }

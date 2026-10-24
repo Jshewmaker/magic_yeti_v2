@@ -1041,6 +1041,182 @@
   "noMatchesForFilter": "No games match this filter",
   "@noMatchesForFilter": {
     "description": "Shown in the match history when the selected format filter hides every game"
+  },
+  "gameTagsHeading": "Tags",
+  "@gameTagsHeading": {
+    "description": "Heading for the tag section on the game over screen and match details"
+  },
+  "gameTagsAutoHint": "Some tags were selected from the game data. Tap a tag to clear it.",
+  "@gameTagsAutoHint": {
+    "description": "Hint under the tag section when the app selected tags automatically"
+  },
+  "playerTagsButtonTooltip": "Tag player",
+  "@playerTagsButtonTooltip": {
+    "description": "Tooltip for the button that opens the player tag sheet"
+  },
+  "playerTagsSheetTitle": "Tags for {name}",
+  "@playerTagsSheetTitle": {
+    "description": "Title of the sheet that edits one player's tags",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noTagsLabel": "No tags",
+  "@noTagsLabel": {
+    "description": "Shown on match details when a game has no tags"
+  },
+  "statsTagFilterAll": "All games",
+  "@statsTagFilterAll": {
+    "description": "Stats filter option that shows games with any tags"
+  },
+  "tagGroupPowerLevel": "Power level",
+  "@tagGroupPowerLevel": {
+    "description": "Tag group: the bracket of the game"
+  },
+  "tagGroupEnding": "How it ended",
+  "@tagGroupEnding": {
+    "description": "Tag group: how the winner won"
+  },
+  "tagGroupPace": "Pace",
+  "@tagGroupPace": {
+    "description": "Tag group: how fast or close the game was"
+  },
+  "tagGroupMana": "Mana",
+  "@tagGroupMana": {
+    "description": "Tag group: a player's mana and draws"
+  },
+  "tagGroupKeyPlays": "Key plays",
+  "@tagGroupKeyPlays": {
+    "description": "Tag group: a player's important plays"
+  },
+  "tagGroupEliminations": "Eliminations",
+  "@tagGroupEliminations": {
+    "description": "Tag group: how a player was eliminated or eliminated others"
+  },
+  "tagBracket1": "Bracket 1",
+  "@tagBracket1": {
+    "description": "Tag: Commander Bracket 1"
+  },
+  "tagBracket2": "Bracket 2",
+  "@tagBracket2": {
+    "description": "Tag: Commander Bracket 2"
+  },
+  "tagBracket3": "Bracket 3",
+  "@tagBracket3": {
+    "description": "Tag: Commander Bracket 3"
+  },
+  "tagBracket4": "Bracket 4",
+  "@tagBracket4": {
+    "description": "Tag: Commander Bracket 4"
+  },
+  "tagBracket5": "cEDH (Bracket 5)",
+  "@tagBracket5": {
+    "description": "Tag: Commander Bracket 5, competitive EDH"
+  },
+  "tagBracket1Tooltip": "Exhibition",
+  "@tagBracket1Tooltip": {
+    "description": "Official name of Commander Bracket 1"
+  },
+  "tagBracket2Tooltip": "Core",
+  "@tagBracket2Tooltip": {
+    "description": "Official name of Commander Bracket 2"
+  },
+  "tagBracket3Tooltip": "Upgraded",
+  "@tagBracket3Tooltip": {
+    "description": "Official name of Commander Bracket 3"
+  },
+  "tagBracket4Tooltip": "Optimized",
+  "@tagBracket4Tooltip": {
+    "description": "Official name of Commander Bracket 4"
+  },
+  "tagBracket5Tooltip": "Competitive EDH",
+  "@tagBracket5Tooltip": {
+    "description": "Official name of Commander Bracket 5"
+  },
+  "tagEndCombat": "Combat win",
+  "@tagEndCombat": {
+    "description": "Tag: the winner won with combat damage"
+  },
+  "tagEndCombo": "Combo win",
+  "@tagEndCombo": {
+    "description": "Tag: the winner won with a combo"
+  },
+  "tagEndCommanderDamage": "Commander damage",
+  "@tagEndCommanderDamage": {
+    "description": "Tag: the winner won with commander damage"
+  },
+  "tagEndDrain": "Drain / burn",
+  "@tagEndDrain": {
+    "description": "Tag: the winner won with life drain or burn"
+  },
+  "tagEndPoison": "Poison / infect",
+  "@tagEndPoison": {
+    "description": "Tag: the winner won with poison counters"
+  },
+  "tagEndAltWin": "Alternate win",
+  "@tagEndAltWin": {
+    "description": "Tag: the winner won with an alternate win condition"
+  },
+  "tagEndConceded": "Table conceded",
+  "@tagEndConceded": {
+    "description": "Tag: the other players conceded"
+  },
+  "tagPaceFast": "Fast game",
+  "@tagPaceFast": {
+    "description": "Tag: the game was fast"
+  },
+  "tagPaceLong": "Long grind",
+  "@tagPaceLong": {
+    "description": "Tag: the game was long"
+  },
+  "tagFeelClose": "Close game",
+  "@tagFeelClose": {
+    "description": "Tag: every player had a chance to win"
+  },
+  "tagManaScrewed": "Mana screwed",
+  "@tagManaScrewed": {
+    "description": "Tag: the player drew too few lands"
+  },
+  "tagManaFlooded": "Mana flooded",
+  "@tagManaFlooded": {
+    "description": "Tag: the player drew too many lands"
+  },
+  "tagManaColorScrewed": "Color screwed",
+  "@tagManaColorScrewed": {
+    "description": "Tag: the player could not get the right colors of mana"
+  },
+  "tagGreatOpener": "Great opener",
+  "@tagGreatOpener": {
+    "description": "Tag: the player had a great opening hand"
+  },
+  "tagT1SolRing": "Turn 1 Sol Ring",
+  "@tagT1SolRing": {
+    "description": "Tag: the player cast Sol Ring on turn 1"
+  },
+  "tagSavedTheTable": "Saved the table",
+  "@tagSavedTheTable": {
+    "description": "Tag: the player stopped another player from winning"
+  },
+  "tagClutchTopdeck": "Clutch topdeck",
+  "@tagClutchTopdeck": {
+    "description": "Tag: the player drew the card they needed"
+  },
+  "tagCommanderTax6": "Commander tax 6+",
+  "@tagCommanderTax6": {
+    "description": "Tag: the player paid 6 or more commander tax"
+  },
+  "tagKoCommanderDamage": "Commander dmg KO",
+  "@tagKoCommanderDamage": {
+    "description": "Tag: the player was eliminated by commander damage"
+  },
+  "tagCommanderKill": "Commander kill",
+  "@tagCommanderKill": {
+    "description": "Tag: the player's commander eliminated another player"
+  },
+  "tagFirstOut": "First out",
+  "@tagFirstOut": {
+    "description": "Tag: the player was eliminated first"
   }
 }
-
