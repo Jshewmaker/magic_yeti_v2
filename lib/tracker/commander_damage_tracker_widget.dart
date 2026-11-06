@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,7 +43,7 @@ class CommanderDamageTracker extends StatelessWidget {
 
     final commanderDamage = damageMap[DamageType.commander] ?? 0;
     final partnerDamage = damageMap[DamageType.partner] ?? 0;
-    final hasPartner = targetPlayer.partner?.imageUrl.isNotEmpty ?? false;
+    final hasPartner = targetPlayer.partner != null;
 
     if (!hasPartner) {
       return CommanderDamageButton(
@@ -117,38 +115,25 @@ class CommanderDamageButton extends StatefulWidget {
   State<CommanderDamageButton> createState() => _CommanderDamageButtonState();
 }
 
-class _CommanderDamageButtonState extends State<CommanderDamageButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _animationController;
+class _CommanderDamageButtonState extends State<CommanderDamageButton> {
+  late final PlayerBloc _playerBloc;
+  bool _isHeld = false;
+
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
-    _animationController.addStatusListener((status) {
-      if (status == AnimationStatus.completed ||
-          status == AnimationStatus.dismissed) {
-        setState(() {});
-      }
-    });
+    _playerBloc = context.read<PlayerBloc>();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    // A tile can leave the tree under the finger, and then no lift arrives.
+    _endHold();
     super.dispose();
   }
 
-  void _handleTapOutside() {
-    if (_animationController.isCompleted) {
-      unawaited(_animationController.reverse());
-    }
-  }
-
   void _increment() {
-    context.read<PlayerBloc>()
+    _playerBloc
       ..add(
         UpdatePlayerLifeEvent(decrement: true, playerId: widget.playerId),
       )
@@ -160,22 +145,20 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
       );
   }
 
-  void _decrement() {
-    context.read<PlayerBloc>()
-      ..add(
-        UpdatePlayerLifeEvent(decrement: false, playerId: widget.playerId),
-      )
-      ..add(
-        PlayerCommanderDamageDecremented(
-          commanderId: widget.commanderPlayerId,
-          damageType: widget.damageType,
-        ),
-      );
+  void _startHold() {
+    _isHeld = true;
+    _playerBloc.add(
+      PlayerCommanderDamageHoldStarted(
+        commanderId: widget.commanderPlayerId,
+        damageType: widget.damageType,
+      ),
+    );
   }
 
-  bool _isTopHalf(Offset localPosition) {
-    final box = context.findRenderObject()! as RenderBox;
-    return localPosition.dy < box.size.height / 2;
+  void _endHold() {
+    if (!_isHeld) return;
+    _isHeld = false;
+    _playerBloc.add(const PlayerCommanderDamageHoldEnded());
   }
 
   @override
@@ -183,50 +166,39 @@ class _CommanderDamageButtonState extends State<CommanderDamageButton>
     final sizes = TrackerSizes.fromDevice(
       isPhone: DeviceInfoProvider.of(context).isPhone,
     );
-    final isExpanded = _animationController.isCompleted;
-    final size = isExpanded ? sizes.expandedTileSize : sizes.tileSize;
+    final size = sizes.tileSize;
 
-    return TapRegion(
-      onTapOutside: (_) => _handleTapOutside(),
-      child: GestureDetector(
-        onTap: () {
-          if (isExpanded) return;
-          _increment();
-        },
-        onLongPressStart: (_) {
-          if (!isExpanded) unawaited(_animationController.forward());
-        },
-        onLongPressDown: (details) {
-          if (!isExpanded) return;
-          _isTopHalf(details.localPosition) ? _increment() : _decrement();
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: size,
-          height: size,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              if (widget.damageType == DamageType.commander)
-                _CommanderImage(
-                  targetPlayer: widget.targetPlayer,
-                  scale: size,
-                  playerColor: widget.player.color,
-                )
-              else
-                _PartnerImage(
-                  targetPlayer: widget.targetPlayer,
-                  scale: size,
-                  playerColor: widget.player.color,
-                ),
-              _CommanderIcons(animationController: _animationController),
-              StrokeText(
-                text: widget.commanderDamage.toString(),
-                fontSize: sizes.textSize,
-                color: AppColors.white,
+    // Tap adds one. Hold subtracts one, and keeps subtracting until the finger
+    // lifts.
+    return GestureDetector(
+      onTap: _increment,
+      onLongPressStart: (_) => _startHold(),
+      onLongPressEnd: (_) => _endHold(),
+      onLongPressCancel: _endHold,
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            if (widget.damageType == DamageType.commander)
+              _CommanderImage(
+                targetPlayer: widget.targetPlayer,
+                scale: size,
+                playerColor: widget.player.color,
+              )
+            else
+              _PartnerImage(
+                targetPlayer: widget.targetPlayer,
+                scale: size,
+                playerColor: widget.player.color,
               ),
-            ],
-          ),
+            StrokeText(
+              text: widget.commanderDamage.toString(),
+              fontSize: sizes.textSize,
+              color: AppColors.white,
+            ),
+          ],
         ),
       ),
     );
@@ -301,48 +273,6 @@ class _PartnerImage extends StatelessWidget {
                 height: scale,
               ),
             ),
-    );
-  }
-}
-
-class _CommanderIcons extends StatelessWidget {
-  const _CommanderIcons({required this.animationController});
-
-  final AnimationController animationController;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!animationController.isCompleted) return const SizedBox.shrink();
-    return Column(
-      children: [
-        Expanded(
-          child: Center(
-            child: Icon(
-              Icons.add,
-              color: AppColors.white.withValues(alpha: 0.8),
-              size: 24,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.4),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(10),
-                bottomRight: Radius.circular(10),
-              ),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.remove,
-                color: AppColors.white.withValues(alpha: 0.8),
-                size: 24,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

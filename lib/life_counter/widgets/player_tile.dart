@@ -98,7 +98,7 @@ class _TrackerOverlayState extends State<_TrackerOverlay>
   late final CurvedAnimation _sizeAnimation;
   Timer? _autoHideTimer;
 
-  static const _autoHideDuration = Duration(seconds: 5);
+  static const _autoHideDuration = Duration(seconds: 3);
   static const _handleHeight = 64.0;
 
   @override
@@ -148,7 +148,10 @@ class _TrackerOverlayState extends State<_TrackerOverlay>
     final isTopEdge = widget.rotate;
 
     final trackerContent = Listener(
-      onPointerDown: (_) => _resetAutoHide(),
+      // Do not close the drawer under a finger that holds a tile down.
+      onPointerDown: (_) => _autoHideTimer?.cancel(),
+      onPointerUp: (_) => _resetAutoHide(),
+      onPointerCancel: (_) => _resetAutoHide(),
       child: SizedBox(
         height: sizes.panelHeight,
         child: TrackerWidgets(
