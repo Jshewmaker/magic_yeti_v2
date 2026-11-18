@@ -1,31 +1,55 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
-import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/home/home.dart';
+import 'package:magic_yeti/l10n/arb/app_localizations.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/life_counter/widgets/widgets.dart';
+import 'package:magic_yeti/timer/bloc/timer_bloc.dart';
 
 /// Central control column containing game controls and utilities.
 /// Displays reset button, timer widget, and dice icon.
 /// Positioned between the two player columns for easy access.
+///
+/// Set [direction] to [Axis.horizontal] to lay the controls out as a bar,
+/// for the two-player layout where the players sit at the top and bottom.
 class CenterControlColumn extends StatelessWidget {
-  const CenterControlColumn({super.key});
+  const CenterControlColumn({
+    required this.onPressed,
+    this.direction = Axis.vertical,
+    super.key,
+  });
+
+  /// Collapses the column. When null, the collapse button is not shown.
+  final VoidCallback? onPressed;
+  final Axis direction;
 
   @override
   Widget build(BuildContext context) {
     final textStyle = Theme.of(context).textTheme;
     final l10n = context.l10n;
+    final isVertical = direction == Axis.vertical;
 
-    return Column(
+    return Flex(
+      direction: direction,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _ResetButton(textStyle: textStyle, l10n: l10n),
         const _PauseResumeButton(),
-        const TimerWidget(),
-        const _DiceIcon(),
+        if (isVertical)
+          const TimerWidget()
+        else
+          // Shrinks the timer text, so the bar fits the narrowest phones.
+          const Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: TimerWidget(quarterTurns: 0),
+            ),
+          ),
+        if (onPressed != null) _DiceIcon(onPressed: onPressed),
         _HomeButton(textStyle: textStyle, l10n: l10n),
       ],
     );
@@ -46,7 +70,7 @@ class _ResetButton extends StatelessWidget {
       icon: const Icon(
         Icons.refresh,
         color: AppColors.neutral60,
-        size: 40,
+        size: 35,
       ),
       onPressed: () {
         _showConfirmDialog(
@@ -110,16 +134,16 @@ class _PauseResumeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gameBloc = context.watch<GameBloc>();
+    final timerBloc = context.watch<TimerBloc>();
     return IconButton(
-      onPressed: () => gameBloc.state.status == GameStatus.paused
-          ? gameBloc.add(const GameResumeEvent())
-          : gameBloc.add(const GamePauseEvent()),
+      onPressed: () => timerBloc.state.status == TimerStatus.paused
+          ? timerBloc.add(const TimerResumeEvent())
+          : timerBloc.add(const TimerPauseEvent()),
       icon: Icon(
-        gameBloc.state.status == GameStatus.paused
+        timerBloc.state.status == TimerStatus.paused
             ? Icons.play_circle_outline_outlined
             : Icons.pause_circle_outline_rounded,
-        size: 40,
+        size: 35,
         color: AppColors.neutral60,
       ),
     );
@@ -127,14 +151,18 @@ class _PauseResumeButton extends StatelessWidget {
 }
 
 class _DiceIcon extends StatelessWidget {
-  const _DiceIcon();
+  const _DiceIcon({required this.onPressed});
+
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return const Icon(
-      FontAwesomeIcons.diceOne,
-      size: 30,
-      color: AppColors.neutral60,
+    return IconButton(
+      onPressed: onPressed,
+      icon: const Icon(
+        Icons.close_fullscreen,
+        color: AppColors.neutral60,
+      ),
     );
   }
 }
@@ -155,12 +183,19 @@ class _HomeButton extends StatelessWidget {
           context,
           title: l10n.exitGameDialogText,
           body: l10n.navigationDialogText,
-          onConfirm: () => GoRouter.of(context).go(HomePage.routeName),
+          onConfirm: () {
+            SystemChrome.setPreferredOrientations([
+              DeviceOrientation.landscapeRight,
+              DeviceOrientation.landscapeLeft,
+              DeviceOrientation.portraitUp,
+            ]);
+            GoRouter.of(context).go(HomePage.routeName);
+          },
         );
       },
       icon: const Icon(
         Icons.home_filled,
-        size: 40,
+        size: 35,
         color: AppColors.neutral60,
       ),
     );

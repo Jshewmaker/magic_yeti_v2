@@ -14,18 +14,16 @@ class LifeChangeBloc extends Bloc<LifeChangeEvent, LifeChangeState> {
     LifePointsChanged event,
     Emitter<LifeChangeState> emit,
   ) {
-    int? previousLifePoints;
-
     // If this is the first time or life points have changed
-    if (event.newLifePoints != previousLifePoints) {
-      final newChange = event.newLifePoints - (event.previousLifePoints);
 
-      // Accumulate or set the new change
-      final totalChange =
-          state.change != null ? state.change! + newChange : newChange;
+    final newChange = event.newLifePoints - (event.previousLifePoints);
 
-      emit(state.copyWith(change: totalChange));
-    }
+    // Accumulate or set the new change
+    final totalChange = state.change != null
+        ? state.change! + newChange
+        : newChange;
+
+    emit(state.copyWith(change: totalChange));
   }
 
   void _onLifePointChangeCompleted(

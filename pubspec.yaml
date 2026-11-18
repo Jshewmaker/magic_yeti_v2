@@ -1,10 +1,10 @@
 name: magic_yeti
 description: Magic The Gathering Tracking App
-version: 1.0.0+1
+version: 1.11.0+3
 publish_to: none
 
 environment:
-  sdk: ">=3.1.0 <4.0.0"
+  sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
   analytics_repository:
@@ -17,52 +17,62 @@ dependencies:
     path: packages/app_ui
   authentication_client:
     path: packages/authentication_client/authentication_client
-  bloc: ^8.1.4
+  auto_size_text: ^3.0.0
+  bloc: ^9.2.0
+  bloc_concurrency: ^0.3.0
   cached_network_image: ^3.3.1
   cloud_firestore: ^5.5.0
   equatable: ^2.0.7
   firebase_database: ^11.2.0
   fake_app_config_repository:
     path: packages/app_config_repository/fake_app_config_repository
+  firebase_analytics: ^11.4.1
   firebase_authentication_client:
     path: packages/authentication_client/firebase_authentication_client
   firebase_core: ^3.8.1
+  firebase_database: ^11.2.0
   firebase_database_repository:
     path: packages/firebase_database_repository
   flutter:
     sdk: flutter
-  flutter_bloc: ^8.1.3
+  flutter_bloc: ^9.1.1
   flutter_launcher_icons: ^0.14.2
   flutter_localizations:
     sdk: flutter
-  font_awesome_flutter: ^10.7.0
+  font_awesome_flutter: ^10.8.0
   form_inputs:
     path: packages/form_inputs
   go_router: ^14.0.2
-  intl: ^0.19.0
-  json_annotation: ^4.8.0
+  hold_to_confirm_button: ^0.0.2
+  intl: ^0.20.2
+  json_annotation: ^4.9.0
   player_repository:
     path: packages/player_repository
   provider: ^6.1.1
+  scryfall_bulk_client:
+    path: packages/scryfall_bulk_client
   scryfall_repository:
     path: packages/scryfall_repository
+  shared_preferences: ^2.3.2
+  url_launcher: ^6.3.1
   user_repository:
     path: packages/user_repository
   uuid: ^4.5.1
-  bloc_concurrency: ^0.2.5
   wakelock_plus: ^1.2.10
 
-
 dev_dependencies:
-  bloc_test: ^9.1.4
-  build_runner: ^2.3.3
+  bloc_test: ^10.0.0
+  build_runner: ^2.11.1
   change_app_package_name: ^1.4.0
   flutter_test:
     sdk: flutter
-  json_serializable: ^6.6.0
+  json_serializable: ^6.8.0
   mocktail: ^1.0.0
-  very_good_analysis: ^5.1.0
+  very_good_analysis: ^10.1.0
 
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/icon/icon.png
+    - assets/icon/yeti_icon.png

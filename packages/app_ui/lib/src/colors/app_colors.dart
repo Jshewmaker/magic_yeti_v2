@@ -6,35 +6,53 @@ abstract class AppColors {
   static const Color black = Colors.black;
 
   /// White
-  static const Color white = Colors.white;
+  static const Color white = Color(0xFFE2E8F0);
 
-  /// Primary
-  static const Color primary = Color(0xFF1B1B1F);
+  /// Primary - Deep Navy Blue
+  static const Color primary = Color(0xFF1A1B25);
 
-  /// Secondary
-  static const Color secondary = Color(0xFF3C5BA9);
+  /// Secondary - Metallic Gold
+  static const Color secondary = Color(0xFFFFB938);
 
-  /// Tertiary
-  static const Color tertiary = Color(0xFFBA005B);
+  /// Tertiary - Muted Purple
+  static const Color tertiary = Color(0xFF6B4E71);
+
+  /// Tertiary Secondary - Muted Purple
+  static const Color tertiarySecondary = Color(0xFF88638F);
+
+  /// quaternary - Lighter Background
+  static const Color quaternary = Color(0xFF282A36);
 
   /// Error
-  static const Color error = Color(0xFFBA1A1A);
+  static const Color error = Color(0xFFE53E3E);
 
-  /// Background
-  static const Color background = Color(0xFF1B1B1F);
+  /// Background - Deep Navy Blue
+  static const Color background = Color(0xFF1A1B25);
 
-  /// Surface
-  static const Color surface = Color(0xFFDFE2EB);
+  /// Surface - Slightly Lighter Navy
+  static const Color surface = Color(0xFF282A36);
 
-  /// neutral60
-  static const Color neutral60 = Color(0xFF919094);
+  /// neutral60 - Muted Gray
+  static const Color neutral60 = Color(0xFF94A3B8);
 
-  /// green
-  static const Color green = Color(0xFF048000);
+  /// green - Elegant Emerald
+  static const Color green = Color(0xFF34D399);
 
-  /// red
-  static const Color red = Color(0xFFD00000);
+  /// Color used to highlight the winner - Elegant Emerald
+  static const Color winner = Color(0xFF34D399);
 
-  /// On Surface Variant
-  static const Color onSurfaceVariant = Color(0xFF43474E);
+  /// Success - Vibrant Green for success indicators and toasts
+  static const Color success = Color(0xFF10B981);
+
+  /// red - Rich Ruby
+  static const Color red = Color(0xFFDC2626);
+
+  /// On Surface Variant - Light Gray
+  static const Color onSurfaceVariant = Color(0xFF94A3B8);
+
+  /// Skeleton Base - resting color of shimmer loading placeholders.
+  static const Color skeletonBase = Color(0xFF2E313F);
+
+  /// Skeleton Highlight - sweep color of shimmer loading placeholders.
+  static const Color skeletonHighlight = Color(0xFF3D4152);
 }

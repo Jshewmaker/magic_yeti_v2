@@ -1,7 +1,26 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:player_repository/models/opponent.dart';
+import 'package:player_repository/player_repository.dart';
 
 part 'player.g.dart';
+
+/// A utility class that wraps a value that might be updated to null.
+/// This allows copyWith to differentiate between "not provided" (null)
+/// and "explicitly set to null" (Value(null))
+class Value<T> {
+  final T? value;
+  const Value(this.value);
+}
+
+/// Player state in the game
+enum PlayerModelState {
+  active,
+  eliminated;
+
+  bool get isActive => this == PlayerModelState.active;
+  bool get isEliminated => this == PlayerModelState.eliminated;
+}
 
 /// {@template player}
 /// Player object that holds all player info
@@ -12,17 +31,26 @@ class Player extends Equatable {
   const Player({
     required this.id,
     required this.name,
-    required this.picture,
     required this.playerNumber,
     required this.lifePoints,
     required this.color,
-    required this.commanderDamageList,
-    this.timeOfDeath = -1,
-    this.placement = 99,
-  });
+    required this.opponents,
+    this.commander,
+    this.partner,
+    this.background,
+    this.firebaseId,
+    this.state = PlayerModelState.eliminated,
+    this.tags = const [],
+    int? placement,
+    int? timeOfDeath,
+  }) : _placement = placement,
+       _timeOfDeath = timeOfDeath;
 
   /// Creates a Player object from a JSON map
   factory Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
+
+  /// The document ID of the player in Firebase
+  final String? firebaseId;
 
   /// Unique identifier for the player.
   final String id;
@@ -30,8 +58,16 @@ class Player extends Equatable {
   /// Name of the player.
   final String name;
 
-  /// URL or path to the player's picture.
-  final String picture;
+  /// The player's commander card.
+  final Commander? commander;
+
+  /// The commander's partner card (a second *attacking* commander). Drives a
+  /// separate commander-damage clock.
+  final Commander? partner;
+
+  /// A non-attacking second card (a Background enchantment). Contributes to
+  /// color identity and art only — never a commander-damage clock.
+  final Commander? background;
 
   /// The player's assigned number in the game.
   final int playerNumber;
@@ -42,53 +78,95 @@ class Player extends Equatable {
   /// The player's color represented as an integer.
   final int color;
 
-  /// The player's placement in the game, defaults to 99.
-  final int placement;
+  /// The player's current state in the game
+  final PlayerModelState state;
 
-  /// The time when the player was eliminated from the game,
-  /// defaults to an empty string.
-  final int timeOfDeath;
+  final int? _placement;
+  final int? _timeOfDeath;
 
-  /// A list representing the damage dealt to the player by each commander,
-  /// defaults to an empty map.
-  final Map<String, int> commanderDamageList;
+  /// The player's placement in the game. Only available when player is eliminated.
+  int get placement {
+    if (!state.isEliminated) {
+      throw StateError('Cannot get placement for active player');
+    }
+    return _placement!;
+  }
+
+  /// The time when the player was eliminated. Only available when player is eliminated.
+  int get timeOfDeath {
+    if (!state.isEliminated) {
+      throw StateError('Cannot get time of death for active player');
+    }
+    return _timeOfDeath!;
+  }
+
+  /// Whether the player is still active in the game
+  bool get isActive => state.isActive;
+
+  /// Whether the player has been eliminated
+  bool get isEliminated => state.isEliminated;
+
+  /// A list representing the damage dealt to the player by each opponent's commander.
+  final List<Opponent>? opponents;
+
+  /// Ids of the tags added to this player at the end of the game, for
+  /// example `t1_sol_ring`. The app holds the tag catalog; this list holds
+  /// only the stable ids, so a label change never breaks a saved game.
+  final List<String> tags;
+
+  /// Creates a new player object with the same values as the current player
+  Player copyWith({
+    String? id,
+    String? name,
+    Commander? commander,
+    Commander? Function()? partner,
+    Commander? Function()? background,
+    int? playerNumber,
+    int? lifePoints,
+    int? color,
+    String? Function()? firebaseId,
+    PlayerModelState? state,
+    Value<int?>? placement,
+    Value<int?>? timeOfDeath,
+    List<Opponent>? opponents,
+    List<String>? tags,
+  }) {
+    return Player(
+      firebaseId: firebaseId != null ? firebaseId() : this.firebaseId,
+      id: id ?? this.id,
+      name: name ?? this.name,
+      color: color ?? this.color,
+      commander: commander ?? this.commander,
+      partner: partner != null ? partner() : this.partner,
+      background: background != null ? background() : this.background,
+      playerNumber: playerNumber ?? this.playerNumber,
+      lifePoints: lifePoints ?? this.lifePoints,
+      state: state ?? this.state,
+      placement: placement != null ? placement.value : _placement,
+      timeOfDeath: timeOfDeath != null ? timeOfDeath.value : _timeOfDeath,
+      opponents: opponents ?? this.opponents,
+      tags: tags ?? this.tags,
+    );
+  }
 
   /// Connect the generated [_$PlayerToJson] function to the `toJson` method.
   Map<String, dynamic> toJson() => _$PlayerToJson(this);
 
-  /// Creates a new player object with the same values as the current player,
-  Player copyWith({
-    String? id,
-    String? name,
-    String? picture,
-    int? timeOfDeath,
-    int? playerNumber,
-    int? lifePoints,
-    int? color,
-    int? placement,
-    Map<String, int>? commanderDamageList,
-  }) {
-    return Player(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      color: color ?? this.color,
-      picture: picture ?? this.picture,
-      playerNumber: playerNumber ?? this.playerNumber,
-      lifePoints: lifePoints ?? this.lifePoints,
-      placement: placement ?? this.placement,
-      timeOfDeath: timeOfDeath ?? this.timeOfDeath,
-      commanderDamageList: commanderDamageList ?? this.commanderDamageList,
-    );
-  }
-
   @override
   List<Object?> get props => [
-        id,
-        name,
-        color,
-        picture,
-        playerNumber,
-        lifePoints,
-        placement,
-      ];
+    id,
+    name,
+    color,
+    commander,
+    partner,
+    background,
+    playerNumber,
+    lifePoints,
+    state,
+    firebaseId,
+    opponents,
+    tags,
+    _placement,
+    _timeOfDeath,
+  ];
 }

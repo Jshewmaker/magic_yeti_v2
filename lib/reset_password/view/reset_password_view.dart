@@ -69,8 +69,9 @@ class EmailInput extends StatelessWidget {
       decoration: InputDecoration(
         helperText: '',
         labelText: l10n.emailInputLabelText,
-        errorText:
-            email.displayError != null ? l10n.invalidEmailInputErrorText : null,
+        errorText: email.displayError != null
+            ? l10n.invalidEmailInputErrorText
+            : null,
       ),
       autocorrect: false,
     );
@@ -87,9 +88,9 @@ class SubmitButton extends StatelessWidget {
     final state = context.watch<ResetPasswordBloc>().state;
     return ElevatedButton(
       onPressed: state.valid
-          ? () => context
-              .read<ResetPasswordBloc>()
-              .add(const ResetPasswordSubmitted())
+          ? () => context.read<ResetPasswordBloc>().add(
+              const ResetPasswordSubmitted(),
+            )
           : null,
       child: state.status.isInProgress
           ? const CircularProgressIndicator()

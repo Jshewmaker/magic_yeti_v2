@@ -31,3 +31,11 @@ class SignUpPasswordChanged extends SignUpEvent {
 class SignUpSubmitted extends SignUpEvent {
   const SignUpSubmitted();
 }
+
+class SignUpGoogleSubmitted extends SignUpEvent {
+  const SignUpGoogleSubmitted();
+}
+
+class SignUpAppleSubmitted extends SignUpEvent {
+  const SignUpAppleSubmitted();
+}

@@ -13,12 +13,18 @@ class UpdatePlayerInfoEvent extends PlayerEvent {
   const UpdatePlayerInfoEvent({
     required this.playerId,
     this.playerName,
-    this.pictureUrl,
+    this.commander,
+    this.partner,
+    this.background,
+    this.firebaseId,
   });
 
-  final String? pictureUrl;
+  final Commander? commander;
   final String? playerName;
   final String playerId;
+  final Commander? partner;
+  final Commander? background;
+  final String? firebaseId;
 }
 
 class UpdatePlayerLifeEvent extends PlayerEvent {
@@ -32,21 +38,53 @@ class UpdatePlayerLifeEvent extends PlayerEvent {
 }
 
 class PlayerCommanderDamageIncremented extends PlayerEvent {
-  const PlayerCommanderDamageIncremented({required this.commanderId});
+  const PlayerCommanderDamageIncremented({
+    required this.commanderId,
+    required this.damageType,
+  });
 
   final String commanderId;
-
+  final DamageType damageType;
   @override
-  List<Object> get props => [commanderId];
+  List<Object> get props => [commanderId, damageType];
 }
 
 class PlayerCommanderDamageDecremented extends PlayerEvent {
-  const PlayerCommanderDamageDecremented({required this.commanderId});
+  const PlayerCommanderDamageDecremented({
+    required this.commanderId,
+    required this.damageType,
+  });
 
   final String commanderId;
+  final DamageType damageType;
 
   @override
-  List<Object> get props => [commanderId];
+  List<Object> get props => [commanderId, damageType];
+}
+
+/// The finger went down and stayed on a commander damage tile. Subtracts one
+/// damage now, then one more every
+/// [PlayerBloc.commanderDamageRepeatInterval] until
+/// [PlayerCommanderDamageHoldEnded].
+class PlayerCommanderDamageHoldStarted extends PlayerEvent {
+  const PlayerCommanderDamageHoldStarted({
+    required this.commanderId,
+    required this.damageType,
+  });
+
+  final String commanderId;
+  final DamageType damageType;
+
+  @override
+  List<Object> get props => [commanderId, damageType];
+}
+
+/// The finger lifted from a commander damage tile.
+class PlayerCommanderDamageHoldEnded extends PlayerEvent {
+  const PlayerCommanderDamageHoldEnded();
+
+  @override
+  List<Object> get props => [];
 }
 
 class UpdatePlayerLifeByXEvent extends PlayerEvent {

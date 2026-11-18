@@ -1,31 +1,43 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:player_repository/player_repository.dart';
-import 'package:uuid/uuid.dart';
 
 part 'game_model.g.dart';
 
 /// {@template game_model}
 /// Model representing a completed game and its statistics
 /// {@endtemplate}
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
 class GameModel extends Equatable {
   /// {@macro game_model}
-  GameModel({
+  const GameModel({
     required this.players,
     required this.startTime,
     required this.endTime,
-    required this.winner,
+    required this.winnerId,
     required this.durationInSeconds,
-    String? id,
-  }) : id = id ?? const Uuid().v4();
+    this.hostId = '',
+    this.startingPlayerId = '',
+    this.roomId = '',
+    this.tags = const [],
+    this.id,
+  });
 
   /// Creates a GameModel from a JSON map
   factory GameModel.fromJson(Map<String, dynamic> json) =>
       _$GameModelFromJson(json);
 
-  /// Unique identifier for the game
-  final String id;
+  /// ID of the host player that created the game
+  final String hostId;
+
+  /// Firebase document ID
+  final String? id;
+
+  /// ID of the player who went first in turn order.
+  final String startingPlayerId;
+
+  /// Unique identifier for the room
+  final String roomId;
 
   /// List of players and their final stats
   final List<Player> players;
@@ -37,21 +49,63 @@ class GameModel extends Equatable {
   final DateTime endTime;
 
   /// The winning player
-  final Player winner;
+  final String winnerId;
 
   /// Total duration of the game in seconds
   final int durationInSeconds;
 
+  /// Ids of the tags that describe the whole game, for example `bracket_3`.
+  /// Tags for one player live on that [Player] instead.
+  final List<String> tags;
+
   /// Converts this GameModel to a JSON map
   Map<String, dynamic> toJson() => _$GameModelToJson(this);
 
+  /// Whether this was a Commander (EDH) game.
+  ///
+  /// The format is not stored. A game with more than two players is a
+  /// Commander game; a two-player game is a 1v1 constructed game.
+  bool get isCommanderGame => players.length > 2;
+
   @override
   List<Object?> get props => [
-        id,
-        players,
-        startTime,
-        endTime,
-        winner,
-        durationInSeconds,
-      ];
+    id,
+    hostId,
+    roomId,
+    players,
+    startTime,
+    startingPlayerId,
+    endTime,
+    winnerId,
+    durationInSeconds,
+    tags,
+  ];
+
+  /// Creates a copy of this GameModel with the given fields replaced with the
+  /// new values.
+  GameModel copyWith({
+    String? id,
+    String? hostId,
+    String? roomId,
+    List<Player>? players,
+    DateTime? startTime,
+    DateTime? endTime,
+    String? winnerId,
+    String? startingPlayerId,
+    int? durationInSeconds,
+    List<String>? tags,
+  }) {
+    return GameModel(
+      id: id ?? this.id,
+      startingPlayerId: startingPlayerId ?? this.startingPlayerId,
+      hostId: hostId ?? this.hostId,
+      roomId: roomId ?? this.roomId,
+      players: players ?? this.players,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      winnerId: winnerId ?? this.winnerId,
+      durationInSeconds: durationInSeconds ?? this.durationInSeconds,
+      tags: tags ?? this.tags,
+    );
+  }
 }

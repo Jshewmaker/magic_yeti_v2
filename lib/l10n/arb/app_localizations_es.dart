@@ -1,0 +1,791 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Spanish Castilian (`es`).
+class AppLocalizationsEs extends AppLocalizations {
+  AppLocalizationsEs([String locale = 'es']) : super(locale);
+
+  @override
+  String get counterAppBarTitle => 'Contador';
+
+  @override
+  String get authenticationFailure => 'Authentication failure';
+
+  @override
+  String get createAccountButtonText => 'CREATE AN ACCOUNT';
+
+  @override
+  String get forgotPasswordText => 'Forgot Password?';
+
+  @override
+  String get invalidEmailInputErrorText => 'Invalid email';
+
+  @override
+  String get invalidPasswordInputErrorText => 'Invalid password';
+
+  @override
+  String get gameId => 'Game ID';
+
+  @override
+  String get loginButtonText => 'Login';
+
+  @override
+  String get logOutButtonText => 'Logout';
+
+  @override
+  String get loginWelcomeText => 'Welcome to Magic Yeti!';
+
+  @override
+  String get emailInputLabelText => 'Email';
+
+  @override
+  String get passwordInputLabelText => 'Password';
+
+  @override
+  String get resetPasswordSubmitText =>
+      'If an account is registered with the provided email, we will send a link to reset your password';
+
+  @override
+  String get resetPasswordTitle => 'Reset Password';
+
+  @override
+  String get signInWithAppleButtonText => 'Sign in with Apple';
+
+  @override
+  String get signUpWithAppleButtonText => 'Sign up with Apple';
+
+  @override
+  String get signInWithGoogleButtonText => 'Sign in with Google';
+
+  @override
+  String get signUpWithGoogleButtonText => 'Sign up with Google';
+
+  @override
+  String get signUpAppBarTitle => 'Create Account';
+
+  @override
+  String get signUpButtonText => 'Sign Up';
+
+  @override
+  String get signUpFailure => 'Unable to create an account';
+
+  @override
+  String get submitButtonText => 'Submit';
+
+  @override
+  String get searchButtonText => 'Search';
+
+  @override
+  String get resultsTabResults => 'Results';
+
+  @override
+  String get resultsTabAnalysis => 'Analysis';
+
+  @override
+  String get resultsTabTimeline => 'Timeline';
+
+  @override
+  String get navigationDialogText =>
+      'Are you sure you want to go to the home page? The current game progress will be lost.';
+
+  @override
+  String get exitGameDialogText => 'Exit Game?';
+
+  @override
+  String get confirmTextButton => 'Confirm';
+
+  @override
+  String get cancelTextButton => 'Cancel';
+
+  @override
+  String get resetGameDialogText => 'Reset Game?';
+
+  @override
+  String numberOfPlayers(int numberOfPlayers) {
+    return '$numberOfPlayers Player';
+  }
+
+  @override
+  String get searchCommanderHintText => 'Search for your commander';
+
+  @override
+  String get saveButtonText => 'Save';
+
+  @override
+  String get accountOwnershipLinkText =>
+      '¡Vincula este jugador a tu cuenta para saber qué comandante eres!';
+
+  @override
+  String get accountOwnershipTitle => 'Este es mi comandante';
+
+  @override
+  String get matchHistoryTitle => 'Historial de Partidas';
+
+  @override
+  String get matchDetailsTitle => 'Match Details';
+
+  @override
+  String get matchDetailsHeading => 'Match Details';
+
+  @override
+  String winnerLabel(String name) {
+    return 'Winner: $name';
+  }
+
+  @override
+  String commanderLabel(String name) {
+    return 'Commander: $name';
+  }
+
+  @override
+  String get noCommanders => 'No Commanders found';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong';
+
+  @override
+  String get startedFirst => 'was the starting player';
+
+  @override
+  String get gameDuration => 'Game Duration';
+
+  @override
+  String get viewOnScryfall => 'View on Scryfall';
+
+  @override
+  String get playersHeading => 'Players';
+
+  @override
+  String get placementColumnHeader => 'Placement';
+
+  @override
+  String get commanderColumnHeader => 'Commander';
+
+  @override
+  String get playerColumnHeader => 'Player';
+
+  @override
+  String get friendsTitle => 'Friends';
+
+  @override
+  String get friendRequestsTitle => 'Friend Requests';
+
+  @override
+  String get thisIsMe => 'This is me';
+
+  @override
+  String get matchInformationHeading => 'Match Information';
+
+  @override
+  String roomIdLabel(String id) {
+    return 'Room ID: $id';
+  }
+
+  @override
+  String get playedOnLabel => 'Played on:';
+
+  @override
+  String changedPlayerMessage(String oldName, String newName) {
+    return 'Changed your player from $oldName to $newName';
+  }
+
+  @override
+  String wasPlayerMessage(String name) {
+    return 'You were $name in this game';
+  }
+
+  @override
+  String get gameModeTitle => 'Modo de Juego';
+
+  @override
+  String get statsTitle => 'Tus Estadísticas';
+
+  @override
+  String get matchHistoryLoadError =>
+      'Error al cargar el historial de partidas';
+
+  @override
+  String get noMatchHistoryAvailable =>
+      'No hay historial de partidas disponible';
+
+  @override
+  String get gameOverTitle => 'Game Over';
+
+  @override
+  String get matchOverview => 'Match Overview';
+
+  @override
+  String get winner => 'Winner';
+
+  @override
+  String get linkToMyAccount => 'Link to my account';
+
+  @override
+  String get finalStandings => 'Final Standings';
+
+  @override
+  String lifePoints(int points) {
+    return 'Life: $points';
+  }
+
+  @override
+  String get gameDetails => 'Game Details';
+
+  @override
+  String get whoWentFirst => 'Who went first:';
+
+  @override
+  String get accountOwner =>
+      'Please select the account owner from the list to sync the game stats to their account:';
+
+  @override
+  String get accountOwnerShort => 'Account Owner';
+
+  @override
+  String get notPlayingOption => 'No estoy jugando';
+
+  @override
+  String get linkedAccountBadge => 'Vinculado a la cuenta de un amigo';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get playAgain => 'Play Again';
+
+  @override
+  String get returnToHome => 'Return to Home';
+
+  @override
+  String durationFormat(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String get addGameToHistoryTitle => 'Add Game to Match History';
+
+  @override
+  String get enterRoomIdHint => 'Enter room ID';
+
+  @override
+  String get addButtonText => 'Add';
+
+  @override
+  String get gameNotFoundError => 'Game not found';
+
+  @override
+  String get loginSignUpTitle => 'Login/Sign Up';
+
+  @override
+  String get winRateTitle => 'Win Rate';
+
+  @override
+  String get totalWinsTitle => 'Total Wins';
+
+  @override
+  String get totalGamesTitle => 'Total Games';
+
+  @override
+  String get shortestGameTitle => 'Shortest Game';
+
+  @override
+  String get longestGameTitle => 'Longest Game';
+
+  @override
+  String get averagePlacementTitle => 'Average\nPlacement';
+
+  @override
+  String get uniqueCommandersTitle => 'Unique\nCommanders';
+
+  @override
+  String get copiedGameId => 'Copied game ID';
+
+  @override
+  String get timesWentFirstTitle => 'Times\nWent First';
+
+  @override
+  String get avgEdhRecRankTitle => 'Average\nEDHRec Rank';
+
+  @override
+  String get mostPlayedCommanderTitle => 'Most Played\nCommander';
+
+  @override
+  String get averageGameDurationTitle => 'Average\nGame Duration';
+
+  @override
+  String get winRateWhenFirstTitle => 'Win Rate\nWhen First';
+
+  @override
+  String get bestCommanderTitle => 'Best\nCommander';
+
+  @override
+  String get currentStreakTitle => 'Current\nStreak';
+
+  @override
+  String get mostCommonOpponentTitle => 'Most Common\nOpponent';
+
+  @override
+  String get nemesisTitle => 'Nemesis';
+
+  @override
+  String get avgCommanderDamageTakenTitle => 'Avg Commander\nDamage Taken';
+
+  @override
+  String get timesKilledByCommanderTitle => 'Killed by\nCommander Dmg';
+
+  @override
+  String get bestColorComboTitle => 'Best Color\nCombo';
+
+  @override
+  String get bestSingleColorTitle => 'Best Single\nColor';
+
+  @override
+  String get underConstructionText => 'Under Construction';
+
+  @override
+  String get comingSoonText => 'Feature Coming Soon!';
+
+  @override
+  String get achievementColumnHeader => 'Achievement';
+
+  @override
+  String get youTooltip => 'You';
+
+  @override
+  String get wentFirstTooltip => 'Went First';
+
+  @override
+  String get deleteMatchDialogTitle => 'Delete Match';
+
+  @override
+  String get deleteMatchDialogContent =>
+      'Are you sure you want to delete this match?';
+
+  @override
+  String get cancelButtonLabel => 'Cancel';
+
+  @override
+  String get deleteMatchButtonLabel => 'Delete Match';
+
+  @override
+  String errorSnackbarMessage(Object error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get undoGameOverButtonLabel => 'Deshacer / Restaurar';
+
+  @override
+  String get gameRestoredMessage => '¡Juego anterior restaurado!';
+
+  @override
+  String get pinInputLabel => 'PIN de 4 dígitos';
+
+  @override
+  String get pinInputHelper =>
+      'Confirma tu identidad cuando amigos te agregan a una partida';
+
+  @override
+  String get pinInputError => 'Debe ser de 4 dígitos';
+
+  @override
+  String get findFriendsTitle => 'Buscar Amigos';
+
+  @override
+  String get friendCodeSearchHint =>
+      'Busca por nombre o código de amigo (ej. A3F9K2XQ)';
+
+  @override
+  String get friendRequestSentMessage => '¡Solicitud de amistad enviada!';
+
+  @override
+  String get noUserFoundMessage => 'No se encontró ningún usuario.';
+
+  @override
+  String get friendCodeSearchPrompt =>
+      'Busca por nombre o código de amigo para encontrar jugadores.';
+
+  @override
+  String get selectFriendLabel => 'Seleccionar una cuenta';
+
+  @override
+  String linkedToFriend(String name) {
+    return 'Vinculado a $name';
+  }
+
+  @override
+  String get clearButtonText => 'Limpiar';
+
+  @override
+  String verifyFriendTitle(String name) {
+    return 'Verificar $name';
+  }
+
+  @override
+  String get enterPinPrompt =>
+      'Ingresa su PIN de 4 dígitos para confirmar identidad.';
+
+  @override
+  String get verifyButtonText => 'Verificar';
+
+  @override
+  String get accountOwnerOptionLabel => 'Yo';
+
+  @override
+  String pinIncorrectError(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Quedan $count intentos',
+      one: 'Queda 1 intento',
+    );
+    return 'PIN incorrecto. $_temp0.';
+  }
+
+  @override
+  String pinLockedOutError(int minutes) {
+    return 'Demasiados intentos. Inténtalo de nuevo en $minutes min.';
+  }
+
+  @override
+  String get pinUnavailableError =>
+      'No se pudo verificar el PIN. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get pinNotSetError =>
+      'Este amigo aún no ha configurado un PIN. Pídele que configure uno en su perfil.';
+
+  @override
+  String get friendCodeLabel => 'Código de Amigo';
+
+  @override
+  String get copyFriendCodeTooltip => 'Copiar código de amigo';
+
+  @override
+  String get friendCodeCopiedMessage => '¡Código de amigo copiado!';
+
+  @override
+  String get friendCodeHelperText =>
+      'Tu código único. Compártelo para que un amigo específico pueda agregarte con exactitud, incluso si alguien más comparte tu nombre de usuario.';
+
+  @override
+  String get setYourPinTitle => 'Configura tu PIN';
+
+  @override
+  String get setYourPinDescription =>
+      'Configura un PIN de 4 dígitos para que tus amigos puedan verificar tu identidad al agregarte a una partida.';
+
+  @override
+  String get savePinButtonText => 'Guardar PIN';
+
+  @override
+  String get addFriendButtonText => 'Agregar';
+
+  @override
+  String get blockUserAction => 'Bloquear';
+
+  @override
+  String blockUserConfirmTitle(String name) {
+    return '¿Bloquear a $name?';
+  }
+
+  @override
+  String get blockUserConfirmBody =>
+      'Se eliminará de tus amigos y no podrá encontrarte ni enviarte solicitudes. No se le notificará.';
+
+  @override
+  String get unblockUserAction => 'Desbloquear';
+
+  @override
+  String unblockUserConfirmBody(String name) {
+    return '¿Seguro que quieres desbloquear a $name?';
+  }
+
+  @override
+  String get blockedUsersTitle => 'Usuarios Bloqueados';
+
+  @override
+  String get blockedUsersEmpty => 'No has bloqueado a nadie.';
+
+  @override
+  String get legacyRequestAcceptError =>
+      'Esta solicitud se envió desde una versión anterior. Pídele que la vuelva a enviar.';
+
+  @override
+  String get noPendingRequests => 'No pending requests';
+
+  @override
+  String get gameSaveFailedError =>
+      'No se pudo guardar la partida. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get changePinTitle => 'Cambiar PIN';
+
+  @override
+  String get changePinDescription =>
+      'Tu PIN confirma tu identidad cuando tus amigos te agregan a una partida.';
+
+  @override
+  String get newPinLabel => 'Nuevo PIN';
+
+  @override
+  String get pinChangedMessage => '¡PIN actualizado!';
+
+  @override
+  String get profileSavedMessage => 'Perfil guardado';
+
+  @override
+  String get profileSaveFailedMessage =>
+      'No se pudo guardar tu perfil. Inténtalo de nuevo.';
+
+  @override
+  String get usernameLabel => 'Nombre de usuario';
+
+  @override
+  String get usernameHelperText =>
+      'Cómo te encuentran y reconocen tus amigos. No es único: otros pueden compartir este nombre.';
+
+  @override
+  String get usernameRequiredError => 'El nombre de usuario es obligatorio';
+
+  @override
+  String get usernameTooShortError =>
+      'El nombre de usuario debe tener al menos 2 caracteres';
+
+  @override
+  String get usernameTooLongError =>
+      'El nombre de usuario debe tener 30 caracteres o menos';
+
+  @override
+  String get usernameInvalidMessage =>
+      'Corrige tu nombre de usuario antes de guardar.';
+
+  @override
+  String get searchFailedMessage =>
+      'La búsqueda falló. Comprueba tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get bioLabel => 'Biografía';
+
+  @override
+  String get emailLabel => 'Correo electrónico';
+
+  @override
+  String get notSetLabel => 'Sin configurar';
+
+  @override
+  String get saveProfileButton => 'Guardar perfil';
+
+  @override
+  String get editProfileButton => 'Editar perfil';
+
+  @override
+  String get signInToLinkFriends =>
+      'Inicia sesión para vincular amigos a los jugadores.';
+
+  @override
+  String get signInToSearchFriends => 'Inicia sesión para agregar amigos.';
+
+  @override
+  String get removeFriendAction => 'Eliminar';
+
+  @override
+  String removeFriendConfirmTitle(String name) {
+    return '¿Eliminar a $name?';
+  }
+
+  @override
+  String get removeFriendConfirmBody =>
+      'No se le notificará. Pueden agregarse de nuevo en cualquier momento.';
+
+  @override
+  String get onboardingSaveFailedMessage =>
+      'No se pudo guardar el perfil. Inténtalo de nuevo.';
+
+  @override
+  String get blockedUsersLoadFailedError =>
+      'No se pudo cargar tu lista de bloqueados. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get editMatchTooltip => 'Editar partida';
+
+  @override
+  String get saveButtonLabel => 'Guardar';
+
+  @override
+  String get playerNameLabel => 'Nombre del jugador';
+
+  @override
+  String get addPartnerLabel => 'Agregar compañero';
+
+  @override
+  String get removePartnerTooltip => 'Quitar compañero';
+
+  @override
+  String get selectCommanderTitle => 'Seleccionar comandante';
+
+  @override
+  String get selectPartnerTitle => 'Seleccionar compañero';
+
+  @override
+  String get matchUpdatedMessage => 'Partida actualizada';
+
+  @override
+  String get searchCardHintText => 'Busca una carta';
+
+  @override
+  String get searchCardEmptyText => 'Busca una carta que represente tu mazo';
+
+  @override
+  String get deckCardLabel => 'Carta del mazo';
+
+  @override
+  String get noDeckCardSelected => 'Ninguna carta seleccionada';
+
+  @override
+  String get matchFormatAll => 'Todas las partidas';
+
+  @override
+  String get matchFormatCommander => 'EDH';
+
+  @override
+  String get matchFormatConstructed => 'Construido';
+
+  @override
+  String get noMatchesForFilter => 'Ninguna partida coincide con este filtro';
+
+  @override
+  String get gameTagsHeading => 'Etiquetas';
+
+  @override
+  String get gameTagsAutoHint =>
+      'Algunas etiquetas se seleccionaron con los datos de la partida. Toca una etiqueta para quitarla.';
+
+  @override
+  String get playerTagsButtonTooltip => 'Etiquetar jugador';
+
+  @override
+  String playerTagsSheetTitle(String name) {
+    return 'Etiquetas de $name';
+  }
+
+  @override
+  String get noTagsLabel => 'Sin etiquetas';
+
+  @override
+  String get statsTagFilterAll => 'Todas las partidas';
+
+  @override
+  String get tagGroupPowerLevel => 'Nivel de poder';
+
+  @override
+  String get tagGroupEnding => 'Cómo terminó';
+
+  @override
+  String get tagGroupPace => 'Ritmo';
+
+  @override
+  String get tagGroupMana => 'Maná';
+
+  @override
+  String get tagGroupKeyPlays => 'Jugadas clave';
+
+  @override
+  String get tagGroupEliminations => 'Eliminaciones';
+
+  @override
+  String get tagBracket1 => 'Bracket 1';
+
+  @override
+  String get tagBracket2 => 'Bracket 2';
+
+  @override
+  String get tagBracket3 => 'Bracket 3';
+
+  @override
+  String get tagBracket4 => 'Bracket 4';
+
+  @override
+  String get tagBracket5 => 'cEDH (Bracket 5)';
+
+  @override
+  String get tagBracket1Tooltip => 'Exhibición';
+
+  @override
+  String get tagBracket2Tooltip => 'Básico';
+
+  @override
+  String get tagBracket3Tooltip => 'Mejorado';
+
+  @override
+  String get tagBracket4Tooltip => 'Optimizado';
+
+  @override
+  String get tagBracket5Tooltip => 'EDH competitivo';
+
+  @override
+  String get tagEndCombat => 'Victoria en combate';
+
+  @override
+  String get tagEndCombo => 'Victoria por combo';
+
+  @override
+  String get tagEndCommanderDamage => 'Daño de comandante';
+
+  @override
+  String get tagEndDrain => 'Drenaje / daño directo';
+
+  @override
+  String get tagEndPoison => 'Veneno / infectar';
+
+  @override
+  String get tagEndAltWin => 'Victoria alternativa';
+
+  @override
+  String get tagEndConceded => 'La mesa se rindió';
+
+  @override
+  String get tagPaceFast => 'Partida rápida';
+
+  @override
+  String get tagPaceLong => 'Partida larga';
+
+  @override
+  String get tagFeelClose => 'Partida reñida';
+
+  @override
+  String get tagManaScrewed => 'Sin tierras';
+
+  @override
+  String get tagManaFlooded => 'Inundado de tierras';
+
+  @override
+  String get tagManaColorScrewed => 'Sin colores';
+
+  @override
+  String get tagGreatOpener => 'Gran mano inicial';
+
+  @override
+  String get tagT1SolRing => 'Sol Ring en turno 1';
+
+  @override
+  String get tagSavedTheTable => 'Salvó la mesa';
+
+  @override
+  String get tagClutchTopdeck => 'Robo decisivo';
+
+  @override
+  String get tagCommanderTax6 => 'Impuesto de comandante 6+';
+
+  @override
+  String get tagKoCommanderDamage => 'KO por comandante';
+
+  @override
+  String get tagCommanderKill => 'Eliminó con comandante';
+
+  @override
+  String get tagFirstOut => 'Primero en caer';
+}

@@ -9,13 +9,23 @@ class GameState extends Equatable {
     this.winner,
     this.elapsedSeconds = 0,
     this.startTime,
+    this.firstPlayerId,
+    this.gameModel,
+    this.error,
   });
 
   final GameStatus status;
+  final GameModel? gameModel;
   final List<Player> playerList;
   final Player? winner;
   final int elapsedSeconds;
   final DateTime? startTime;
+  final String? firstPlayerId;
+  final String? error;
+
+  /// Whether this is a Commander game. Two-player games are for 1v1 formats
+  /// (Standard, Modern, and so on), which have no commander damage.
+  bool get isCommanderGame => playerList.length > 2;
 
   GameState copyWith({
     GameStatus? status,
@@ -25,6 +35,9 @@ class GameState extends Equatable {
     String? error,
     int? elapsedSeconds,
     DateTime? startTime,
+    String? hostId,
+    String? firstPlayerId,
+    GameModel? gameModel,
   }) {
     return GameState(
       status: status ?? this.status,
@@ -32,15 +45,21 @@ class GameState extends Equatable {
       winner: winner ?? this.winner,
       elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
       startTime: startTime ?? this.startTime,
+      error: error ?? this.error,
+      firstPlayerId: firstPlayerId ?? this.firstPlayerId,
+      gameModel: gameModel ?? this.gameModel,
     );
   }
 
   @override
   List<Object?> get props => [
-        status,
-        playerList,
-        winner,
-        elapsedSeconds,
-        startTime,
-      ];
+    status,
+    playerList,
+    winner,
+    elapsedSeconds,
+    startTime,
+    firstPlayerId,
+    error,
+    gameModel,
+  ];
 }

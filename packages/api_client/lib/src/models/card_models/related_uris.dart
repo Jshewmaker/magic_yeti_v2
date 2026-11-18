@@ -26,9 +26,9 @@ class RelatedURIs extends Equatable {
 
   @override
   List<Object?> get props => [
-        gatherer,
-        tcgplayerInfiniteArticles,
-        tcgplayerInfiniteDecks,
-        edhrec,
-      ];
+    gatherer,
+    tcgplayerInfiniteArticles,
+    tcgplayerInfiniteDecks,
+    edhrec,
+  ];
 }

@@ -1,0 +1,33 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-development",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "chrome",
+        "--web-port",
+        "5959",
+        "--target",
+        "lib/main_development.dart"
+      ],
+      "port": 5959
+    },
+    {
+      "name": "design-preview",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "chrome",
+        "--web-port",
+        "5960",
+        "--target",
+        "lib/main_design_preview.dart"
+      ],
+      "port": 5960
+    }
+  ]
+}

@@ -13,7 +13,6 @@ class User extends Equatable {
   const User({
     required this.id,
     this.email,
-    this.name,
     this.photo,
     this.isNewUser = false,
     this.isAnonymous = false,
@@ -25,9 +24,6 @@ class User extends Equatable {
   /// The current user's id.
   final String id;
 
-  /// The current user's name (display name).
-  final String? name;
-
   /// Url for the current user's photo.
   final String? photo;
 
@@ -37,9 +33,25 @@ class User extends Equatable {
   /// Whether the current user is anonymous.
   final bool isAnonymous;
 
+  /// Copy the current user with the provided values.
+  User copyWith({
+    String? email,
+    String? id,
+    String? photo,
+    bool? isNewUser,
+    bool? isAnonymous,
+  }) =>
+      User(
+        email: email ?? this.email,
+        id: id ?? this.id,
+        photo: photo ?? this.photo,
+        isNewUser: isNewUser ?? this.isNewUser,
+        isAnonymous: isAnonymous ?? this.isAnonymous,
+      );
+
   /// An unauthenticated user.
   static const unauthenticated = User(id: '');
 
   @override
-  List<Object?> get props => [email, id, name, photo, isNewUser, isAnonymous];
+  List<Object?> get props => [email, id, photo, isNewUser, isAnonymous];
 }

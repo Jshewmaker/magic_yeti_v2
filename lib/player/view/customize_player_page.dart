@@ -1,139 +1,721 @@
+import 'dart:async';
+
 import 'package:app_ui/app_ui.dart';
+import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/commander_library/commander_library_repository.dart';
+import 'package:magic_yeti/friends_list/friends_list/bloc/friend_list_bloc.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/player/player.dart';
 import 'package:magic_yeti/player/view/bloc/player_customization_bloc.dart';
-import 'package:magic_yeti/player/widgets/select_commander_widget.dart';
+import 'package:magic_yeti/player/view/widgets/widgets.dart';
 import 'package:player_repository/player_repository.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 
 class CustomizePlayerPage extends StatelessWidget {
   const CustomizePlayerPage({
     required this.playerId,
+    this.isCommanderGame = true,
     super.key,
   });
+
   final String playerId;
+
+  /// When false, the player picks any card to represent a 1v1 deck instead
+  /// of a commander.
+  final bool isCommanderGame;
+
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => PlayerCustomizationBloc(
-        scryfallRepository: context.read<ScryfallRepository>(),
+    final userId = context.read<AppBloc>().state.user.id;
+    // Save writes the page state to the player, so the page must start with
+    // the saved cards. If not, a save removes the partner and the background.
+    final player = context.read<PlayerRepository>().getPlayerById(playerId);
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => PlayerCustomizationBloc(
+            scryfallRepository: context.read<ScryfallRepository>(),
+            firebaseDatabaseRepository: context
+                .read<FirebaseDatabaseRepository>(),
+            commanderLibraryRepository: context
+                .read<CommanderLibraryRepository>(),
+            isCommanderGame: isCommanderGame,
+            initialCommander: player.commander,
+            initialPartner: player.partner,
+            initialBackground: player.background,
+          )..add(const LibraryRequested()),
+        ),
+        BlocProvider(
+          create: (context) => FriendBloc(
+            repository: context.read<FirebaseDatabaseRepository>(),
+          )..add(LoadFriends(userId)),
+        ),
+      ],
+      child: CustomizePlayerView(
+        playerId: playerId,
+        isCommanderGame: isCommanderGame,
       ),
-      child: CustomizePlayerView(playerId: playerId),
     );
   }
 }
 
-class CustomizePlayerView extends StatelessWidget {
+class CustomizePlayerView extends StatefulWidget {
   const CustomizePlayerView({
     required this.playerId,
+    this.isCommanderGame = true,
     super.key,
   });
+
   final String playerId;
+  final bool isCommanderGame;
+
+  @override
+  State<CustomizePlayerView> createState() => _CustomizePlayerViewState();
+}
+
+class _CustomizePlayerViewState extends State<CustomizePlayerView> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _searchController;
+  final _nameFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    final player = context.read<PlayerRepository>().getPlayerById(
+      widget.playerId,
+    );
+    _nameController = TextEditingController(text: player.name);
+    _searchController = TextEditingController();
+    _nameFocusNode.addListener(() {
+      if (_nameFocusNode.hasFocus) {
+        _nameController.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: _nameController.text.length,
+        );
+      }
+    });
+
+    final currentUserId = context.read<AppBloc>().state.user.id;
+    final linkedFirebaseId = context.read<PlayerBloc>().state.player.firebaseId;
+    if (linkedFirebaseId != null && linkedFirebaseId == currentUserId) {
+      context.read<PlayerCustomizationBloc>().add(
+        OwnerSelected(userId: currentUserId),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _searchController.dispose();
+    _nameFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _save(BuildContext context, PlayerCustomizationState state) {
+    String? firebaseId;
+    if (state.selectedFriend != null && state.pinValidated) {
+      firebaseId = state.selectedFriend!.userId;
+    } else if (state.isAccountOwner) {
+      firebaseId = context.read<AppBloc>().state.user.id;
+    }
+
+    context.read<PlayerBloc>().add(
+      UpdatePlayerInfoEvent(
+        playerName: _nameController.text,
+        commander: state.commander,
+        partner: state.partner,
+        background: state.background,
+        playerId: widget.playerId,
+        firebaseId: firebaseId,
+      ),
+    );
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final player = context.read<PlayerRepository>().getPlayerById(playerId);
-    final textController = TextEditingController(text: player.name);
-    const width = 600.0;
-    const height = 300.0;
+    final player = context.read<PlayerRepository>().getPlayerById(
+      widget.playerId,
+    );
 
-    return Scaffold(
-      appBar: AppBar(),
-      body: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxlg),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
-              builder: (context, state) {
-                return Expanded(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: width,
-                        height: height,
-                        decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(20),
-                          ),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(20),
-                          ),
-                          child: Image.network(
-                            state.imageURL.isNotEmpty
-                                ? state.imageURL
-                                : player.picture,
-                            fit: BoxFit.fill,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                              decoration: BoxDecoration(
-                                color: Color(player.color).withOpacity(1),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(20),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Row(
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<FriendBloc, FriendState>(
+          listenWhen: (previous, current) => current is FriendsLoaded,
+          listener: (context, friendState) {
+            final customState = context.read<PlayerCustomizationBloc>().state;
+            if (customState.isAccountOwner ||
+                customState.selectedFriend != null) {
+              return;
+            }
+            final linkedFirebaseId = context
+                .read<PlayerBloc>()
+                .state
+                .player
+                .firebaseId;
+            if (linkedFirebaseId == null) return;
+            final friends = (friendState as FriendsLoaded).friends;
+            FriendModel? match;
+            for (final f in friends) {
+              if (f.userId == linkedFirebaseId) {
+                match = f;
+                break;
+              }
+            }
+            if (match != null) {
+              context.read<PlayerCustomizationBloc>().add(
+                SelectFriend(friend: match),
+              );
+            }
+          },
+        ),
+        BlocListener<PlayerCustomizationBloc, PlayerCustomizationState>(
+          listenWhen: (previous, current) =>
+              previous.isAccountOwner != current.isAccountOwner ||
+              previous.ownerUsername != current.ownerUsername ||
+              previous.selectedFriend != current.selectedFriend,
+          listener: (context, state) {
+            if (state.isAccountOwner) {
+              final owner = state.ownerUsername;
+              if (owner != null && owner.isNotEmpty) {
+                _nameController.text = owner;
+              }
+            } else if (state.selectedFriend != null) {
+              _nameController.text = state.selectedFriend!.username;
+            } else {
+              _nameController.clear();
+            }
+          },
+        ),
+      ],
+      child: BlocBuilder<PlayerCustomizationBloc, PlayerCustomizationState>(
+        builder: (context, state) {
+          final commander = state.commander ?? player.commander;
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            extendBodyBehindAppBar: true,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            body: Stack(
+              fit: StackFit.expand,
+              children: [
+                CommanderHeroBanner(
+                  commander: commander,
+                  partner: state.partner,
+                  background: state.background,
+                  playerColor: player.color,
+                ),
+                ColoredBox(color: AppColors.black.withValues(alpha: 0.45)),
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: _ResponsiveLayout(
+                      identity: Column(
                         children: [
-                          Expanded(
-                            child: TextField(
-                              onEditingComplete: () =>
-                                  context.read<PlayerCustomizationBloc>().add(
-                                        UpdatePlayerName(
-                                          name: textController.text,
-                                        ),
-                                      ),
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              controller: textController,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          ElevatedButton(
-                            onPressed: () {
-                              context.read<PlayerBloc>().add(
-                                    UpdatePlayerInfoEvent(
-                                      playerName: textController.text,
-                                      pictureUrl: state.imageURL,
-                                      playerId: playerId,
-                                    ),
-                                  );
-
-                              Navigator.pop(context);
-                            },
-                            style: ButtonStyle(
-                              shape: WidgetStateProperty.all<
-                                  RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                            child: const Text('Save'),
+                          const _FriendSection(),
+                          PlayerIdentityPanel(
+                            nameController: _nameController,
+                            nameFocusNode: _nameFocusNode,
+                            playerColor: player.color,
+                            isCommanderGame: widget.isCommanderGame,
+                            savedCardName: player.commander?.name,
+                            onSave: () => _save(context, state),
                           ),
                         ],
                       ),
-                    ],
+                      picker: CommanderPickerPanel(
+                        searchController: _searchController,
+                        isCommanderGame: widget.isCommanderGame,
+                      ),
+                    ),
                   ),
-                );
-              },
+                ),
+              ],
             ),
-            const SizedBox(width: AppSpacing.xxlg),
-            SelectCommanderWidget(
-              player: player,
-            ),
-          ],
-        ),
+          );
+        },
       ),
+    );
+  }
+}
+
+/// Puts the identity panel beside the card picker in landscape, and above
+/// it in portrait, where side-by-side panels are too narrow on a phone.
+class _ResponsiveLayout extends StatelessWidget {
+  const _ResponsiveLayout({required this.identity, required this.picker});
+
+  final Widget identity;
+  final Widget picker;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isPortrait = constraints.maxHeight > constraints.maxWidth;
+        if (!isPortrait) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                flex: 39,
+                child: _Panel(
+                  child: SingleChildScrollView(child: identity),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(flex: 61, child: _Panel(child: picker)),
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // The identity panel takes its natural height, but never more
+            // than half, so the picker keeps room when the keyboard is up.
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: constraints.maxHeight / 2,
+              ),
+              child: _Panel(
+                child: SingleChildScrollView(child: identity),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Expanded(child: _Panel(child: picker)),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _Panel extends StatelessWidget {
+  const _Panel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(AppSpacing.md),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _FriendSection extends StatefulWidget {
+  const _FriendSection();
+
+  @override
+  State<_FriendSection> createState() => _FriendSectionState();
+}
+
+class _FriendSectionState extends State<_FriendSection> {
+  int _resetNonce = 0;
+
+  // The menu popup's background is dark (AppColors.surface); Material 3's
+  // default entry text color assumes a light surface and renders
+  // near-illegibly here without this override.
+  static const _entryStyle = ButtonStyle(
+    foregroundColor: WidgetStatePropertyAll(AppColors.white),
+  );
+
+  void _forceReset() {
+    if (mounted) setState(() => _resetNonce++);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final customState = context.watch<PlayerCustomizationBloc>().state;
+    final friendState = context.watch<FriendBloc>().state;
+    final appState = context.watch<AppBloc>().state;
+    final isAnonymous = appState.status == AppStatus.anonymous;
+
+    // Anonymous users have no friend graph to link against — the callable
+    // backing this list requires an authenticated uid, so show intentional
+    // copy instead of an empty/loading friend list.
+    if (isAnonymous) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xlg,
+          vertical: AppSpacing.sm,
+        ),
+        child: Text(
+          context.l10n.signInToLinkFriends,
+          style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.neutral60,
+          ),
+        ),
+      );
+    }
+
+    final friends = friendState is FriendsLoaded
+        ? friendState.friends
+        : <FriendModel>[];
+    final sortedFriends = List<FriendModel>.from(friends)
+      ..sort(
+        (a, b) => a.username.toLowerCase().compareTo(b.username.toLowerCase()),
+      );
+
+    final currentUserId = appState.user.id;
+    final confirmedValue = customState.isAccountOwner
+        ? currentUserId
+        : (customState.selectedFriend != null && customState.pinValidated
+              ? customState.selectedFriend!.userId
+              : null);
+
+    return Padding(
+      // Matches PlayerIdentityPanel's own padding (AppSpacing.md) below it —
+      // this section previously used AppSpacing.xlg, which didn't line up
+      // with its sibling at all.
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // Matches the 14px player-color circle + AppSpacing.sm gap
+              // that precedes the name field in PlayerIdentityPanel below,
+              // so this field's content lines up with that one's instead
+              // of sitting under the circle.
+              const SizedBox(width: 14 + AppSpacing.sm),
+              Expanded(
+                child: DropdownMenu<String?>(
+                  key: ValueKey('$confirmedValue-$_resetNonce'),
+                  initialSelection: confirmedValue,
+                  // Without this, DropdownMenu sizes itself to its
+                  // content width regardless of any parent SizedBox — it
+                  // never actually stretched to match the name field
+                  // below it.
+                  expandedInsets: EdgeInsets.zero,
+                  enableFilter: true,
+                  // DropdownMenu.requestFocusOnTap defaults to false on
+                  // mobile platforms (iOS/Android/Fuchsia), which makes
+                  // its internal TextField readOnly — type-to-search
+                  // silently does nothing there without this. This
+                  // app's primary targets are iOS and Android (see
+                  // CLAUDE.md), so enableFilter's whole point (Step 7's
+                  // "filters as you type... on a small simulated device
+                  // (e.g. iPhone SE)") requires this explicitly.
+                  requestFocusOnTap: true,
+                  // Formerly a separate label above the field — moved
+                  // in as the hint so the field carries its own
+                  // description instead of needing a caption beside it.
+                  hintText: context.l10n.selectFriendLabel,
+                  leadingIcon: const Icon(
+                    Icons.person_search,
+                    color: AppColors.neutral60,
+                  ),
+                  // DropdownMenu has its own dedicated theme slot
+                  // (DropdownMenuThemeData) separate from the app's
+                  // general InputDecorationTheme — nothing sets that
+                  // slot anywhere in this app, so without the overrides
+                  // below this field renders in unthemed Material 3
+                  // defaults instead of matching the name field and
+                  // search bar beside it.
+                  textStyle: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 16,
+                  ),
+                  inputDecorationTheme: InputDecorationTheme(
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    isDense: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.sm),
+                      borderSide: const BorderSide(
+                        color: AppColors.neutral60,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.sm),
+                      borderSide: const BorderSide(
+                        color: AppColors.neutral60,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.sm),
+                      borderSide: const BorderSide(
+                        color: AppColors.neutral60,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                  menuStyle: MenuStyle(
+                    backgroundColor: const WidgetStatePropertyAll(
+                      AppColors.surface,
+                    ),
+                    surfaceTintColor: const WidgetStatePropertyAll(
+                      Colors.transparent,
+                    ),
+                    shape: WidgetStatePropertyAll(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSpacing.sm),
+                        side: const BorderSide(color: AppColors.neutral60),
+                      ),
+                    ),
+                  ),
+                  dropdownMenuEntries: [
+                    DropdownMenuEntry(
+                      value: currentUserId,
+                      label: context.l10n.accountOwnerOptionLabel,
+                      style: _entryStyle,
+                    ),
+                    ...sortedFriends.map(
+                      (friend) => DropdownMenuEntry(
+                        value: friend.userId,
+                        label: friend.username,
+                        style: _entryStyle,
+                      ),
+                    ),
+                  ],
+                  // Clearing an existing link now happens via the X
+                  // button in the name field (PlayerIdentityPanel), not
+                  // from this dropdown — every remaining entry is a real
+                  // account, so `value` is never null here in practice.
+                  onSelected: (value) {
+                    if (value == null) return;
+                    if (value == currentUserId) {
+                      context.read<PlayerCustomizationBloc>().add(
+                        OwnerSelected(userId: currentUserId),
+                      );
+                    } else {
+                      final friend = sortedFriends.firstWhere(
+                        (f) => f.userId == value,
+                      );
+                      _showPinDialog(context, friend);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+      ),
+    );
+  }
+
+  String? _pinErrorText(BuildContext context, PlayerCustomizationState state) {
+    final l10n = context.l10n;
+    return switch (state.pinFlowError) {
+      PinFlowError.none => null,
+      PinFlowError.incorrect => l10n.pinIncorrectError(
+        state.pinAttemptsRemaining,
+      ),
+      PinFlowError.lockedOut => l10n.pinLockedOutError(
+        state.pinLockedUntil == null
+            ? 15
+            : (state.pinLockedUntil!.difference(DateTime.now()).inSeconds / 60)
+                  .ceil()
+                  .clamp(1, 15),
+      ),
+      PinFlowError.unavailable => l10n.pinUnavailableError,
+      PinFlowError.notSet => l10n.pinNotSetError,
+    };
+  }
+
+  void _showPinDialog(BuildContext context, FriendModel friend) {
+    final pinController = TextEditingController();
+    final bloc = context.read<PlayerCustomizationBloc>();
+    final l10n = context.l10n;
+
+    // Clear any stale error/lockout state left over from a previous
+    // friend's dialog before this one opens.
+    bloc.add(const ResetPinFlow());
+
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return BlocProvider.value(
+            value: bloc,
+            child:
+                BlocListener<PlayerCustomizationBloc, PlayerCustomizationState>(
+                  listenWhen: (previous, current) =>
+                      previous.pinValidated != current.pinValidated ||
+                      previous.pinFlowError != current.pinFlowError,
+                  listener: (listenerContext, state) {
+                    if (state.pinValidated) {
+                      // PIN succeeded — select friend, close. The page-level
+                      // BlocListener in CustomizePlayerView.build() populates
+                      // the name field once selectedFriend changes.
+                      bloc.add(SelectFriend(friend: friend));
+                      Navigator.pop(listenerContext);
+                    }
+                    // pinFlowError is shown reactively via the BlocBuilder below
+                  },
+                  child: StatefulBuilder(
+                    builder: (dialogContext, setDialogState) {
+                      return AlertDialog(
+                        scrollable: true,
+                        backgroundColor: AppColors.surface,
+                        title: Text(
+                          l10n.verifyFriendTitle(friend.username),
+                          style: const TextStyle(color: AppColors.white),
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              l10n.enterPinPrompt,
+                              style: const TextStyle(
+                                color: AppColors.neutral60,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            BlocBuilder<
+                              PlayerCustomizationBloc,
+                              PlayerCustomizationState
+                            >(
+                              buildWhen: (previous, current) =>
+                                  previous.pinFlowError !=
+                                      current.pinFlowError ||
+                                  previous.pinAttemptsRemaining !=
+                                      current.pinAttemptsRemaining ||
+                                  previous.pinLockedUntil !=
+                                      current.pinLockedUntil,
+                              builder: (context, state) {
+                                return TextField(
+                                  controller: pinController,
+                                  keyboardType: TextInputType.number,
+                                  maxLength: 4,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    letterSpacing: 8,
+                                    color: AppColors.white,
+                                  ),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: AppColors.surface,
+                                    counterText: '',
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: AppColors.neutral60,
+                                      ),
+                                    ),
+                                    focusedBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: AppColors.tertiary,
+                                      ),
+                                    ),
+                                    errorBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: AppColors.red,
+                                      ),
+                                    ),
+                                    focusedErrorBorder:
+                                        const OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: AppColors.red,
+                                          ),
+                                        ),
+                                    errorText: _pinErrorText(context, state),
+                                    errorStyle: const TextStyle(
+                                      color: AppColors.red,
+                                    ),
+                                  ),
+                                  onChanged: (_) => setDialogState(() {}),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          BlocBuilder<
+                            PlayerCustomizationBloc,
+                            PlayerCustomizationState
+                          >(
+                            buildWhen: (previous, current) =>
+                                previous.isPinValidating !=
+                                current.isPinValidating,
+                            builder: (context, state) {
+                              return TextButton(
+                                onPressed: state.isPinValidating
+                                    ? null
+                                    : () => Navigator.pop(dialogContext),
+                                child: Text(
+                                  l10n.cancelTextButton,
+                                  style: const TextStyle(
+                                    color: AppColors.neutral60,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          BlocBuilder<
+                            PlayerCustomizationBloc,
+                            PlayerCustomizationState
+                          >(
+                            buildWhen: (previous, current) =>
+                                previous.pinFlowError != current.pinFlowError ||
+                                previous.isPinValidating !=
+                                    current.isPinValidating,
+                            builder: (context, state) {
+                              final isLockedOut =
+                                  state.pinFlowError == PinFlowError.lockedOut;
+                              final canSubmit =
+                                  pinController.text.length == 4 &&
+                                  !isLockedOut &&
+                                  !state.isPinValidating;
+                              return FilledButton(
+                                onPressed: canSubmit
+                                    ? () {
+                                        bloc.add(
+                                          ValidatePin(
+                                            pin: pinController.text,
+                                            friendUserId: friend.userId,
+                                          ),
+                                        );
+                                      }
+                                    : null,
+                                child: state.isPinValidating
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppColors.white,
+                                        ),
+                                      )
+                                    : Text(l10n.verifyButtonText),
+                              );
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+          );
+        },
+      ).then((_) {
+        final confirmed =
+            bloc.state.selectedFriend?.userId == friend.userId &&
+            bloc.state.pinValidated;
+        if (!confirmed) {
+          _forceReset();
+        }
+      }),
     );
   }
 }

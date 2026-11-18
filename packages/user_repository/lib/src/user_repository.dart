@@ -4,19 +4,24 @@
 import 'dart:async';
 
 import 'package:authentication_client/authentication_client.dart';
+import 'package:firebase_database_repository/firebase_database_repository.dart';
 
 /// {@template user_repository}
 /// Repository which manages the user domain.
 /// {@endtemplate}
 class UserRepository {
   /// {@macro user_repository}
-  UserRepository({required AuthenticationClient authenticationClient})
-      : _authenticationClient = authenticationClient;
+  UserRepository({
+    required AuthenticationClient authenticationClient,
+    required FirebaseDatabaseRepository firebaseDatabaseRepository,
+  })  : _authenticationClient = authenticationClient,
+        _firebaseDatabaseRepository = firebaseDatabaseRepository;
 
   final AuthenticationClient _authenticationClient;
+  final FirebaseDatabaseRepository _firebaseDatabaseRepository;
 
   /// Stream of [User] which will emit the current user when
-  /// the authentication state changes.
+  /// the authentication state changes or when the user profile is updated.
   ///
   /// Emits [User.unauthenticated] if the user is not authenticated.
   Stream<User> get user => _authenticationClient.user;

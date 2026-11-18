@@ -3,16 +3,19 @@
 
 import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
-import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/home/home.dart';
+import 'package:magic_yeti/onboarding/onboarding.dart';
 
 extension AppStatusRoute on AppStatus {
   String get route {
     switch (this) {
       case AppStatus.onboardingRequired:
+        return OnboardingPage.routeName;
       case AppStatus.downForMaintenance:
       case AppStatus.forceUpgradeRequired:
       case AppStatus.unauthenticated:
       case AppStatus.authenticated:
+      case AppStatus.anonymous:
         return HomePage.routeName;
     }
   }
@@ -30,11 +33,4 @@ class AppRoute extends GoRoute {
   });
 
   final AppStatus appStatus;
-
-  // TODO(joshua): Implement redirect
-  // @override
-  // GoRouterRedirect get redirect => (context, state) {
-  //       // final currentStatus = context.read<AppBloc>().state.status;
-  //       //  return currentStatus == appStatus ? null : currentStatus.route;
-  //     };
 }

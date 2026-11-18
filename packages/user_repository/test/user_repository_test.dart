@@ -2,6 +2,7 @@
 // https://verygood.ventures
 
 import 'package:authentication_client/authentication_client.dart';
+import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:user_repository/user_repository.dart';
@@ -28,15 +29,21 @@ class _FakeLogOutFailure extends Fake implements LogOutFailure {}
 
 class _FakeDeleteAccountFailure extends Fake implements DeleteAccountFailure {}
 
+class _FakeFirebaseDatabaseRepository extends Mock
+    implements FirebaseDatabaseRepository {}
+
 void main() {
   group('UserRepository', () {
     late AuthenticationClient authenticationClient;
     late UserRepository userRepository;
+    late FirebaseDatabaseRepository firebaseDatabaseRepository;
 
     setUp(() {
       authenticationClient = _MockAuthenticationClient();
+      firebaseDatabaseRepository = _FakeFirebaseDatabaseRepository();
       userRepository = UserRepository(
         authenticationClient: authenticationClient,
+        firebaseDatabaseRepository: firebaseDatabaseRepository,
       );
     });
 

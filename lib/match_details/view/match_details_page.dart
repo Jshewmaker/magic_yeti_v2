@@ -1,0 +1,709 @@
+import 'dart:async';
+
+import 'package:app_ui/app_ui.dart';
+import 'package:firebase_database_repository/firebase_database_repository.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/home/home.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
+import 'package:magic_yeti/match_details/match_details.dart';
+import 'package:player_repository/models/player.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+class MatchDetailsPage extends StatelessWidget {
+  const MatchDetailsPage({
+    required this.gameId,
+    super.key,
+  });
+
+  factory MatchDetailsPage.pageBuilder(_, GoRouterState state) {
+    return MatchDetailsPage(gameId: state.pathParameters['gameId']!);
+  }
+
+  final String gameId;
+
+  static const routeName = 'match_details_page';
+  static String get routePath => '/match_details_page/:gameId';
+  static String path({required String gameId}) => '/match_details_page/$gameId';
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => MatchDetailsBloc(
+            databaseRepository: context.read<FirebaseDatabaseRepository>(),
+          ),
+        ),
+        BlocProvider(
+          create: (context) => MatchEditCubit(
+            databaseRepository: context.read<FirebaseDatabaseRepository>(),
+            currentUserId: context.read<AppBloc>().state.user.id,
+          ),
+        ),
+      ],
+      child: MatchDetailsView(gameId: gameId),
+    );
+  }
+}
+
+class MatchDetailsView extends StatelessWidget {
+  const MatchDetailsView({
+    required this.gameId,
+    super.key,
+  });
+
+  final String gameId;
+
+  @override
+  Widget build(BuildContext context) {
+    return OrientationLock(
+      orientations: const [
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ],
+      child: BlocListener<MatchEditCubit, MatchEditState>(
+        listenWhen: (prev, curr) => prev.status != curr.status,
+        listener: (context, state) {
+          if (state.status == MatchEditStatus.success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.l10n.matchUpdatedMessage),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          } else if (state.status == MatchEditStatus.error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  context.l10n.errorSnackbarMessage(state.errorMessage),
+                ),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        },
+        child: BlocConsumer<MatchDetailsBloc, MatchDetailsState>(
+          listener: (context, state) {
+            if (state is MatchDetailsDeleted) {
+              context.go(HomePage.routeName);
+            } else if (state is MatchDetailsError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(context.l10n.errorSnackbarMessage(state.error)),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            final games = context.watch<MatchHistoryBloc>().state.games;
+            final gameExists = games.any((game) => game.id == gameId);
+            if (!gameExists) {
+              return Scaffold(
+                appBar: AppBar(
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => context.pop(),
+                  ),
+                ),
+                body: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+
+            return _MatchDetailsContent(gameId: gameId);
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _MatchDetailsContent extends StatelessWidget {
+  const _MatchDetailsContent({
+    required this.gameId,
+  });
+
+  final String gameId;
+
+  /// Opens a sheet to assign the tapped [seat] to the signed-in user, a friend,
+  /// or nobody. Tagging a friend edits only the user's own history copy.
+  void _showSeatAssignmentSheet(BuildContext context, Player seat) {
+    final myId = context.read<AppBloc>().state.user.id;
+    final game = context.read<MatchHistoryBloc>().state.games.firstWhere(
+      (game) => game.id == gameId,
+    );
+    final bloc = context.read<MatchDetailsBloc>();
+    final repository = context.read<FirebaseDatabaseRepository>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: AppColors.surface,
+        builder: (sheetContext) {
+          void assign(String? firebaseId, String label) {
+            bloc.add(
+              AssignSeatIdentity(
+                game: game,
+                seat: seat,
+                assignedFirebaseId: firebaseId,
+                ownerUserId: myId,
+              ),
+            );
+            Navigator.of(sheetContext).pop();
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text('${seat.name} → $label'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Who played ${seat.name}?',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.person, color: Colors.blue),
+                  title: const Text('Me'),
+                  trailing: seat.firebaseId == myId
+                      ? const Icon(Icons.check)
+                      : null,
+                  onTap: () => assign(myId, 'You'),
+                ),
+                StreamBuilder<List<FriendModel>>(
+                  stream: repository.watchFriends(myId),
+                  builder: (context, snapshot) {
+                    final friends = snapshot.data ?? const <FriendModel>[];
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final friend in friends)
+                          ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: AppColors.tertiary,
+                              child: Text(
+                                friend.username.isNotEmpty
+                                    ? friend.username[0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(color: AppColors.white),
+                              ),
+                            ),
+                            title: Text(friend.username),
+                            trailing: seat.firebaseId == friend.userId
+                                ? const Icon(Icons.check)
+                                : null,
+                            onTap: () => assign(friend.userId, friend.username),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                if (seat.firebaseId != null)
+                  ListTile(
+                    leading: const Icon(Icons.person_off_outlined),
+                    title: const Text('Unassign'),
+                    onTap: () => assign(null, 'unassigned'),
+                  ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
+    final games = context.watch<MatchHistoryBloc>().state.games;
+    final game = games.firstWhere((game) => game.id == gameId);
+    final winningPlayer = game.players.firstWhere(
+      (player) => player.id == game.winnerId,
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        // Phones title the app bar; tablets carry the heading in the body.
+        title: isPhone ? Text(l10n.matchDetailsHeading) : null,
+        actions: [
+          MatchDetailsAppBarActions(
+            game: game,
+            deleteAction: _DeleteMatchButton(gameId: gameId),
+          ),
+        ],
+      ),
+      body: BlocBuilder<MatchEditCubit, MatchEditState>(
+        builder: (context, editState) {
+          if (editState.isEditing) {
+            return const SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  MatchEditPlayersList(),
+                  SizedBox(height: 16),
+                  MatchEditGameTags(),
+                ],
+              ),
+            );
+          }
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!isPhone) ...[
+                    Text(
+                      l10n.matchDetailsHeading,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  // Winner card
+                  MatchWinnerWidget(
+                    winner: winningPlayer,
+                    gameDuration: game.durationInSeconds,
+                    startingPlayerId: game.startingPlayerId,
+                    gameId: gameId,
+                  ),
+                  const SizedBox(height: 16),
+                  // Players standings
+                  MatchStandingsWidget(
+                    players: game.players,
+                    winner: winningPlayer,
+                    currentUserFirebaseId: context
+                        .read<AppBloc>()
+                        .state
+                        .user
+                        .id,
+                    startingPlayerId: game.startingPlayerId,
+                    onSelectPlayer: (player) =>
+                        _showSeatAssignmentSheet(context, player),
+                  ),
+                  const SizedBox(height: 16),
+                  MatchTagsWidget(game: game),
+                  const SizedBox(height: 16),
+                  // Match metadata
+                  MatchMetadataWidget(
+                    game: game,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class MatchWinnerWidget extends StatelessWidget {
+  const MatchWinnerWidget({
+    required this.winner,
+    required this.gameDuration,
+    required this.startingPlayerId,
+    required this.gameId,
+    super.key,
+  });
+
+  final Player winner;
+  final int gameDuration;
+  final String startingPlayerId;
+  final String gameId;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Card(
+      color: AppColors.winner.withValues(alpha: .6),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    final url = Uri.parse(
+                      winner.commander?.scryFallUrl ?? '',
+                    );
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url);
+                    }
+                  },
+                  child: CircleAvatar(
+                    backgroundImage:
+                        winner.commander?.imageUrl.isNotEmpty ?? false
+                        ? NetworkImage(winner.commander!.imageUrl)
+                        : null,
+                    backgroundColor: Color(winner.color),
+                    radius: 50,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.winnerLabel(winner.name),
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      if (winner.commander?.name != null)
+                        Row(
+                          children: [
+                            Text(
+                              l10n.commanderLabel(
+                                winner.commander?.name ?? '',
+                              ),
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ],
+                        ),
+                      if (winner.id == startingPlayerId)
+                        Text('${winner.name} ${l10n.startedFirst}'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${l10n.gameDuration} ${_formatDuration(gameDuration)}',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MatchStandingsWidget extends StatelessWidget {
+  const MatchStandingsWidget({
+    required this.players,
+    required this.winner,
+    required this.currentUserFirebaseId,
+    required this.startingPlayerId,
+    required this.onSelectPlayer,
+    super.key,
+  });
+
+  final List<Player> players;
+  final Player winner;
+  final String? currentUserFirebaseId;
+  final String startingPlayerId;
+  final void Function(Player) onSelectPlayer;
+
+  /// Seat identity glyph: the signed-in user, a tagged friend, or an empty
+  /// (assignable) seat.
+  Widget _seatIcon(String? seatFirebaseId, String? currentUserFirebaseId) {
+    if (seatFirebaseId != null && seatFirebaseId == currentUserFirebaseId) {
+      return const Icon(Icons.person, color: Colors.blue, size: 20);
+    }
+    if (seatFirebaseId != null) {
+      return const FaIcon(
+        FontAwesomeIcons.userCheck,
+        color: AppColors.secondary,
+        size: 16,
+      );
+    }
+    return const FaIcon(
+      FontAwesomeIcons.userPlus,
+      color: Colors.grey,
+      size: 16,
+    );
+  }
+
+  String _getOrdinalNumber(int number) {
+    if (number >= 11 && number <= 13) {
+      return '${number}th';
+    }
+    switch (number % 10) {
+      case 1:
+        return '${number}st';
+      case 2:
+        return '${number}nd';
+      case 3:
+        return '${number}rd';
+      default:
+        return '${number}th';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    players.sort((a, b) => a.placement.compareTo(b.placement));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize:
+              MainAxisSize.min, // Prevent Column from expanding infinitely
+          children: [
+            // Header row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Placement header
+                Expanded(
+                  child: Text(
+                    context.l10n.placementColumnHeader,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    context.l10n.achievementColumnHeader,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                ),
+                // Player name and commander header
+                Expanded(
+                  child: Text(
+                    context.l10n.playerColumnHeader,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const Divider(),
+            // Player rows
+            ...players.map(
+              (player) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Placement number
+                    Expanded(
+                      child: Text(
+                        _getOrdinalNumber(player.placement),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Row(
+                        spacing: 8,
+                        children: [
+                          IconButton(
+                            tooltip: player.firebaseId == currentUserFirebaseId
+                                ? l10n.youTooltip
+                                : 'Assign this seat',
+                            onPressed: () => onSelectPlayer(player),
+                            icon: _seatIcon(
+                              player.firebaseId,
+                              currentUserFirebaseId,
+                            ),
+                          ),
+                          if (player.id == startingPlayerId)
+                            Tooltip(
+                              triggerMode: TooltipTriggerMode.tap,
+                              message: l10n.wentFirstTooltip,
+                              child: const FaIcon(
+                                FontAwesomeIcons.one,
+                                color: Colors.green,
+                                size: 16,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      child: CircleAvatar(
+                        backgroundImage:
+                            player.commander?.imageUrl.isNotEmpty ?? false
+                            ? NetworkImage(player.commander!.imageUrl)
+                            : null,
+                        backgroundColor: Color(player.color),
+                      ),
+                      onTap: () async {
+                        final url = Uri.parse(
+                          player.commander?.scryFallUrl ?? '',
+                        );
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Player info and icons
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Player name
+                          Row(
+                            children: [
+                              Text(
+                                player.name,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ],
+                          ),
+                          // Commander name and link
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MatchMetadataWidget extends StatelessWidget {
+  const MatchMetadataWidget({
+    required this.game,
+    super.key,
+  });
+
+  final GameModel game;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.l10n.matchInformationHeading,
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
+            const SizedBox(height: 8),
+            SelectableText(
+              context.l10n.roomIdLabel(game.roomId),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            Text(
+              '${l10n.playedOnLabel} ${DateFormat('MM/dd/yyyy').format(game.endTime.toLocal())}',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DeleteMatchButton extends StatelessWidget {
+  const _DeleteMatchButton({
+    required this.gameId,
+  });
+
+  final String gameId;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<MatchHistoryBloc, MatchHistoryState>(
+      buildWhen: (previous, current) => previous.status != current.status,
+      builder: (context, state) {
+        return IconButton(
+          onPressed: () {
+            _showDeleteConfirmationDialog(context);
+          },
+          icon: const Icon(Icons.delete_outline),
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return BlocProvider.value(
+          value: context.read<MatchDetailsBloc>(),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: Text(context.l10n.deleteMatchDialogTitle),
+                content: Text(
+                  context.l10n.deleteMatchDialogContent,
+                ),
+                actions: [
+                  ElevatedButton(
+                    onPressed: () => context.pop(),
+                    child: Text(context.l10n.cancelButtonLabel),
+                  ),
+                  HoldToConfirmButton(
+                    child: Text(context.l10n.deleteMatchButtonLabel),
+                    onProgressCompleted: () async {
+                      context.read<MatchDetailsBloc>().add(
+                        DeleteMatchEvent(
+                          gameId: gameId,
+                          userId: context.read<AppBloc>().state.user.id,
+                        ),
+                      );
+
+                      context.pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+String _formatDuration(int seconds) {
+  final duration = Duration(seconds: seconds);
+  final minutes = duration.inMinutes;
+  final remainingSeconds = duration.inSeconds % 60;
+  return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+}

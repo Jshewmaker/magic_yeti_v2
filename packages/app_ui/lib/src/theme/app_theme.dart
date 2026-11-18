@@ -27,6 +27,12 @@ class AppTheme {
       checkboxTheme: _checkBoxTheme,
       colorScheme: _colorScheme,
       elevatedButtonTheme: _elevatedButtonTheme,
+      switchTheme: _switchTheme,
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: AppColors.tertiarySecondary,
+        actionTextColor: AppColors.white,
+        contentTextStyle: TextStyle(color: AppColors.white),
+      ),
     );
   }
 
@@ -83,10 +89,10 @@ class AppTheme {
   ElevatedButtonThemeData get _elevatedButtonTheme {
     return ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        foregroundColor: AppColors.background,
-        backgroundColor: AppColors.white,
-        disabledBackgroundColor: AppColors.white,
-        disabledForegroundColor: AppColors.neutral60,
+        foregroundColor: AppColors.white,
+        backgroundColor: AppColors.quaternary.withValues(alpha: .9),
+        disabledBackgroundColor: AppColors.quaternary.withValues(alpha: .2),
+        disabledForegroundColor: AppColors.white.withValues(alpha: .2),
       ),
     );
   }
@@ -123,8 +129,8 @@ class AppTheme {
     );
   }
 
-  TabBarTheme get _tabBarTheme {
-    return TabBarTheme(
+  TabBarThemeData get _tabBarTheme {
+    return TabBarThemeData(
       dividerColor: Colors.transparent,
       overlayColor: WidgetStateProperty.all<Color>(AppColors.background),
     );
@@ -137,6 +143,20 @@ class AppTheme {
         foregroundColor: _primaryColor,
         textStyle: _textTheme.labelLarge,
       ),
+    );
+  }
+
+  /// Switch Theme
+  SwitchThemeData get _switchTheme {
+    return SwitchThemeData(
+      thumbColor: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.selected)) {
+          return AppColors.green;
+        }
+        return AppColors.white;
+      }),
+      trackColor: MaterialStateProperty.all(AppColors.neutral60),
+      trackOutlineColor: MaterialStateProperty.all(AppColors.neutral60),
     );
   }
 

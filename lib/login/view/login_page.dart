@@ -20,8 +20,9 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => LoginBloc(context.read<UserRepository>())
-        ..add(const GoogleSignInWebInitialized()),
+      create: (_) =>
+          LoginBloc(context.read<UserRepository>())
+            ..add(const GoogleSignInWebInitialized()),
       child: const LoginView(),
     );
   }
