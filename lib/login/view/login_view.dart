@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_inputs/form_inputs.dart';
 import 'package:go_router/go_router.dart';
-import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/home/home.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/login/login.dart';
 import 'package:magic_yeti/reset_password/reset_password.dart';
@@ -40,23 +40,39 @@ class LoginView extends StatelessWidget {
         },
         child: SafeArea(
           minimum: const EdgeInsets.all(AppSpacing.xlg),
-          child: Row(
-            children: [
-              const Expanded(
-                child: ScrollableColumn(
-                  children: [
-                    _LoginContent(),
-                    _LoginActions(),
-                  ],
+          child: AdaptiveLayout(
+            // Phone: form stacked above the artwork.
+            phone: (_) => ScrollableColumn(
+              children: [
+                const _LoginContent(),
+                const _LoginActions(),
+                Expanded(
+                  child: Image.asset(
+                    'assets/icon/icon.png',
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Image.asset(
-                  'assets/icon/icon.png',
-                  fit: BoxFit.fitWidth,
+              ],
+            ),
+            // Tablet: form beside the artwork.
+            tablet: (_) => Row(
+              children: [
+                const Expanded(
+                  child: ScrollableColumn(
+                    children: [
+                      _LoginContent(),
+                      _LoginActions(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                Expanded(
+                  child: Image.asset(
+                    'assets/icon/icon.png',
+                    fit: BoxFit.fitWidth,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -112,7 +128,7 @@ class _LoginActions extends StatelessWidget {
                 context.read<LoginBloc>().add(const LoginGoogleSubmitted()),
           ),
           if (theme.platform == TargetPlatform.iOS) ...[
-            const SizedBox(height: AppSpacing.xlg),
+            const SizedBox(height: AppSpacing.md),
             AppleLoginButton(
               buttonText: l10n.signInWithAppleButtonText,
               onPressed: () =>
@@ -142,8 +158,9 @@ class EmailInput extends StatelessWidget {
       decoration: InputDecoration(
         helperText: '',
         labelText: l10n.emailInputLabelText,
-        errorText:
-            email.displayError != null ? l10n.invalidEmailInputErrorText : null,
+        errorText: email.displayError != null
+            ? l10n.invalidEmailInputErrorText
+            : null,
       ),
       autofillHints: const [AutofillHints.email],
       keyboardType: TextInputType.emailAddress,
@@ -191,7 +208,7 @@ class LoginButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: state.valid
           ? () =>
-              context.read<LoginBloc>().add(const LoginCredentialsSubmitted())
+                context.read<LoginBloc>().add(const LoginCredentialsSubmitted())
           : null,
       child: state.status.isInProgress
           ? const CircularProgressIndicator()

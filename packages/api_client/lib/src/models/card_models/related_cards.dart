@@ -29,12 +29,5 @@ class RelatedCards extends Equatable {
   final String uri;
 
   @override
-  List<Object?> get props => [
-        id,
-        object,
-        component,
-        name,
-        typeLine,
-        uri,
-      ];
+  List<Object?> get props => [id, object, component, name, typeLine, uri];
 }

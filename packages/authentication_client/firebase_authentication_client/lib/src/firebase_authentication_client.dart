@@ -141,7 +141,6 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
       final appleIdCredential = await _getAppleCredentials(
         scopes: [
           AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
         ],
       );
 
@@ -292,9 +291,32 @@ class FirebaseAuthenticationClient implements AuthenticationClient {
   @override
   Future<void> deleteAccount() async {
     try {
-      final providerData = _firebaseAuth.currentUser?.providerData;
       await _firebaseAuth.currentUser?.delete();
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        await _reauthenticateAndDelete();
+      }
     } on Exception catch (e, stackTrace) {
+      Error.throwWithStackTrace(DeleteAccountFailure(e), stackTrace);
+    }
+  }
+
+  Future<void> _reauthenticateAndDelete() async {
+    try {
+      final providerData = _firebaseAuth.currentUser?.providerData.first;
+
+      if (firebase_auth.AppleAuthProvider().providerId ==
+          providerData!.providerId) {
+        await _firebaseAuth.currentUser!
+            .reauthenticateWithProvider(firebase_auth.AppleAuthProvider());
+      } else if (firebase_auth.GoogleAuthProvider().providerId ==
+          providerData.providerId) {
+        await _firebaseAuth.currentUser!
+            .reauthenticateWithProvider(firebase_auth.GoogleAuthProvider());
+      }
+
+      await _firebaseAuth.currentUser?.delete();
+    } catch (e, stackTrace) {
       Error.throwWithStackTrace(DeleteAccountFailure(e), stackTrace);
     }
   }
@@ -311,7 +333,6 @@ extension on firebase_auth.User {
     return User(
       id: uid,
       email: email,
-      name: displayName,
       photo: photoURL,
       isAnonymous: email == null || email == '',
     );

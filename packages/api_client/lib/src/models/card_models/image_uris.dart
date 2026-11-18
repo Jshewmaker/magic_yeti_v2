@@ -29,12 +29,5 @@ class ImageURIs extends Equatable {
   final String borderCrop;
 
   @override
-  List<Object?> get props => [
-        small,
-        normal,
-        large,
-        png,
-        artCrop,
-        borderCrop,
-      ];
+  List<Object?> get props => [small, normal, large, png, artCrop, borderCrop];
 }

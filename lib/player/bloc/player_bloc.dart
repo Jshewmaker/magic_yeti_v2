@@ -35,41 +35,48 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   PlayerBloc({
     required PlayerRepository playerRepository,
     required String playerId,
-  })  : _playerRepository = playerRepository,
-        _playerId = playerId,
-        super(
-          PlayerState(
-            player: playerRepository.getPlayerById(playerId),
-          ),
-        ) {
+  }) : _playerRepository = playerRepository,
+       _playerId = playerId,
+       super(
+         PlayerState(
+           player: playerRepository.getPlayerById(playerId),
+         ),
+       ) {
     on<UpdatePlayerInfoEvent>(_onPlayerInfoUpdate);
     on<UpdatePlayerLifeEvent>(_updatePlayerLifeTotal);
     on<UpdatePlayerLifeByXEvent>(_updatePlayerLifeTotalByX);
     on<PlayerStopDecrement>(_onStopDecrementing);
     on<PlayerCommanderDamageIncremented>(_onTrackerIncremented);
     on<PlayerCommanderDamageDecremented>(_onTrackerDecremented);
+    on<PlayerCommanderDamageHoldStarted>(_onCommanderDamageHoldStarted);
+    on<PlayerCommanderDamageHoldEnded>(_onCommanderDamageHoldEnded);
     on<PlayerRepositoryUpdateEvent>(_playerUpdatedByRepository);
     on<PlayerEventReset>(_onReset);
 
     _playerSubscription = _playerRepository.players
         .map(
-      (players) => players.firstWhere((player) => player.id == _playerId),
-    )
+          (players) => players.firstWhere((player) => player.id == _playerId),
+        )
         .listen((player) {
-      if (player.id == _playerId) {
-        add(PlayerRepositoryUpdateEvent(player: player));
-      }
-    });
+          if (player.id == _playerId) {
+            add(PlayerRepositoryUpdateEvent(player: player));
+          }
+        });
   }
+
+  /// How often commander damage drops by one while a tile is held down.
+  static const commanderDamageRepeatInterval = Duration(seconds: 1);
 
   final PlayerRepository _playerRepository;
   final String _playerId;
   StreamSubscription<Player>? _playerSubscription;
   Timer? _timer;
+  Timer? _commanderDamageTimer;
 
   @override
   Future<void> close() {
     _timer?.cancel();
+    _commanderDamageTimer?.cancel();
     _playerSubscription?.cancel();
     return super.close();
   }
@@ -96,6 +103,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       commander: event.commander,
       name: event.playerName,
       partner: () => event.partner,
+      background: () => event.background,
       firebaseId: () => event.firebaseId,
     );
 
@@ -114,8 +122,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) {
     emit(state.copyWith(status: PlayerStatus.updating));
     final player = _playerRepository.getPlayerById(event.playerId);
-    final newLifePoints =
-        event.decrement ? player.lifePoints - 1 : player.lifePoints + 1;
+    final newLifePoints = event.decrement
+        ? player.lifePoints - 1
+        : player.lifePoints + 1;
 
     final updatedPlayer = player.copyWith(lifePoints: newLifePoints);
 
@@ -149,8 +158,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) {
     emit(state.copyWith(status: PlayerStatus.updating));
     final player = _playerRepository.getPlayerById(event.playerId);
-    final newLifePoints =
-        event.decrement ? player.lifePoints - 10 : player.lifePoints + 10;
+    final newLifePoints = event.decrement
+        ? player.lifePoints - 10
+        : player.lifePoints + 10;
 
     final updatedPlayer = player.copyWith(lifePoints: newLifePoints);
     _playerRepository.updatePlayer(updatedPlayer);
@@ -229,14 +239,17 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   /// The method:
   /// 1. Sets the player status to updating
   /// 2. Retrieves the current player
-  /// 3. Decrements the appropriate damage counter based on damage type
+  /// 3. Decrements the appropriate damage counter based on damage type, and
+  ///    gives back the 1 life that the damage took
   /// 4. Saves the updated player
   /// 5. Emits the new state with updated status and player
+  ///
+  /// Damage never goes below zero. At zero this does nothing, so a long hold
+  /// cannot add extra life.
   void _onTrackerDecremented(
     PlayerCommanderDamageDecremented event,
     Emitter<PlayerState> emit,
   ) {
-    emit(state.copyWith(status: PlayerStatus.updating));
     final player = _playerRepository.getPlayerById(_playerId);
     final opponent = player.opponents!.firstWhere(
       (opponent) => opponent.playerId == event.commanderId,
@@ -246,6 +259,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       (damage) => damage.damageType == event.damageType,
       orElse: () => CommanderDamage(damageType: event.damageType, amount: 0),
     );
+    if (damage.amount <= 0) return;
+
+    emit(state.copyWith(status: PlayerStatus.updating));
 
     final updatedDamage = damage.copyWith(amount: damage.amount - 1);
     opponent.damages[opponent.damages.indexOf(damage)] = updatedDamage;
@@ -258,6 +274,31 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         player: player,
       ),
     );
+
+    add(UpdatePlayerLifeEvent(decrement: false, playerId: _playerId));
+  }
+
+  void _onCommanderDamageHoldStarted(
+    PlayerCommanderDamageHoldStarted event,
+    Emitter<PlayerState> emit,
+  ) {
+    final decrement = PlayerCommanderDamageDecremented(
+      commanderId: event.commanderId,
+      damageType: event.damageType,
+    );
+    add(decrement);
+    _commanderDamageTimer?.cancel();
+    _commanderDamageTimer = Timer.periodic(
+      commanderDamageRepeatInterval,
+      (_) => add(decrement),
+    );
+  }
+
+  void _onCommanderDamageHoldEnded(
+    PlayerCommanderDamageHoldEnded event,
+    Emitter<PlayerState> emit,
+  ) {
+    _commanderDamageTimer?.cancel();
   }
 
   void _onStopDecrementing(

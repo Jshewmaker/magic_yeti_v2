@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class AppleLoginButton extends StatelessWidget {
-  const AppleLoginButton(
-      {required this.buttonText, required this.onPressed, super.key});
+  const AppleLoginButton({
+    required this.buttonText,
+    required this.onPressed,
+    super.key,
+  });
 
   final String buttonText;
   final VoidCallback onPressed;

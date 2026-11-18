@@ -1,173 +1,450 @@
+import 'dart:async';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_inputs/form_inputs.dart';
-import 'package:go_router/go_router.dart';
-import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/onboarding/onboarding.dart';
 
-class OnboardingForm extends StatelessWidget {
+class OnboardingForm extends StatefulWidget {
   const OnboardingForm({super.key});
 
   @override
+  State<OnboardingForm> createState() => _OnboardingFormState();
+}
+
+class _OnboardingFormState extends State<OnboardingForm> {
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocListener<OnboardingBloc, OnboardingState>(
+    return BlocConsumer<OnboardingBloc, OnboardingState>(
+      listenWhen: (previous, current) =>
+          previous.currentStep != current.currentStep ||
+          previous.status != current.status,
       listener: (context, state) {
+        // Animate page transitions
+        if (_pageController.hasClients) {
+          unawaited(
+            _pageController.animateToPage(
+              state.currentStep,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            ),
+          );
+        }
+        // Handle submission result
         if (state.status.isSuccess) {
-          context.go(HomePage.routeName);
+          context.read<AppBloc>().add(const AppOnboardingCompleted());
         } else if (state.status.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              const SnackBar(
-                content: Text('Failed to update profile. Please try again.'),
+              SnackBar(
+                content: Text(context.l10n.onboardingSaveFailedMessage),
+                backgroundColor: AppColors.red,
               ),
             );
         }
       },
-      child: const ScrollableColumn(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      builder: (context, state) {
+        return Column(
+          children: [
+            // Progress indicator
+            _StepIndicator(currentStep: state.currentStep),
+            // Page content
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: const [
+                  _IdentityStep(),
+                  _PinStep(),
+                  _BioStep(),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _StepIndicator extends StatelessWidget {
+  const _StepIndicator({required this.currentStep});
+  final int currentStep;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Row(
+        children: List.generate(3, (index) {
+          return Expanded(
+            child: Container(
+              height: 4,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: index <= currentStep
+                    ? AppColors.tertiary
+                    : AppColors.neutral60,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+// Step 1: Identity (Username + Names)
+// Uses StatefulWidget to own TextEditingControllers with proper lifecycle.
+class _IdentityStep extends StatefulWidget {
+  const _IdentityStep();
+
+  @override
+  State<_IdentityStep> createState() => _IdentityStepState();
+}
+
+class _IdentityStepState extends State<_IdentityStep> {
+  late final TextEditingController _usernameController;
+
+  @override
+  void initState() {
+    super.initState();
+    final state = context.read<OnboardingBloc>().state;
+    _usernameController = TextEditingController(text: state.username.value);
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _StepLayout(
+      header: 'Choose Your Identity',
+      explanation:
+          'Your username is how other players will find you. '
+          "It's used for friend requests and game history.",
+      showBack: false,
+      child: Column(
         children: [
-          _WelcomeText(),
-          SizedBox(height: AppSpacing.lg),
-          _UsernameInput(),
-          SizedBox(height: AppSpacing.xs),
-          _FirstNameInput(),
-          SizedBox(height: AppSpacing.xs),
-          _LastNameInput(),
-          SizedBox(height: AppSpacing.xs),
-          _BioInput(),
-          SizedBox(height: AppSpacing.lg),
-          _SubmitButton(),
+          BlocBuilder<OnboardingBloc, OnboardingState>(
+            buildWhen: (previous, current) =>
+                previous.username != current.username,
+            builder: (context, state) {
+              return TextField(
+                key: const Key('onboarding_username_input'),
+                controller: _usernameController,
+                onChanged: (value) => context.read<OnboardingBloc>().add(
+                  OnboardingUsernameChanged(value),
+                ),
+                style: const TextStyle(color: AppColors.white),
+                decoration: InputDecoration(
+                  labelText: 'Username *',
+                  labelStyle: const TextStyle(color: AppColors.neutral60),
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.neutral60),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.tertiary),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.red),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.red),
+                  ),
+                  errorText: switch (state.username.displayError) {
+                    UsernameValidationError.empty =>
+                      context.l10n.usernameRequiredError,
+                    UsernameValidationError.tooShort =>
+                      context.l10n.usernameTooShortError,
+                    UsernameValidationError.tooLong =>
+                      context.l10n.usernameTooLongError,
+                    null => null,
+                  },
+                  errorStyle: const TextStyle(color: AppColors.red),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
   }
 }
 
-class _WelcomeText extends StatelessWidget {
-  const _WelcomeText();
+// Step 2: PIN Setup
+class _PinStep extends StatelessWidget {
+  const _PinStep();
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Welcome!',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+    return BlocBuilder<OnboardingBloc, OnboardingState>(
+      buildWhen: (previous, current) =>
+          previous.pin != current.pin ||
+          previous.hasExistingPin != current.hasExistingPin,
+      builder: (context, state) {
+        final hasExistingPin = state.hasExistingPin;
+        return _StepLayout(
+          header: 'Set Your PIN',
+          explanation: hasExistingPin
+              ? 'Your PIN is already set. Enter a new 4-digit PIN '
+                    'to change it, or tap Next to keep your current one.'
+              : 'Your 4-digit PIN protects your profile when sharing '
+                    'a device during games.',
+          child: TextField(
+            key: const Key('onboarding_pin_input'),
+            onChanged: (value) =>
+                context.read<OnboardingBloc>().add(OnboardingPinChanged(value)),
+            keyboardType: TextInputType.number,
+            maxLength: 4,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 24,
+              letterSpacing: 8,
+              color: AppColors.white,
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: AppColors.surface,
+              counterText: '',
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.neutral60),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.tertiary),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.red),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.red),
+              ),
+              errorText: !hasExistingPin && state.pin.displayError != null
+                  ? 'PIN must be exactly 4 digits'
+                  : null,
+              errorStyle: const TextStyle(color: AppColors.red),
+            ),
           ),
-        ),
-        SizedBox(height: AppSpacing.xs),
-        Text(
-          'Let\'s set up your profile.',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey,
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
 
-class _UsernameInput extends StatelessWidget {
-  const _UsernameInput();
+// Step 3: Bio
+class _BioStep extends StatelessWidget {
+  const _BioStep();
 
   @override
   Widget build(BuildContext context) {
-    final username =
-        context.select((OnboardingBloc bloc) => bloc.state.username);
-    return TextField(
-      key: const Key('onboardingForm_usernameInput_textField'),
-      onChanged: (username) {
-        context.read<OnboardingBloc>().add(OnboardingUsernameChanged(username));
+    return BlocBuilder<OnboardingBloc, OnboardingState>(
+      buildWhen: (previous, current) => previous.status != current.status,
+      builder: (context, state) {
+        return _StepLayout(
+          header: 'Tell Us About Yourself',
+          explanation:
+              'Share a bit about your play style or favorite formats. '
+              'Other players can see this on your profile.',
+          buttonText: 'Complete',
+          isSubmit: true,
+          isLoading: state.status.isInProgress,
+          child: _OptionalTextField(
+            key: const Key('onboarding_bio_input'),
+            label: 'Bio (Optional)',
+            initialValue: context.read<OnboardingBloc>().state.bio,
+            maxLines: 3,
+            onChanged: (value) =>
+                context.read<OnboardingBloc>().add(OnboardingBioChanged(value)),
+          ),
+        );
       },
+    );
+  }
+}
+
+// Shared step layout with header, explanation, content, and nav buttons
+class _StepLayout extends StatelessWidget {
+  const _StepLayout({
+    required this.header,
+    required this.explanation,
+    required this.child,
+    this.showBack = true,
+    this.buttonText = 'Next',
+    this.isSubmit = false,
+    this.isLoading = false,
+  });
+
+  final String header;
+  final String explanation;
+  final Widget child;
+  final bool showBack;
+  final String buttonText;
+  final bool isSubmit;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 24),
+          Text(
+            header,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppColors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            explanation,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.neutral60,
+            ),
+          ),
+          const SizedBox(height: 32),
+          child,
+          const Spacer(),
+          Row(
+            children: [
+              if (showBack)
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => context.read<OnboardingBloc>().add(
+                      const OnboardingStepBack(),
+                    ),
+                    child: const Text(
+                      'Back',
+                      style: TextStyle(color: AppColors.neutral60),
+                    ),
+                  ),
+                ),
+              if (showBack) const SizedBox(width: 16),
+              Expanded(
+                flex: showBack ? 2 : 1,
+                child: BlocBuilder<OnboardingBloc, OnboardingState>(
+                  buildWhen: (previous, current) =>
+                      previous.isStepValid != current.isStepValid ||
+                      previous.status != current.status,
+                  builder: (context, state) {
+                    return FilledButton(
+                      onPressed: state.isStepValid && !isLoading
+                          ? () {
+                              if (isSubmit) {
+                                final userId = context
+                                    .read<AppBloc>()
+                                    .state
+                                    .user
+                                    .id;
+                                context.read<OnboardingBloc>().add(
+                                  OnboardingSubmitted(userId),
+                                );
+                              } else {
+                                context.read<OnboardingBloc>().add(
+                                  const OnboardingStepNext(),
+                                );
+                              }
+                            }
+                          : null,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.tertiary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.white,
+                              ),
+                            )
+                          : Text(buttonText),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}
+
+// Reusable optional text field with dark theme
+class _OptionalTextField extends StatelessWidget {
+  const _OptionalTextField({
+    required this.label,
+    required this.onChanged,
+    super.key,
+    this.initialValue = '',
+    this.maxLines = 1,
+  });
+
+  final String label;
+  final String initialValue;
+  final int maxLines;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      initialValue: initialValue,
+      onChanged: onChanged,
+      maxLines: maxLines,
+      style: const TextStyle(color: AppColors.white),
       decoration: InputDecoration(
-        labelText: 'Username',
-        helperText: '',
-        errorText: username.displayError != null ? 'Invalid username' : null,
+        labelText: label,
+        labelStyle: const TextStyle(color: AppColors.neutral60),
+        filled: true,
+        fillColor: AppColors.surface,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.neutral60),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.tertiary),
+        ),
       ),
-    );
-  }
-}
-
-class _FirstNameInput extends StatelessWidget {
-  const _FirstNameInput();
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      key: const Key('onboardingForm_firstNameInput_textField'),
-      onChanged: (firstName) {
-        context
-            .read<OnboardingBloc>()
-            .add(OnboardingFirstNameChanged(firstName));
-      },
-      decoration: const InputDecoration(
-        labelText: 'First Name (Optional)',
-        helperText: '',
-      ),
-    );
-  }
-}
-
-class _LastNameInput extends StatelessWidget {
-  const _LastNameInput();
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      key: const Key('onboardingForm_lastNameInput_textField'),
-      onChanged: (lastName) {
-        context.read<OnboardingBloc>().add(OnboardingLastNameChanged(lastName));
-      },
-      decoration: const InputDecoration(
-        labelText: 'Last Name (Optional)',
-        helperText: '',
-      ),
-    );
-  }
-}
-
-class _BioInput extends StatelessWidget {
-  const _BioInput();
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      key: const Key('onboardingForm_bioInput_textField'),
-      onChanged: (bio) {
-        context.read<OnboardingBloc>().add(OnboardingBioChanged(bio));
-      },
-      maxLines: 3,
-      decoration: const InputDecoration(
-        labelText: 'Bio (Optional)',
-        helperText: 'Tell us about yourself and your gaming interests',
-      ),
-    );
-  }
-}
-
-class _SubmitButton extends StatelessWidget {
-  const _SubmitButton();
-
-  @override
-  Widget build(BuildContext context) {
-    final state = context.watch<OnboardingBloc>().state;
-    return ElevatedButton(
-      key: const Key('onboardingForm_submit_elevatedButton'),
-      onPressed: state.isValid
-          ? () {
-              context.read<OnboardingBloc>().add(const OnboardingSubmitted());
-            }
-          : null,
-      child: state.status.isInProgress
-          ? const CircularProgressIndicator()
-          : const Text('Complete Profile'),
     );
   }
 }

@@ -27,8 +27,8 @@ class TimerState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        elapsedSeconds,
-        startTime,
-      ];
+    status,
+    elapsedSeconds,
+    startTime,
+  ];
 }

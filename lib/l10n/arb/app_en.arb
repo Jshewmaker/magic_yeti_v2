@@ -174,7 +174,7 @@
     "type": "text",
     "placeholders": {}
   },
-  "numberOfPlayers": "{numberOfPlayers} Player Game",
+  "numberOfPlayers": "{numberOfPlayers} Player",
   "@numberOfPlayers": {
     "placeholders": {
         "numberOfPlayers": {
@@ -294,9 +294,21 @@
     "type": "text",
     "placeholders": {}
   },
-  "playerNameColumnHeader": "Player Name",
-  "@playerNameColumnHeader": {
-    "description": "Column header for player name in players list",
+  "playerColumnHeader": "Player",
+  "@playerColumnHeader": {
+    "description": "Column header for player in players list",
+    "type": "text",
+    "placeholders": {}
+  },
+  "friendsTitle": "Friends",
+  "@friendsTitle": {
+    "description": "Title for the friends section",
+    "type": "text",
+    "placeholders": {}
+  },
+  "friendRequestsTitle": "Friend Requests",
+  "@friendRequestsTitle": {
+    "description": "Title for the friend requests section",
     "type": "text",
     "placeholders": {}
   },
@@ -443,6 +455,22 @@
     "type": "text",
     "placeholders": {}
   },
+  "accountOwnerShort": "Account Owner",
+  "@accountOwnerShort": {
+    "description": "Short field label for the account owner dropdown, used on phones where the full sentence would wrap to three lines."
+  },
+  "notPlayingOption": "I'm not playing",
+  "@notPlayingOption": {
+    "description": "Account owner dropdown option meaning the current user is not one of the players",
+    "type": "text",
+    "placeholders": {}
+  },
+  "linkedAccountBadge": "Linked to a friend's account",
+  "@linkedAccountBadge": {
+    "description": "Tooltip for the badge shown on a standings row linked to another account",
+    "type": "text",
+    "placeholders": {}
+  },
   "cancel": "Cancel",
   "@cancel": {
     "description": "Cancel button text",
@@ -534,27 +562,99 @@
     "type": "text",
     "placeholders": {}
   },
-  "averagePlacementTitle": "Average Placement",
+  "averagePlacementTitle": "Average\nPlacement",
   "@averagePlacementTitle": {
     "description": "Title for average placement stat",
     "type": "text",
     "placeholders": {}
   },
-  "uniqueCommandersTitle": "Unique Commanders",
+  "uniqueCommandersTitle": "Unique\nCommanders",
   "@uniqueCommandersTitle": {
     "description": "Title for unique commanders stat",
     "type": "text",
     "placeholders": {}
   },
-  "timesWentFirstTitle": "Times Went First",
+  "copiedGameId": "Copied game ID",
+  "@copiedGameId": {
+    "description": "Message shown when game ID is copied",
+    "type": "text",
+    "placeholders": {}
+  },
+  "timesWentFirstTitle": "Times\nWent First",
   "@timesWentFirstTitle": {
     "description": "Title for times went first stat",
     "type": "text",
     "placeholders": {}
   },
-  "avgEdhRecRankTitle": "Avg EDHRec Rank",
+  "avgEdhRecRankTitle": "Average\nEDHRec Rank",
   "@avgEdhRecRankTitle": {
     "description": "Title for average EDHRec rank stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "mostPlayedCommanderTitle": "Most Played\nCommander",
+  "@mostPlayedCommanderTitle": {
+    "description": "Title for most played commander stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "averageGameDurationTitle": "Average\nGame Duration",
+  "@averageGameDurationTitle": {
+    "description": "Title for average game duration stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "winRateWhenFirstTitle": "Win Rate\nWhen First",
+  "@winRateWhenFirstTitle": {
+    "description": "Title for win rate when going first stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "bestCommanderTitle": "Best\nCommander",
+  "@bestCommanderTitle": {
+    "description": "Title for highest win rate commander stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "currentStreakTitle": "Current\nStreak",
+  "@currentStreakTitle": {
+    "description": "Title for current win/loss streak stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "mostCommonOpponentTitle": "Most Common\nOpponent",
+  "@mostCommonOpponentTitle": {
+    "description": "Title for most common opponent stat",
+    "type": "text",
+    "placeholders": {}
+  },
+  "nemesisTitle": "Nemesis",
+  "@nemesisTitle": {
+    "description": "Title for nemesis stat - opponent who beats you most",
+    "type": "text",
+    "placeholders": {}
+  },
+  "avgCommanderDamageTakenTitle": "Avg Commander\nDamage Taken",
+  "@avgCommanderDamageTakenTitle": {
+    "description": "Title for average commander damage taken per game",
+    "type": "text",
+    "placeholders": {}
+  },
+  "timesKilledByCommanderTitle": "Killed by\nCommander Dmg",
+  "@timesKilledByCommanderTitle": {
+    "description": "Title for times eliminated by 21+ commander damage",
+    "type": "text",
+    "placeholders": {}
+  },
+  "bestColorComboTitle": "Best Color\nCombo",
+  "@bestColorComboTitle": {
+    "description": "Title for best win rate by exact color identity combination",
+    "type": "text",
+    "placeholders": {}
+  },
+  "bestSingleColorTitle": "Best Single\nColor",
+  "@bestSingleColorTitle": {
+    "description": "Title for best win rate by individual color",
     "type": "text",
     "placeholders": {}
   },
@@ -570,5 +670,553 @@
     "type": "text",
     "placeholders": {}
   }
-  
+  ,
+  "achievementColumnHeader": "Achievement",
+  "youTooltip": "You",
+  "wentFirstTooltip": "Went First",
+  "deleteMatchDialogTitle": "Delete Match",
+  "deleteMatchDialogContent": "Are you sure you want to delete this match?",
+  "cancelButtonLabel": "Cancel",
+  "deleteMatchButtonLabel": "Delete Match",
+  "errorSnackbarMessage": "Error: {error}",
+  "@errorSnackbarMessage": {
+    "description": "Snackbar error message with error details",
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "undoGameOverButtonLabel": "Undo / Restore",
+  "@undoGameOverButtonLabel": {
+    "description": "Button label for restoring the previous game state on the Game Over page"
+  },
+  "gameRestoredMessage": "Previous game restored!",
+  "@gameRestoredMessage": {
+    "description": "Snackbar message shown when a previous game state is successfully restored from the Game Over page"
+  },
+  "pinInputLabel": "4-Digit PIN",
+  "@pinInputLabel": {
+    "description": "Label for PIN input field"
+  },
+  "pinInputHelper": "Confirms your identity when friends add you to a game",
+  "@pinInputHelper": {
+    "description": "Helper text for PIN input field"
+  },
+  "pinInputError": "Must be 4 digits",
+  "@pinInputError": {
+    "description": "Error text when PIN is invalid"
+  },
+  "findFriendsTitle": "Find Friends",
+  "@findFriendsTitle": {
+    "description": "Title for the friend search page"
+  },
+  "friendCodeSearchHint": "Search by name or friend code (e.g. A3F9K2XQ)",
+  "@friendCodeSearchHint": {
+    "description": "Hint text for the friend search input, which accepts either a username or a friend code"
+  },
+  "friendRequestSentMessage": "Friend request sent!",
+  "@friendRequestSentMessage": {
+    "description": "Message shown after sending a friend request"
+  },
+  "noUserFoundMessage": "No user found.",
+  "@noUserFoundMessage": {
+    "description": "Message shown when a name or friend code search returns no results"
+  },
+  "friendCodeSearchPrompt": "Search by name or friend code to find players.",
+  "@friendCodeSearchPrompt": {
+    "description": "Prompt shown on the friend search page before searching"
+  },
+  "selectFriendLabel": "Select an account",
+  "@selectFriendLabel": {
+    "description": "Hint text shown in the owner/friend link dropdown on the customize player page before anything is selected"
+  },
+  "linkedToFriend": "Linked to {name}",
+  "@linkedToFriend": {
+    "description": "Text shown when a friend is linked to a player slot",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clearButtonText": "Clear",
+  "@clearButtonText": {
+    "description": "Button text to clear friend selection"
+  },
+  "verifyFriendTitle": "Verify {name}",
+  "@verifyFriendTitle": {
+    "description": "Title for the PIN verification dialog",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "enterPinPrompt": "Enter their 4-digit PIN to confirm identity.",
+  "@enterPinPrompt": {
+    "description": "Prompt in the PIN verification dialog"
+  },
+  "verifyButtonText": "Verify",
+  "@verifyButtonText": {
+    "description": "Button text to verify PIN"
+  },
+  "accountOwnerOptionLabel": "Me",
+  "@accountOwnerOptionLabel": {
+    "description": "Dropdown entry / fallback label to link a player slot to the signed-in user's own account"
+  },
+  "pinIncorrectError": "Incorrect PIN. {count, plural, =1{1 attempt} other{{count} attempts}} remaining.",
+  "@pinIncorrectError": {
+    "description": "Error shown when a friend PIN is incorrect, with attempts remaining",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pinLockedOutError": "Too many attempts. Try again in {minutes} min.",
+  "@pinLockedOutError": {
+    "description": "Error shown when the PIN flow is locked out after too many failed attempts",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "pinUnavailableError": "Couldn't verify the PIN. Check your connection and try again.",
+  "@pinUnavailableError": {
+    "description": "Error shown when the PIN could not be verified due to offline or server error"
+  },
+  "pinNotSetError": "This friend hasn't set a PIN yet. Ask them to set one in their profile.",
+  "@pinNotSetError": {
+    "description": "Error shown when the selected friend has no PIN set"
+  },
+  "friendCodeLabel": "Friend Code",
+  "@friendCodeLabel": {
+    "description": "Label for the friend code display on profile page"
+  },
+  "copyFriendCodeTooltip": "Copy friend code",
+  "@copyFriendCodeTooltip": {
+    "description": "Tooltip for the copy friend code button"
+  },
+  "friendCodeCopiedMessage": "Friend code copied!",
+  "@friendCodeCopiedMessage": {
+    "description": "Snackbar message shown when friend code is copied"
+  },
+  "friendCodeHelperText": "Your unique code. Share it so a specific friend can add you exactly — even if someone else shares your username.",
+  "@friendCodeHelperText": {
+    "description": "Helper text explaining the friend code is the unique identifier, unlike username"
+  },
+  "setYourPinTitle": "Set Your PIN",
+  "@setYourPinTitle": {
+    "description": "Title for the PIN setup dialog shown to existing users"
+  },
+  "setYourPinDescription": "Set a 4-digit PIN so friends can verify your identity when adding you to a game.",
+  "@setYourPinDescription": {
+    "description": "Description in the PIN setup dialog"
+  },
+  "savePinButtonText": "Save PIN",
+  "@savePinButtonText": {
+    "description": "Button text to save PIN in setup dialog"
+  },
+  "addFriendButtonText": "Add",
+  "@addFriendButtonText": {
+    "description": "Button text to send a friend request"
+  },
+  "blockUserAction": "Block",
+  "@blockUserAction": {
+    "description": "Action label to block a user"
+  },
+  "blockUserConfirmTitle": "Block {name}?",
+  "@blockUserConfirmTitle": {
+    "description": "Title for the block-user confirmation dialog",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "blockUserConfirmBody": "They'll be removed from your friends and won't be able to find you or send requests. They won't be notified.",
+  "@blockUserConfirmBody": {
+    "description": "Body copy for the block-user confirmation dialog"
+  },
+  "unblockUserAction": "Unblock",
+  "unblockUserConfirmBody": "Are you sure you want to unblock {name}?",
+  "@unblockUserConfirmBody": {
+    "description": "Body of the unblock confirmation dialog",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@unblockUserAction": {
+    "description": "Action label to unblock a user"
+  },
+  "blockedUsersTitle": "Blocked Users",
+  "@blockedUsersTitle": {
+    "description": "Title for the blocked-users management page"
+  },
+  "blockedUsersEmpty": "You haven't blocked anyone.",
+  "@blockedUsersEmpty": {
+    "description": "Empty state message for the blocked-users page"
+  },
+  "legacyRequestAcceptError": "This request was sent from an older version. Ask them to re-send it.",
+  "@legacyRequestAcceptError": {
+    "description": "Snackbar error shown when accepting a friend request fails because it predates current permission rules"
+  },
+  "noPendingRequests": "No pending requests",
+  "@noPendingRequests": {
+    "description": "Empty state shown on the friend requests tab when the user has no incoming requests"
+  },
+  "gameSaveFailedError": "Couldn't save the game. Check your connection and try again.",
+  "@gameSaveFailedError": {
+    "description": "Snackbar error shown when saving the game-over stats to the database fails"
+  },
+  "changePinTitle": "Change PIN",
+  "@changePinTitle": {
+    "description": "Title for the change-PIN section on the profile page"
+  },
+  "changePinDescription": "Your PIN confirms your identity when friends add you to a game.",
+  "@changePinDescription": {
+    "description": "Description for the change-PIN section on the profile page"
+  },
+  "newPinLabel": "New PIN",
+  "@newPinLabel": {
+    "description": "Label for the new-PIN input field on the profile page"
+  },
+  "pinChangedMessage": "PIN updated!",
+  "@pinChangedMessage": {
+    "description": "Snackbar message shown after the PIN is changed successfully"
+  },
+  "profileSavedMessage": "Profile saved",
+  "@profileSavedMessage": {
+    "description": "Snackbar message shown after the profile is saved successfully"
+  },
+  "profileSaveFailedMessage": "Couldn't save your profile. Try again.",
+  "@profileSaveFailedMessage": {
+    "description": "Snackbar error shown when saving the profile fails"
+  },
+  "usernameLabel": "Username",
+  "@usernameLabel": {
+    "description": "Label for the username field on the profile page"
+  },
+  "usernameHelperText": "How friends find and recognize you. Not unique — others may share this name.",
+  "@usernameHelperText": {
+    "description": "Helper text under the username field explaining its purpose and that it isn't unique"
+  },
+  "usernameRequiredError": "Username is required",
+  "@usernameRequiredError": {
+    "description": "Inline error when the username field is empty or whitespace-only"
+  },
+  "usernameTooShortError": "Username must be at least 2 characters",
+  "@usernameTooShortError": {
+    "description": "Inline error when the trimmed username is shorter than 2 characters"
+  },
+  "usernameTooLongError": "Username must be 30 characters or fewer",
+  "@usernameTooLongError": {
+    "description": "Inline error when the trimmed username is longer than 30 characters"
+  },
+  "usernameInvalidMessage": "Fix your username before saving.",
+  "@usernameInvalidMessage": {
+    "description": "Snackbar shown when a profile save is blocked by an invalid username"
+  },
+  "searchFailedMessage": "Search failed. Check your connection and try again.",
+  "@searchFailedMessage": {
+    "description": "Friendly error shown when a friend search fails"
+  },
+  "bioLabel": "Bio",
+  "@bioLabel": {
+    "description": "Label for the bio field on the profile page"
+  },
+  "emailLabel": "Email",
+  "@emailLabel": {
+    "description": "Label for the read-only email field on the profile page"
+  },
+  "notSetLabel": "Not set",
+  "@notSetLabel": {
+    "description": "Placeholder shown for an empty profile field when not editing"
+  },
+  "saveProfileButton": "Save Profile",
+  "@saveProfileButton": {
+    "description": "Button text to save profile changes when in editing mode"
+  },
+  "editProfileButton": "Edit Profile",
+  "@editProfileButton": {
+    "description": "Button text to enter profile editing mode"
+  },
+  "signInToLinkFriends": "Sign in to link friends to players.",
+  "@signInToLinkFriends": {
+    "description": "Placeholder shown instead of the friend list on the customize player page when the user is anonymous"
+  },
+  "signInToSearchFriends": "Sign in to add friends.",
+  "@signInToSearchFriends": {
+    "description": "Placeholder shown instead of the search field on the find-friends page when the user is anonymous"
+  },
+  "removeFriendAction": "Remove",
+  "@removeFriendAction": {
+    "description": "Action label to remove a friend"
+  },
+  "removeFriendConfirmTitle": "Remove {name}?",
+  "@removeFriendConfirmTitle": {
+    "description": "Title for the remove-friend confirmation dialog",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "removeFriendConfirmBody": "They won't be notified. You can add each other again anytime.",
+  "@removeFriendConfirmBody": {
+    "description": "Body copy for the remove-friend confirmation dialog"
+  },
+  "onboardingSaveFailedMessage": "Failed to save profile. Please try again.",
+  "@onboardingSaveFailedMessage": {
+    "description": "Snackbar error shown when submitting the onboarding form fails"
+  },
+  "blockedUsersLoadFailedError": "Couldn't load your blocked list. Check your connection and try again.",
+  "@blockedUsersLoadFailedError": {
+    "description": "Error message shown when the blocked-users page fails to load or update"
+  },
+  "editMatchTooltip": "Edit match",
+  "@editMatchTooltip": {
+    "description": "Tooltip for the edit action on the match details screen"
+  },
+  "saveButtonLabel": "Save",
+  "@saveButtonLabel": {
+    "description": "Label for the save action while editing a match"
+  },
+  "playerNameLabel": "Player name",
+  "@playerNameLabel": {
+    "description": "Label for the player name field while editing a match"
+  },
+  "addPartnerLabel": "Add partner",
+  "@addPartnerLabel": {
+    "description": "Action to add a partner commander while editing a match"
+  },
+  "removePartnerTooltip": "Remove partner",
+  "@removePartnerTooltip": {
+    "description": "Tooltip to remove a partner commander while editing a match"
+  },
+  "selectCommanderTitle": "Select Commander",
+  "@selectCommanderTitle": {
+    "description": "Title for the commander picker"
+  },
+  "selectPartnerTitle": "Select Partner",
+  "@selectPartnerTitle": {
+    "description": "Title for the partner commander picker"
+  },
+  "matchUpdatedMessage": "Match updated",
+  "@matchUpdatedMessage": {
+    "description": "Snackbar confirmation shown after saving match edits"
+  },
+  "searchCardHintText": "Search for a card",
+  "@searchCardHintText": {
+    "description": "Hint text in the card search field of a two-player (non-Commander) game"
+  },
+  "searchCardEmptyText": "Search for a card to represent your deck",
+  "@searchCardEmptyText": {
+    "description": "Shown in the card picker of a two-player game before any search"
+  },
+  "deckCardLabel": "Deck card",
+  "@deckCardLabel": {
+    "description": "Label above the card that represents a player's deck in a two-player game"
+  },
+  "noDeckCardSelected": "No card selected",
+  "@noDeckCardSelected": {
+    "description": "Shown when a player in a two-player game has not picked a deck card"
+  },
+  "matchFormatAll": "All games",
+  "@matchFormatAll": {
+    "description": "Home screen filter option that shows every game"
+  },
+  "matchFormatCommander": "EDH",
+  "@matchFormatCommander": {
+    "description": "Home screen filter option that shows only Commander (EDH) games, which have more than two players"
+  },
+  "matchFormatConstructed": "Constructed",
+  "@matchFormatConstructed": {
+    "description": "Home screen filter option that shows only two-player constructed games (Standard, Modern, and so on)"
+  },
+  "noMatchesForFilter": "No games match this filter",
+  "@noMatchesForFilter": {
+    "description": "Shown in the match history when the selected format filter hides every game"
+  },
+  "gameTagsHeading": "Tags",
+  "@gameTagsHeading": {
+    "description": "Heading for the tag section on the game over screen and match details"
+  },
+  "gameTagsAutoHint": "Some tags were selected from the game data. Tap a tag to clear it.",
+  "@gameTagsAutoHint": {
+    "description": "Hint under the tag section when the app selected tags automatically"
+  },
+  "playerTagsButtonTooltip": "Tag player",
+  "@playerTagsButtonTooltip": {
+    "description": "Tooltip for the button that opens the player tag sheet"
+  },
+  "playerTagsSheetTitle": "Tags for {name}",
+  "@playerTagsSheetTitle": {
+    "description": "Title of the sheet that edits one player's tags",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noTagsLabel": "No tags",
+  "@noTagsLabel": {
+    "description": "Shown on match details when a game has no tags"
+  },
+  "statsTagFilterAll": "All games",
+  "@statsTagFilterAll": {
+    "description": "Stats filter option that shows games with any tags"
+  },
+  "tagGroupPowerLevel": "Power level",
+  "@tagGroupPowerLevel": {
+    "description": "Tag group: the bracket of the game"
+  },
+  "tagGroupEnding": "How it ended",
+  "@tagGroupEnding": {
+    "description": "Tag group: how the winner won"
+  },
+  "tagGroupPace": "Pace",
+  "@tagGroupPace": {
+    "description": "Tag group: how fast or close the game was"
+  },
+  "tagGroupMana": "Mana",
+  "@tagGroupMana": {
+    "description": "Tag group: a player's mana and draws"
+  },
+  "tagGroupKeyPlays": "Key plays",
+  "@tagGroupKeyPlays": {
+    "description": "Tag group: a player's important plays"
+  },
+  "tagGroupEliminations": "Eliminations",
+  "@tagGroupEliminations": {
+    "description": "Tag group: how a player was eliminated or eliminated others"
+  },
+  "tagBracket1": "Bracket 1",
+  "@tagBracket1": {
+    "description": "Tag: Commander Bracket 1"
+  },
+  "tagBracket2": "Bracket 2",
+  "@tagBracket2": {
+    "description": "Tag: Commander Bracket 2"
+  },
+  "tagBracket3": "Bracket 3",
+  "@tagBracket3": {
+    "description": "Tag: Commander Bracket 3"
+  },
+  "tagBracket4": "Bracket 4",
+  "@tagBracket4": {
+    "description": "Tag: Commander Bracket 4"
+  },
+  "tagBracket5": "cEDH (Bracket 5)",
+  "@tagBracket5": {
+    "description": "Tag: Commander Bracket 5, competitive EDH"
+  },
+  "tagBracket1Tooltip": "Exhibition",
+  "@tagBracket1Tooltip": {
+    "description": "Official name of Commander Bracket 1"
+  },
+  "tagBracket2Tooltip": "Core",
+  "@tagBracket2Tooltip": {
+    "description": "Official name of Commander Bracket 2"
+  },
+  "tagBracket3Tooltip": "Upgraded",
+  "@tagBracket3Tooltip": {
+    "description": "Official name of Commander Bracket 3"
+  },
+  "tagBracket4Tooltip": "Optimized",
+  "@tagBracket4Tooltip": {
+    "description": "Official name of Commander Bracket 4"
+  },
+  "tagBracket5Tooltip": "Competitive EDH",
+  "@tagBracket5Tooltip": {
+    "description": "Official name of Commander Bracket 5"
+  },
+  "tagEndCombat": "Combat win",
+  "@tagEndCombat": {
+    "description": "Tag: the winner won with combat damage"
+  },
+  "tagEndCombo": "Combo win",
+  "@tagEndCombo": {
+    "description": "Tag: the winner won with a combo"
+  },
+  "tagEndCommanderDamage": "Commander damage",
+  "@tagEndCommanderDamage": {
+    "description": "Tag: the winner won with commander damage"
+  },
+  "tagEndDrain": "Drain / burn",
+  "@tagEndDrain": {
+    "description": "Tag: the winner won with life drain or burn"
+  },
+  "tagEndPoison": "Poison / infect",
+  "@tagEndPoison": {
+    "description": "Tag: the winner won with poison counters"
+  },
+  "tagEndAltWin": "Alternate win",
+  "@tagEndAltWin": {
+    "description": "Tag: the winner won with an alternate win condition"
+  },
+  "tagEndConceded": "Table conceded",
+  "@tagEndConceded": {
+    "description": "Tag: the other players conceded"
+  },
+  "tagPaceFast": "Fast game",
+  "@tagPaceFast": {
+    "description": "Tag: the game was fast"
+  },
+  "tagPaceLong": "Long grind",
+  "@tagPaceLong": {
+    "description": "Tag: the game was long"
+  },
+  "tagFeelClose": "Close game",
+  "@tagFeelClose": {
+    "description": "Tag: every player had a chance to win"
+  },
+  "tagManaScrewed": "Mana screwed",
+  "@tagManaScrewed": {
+    "description": "Tag: the player drew too few lands"
+  },
+  "tagManaFlooded": "Mana flooded",
+  "@tagManaFlooded": {
+    "description": "Tag: the player drew too many lands"
+  },
+  "tagManaColorScrewed": "Color screwed",
+  "@tagManaColorScrewed": {
+    "description": "Tag: the player could not get the right colors of mana"
+  },
+  "tagGreatOpener": "Great opener",
+  "@tagGreatOpener": {
+    "description": "Tag: the player had a great opening hand"
+  },
+  "tagT1SolRing": "Turn 1 Sol Ring",
+  "@tagT1SolRing": {
+    "description": "Tag: the player cast Sol Ring on turn 1"
+  },
+  "tagSavedTheTable": "Saved the table",
+  "@tagSavedTheTable": {
+    "description": "Tag: the player stopped another player from winning"
+  },
+  "tagClutchTopdeck": "Clutch topdeck",
+  "@tagClutchTopdeck": {
+    "description": "Tag: the player drew the card they needed"
+  },
+  "tagCommanderTax6": "Commander tax 6+",
+  "@tagCommanderTax6": {
+    "description": "Tag: the player paid 6 or more commander tax"
+  },
+  "tagKoCommanderDamage": "Commander dmg KO",
+  "@tagKoCommanderDamage": {
+    "description": "Tag: the player was eliminated by commander damage"
+  },
+  "tagCommanderKill": "Commander kill",
+  "@tagCommanderKill": {
+    "description": "Tag: the player's commander eliminated another player"
+  },
+  "tagFirstOut": "First out",
+  "@tagFirstOut": {
+    "description": "Tag: the player was eliminated first"
+  }
 }

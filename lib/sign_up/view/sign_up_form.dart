@@ -6,10 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_inputs/form_inputs.dart';
 import 'package:go_router/go_router.dart';
-import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/home/home.dart';
 import 'package:magic_yeti/l10n/l10n.dart';
 import 'package:magic_yeti/login/login.dart';
-import 'package:magic_yeti/onboarding/onboarding.dart';
 import 'package:magic_yeti/sign_up/sign_up.dart';
 
 class SignUpForm extends StatelessWidget {
@@ -51,9 +50,9 @@ class SignUpForm extends StatelessWidget {
             if (theme.platform == TargetPlatform.iOS) ...[
               AppleLoginButton(
                 buttonText: l10n.signUpWithAppleButtonText,
-                onPressed: () => context
-                    .read<SignUpBloc>()
-                    .add(const SignUpAppleSubmitted()),
+                onPressed: () => context.read<SignUpBloc>().add(
+                  const SignUpAppleSubmitted(),
+                ),
               ),
             ],
           ],
@@ -78,8 +77,9 @@ class _EmailInput extends StatelessWidget {
       decoration: InputDecoration(
         helperText: '',
         labelText: l10n.emailInputLabelText,
-        errorText:
-            email.displayError != null ? l10n.invalidEmailInputErrorText : null,
+        errorText: email.displayError != null
+            ? l10n.invalidEmailInputErrorText
+            : null,
       ),
       autocorrect: false,
     );

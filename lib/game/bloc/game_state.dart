@@ -23,6 +23,10 @@ class GameState extends Equatable {
   final String? firstPlayerId;
   final String? error;
 
+  /// Whether this is a Commander game. Two-player games are for 1v1 formats
+  /// (Standard, Modern, and so on), which have no commander damage.
+  bool get isCommanderGame => playerList.length > 2;
+
   GameState copyWith({
     GameStatus? status,
     int? gameId,
@@ -49,13 +53,13 @@ class GameState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        playerList,
-        winner,
-        elapsedSeconds,
-        startTime,
-        firstPlayerId,
-        error,
-        gameModel,
-      ];
+    status,
+    playerList,
+    winner,
+    elapsedSeconds,
+    startTime,
+    firstPlayerId,
+    error,
+    gameModel,
+  ];
 }

@@ -3,7 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:magic_yeti/app/app_router/app_route.dart';
 import 'package:magic_yeti/app/app_router/go_router_refresh_stream.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
-import 'package:magic_yeti/home/home_page.dart';
+import 'package:magic_yeti/friends_list/blocked_users/view/blocked_users_page.dart';
+import 'package:magic_yeti/friends_list/friend_stats/view/friend_stats_page.dart';
+import 'package:magic_yeti/friends_list/friends_list_page.dart';
+import 'package:magic_yeti/friends_list/requests/friend_request_page.dart';
+import 'package:magic_yeti/friends_list/search_user/search_user_page.dart';
+import 'package:magic_yeti/home/home.dart';
 import 'package:magic_yeti/life_counter/view/game_over_page.dart';
 import 'package:magic_yeti/life_counter/view/view.dart';
 import 'package:magic_yeti/login/login.dart';
@@ -75,6 +80,46 @@ class AppRouter {
           ),
         ),
         AppRoute(
+          name: FriendsListPage.routeName,
+          path: FriendsListPage.routePath,
+          pageBuilder: (context, state) => NoTransitionPage(
+            name: FriendsListPage.routeName,
+            child: FriendsListPage.pageBuilder(context, state),
+          ),
+        ),
+        AppRoute(
+          name: FriendRequestsPage.routeName,
+          path: FriendRequestsPage.routePath,
+          pageBuilder: (context, state) => NoTransitionPage(
+            name: FriendRequestsPage.routeName,
+            child: FriendRequestsPage.pageBuilder(context, state),
+          ),
+        ),
+        AppRoute(
+          name: FriendStatsPage.routeName,
+          path: FriendStatsPage.routePath,
+          pageBuilder: (context, state) => NoTransitionPage(
+            name: FriendStatsPage.routeName,
+            child: FriendStatsPage.pageBuilder(context, state),
+          ),
+        ),
+        AppRoute(
+          name: BlockedUsersPage.routeName,
+          path: BlockedUsersPage.routePath,
+          pageBuilder: (context, state) => NoTransitionPage(
+            name: BlockedUsersPage.routeName,
+            child: BlockedUsersPage.pageBuilder(context, state),
+          ),
+        ),
+        AppRoute(
+          name: SearchUserPage.routeName,
+          path: SearchUserPage.routePath,
+          pageBuilder: (context, state) => NoTransitionPage(
+            name: SearchUserPage.routeName,
+            child: SearchUserPage.pageBuilder(context, state),
+          ),
+        ),
+        AppRoute(
           name: GamePage.routeName,
           path: GamePage.routePath,
           pageBuilder: (context, state) => NoTransitionPage(
@@ -122,16 +167,16 @@ class AppRouter {
           builder: SignUpPage.pageBuilder,
         ),
       ],
-      // redirect: (context, state) {
-      //   final status = appBloc.state.status;
+      redirect: (context, state) {
+        final status = appBloc.state.status;
 
-      //   if (status != _currentStatus) {
-      //     _currentStatus = status;
-      //     return _currentStatus.route;
-      //   }
+        if (status != _currentStatus) {
+          _currentStatus = status;
+          return _currentStatus.route;
+        }
 
-      //   return null;
-      // },
+        return null;
+      },
     );
   }
 }

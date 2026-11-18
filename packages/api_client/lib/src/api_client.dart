@@ -28,11 +28,9 @@ class ApiClientError implements Exception {
 /// {@endtemplate}
 class ApiClient {
   /// {@macro api_client}
-  ApiClient({
-    required String baseUrl,
-    http.Client? httpClient,
-  })  : _baseUrl = Uri.parse(baseUrl),
-        _httpClient = httpClient ?? http.Client();
+  ApiClient({required String baseUrl, http.Client? httpClient})
+    : _baseUrl = Uri.parse(baseUrl),
+      _httpClient = httpClient ?? http.Client();
 
   final http.Client _httpClient;
   final Uri _baseUrl;
@@ -42,27 +40,58 @@ class ApiClient {
   ///
   /// GET /cards/search
   Future<SearchCards> getCardFullText(String cardName) async {
-    final queryParameters = {
-      'unique': 'art',
-      'order': 'name',
-      'q': cardName,
-    };
+    final queryParameters = {'unique': 'art', 'q': cardName};
     final request = _baseUrl.replace(
       path: '/cards/search',
       queryParameters: queryParameters,
     );
 
     try {
-      final response = await _httpClient.get(request);
+      final response = await _httpClient.get(
+        request,
+        headers: {'User-Agent': 'Magic Yeti/1.0', 'Accept': 'application/json'},
+      );
 
       if (response.statusCode != 200) {
         throw ApiClientError(
-          error: '${response.statusCode}',
+          error: '${response.statusCode} - ${response.body}',
           stackTrace: StackTrace.current,
         );
       }
       final json = jsonDecode(response.body);
       return SearchCards.fromJson(json as Map<String, dynamic>);
+    } catch (error, stackTrace) {
+      throw ApiClientError(error: error, stackTrace: stackTrace);
+    }
+  }
+
+  /// Looks up a card by exact name (case-insensitive) and returns its
+  /// oracle ID, or `null` if no card matches.
+  ///
+  /// GET /cards/named?exact=
+  Future<String?> getOracleIdByName(String cardName) async {
+    final request = _baseUrl.replace(
+      path: '/cards/named',
+      queryParameters: {'exact': cardName},
+    );
+
+    try {
+      final response = await _httpClient.get(
+        request,
+        headers: {'User-Agent': 'Magic Yeti/1.0', 'Accept': 'application/json'},
+      );
+
+      if (response.statusCode == 404) return null;
+      if (response.statusCode != 200) {
+        throw ApiClientError(
+          error: '${response.statusCode} - ${response.body}',
+          stackTrace: StackTrace.current,
+        );
+      }
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      return json['oracle_id'] as String?;
+    } on ApiClientError {
+      rethrow;
     } catch (error, stackTrace) {
       throw ApiClientError(error: error, stackTrace: stackTrace);
     }

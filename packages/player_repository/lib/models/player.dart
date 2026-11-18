@@ -37,12 +37,14 @@ class Player extends Equatable {
     required this.opponents,
     this.commander,
     this.partner,
+    this.background,
     this.firebaseId,
     this.state = PlayerModelState.eliminated,
+    this.tags = const [],
     int? placement,
     int? timeOfDeath,
-  })  : _placement = placement,
-        _timeOfDeath = timeOfDeath;
+  }) : _placement = placement,
+       _timeOfDeath = timeOfDeath;
 
   /// Creates a Player object from a JSON map
   factory Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
@@ -59,8 +61,13 @@ class Player extends Equatable {
   /// The player's commander card.
   final Commander? commander;
 
-  /// The commander's partner card.
+  /// The commander's partner card (a second *attacking* commander). Drives a
+  /// separate commander-damage clock.
   final Commander? partner;
+
+  /// A non-attacking second card (a Background enchantment). Contributes to
+  /// color identity and art only — never a commander-damage clock.
+  final Commander? background;
 
   /// The player's assigned number in the game.
   final int playerNumber;
@@ -102,12 +109,18 @@ class Player extends Equatable {
   /// A list representing the damage dealt to the player by each opponent's commander.
   final List<Opponent>? opponents;
 
+  /// Ids of the tags added to this player at the end of the game, for
+  /// example `t1_sol_ring`. The app holds the tag catalog; this list holds
+  /// only the stable ids, so a label change never breaks a saved game.
+  final List<String> tags;
+
   /// Creates a new player object with the same values as the current player
   Player copyWith({
     String? id,
     String? name,
     Commander? commander,
     Commander? Function()? partner,
+    Commander? Function()? background,
     int? playerNumber,
     int? lifePoints,
     int? color,
@@ -116,6 +129,7 @@ class Player extends Equatable {
     Value<int?>? placement,
     Value<int?>? timeOfDeath,
     List<Opponent>? opponents,
+    List<String>? tags,
   }) {
     return Player(
       firebaseId: firebaseId != null ? firebaseId() : this.firebaseId,
@@ -124,12 +138,14 @@ class Player extends Equatable {
       color: color ?? this.color,
       commander: commander ?? this.commander,
       partner: partner != null ? partner() : this.partner,
+      background: background != null ? background() : this.background,
       playerNumber: playerNumber ?? this.playerNumber,
       lifePoints: lifePoints ?? this.lifePoints,
       state: state ?? this.state,
       placement: placement != null ? placement.value : _placement,
       timeOfDeath: timeOfDeath != null ? timeOfDeath.value : _timeOfDeath,
       opponents: opponents ?? this.opponents,
+      tags: tags ?? this.tags,
     );
   }
 
@@ -138,17 +154,19 @@ class Player extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        color,
-        commander,
-        partner,
-        playerNumber,
-        lifePoints,
-        state,
-        firebaseId,
-        opponents,
-        _placement,
-        _timeOfDeath,
-      ];
+    id,
+    name,
+    color,
+    commander,
+    partner,
+    background,
+    playerNumber,
+    lifePoints,
+    state,
+    firebaseId,
+    opponents,
+    tags,
+    _placement,
+    _timeOfDeath,
+  ];
 }

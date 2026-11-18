@@ -2,46 +2,63 @@ part of 'onboarding_bloc.dart';
 
 class OnboardingState extends Equatable {
   const OnboardingState({
+    this.currentStep = 0,
     this.username = const Username.pure(),
-    this.firstName = '',
-    this.lastName = '',
+    this.pin = const Pin.pure(),
     this.bio = '',
+    this.hasExistingPin = false,
     this.status = FormzSubmissionStatus.initial,
-    this.isValid = false,
   });
 
+  final int currentStep;
   final Username username;
-  final String firstName;
-  final String lastName;
+  final Pin pin;
   final String bio;
+  final bool hasExistingPin;
   final FormzSubmissionStatus status;
-  final bool isValid;
+
+  /// Per-step validation.
+  /// Step 0: username must be valid
+  /// Step 1: PIN must be valid OR an existing PIN is already set
+  /// Step 2: always valid (optional bio field)
+  bool get isStepValid {
+    switch (currentStep) {
+      case 0:
+        return username.isValid;
+      case 1:
+        return pin.isValid || hasExistingPin;
+      case 2:
+        return true;
+      default:
+        return false;
+    }
+  }
 
   OnboardingState copyWith({
+    int? currentStep,
     Username? username,
-    String? firstName,
-    String? lastName,
+    Pin? pin,
     String? bio,
+    bool? hasExistingPin,
     FormzSubmissionStatus? status,
-    bool? isValid,
   }) {
     return OnboardingState(
+      currentStep: currentStep ?? this.currentStep,
       username: username ?? this.username,
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
+      pin: pin ?? this.pin,
       bio: bio ?? this.bio,
+      hasExistingPin: hasExistingPin ?? this.hasExistingPin,
       status: status ?? this.status,
-      isValid: isValid ?? this.isValid,
     );
   }
 
   @override
-  List<Object> get props => [
-        username,
-        firstName,
-        lastName,
-        bio,
-        status,
-        isValid,
-      ];
+  List<Object?> get props => [
+    currentStep,
+    username,
+    pin,
+    bio,
+    hasExistingPin,
+    status,
+  ];
 }

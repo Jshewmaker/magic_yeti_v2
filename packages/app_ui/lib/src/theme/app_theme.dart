@@ -129,8 +129,8 @@ class AppTheme {
     );
   }
 
-  TabBarTheme get _tabBarTheme {
-    return TabBarTheme(
+  TabBarThemeData get _tabBarTheme {
+    return TabBarThemeData(
       dividerColor: Colors.transparent,
       overlayColor: WidgetStateProperty.all<Color>(AppColors.background),
     );

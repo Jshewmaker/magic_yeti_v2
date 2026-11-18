@@ -15,6 +15,7 @@ class UpdatePlayerInfoEvent extends PlayerEvent {
     this.playerName,
     this.commander,
     this.partner,
+    this.background,
     this.firebaseId,
   });
 
@@ -22,6 +23,7 @@ class UpdatePlayerInfoEvent extends PlayerEvent {
   final String? playerName;
   final String playerId;
   final Commander? partner;
+  final Commander? background;
   final String? firebaseId;
 }
 
@@ -58,6 +60,31 @@ class PlayerCommanderDamageDecremented extends PlayerEvent {
 
   @override
   List<Object> get props => [commanderId, damageType];
+}
+
+/// The finger went down and stayed on a commander damage tile. Subtracts one
+/// damage now, then one more every
+/// [PlayerBloc.commanderDamageRepeatInterval] until
+/// [PlayerCommanderDamageHoldEnded].
+class PlayerCommanderDamageHoldStarted extends PlayerEvent {
+  const PlayerCommanderDamageHoldStarted({
+    required this.commanderId,
+    required this.damageType,
+  });
+
+  final String commanderId;
+  final DamageType damageType;
+
+  @override
+  List<Object> get props => [commanderId, damageType];
+}
+
+/// The finger lifted from a commander damage tile.
+class PlayerCommanderDamageHoldEnded extends PlayerEvent {
+  const PlayerCommanderDamageHoldEnded();
+
+  @override
+  List<Object> get props => [];
 }
 
 class UpdatePlayerLifeByXEvent extends PlayerEvent {

@@ -35,6 +35,26 @@ _\*Magic Yeti works on iOS, Android, Web, and Windows._
 
 ---
 
+## Updating the Commander Index 🃏
+
+Commander search works offline using a compact index of commander-eligible
+cards bundled at `packages/scryfall_bulk_client/assets/cards/commander_index.json`.
+To refresh it with cards from newly released sets, run:
+
+```sh
+$ cd packages/scryfall_bulk_client
+$ dart run tool/generate_commander_index.dart
+```
+
+This downloads the latest Scryfall bulk data (~250 MB, deleted afterwards) and
+regenerates the ~5 MB index. Commit the updated asset. Until the index is
+refreshed, brand-new commanders are still searchable online via the Scryfall
+API fallback — they're just not available offline. See the
+[scryfall_bulk_client README](packages/scryfall_bulk_client/README.md) for
+details.
+
+---
+
 ## Running Tests 🧪
 
 To run all unit and widget tests use the following command:
@@ -165,6 +185,48 @@ flutter gen-l10n --arb-dir="lib/l10n/arb"
 ```
 
 Alternatively, run `flutter run` and code generation will take place automatically.
+
+---
+
+## Firebase Backend 🔥
+
+Magic Yeti's backend lives alongside the Flutter app in this repo:
+
+- `functions/` — TypeScript Cloud Functions (e.g. `validatePin`, a callable that
+  checks a user's PIN server-side against their salted private credentials).
+- `firestore.rules` — Firestore security rules governing direct client reads
+  and writes (friends, requests, profiles, private credentials, etc.).
+
+### Running backend tests
+
+```sh
+# Build and unit test the Cloud Functions
+cd functions && npm run build && npm test && cd ..
+
+# Run the firebase_database_repository package tests
+cd packages/firebase_database_repository && flutter test && cd ..
+
+# Run Firestore security rules tests against the emulator
+firebase emulators:exec --only firestore "npm --prefix functions run test:rules"
+```
+
+If the globally-installed `firebase` CLI has trouble with `emulators:exec`, pin
+a known-good version instead:
+
+```sh
+npx firebase-tools@14.9.0 emulators:exec --only firestore "npm --prefix functions run test:rules"
+```
+
+### Deploying
+
+```sh
+firebase deploy --only firestore:rules,functions
+```
+
+Deploys are run manually by a maintainer — see
+`docs/superpowers/plans/2026-07-03-friends-INDEX.md` for the pre-deploy gate
+(diffing versioned rules against the console's current production rules
+before the first deploy).
 
 [coverage_badge]: coverage_badge.svg
 [flutter_localizations_link]: https://api.flutter.dev/flutter/flutter_localizations/flutter_localizations-library.html

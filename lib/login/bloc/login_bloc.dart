@@ -15,8 +15,8 @@ part 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   LoginBloc(this._userRepository, {bool? isWeb})
-      : _kIsWeb = isWeb ?? kIsWeb,
-        super(const LoginState()) {
+    : _kIsWeb = isWeb ?? kIsWeb,
+      super(const LoginState()) {
     on<LoginEmailChanged>(_onEmailChanged);
     on<LoginPasswordChanged>(_onPasswordChanged);
     on<LoginCredentialsSubmitted>(_onCredentialsSubmitted);

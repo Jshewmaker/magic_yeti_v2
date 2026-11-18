@@ -4,7 +4,7 @@ version: 0.1.0+1
 publish_to: none
 
 environment:
-  sdk: "^3.3.0"
+  sdk: ">=3.1.0 <4.0.0"
 
 dependencies:
   authentication_client:
@@ -17,12 +17,12 @@ dependencies:
   google_sign_in: ^6.2.1
   plugin_platform_interface: ^2.1.2
   rxdart: ^0.28.0
-  sign_in_with_apple: ^5.0.0
+  sign_in_with_apple: ^7.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   mocktail: ^1.0.3
   test: ^1.25.2
-  very_good_analysis: ^5.1.0
+  very_good_analysis: ^10.1.0
   

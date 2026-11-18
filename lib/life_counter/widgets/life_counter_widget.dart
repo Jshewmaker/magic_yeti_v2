@@ -1,70 +1,94 @@
+import 'dart:async';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:magic_yeti/game/bloc/game_bloc.dart';
 import 'package:magic_yeti/life_counter/bloc/life_change_bloc.dart';
 import 'package:magic_yeti/player/player.dart';
 import 'package:magic_yeti/player/view/customize_player_page.dart';
+import 'package:magic_yeti/timer/widgets/auto_resume_timer_wrapper.dart';
 import 'package:player_repository/player_repository.dart';
 
 class LifeCounterWidget extends StatelessWidget {
-  LifeCounterWidget({
+  const LifeCounterWidget({
     required this.leftSideTracker,
     this.rotate = false,
+    this.borderRadius,
+    this.fitLifeToTile = false,
     super.key,
   });
   final bool rotate;
   final bool leftSideTracker;
 
-  final textController = TextEditingController();
+  /// Overrides the default rounding, which rounds only the corners that
+  /// face away from the center column.
+  final BorderRadius? borderRadius;
+
+  /// Sizes the life total to the space it has, instead of a fixed size.
+  final bool fitLifeToTile;
 
   @override
   Widget build(BuildContext context) {
     final player = context.watch<PlayerBloc>().state.player;
-    textController.text = player.name;
-    return ClipRRect(
-      borderRadius: leftSideTracker
-          ? const BorderRadius.only(
-              topRight: Radius.circular(20),
-              bottomRight: Radius.circular(20),
-            )
-          : const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              bottomLeft: Radius.circular(20),
-            ),
-      child: RotatedBox(
-        quarterTurns: rotate ? 2 : 0,
-        child: Stack(
-          children: [
-            BackgroundWidget(
-              player: player,
-              rotate: rotate,
-              leftSideTracker: true,
-            ),
-            _LifeTrackerWidget(lifePoints: player.lifePoints),
-            Row(
-              children: [
-                DecrementLifeWidget(player: player),
-                IncrementLifeWidget(player: player),
-              ],
-            ),
-            _PlayerNameWidget(
-              name: textController.text,
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<PlayerBloc>(),
-                      child: CustomizePlayerPage(
-                        playerId: player.id,
+    final isCommanderGame = context.select<GameBloc, bool>(
+      (bloc) => bloc.state.isCommanderGame,
+    );
+    return BlocProvider(
+      create: (context) => LifeChangeBloc(),
+      child: ClipRRect(
+        borderRadius:
+            borderRadius ??
+            (leftSideTracker
+                ? const BorderRadius.only(
+                    topRight: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  )
+                : const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    bottomLeft: Radius.circular(20),
+                  )),
+        child: RotatedBox(
+          quarterTurns: rotate ? 2 : 0,
+          child: Stack(
+            children: [
+              BackgroundWidget(
+                player: player,
+                rotate: rotate,
+                leftSideTracker: true,
+              ),
+              _LifeTrackerWidget(
+                lifePoints: player.lifePoints,
+                fitToTile: fitLifeToTile,
+              ),
+              AutoResumeTimerWrapper(
+                child: Row(
+                  children: [
+                    DecrementLifeWidget(player: player),
+                    IncrementLifeWidget(player: player),
+                  ],
+                ),
+              ),
+              _PlayerNameWidget(
+                name: player.name,
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => BlocProvider.value(
+                        value: context.read<PlayerBloc>(),
+                        child: CustomizePlayerPage(
+                          playerId: player.id,
+                          isCommanderGame: isCommanderGame,
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
-          ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -101,6 +125,8 @@ class _IncrementLifeWidgetState extends State<IncrementLifeWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final lifeChange = context.read<LifeChangeBloc>().state.change;
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
     return Expanded(
       key: const ValueKey(
         'life_counter_widget_increment',
@@ -108,20 +134,20 @@ class _IncrementLifeWidgetState extends State<IncrementLifeWidget> {
       child: GestureDetector(
         onTapDown: _handleTapDown,
         onTap: () => context.read<PlayerBloc>().add(
-              UpdatePlayerLifeEvent(
-                decrement: false,
-                playerId: widget.player.id,
-              ),
-            ),
+          UpdatePlayerLifeEvent(
+            decrement: false,
+            playerId: widget.player.id,
+          ),
+        ),
         onLongPressStart: (_) => context.read<PlayerBloc>().add(
-              UpdatePlayerLifeByXEvent(
-                decrement: false,
-                playerId: widget.player.id,
-              ),
-            ),
+          UpdatePlayerLifeByXEvent(
+            decrement: false,
+            playerId: widget.player.id,
+          ),
+        ),
         onLongPressEnd: (_) => context.read<PlayerBloc>().add(
-              const PlayerStopDecrement(),
-            ),
+          const PlayerStopDecrement(),
+        ),
         child: AnimatedContainer(
           decoration: BoxDecoration(
             color: _isTapped ? Colors.white.withAlpha(32) : Colors.transparent,
@@ -130,7 +156,22 @@ class _IncrementLifeWidgetState extends State<IncrementLifeWidget> {
             ),
           ),
           duration: const Duration(milliseconds: 50),
-          child: const SizedBox.expand(),
+          child: SizedBox.expand(
+            child: Padding(
+              padding: isPhone
+                  ? const EdgeInsets.all(8)
+                  : const EdgeInsets.all(64),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (lifeChange != null && lifeChange > 0)
+                    const _LifeChangesWidget(),
+                  const SizedBox(width: 8),
+                  const FaIcon(FontAwesomeIcons.plus, size: 36),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -167,6 +208,8 @@ class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final lifeChange = context.read<LifeChangeBloc>().state.change;
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
     return Expanded(
       key: const ValueKey(
         'life_counter_widget_decrement',
@@ -174,23 +217,23 @@ class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
       child: GestureDetector(
         onTapDown: _handleTapDown,
         onTap: () => context.read<PlayerBloc>().add(
-              UpdatePlayerLifeEvent(
-                decrement: true,
-                playerId: widget.player.id,
-              ),
-            ),
+          UpdatePlayerLifeEvent(
+            decrement: true,
+            playerId: widget.player.id,
+          ),
+        ),
         onLongPressStart: (_) => context.read<PlayerBloc>().add(
-              UpdatePlayerLifeByXEvent(
-                decrement: true,
-                playerId: widget.player.id,
-              ),
-            ),
+          UpdatePlayerLifeByXEvent(
+            decrement: true,
+            playerId: widget.player.id,
+          ),
+        ),
         onLongPressCancel: () => context.read<PlayerBloc>().add(
-              const PlayerStopDecrement(),
-            ),
+          const PlayerStopDecrement(),
+        ),
         onLongPressEnd: (_) => context.read<PlayerBloc>().add(
-              const PlayerStopDecrement(),
-            ),
+          const PlayerStopDecrement(),
+        ),
         child: AnimatedContainer(
           decoration: BoxDecoration(
             color: _isTapped ? Colors.white.withAlpha(32) : Colors.transparent,
@@ -199,7 +242,21 @@ class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
             ),
           ),
           duration: const Duration(milliseconds: 50),
-          child: const SizedBox.expand(),
+          child: SizedBox.expand(
+            child: Padding(
+              padding: isPhone
+                  ? const EdgeInsets.all(8)
+                  : const EdgeInsets.all(64),
+              child: Row(
+                children: [
+                  const FaIcon(FontAwesomeIcons.minus, size: 36),
+                  const SizedBox(width: 8),
+                  if (lifeChange != null && lifeChange < 0)
+                    const _LifeChangesWidget(),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -209,50 +266,40 @@ class _DecrementLifeWidgetState extends State<DecrementLifeWidget> {
 class _LifeTrackerWidget extends StatelessWidget {
   const _LifeTrackerWidget({
     required this.lifePoints,
+    required this.fitToTile,
   });
 
   final int lifePoints;
+  final bool fitToTile;
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => LifeChangeBloc(),
-      child: BlocConsumer<PlayerBloc, PlayerState>(
-        listener: (context, state) {
-          if (state.status == PlayerStatus.lifeTotalUpdated) {
-            context.read<LifeChangeBloc>().add(
-                  LifePointsChanged(
-                    previousLifePoints: lifePoints,
-                    newLifePoints: state.player.lifePoints,
-                  ),
-                );
-          }
-        },
-        builder: (context, state) => Stack(
-          alignment: Alignment.center,
-          fit: StackFit.expand,
-          children: [
-            if (state.player.state.isEliminated)
-              const Center(
-                child: FaIcon(
-                  FontAwesomeIcons.skullCrossbones,
-                  size: 96,
-                  color: AppColors.black,
-                ),
-              )
-            else
-              _LifeText(player: state.player),
-            const Positioned(
-              left: 400,
-              child: FaIcon(FontAwesomeIcons.plus, size: 36),
+    return BlocConsumer<PlayerBloc, PlayerState>(
+      listener: (context, state) {
+        if (state.status == PlayerStatus.lifeTotalUpdated) {
+          context.read<LifeChangeBloc>().add(
+            LifePointsChanged(
+              previousLifePoints: lifePoints,
+              newLifePoints: state.player.lifePoints,
             ),
-            const Positioned(
-              right: 400,
-              child: FaIcon(FontAwesomeIcons.minus, size: 36),
-            ),
-            const _LifeChangesWidget(),
-          ],
-        ),
+          );
+        }
+      },
+      builder: (context, state) => Stack(
+        alignment: Alignment.center,
+        fit: StackFit.expand,
+        children: [
+          if (state.player.state.isEliminated)
+            const Center(
+              child: FaIcon(
+                FontAwesomeIcons.skullCrossbones,
+                size: 96,
+                color: AppColors.black,
+              ),
+            )
+          else
+            _LifeText(player: state.player, fitToTile: fitToTile),
+        ],
       ),
     );
   }
@@ -261,18 +308,34 @@ class _LifeTrackerWidget extends StatelessWidget {
 class _LifeText extends StatelessWidget {
   const _LifeText({
     required this.player,
+    required this.fitToTile,
   });
 
   final Player player;
+  final bool fitToTile;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: StrokeText(
-        text: '${player.lifePoints}',
-        fontSize: 96,
-        color: AppColors.white,
-      ),
+    final isPhone = DeviceInfoProvider.of(context).isPhone;
+    final fixedSize = isPhone ? 48.0 : 180.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // A two-player tile is half the screen, so a fixed phone size
+        // looks tiny there. Scale from the smaller side of the tile.
+        final fontSize = fitToTile
+            ? (constraints.biggest.shortestSide * 0.38).clamp(48.0, 220.0)
+            : fixedSize;
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: StrokeText(
+              text: '${player.lifePoints}',
+              fontSize: fontSize,
+              color: AppColors.white,
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -288,13 +351,7 @@ class _LifeChangesWidget extends StatelessWidget {
         if (change == null || change == 0) return const SizedBox();
 
         return Center(
-          child: Transform.translate(
-            offset: Offset(
-              change > 0 ? 140 : -140,
-              2,
-            ),
-            child: _LifePointChangeAnimation(change: change),
-          ),
+          child: _LifePointChangeAnimation(change: change),
         );
       },
     );
@@ -341,26 +398,26 @@ class _LifePointChangeAnimationState extends State<_LifePointChangeAnimation>
       vsync: this,
     );
 
-    _opacityAnimation = Tween<double>(
-      begin: 1,
-      end: 0,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.5, 1),
-      ),
-    );
+    _opacityAnimation =
+        Tween<double>(
+          begin: 1,
+          end: 0,
+        ).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.5, 1),
+          ),
+        );
 
     _lastChange = widget.change;
-    _controller
-      ..forward()
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          context.read<LifeChangeBloc>().add(
-                const LifePointChangeCompleted(),
-              );
-        }
-      });
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        context.read<LifeChangeBloc>().add(
+          const LifePointChangeCompleted(),
+        );
+      }
+    });
+    unawaited(_controller.forward());
   }
 
   @override
@@ -375,7 +432,7 @@ class _LifePointChangeAnimationState extends State<_LifePointChangeAnimation>
       opacity: _opacityAnimation,
       child: StrokeText(
         text: '${widget.change.abs()}',
-        fontSize: 48,
+        fontSize: 64,
         color: AppColors.white,
       ),
     );
@@ -495,18 +552,26 @@ class _PlayerNameWidget extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton(
-          style: ButtonStyle(
-            backgroundColor:
-                WidgetStateProperty.all(Colors.black.withAlpha(150)),
-            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        Flexible(
+          child: ElevatedButton(
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all(
+                Colors.black.withAlpha(150),
+              ),
+              shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
+            onPressed: onPressed,
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
-          onPressed: onPressed,
-          child: Text(name, style: const TextStyle(color: Colors.white)),
         ),
       ],
     );

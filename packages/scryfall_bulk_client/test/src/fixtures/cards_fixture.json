@@ -1,0 +1,59 @@
+[
+  {
+    "name": "Atraxa, Praetors' Voice",
+    "oracle_id": "7e6b9b59-8767-4b3d-b3b5-1a4c72e0a1e5",
+    "type_line": "Legendary Creature — Phyrexian Angel Horror",
+    "scryfall_uri": "https://scryfall.com/card/2x2/190/atraxa-praetors-voice",
+    "edhrec_rank": 14,
+    "artist": "Victor Adame Minguez",
+    "colors": ["B", "G", "U", "W"],
+    "color_identity": ["B", "G", "U", "W"],
+    "mana_cost": "{G}{W}{U}{B}",
+    "oracle_text": "Flying, vigilance, deathtouch, lifelink\nAt the beginning of your end step, proliferate.",
+    "power": "4",
+    "toughness": "4",
+    "keywords": ["Flying", "Vigilance", "Deathtouch", "Lifelink", "Proliferate"],
+    "art_crop": "https://cards.scryfall.io/art_crop/front/atraxa.jpg"
+  },
+  {
+    "name": "Atraxa, Praetors' Voice",
+    "oracle_id": "7e6b9b59-8767-4b3d-b3b5-1a4c72e0a1e5",
+    "type_line": "Legendary Creature — Phyrexian Angel Horror",
+    "scryfall_uri": "https://scryfall.com/card/sld/329/atraxa-praetors-voice",
+    "edhrec_rank": 14,
+    "artist": "Magali Villeneuve",
+    "colors": ["B", "G", "U", "W"],
+    "color_identity": ["B", "G", "U", "W"],
+    "mana_cost": "{G}{W}{U}{B}",
+    "oracle_text": "Flying, vigilance, deathtouch, lifelink\nAt the beginning of your end step, proliferate.",
+    "power": "4",
+    "toughness": "4",
+    "keywords": ["Flying", "Vigilance", "Deathtouch", "Lifelink", "Proliferate"],
+    "art_crop": "https://cards.scryfall.io/art_crop/front/atraxa-sld.jpg"
+  },
+  {
+    "name": "Raised by Giants",
+    "oracle_id": "02f1dbb2-4ffd-45f9-ba1a-a2765ee2f0d0",
+    "type_line": "Legendary Enchantment — Background",
+    "scryfall_uri": "https://scryfall.com/card/clb/340/raised-by-giants",
+    "edhrec_rank": 8123,
+    "artist": "Isis",
+    "colors": ["G"],
+    "color_identity": ["G"],
+    "mana_cost": "{2}{G}",
+    "oracle_text": "Commander creatures you own have base power and toughness 10/10 and are Giants in addition to their other creature types.",
+    "keywords": [],
+    "art_crop": "https://cards.scryfall.io/art_crop/front/raised-by-giants.jpg"
+  },
+  {
+    "name": "Esika, God of the Tree // The Prismatic Bridge",
+    "oracle_id": "9d4dcbbd-7e1e-4b0d-8f8e-9a5f3c2d1e0f",
+    "type_line": "Legendary Creature — God // Legendary Enchantment",
+    "scryfall_uri": "https://scryfall.com/card/khm/168/esika-god-of-the-tree-the-prismatic-bridge",
+    "edhrec_rank": 402,
+    "artist": "Johannes Voss",
+    "color_identity": ["B", "G", "R", "U", "W"],
+    "keywords": [],
+    "art_crop": "https://cards.scryfall.io/art_crop/front/esika.jpg"
+  }
+]

@@ -32,8 +32,8 @@ class CounterState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        counter,
-        error,
-      ];
+    status,
+    counter,
+    error,
+  ];
 }

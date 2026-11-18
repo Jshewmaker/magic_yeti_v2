@@ -41,9 +41,18 @@ abstract class AppColors {
   /// Color used to highlight the winner - Elegant Emerald
   static const Color winner = Color(0xFF34D399);
 
+  /// Success - Vibrant Green for success indicators and toasts
+  static const Color success = Color(0xFF10B981);
+
   /// red - Rich Ruby
   static const Color red = Color(0xFFDC2626);
 
   /// On Surface Variant - Light Gray
   static const Color onSurfaceVariant = Color(0xFF94A3B8);
+
+  /// Skeleton Base - resting color of shimmer loading placeholders.
+  static const Color skeletonBase = Color(0xFF2E313F);
+
+  /// Skeleton Highlight - sweep color of shimmer loading placeholders.
+  static const Color skeletonHighlight = Color(0xFF3D4152);
 }

@@ -17,17 +17,22 @@ class Commander extends Equatable {
     required this.manaCost,
     required this.oracleText,
     required this.artist,
+    this.oracleId,
     this.typeLine,
     this.scryFallUrl = '',
     this.colorIdentity,
     this.edhrecRank,
     this.power,
     this.toughness,
+    this.keywords = const [],
   });
 
   /// Creates a Commander from JSON map
   factory Commander.fromJson(Map<String, dynamic> json) =>
       _$CommanderFromJson(json);
+
+  /// Scryfall oracle ID — consistent across all reprints/artworks of a card
+  final String? oracleId;
 
   /// The name of the commander card
   final String name;
@@ -69,12 +74,19 @@ class Commander extends Equatable {
   /// Toughness (for creatures)
   final String? toughness;
 
+  /// Scryfall keyword abilities (e.g. 'Partner', 'Friends forever').
+  /// Used to auto-detect pairing capability. Defaults to empty for
+  /// commanders persisted before this field existed.
+  @JsonKey(defaultValue: <String>[])
+  final List<String> keywords;
+
   /// Converts the commander to a JSON map
   Map<String, dynamic> toJson() => _$CommanderToJson(this);
 
   /// Creates a copy of this Commander with the given fields replaced with the
   /// new values
   Commander copyWith({
+    String? oracleId,
     String? name,
     List<String>? colors,
     List<String>? colorIdentity,
@@ -88,8 +100,10 @@ class Commander extends Equatable {
     String? power,
     String? toughness,
     String? artist,
+    List<String>? keywords,
   }) {
     return Commander(
+      oracleId: oracleId ?? this.oracleId,
       name: name ?? this.name,
       colors: colors ?? this.colors,
       colorIdentity: colorIdentity ?? this.colorIdentity,
@@ -103,23 +117,26 @@ class Commander extends Equatable {
       power: power ?? this.power,
       toughness: toughness ?? this.toughness,
       artist: artist ?? this.artist,
+      keywords: keywords ?? this.keywords,
     );
   }
 
   @override
   List<Object?> get props => [
-        name,
-        colors,
-        colorIdentity,
-        typeLine,
-        scryFallUrl,
-        cardType,
-        imageUrl,
-        manaCost,
-        oracleText,
-        edhrecRank,
-        power,
-        toughness,
-        artist,
-      ];
+    oracleId,
+    name,
+    colors,
+    colorIdentity,
+    typeLine,
+    scryFallUrl,
+    cardType,
+    imageUrl,
+    manaCost,
+    oracleText,
+    edhrecRank,
+    power,
+    toughness,
+    artist,
+    keywords,
+  ];
 }

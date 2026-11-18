@@ -12,12 +12,13 @@ part 'game_event.dart';
 part 'game_state.dart';
 
 class GameBloc extends Bloc<GameEvent, GameState> {
+  // ... existing constructor and fields ...
   GameBloc({
     required PlayerRepository playerRepository,
     required FirebaseDatabaseRepository database,
-  })  : _playerRepository = playerRepository,
-        _database = database,
-        super(const GameState()) {
+  }) : _playerRepository = playerRepository,
+       _database = database,
+       super(const GameState()) {
     on<CreateGameEvent>(_onCreateGame);
     on<GameStartEvent>(_onGameStart);
     on<GamePauseEvent>(_onGamePause);
@@ -26,15 +27,17 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<GameFinishEvent>(_onGameFinish);
     on<GameUpdateTimerEvent>(_onUpdateTimer);
     on<PlayerRepositoryUpdateEvent>(_repositoryUpdated);
+    on<GameRestoreRequested>(_onGameRestoreRequested);
 
     // Subscribe to player updates and emit them immediately
-    _playerRepository.players.listen((players) {
+    _playersSubscription = _playerRepository.players.listen((players) {
       add(PlayerRepositoryUpdateEvent(players: players));
     });
   }
 
   final PlayerRepository _playerRepository;
   final FirebaseDatabaseRepository _database;
+  late final StreamSubscription<List<Player>> _playersSubscription;
   Timer? _gameTimer;
 
   List<Player> get _players => _playerRepository.getPlayers();
@@ -73,8 +76,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       _playerRepository.clearPlayers();
     }
     try {
-      final uuidList =
-          List.generate(event.numberOfPlayers, (index) => uuid.v4());
+      final uuidList = List.generate(
+        event.numberOfPlayers,
+        (index) => uuid.v4(),
+      );
       // Create a shuffled copy of the colors list
       final shuffledColors = List<int>.from(_playerColors)..shuffle();
       for (var i = 0; i < event.numberOfPlayers; ++i) {
@@ -141,21 +146,26 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     GameResetEvent event,
     Emitter<GameState> emit,
   ) async {
-    emit(state.copyWith(status: GameStatus.loading));
+    // Trackers listen for this status to clear their counters.
+    emit(state.copyWith(status: GameStatus.reset));
     _gameTimer?.cancel();
 
     // Reset players
     try {
       for (final player in _players) {
         final opponents = state.playerList
-            .map((p) => Opponent(
-                  playerId: p.id,
-                  damages: [
-                    CommanderDamage(
-                        damageType: DamageType.commander, amount: 0),
-                    CommanderDamage(damageType: DamageType.partner, amount: 0),
-                  ],
-                ))
+            .map(
+              (p) => Opponent(
+                playerId: p.id,
+                damages: [
+                  CommanderDamage(
+                    damageType: DamageType.commander,
+                    amount: 0,
+                  ),
+                  CommanderDamage(damageType: DamageType.partner, amount: 0),
+                ],
+              ),
+            )
             .toList();
 
         final resetPlayer = player.copyWith(
@@ -189,24 +199,36 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(state.copyWith(elapsedSeconds: event.gameLength));
   }
 
+  Future<void> _onGameRestoreRequested(
+    GameRestoreRequested event,
+    Emitter<GameState> emit,
+  ) async {
+    final restored = _playerRepository.restorePreviousGameState();
+    if (restored) {
+      // Emit restored state as running, clear winner/error
+      emit(
+        state.copyWith(
+          status: GameStatus.running,
+          playerList: _playerRepository.getPlayers(),
+        ),
+      );
+      // Dispatch TimerStartEvent to TimerBloc
+      // (Assumes context or a callback is available; see note below)
+      // context.read<TimerBloc>().add(const TimerStartEvent());
+      // If context is not available here, trigger from UI after BlocListener
+    }
+    // else do nothing if no snapshot
+  }
+
   Future<void> _onGameFinish(
     GameFinishEvent event,
     Emitter<GameState> emit,
   ) async {
-    emit(state.copyWith(status: GameStatus.loading));
-
-    final updateWinner = event.winner.copyWith(
-      placement: const Value(1),
-      lifePoints: 0,
-      state: PlayerModelState.eliminated,
-      timeOfDeath: Value(DateTime.now().millisecondsSinceEpoch),
-    );
-
-    _playerRepository.updatePlayer(updateWinner);
+    emit(state.copyWith(status: GameStatus.finished));
 
     final gameModel = GameModel(
       roomId: await generateShortGameId(),
-      winnerId: updateWinner.id,
+      winnerId: event.winner.id,
       players: state.playerList,
       startTime: state.startTime ?? DateTime.now(),
       endTime: DateTime.now(),
@@ -226,11 +248,15 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(state.copyWith(playerList: event.players));
 
     // Then check for game-ending condition
-    final alivePlayers =
-        event.players.where((p) => p.state == PlayerModelState.active).toList();
-    if (alivePlayers.length <= 1 && state.status == GameStatus.running) {
-      emit(state.copyWith(status: GameStatus.finished));
-      add(GameFinishEvent(winner: alivePlayers.first));
+    final alivePlayers = event.players
+        .where((p) => p.state == PlayerModelState.active)
+        .toList();
+    if (alivePlayers.isEmpty && state.status == GameStatus.running) {
+      add(
+        GameFinishEvent(
+          winner: event.players.firstWhere((p) => p.placement == 1),
+        ),
+      );
     }
   }
 
@@ -265,7 +291,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   @override
-  Future<void> close() {
+  Future<void> close() async {
+    await _playersSubscription.cancel();
     return super.close();
   }
 }

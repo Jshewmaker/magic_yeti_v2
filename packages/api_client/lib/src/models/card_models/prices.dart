@@ -28,12 +28,5 @@ class Prices extends Equatable {
   final String? tix;
 
   @override
-  List<Object?> get props => [
-        usd,
-        usdFoil,
-        usdEtched,
-        eur,
-        eurFoil,
-        tix,
-      ];
+  List<Object?> get props => [usd, usdFoil, usdEtched, eur, eurFoil, tix];
 }

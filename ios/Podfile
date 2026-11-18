@@ -1,13 +1,22 @@
 # Uncomment this line to define a global platform for your project
-platform :ios, '13.0'
+platform :ios, '15.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
 project 'Runner', {
   'Debug' => :debug,
+  'Debug-development' => :debug,
+  'Debug-staging' => :debug,
+  'Debug-production' => :debug,
   'Profile' => :release,
+  'Profile-development' => :release,
+  'Profile-staging' => :release,
+  'Profile-production' => :release,
   'Release' => :release,
+  'Release-development' => :release,
+  'Release-staging' => :release,
+  'Release-production' => :release,
 }
 
 def flutter_root
@@ -47,6 +56,18 @@ post_install do |installer|
           flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
           file.settings['COMPILER_FLAGS'] = flags.join(' ')
         end
+      end
+    end
+    # Swift 6.3 (Xcode 26.4) miscompiles `async let` teardown in optimized
+    # builds, aborting inside FirebaseFunctions' and FirebaseAuth's shared
+    # FunctionsContextProvider.context() (three concurrent async let calls
+    # for auth/App Check tokens) with a Swift Concurrency runtime fatal
+    # error. Forcing -Onone on these two pods sidesteps the optimizer bug
+    # until firebase-ios-sdk ships the Task-based fix from PR #15991
+    # (firebase/firebase-ios-sdk#15974). Remove once that version lands.
+    if ['FirebaseFunctions', 'FirebaseAuth'].include?(target.name)
+      target.build_configurations.each do |config|
+        config.build_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-Onone'
       end
     end
   end

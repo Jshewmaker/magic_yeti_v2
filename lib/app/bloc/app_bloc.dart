@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:app_config_repository/app_config_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_database_repository/firebase_database_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:user_repository/user_repository.dart';
 
@@ -16,15 +17,17 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   AppBloc({
     required AppConfigRepository appConfigRepository,
     required UserRepository userRepository,
+    required FirebaseDatabaseRepository firebaseDatabaseRepository,
     required User user,
-  })  : _userRepository = userRepository,
-        super(
-          user == User.unauthenticated
-              ? const AppState.unauthenticated()
-              : user.isAnonymous
-                  ? AppState.anonymous(user)
-                  : AppState.authenticated(user),
-        ) {
+  }) : _userRepository = userRepository,
+       _firebaseDatabaseRepository = firebaseDatabaseRepository,
+       super(
+         user == User.unauthenticated
+             ? const AppState.unauthenticated()
+             : user.isAnonymous
+             ? AppState.anonymous(user)
+             : AppState.authenticated(user),
+       ) {
     on<AppDownForMaintenanceStatusChanged>(_onDownForMaintenanceStatusChanged);
     on<AppForceUpgradeStatusChanged>(_onForceUpgradeStatusChanged);
     on<AppUserChanged>(_onUserChanged);
@@ -42,6 +45,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   }
 
   final UserRepository _userRepository;
+  final FirebaseDatabaseRepository _firebaseDatabaseRepository;
+  int _onboardingCheckGeneration = 0;
   late StreamSubscription<ForceUpgrade> _forceUpgradeSubscription;
   late StreamSubscription<bool> _isDownForMaintenanceSubscription;
   late StreamSubscription<User> _userSubscription;
@@ -92,7 +97,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         : emit(AppState.authenticated(state.user));
   }
 
-  void _onUserChanged(AppUserChanged event, Emitter<AppState> emit) {
+  Future<void> _onUserChanged(
+    AppUserChanged event,
+    Emitter<AppState> emit,
+  ) async {
     switch (state.status) {
       case AppStatus.forceUpgradeRequired:
         return emit(
@@ -104,11 +112,37 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       case AppStatus.anonymous:
       case AppStatus.unauthenticated:
       case AppStatus.onboardingRequired:
-        return event.user == User.unauthenticated
-            ? emit(const AppState.unauthenticated())
-            : event.user.isAnonymous
-                ? emit(AppState.anonymous(event.user))
-                : emit(AppState.authenticated(event.user));
+        if (event.user == User.unauthenticated) {
+          return emit(const AppState.unauthenticated());
+        }
+        if (event.user.isAnonymous) {
+          return emit(AppState.anonymous(event.user));
+        }
+        // Guard against race conditions from rapid user stream events
+        final generation = ++_onboardingCheckGeneration;
+        // Check Firestore for onboarding completion
+        try {
+          // Lazily move any legacy profile-doc PIN hash into the private
+          // credentials doc before the profile is evaluated. Best-effort:
+          // the callable's legacy fallback covers failures.
+          await _firebaseDatabaseRepository.migrateLegacyPin(event.user.id);
+          final profile = await _firebaseDatabaseRepository.getUserProfileOnce(
+            event.user.id,
+          );
+          // Stale check — a newer event has arrived
+          if (generation != _onboardingCheckGeneration) return;
+          // Completeness requires onboardingComplete AND a username AND a
+          // PIN (hasPin flag or unmigrated legacy field) — legacy users
+          // missing any of these re-enter the pre-filled onboarding wizard.
+          if (profile == null || !profile.isComplete) {
+            return emit(AppState.onboardingRequired(event.user));
+          }
+          return emit(AppState.authenticated(event.user));
+        } on Exception catch (_) {
+          if (generation != _onboardingCheckGeneration) return;
+          // Network failure — don't block existing users
+          return emit(AppState.authenticated(event.user));
+        }
     }
   }
 
@@ -120,8 +154,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       return state.user == User.unauthenticated
           ? emit(const AppState.unauthenticated())
           : state.user.isAnonymous
-              ? emit(AppState.anonymous(state.user))
-              : emit(AppState.authenticated(state.user));
+          ? emit(AppState.anonymous(state.user))
+          : emit(AppState.authenticated(state.user));
     }
   }
 

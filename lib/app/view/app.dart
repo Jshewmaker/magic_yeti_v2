@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:magic_yeti/app/app_router/app_router.dart';
 import 'package:magic_yeti/app/bloc/app_bloc.dart';
+import 'package:magic_yeti/commander_library/commander_library_repository.dart';
+import 'package:magic_yeti/friends_list/requests/bloc/friend_request_bloc.dart';
 import 'package:magic_yeti/game/bloc/game_bloc.dart';
-import 'package:magic_yeti/home/bloc/match_history_bloc.dart';
+import 'package:magic_yeti/home/match_history_bloc/match_history_bloc.dart';
 import 'package:magic_yeti/l10n/arb/app_localizations.dart';
-import 'package:magic_yeti/l10n/l10n.dart';
+import 'package:magic_yeti/timer/bloc/timer_bloc.dart';
 import 'package:player_repository/player_repository.dart';
 import 'package:scryfall_repository/scryfall_repository.dart';
 import 'package:user_repository/user_repository.dart';
@@ -19,32 +21,37 @@ class App extends StatelessWidget {
     required AppConfigRepository appConfigRepository,
     required UserRepository userRepository,
     required ScryfallRepository scryfallRepository,
+    required PlayerRepository playerRepository,
+    required CommanderLibraryRepository commanderLibraryRepository,
     required User user,
     super.key,
-  })  : _appConfigRepository = appConfigRepository,
-        _userRepository = userRepository,
-        _scryfallRepository = scryfallRepository,
-        _firebaseDatabaseRepository = firebaseDatabaseRepository,
-        _user = user;
+  }) : _appConfigRepository = appConfigRepository,
+       _userRepository = userRepository,
+       _scryfallRepository = scryfallRepository,
+       _firebaseDatabaseRepository = firebaseDatabaseRepository,
+       _playerRepository = playerRepository,
+       _commanderLibraryRepository = commanderLibraryRepository,
+       _user = user;
 
   final FirebaseDatabaseRepository _firebaseDatabaseRepository;
   final ScryfallRepository _scryfallRepository;
   final AppConfigRepository _appConfigRepository;
+  final PlayerRepository _playerRepository;
+  final CommanderLibraryRepository _commanderLibraryRepository;
   final UserRepository _userRepository;
 
   final User _user;
 
   @override
   Widget build(BuildContext context) {
-    final playerRepository = PlayerRepository();
-
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: _appConfigRepository),
         RepositoryProvider.value(value: _scryfallRepository),
         RepositoryProvider.value(value: _firebaseDatabaseRepository),
         RepositoryProvider.value(value: _userRepository),
-        RepositoryProvider.value(value: playerRepository),
+        RepositoryProvider.value(value: _playerRepository),
+        RepositoryProvider.value(value: _commanderLibraryRepository),
         RepositoryProvider.value(value: _user),
       ],
       child: MultiBlocProvider(
@@ -53,27 +60,54 @@ class App extends StatelessWidget {
             create: (_) => AppBloc(
               appConfigRepository: _appConfigRepository,
               userRepository: _userRepository,
+              firebaseDatabaseRepository: _firebaseDatabaseRepository,
               user: _user,
             ),
           ),
           BlocProvider(
+            lazy: false,
             create: (context) => GameBloc(
-              playerRepository: playerRepository,
+              playerRepository: _playerRepository,
               database: context.read<FirebaseDatabaseRepository>(),
             ),
           ),
           BlocProvider(
-            create: (context) => MatchHistoryBloc(
-              databaseRepository: context.read<FirebaseDatabaseRepository>(),
-            )..add(
-                LoadMatchHistory(userId: context.read<AppBloc>().state.user.id),
-              ),
+            create: (context) =>
+                MatchHistoryBloc(
+                  databaseRepository: context
+                      .read<FirebaseDatabaseRepository>(),
+                )..add(
+                  LoadMatchHistory(
+                    userId: _signedInUserId(context.read<AppBloc>().state),
+                  ),
+                ),
+          ),
+          BlocProvider(
+            lazy: false,
+            create: (context) =>
+                FriendRequestBloc(
+                  repository: context.read<FirebaseDatabaseRepository>(),
+                )..add(
+                  LoadFriendRequests(
+                    _signedInUserId(context.read<AppBloc>().state),
+                  ),
+                ),
+          ),
+          BlocProvider(
+            lazy: false,
+            create: (context) => TimerBloc(),
           ),
         ],
         child: const AppView(),
       ),
     );
   }
+}
+
+/// The user whose data should be streamed: the signed-in user, or nobody
+/// (empty id clears the stream and stops listening) for any other auth state.
+String _signedInUserId(AppState state) {
+  return state.status == AppStatus.authenticated ? state.user.id : '';
 }
 
 class AppView extends StatefulWidget {
@@ -105,7 +139,27 @@ class _AppViewState extends State<AppView> {
       theme: const AppTheme().themeData,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      builder: (context, child) => child!,
+      builder: (context, child) {
+        return DeviceInfoProvider.fromMediaQuery(
+          // Keep the match history and friend requests subscribed to whoever
+          // is signed in; sign-out clears both. Lives at the app root so it
+          // holds no matter which screen is visible.
+          child: BlocListener<AppBloc, AppState>(
+            listenWhen: (previous, current) =>
+                _signedInUserId(previous) != _signedInUserId(current),
+            listener: (context, state) {
+              final userId = _signedInUserId(state);
+              context.read<MatchHistoryBloc>().add(
+                LoadMatchHistory(userId: userId),
+              );
+              context.read<FriendRequestBloc>().add(
+                LoadFriendRequests(userId),
+              );
+            },
+            child: child!,
+          ),
+        );
+      },
       routerConfig: _appRouter.routes,
     );
   }

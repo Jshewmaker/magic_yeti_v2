@@ -1,0 +1,9 @@
+# See https://www.dartlang.org/guides/libraries/private-files
+
+# Files and directories created by pub
+.dart_tool/
+.packages
+build/
+pubspec.lock
+# Raw Scryfall bulk data downloads (use tool/generate_commander_index.dart)
+assets/cards/unique-artwork-*.json

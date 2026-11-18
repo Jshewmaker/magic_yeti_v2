@@ -7,8 +7,19 @@ sealed class CounterEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class CounterIncrementPressed extends CounterEvent {}
+class CounterIncrementPressed extends CounterEvent {
+  const CounterIncrementPressed();
+}
 
-class CounterDecrementPressed extends CounterEvent {}
+class CounterDecrementPressed extends CounterEvent {
+  const CounterDecrementPressed();
+}
 
-class CounterStopDecrementing extends CounterEvent {}
+class CounterStopDecrementing extends CounterEvent {
+  const CounterStopDecrementing();
+}
+
+/// Fired by the hold-to-decrement timer.
+class _CounterRepeatTicked extends CounterEvent {
+  const _CounterRepeatTicked();
+}

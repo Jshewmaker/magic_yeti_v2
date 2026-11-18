@@ -62,7 +62,8 @@ import 'app_localizations_es.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -70,7 +71,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -82,17 +84,18 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('es')
+    Locale('es'),
   ];
 
   /// Text shown in the AppBar of the Counter Page
@@ -284,7 +287,7 @@ abstract class AppLocalizations {
   /// No description provided for @numberOfPlayers.
   ///
   /// In en, this message translates to:
-  /// **'{numberOfPlayers} Player Game'**
+  /// **'{numberOfPlayers} Player'**
   String numberOfPlayers(int numberOfPlayers);
 
   /// Hint text shown in commander search input field
@@ -389,11 +392,23 @@ abstract class AppLocalizations {
   /// **'Commander'**
   String get commanderColumnHeader;
 
-  /// Column header for player name in players list
+  /// Column header for player in players list
   ///
   /// In en, this message translates to:
-  /// **'Player Name'**
-  String get playerNameColumnHeader;
+  /// **'Player'**
+  String get playerColumnHeader;
+
+  /// Title for the friends section
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get friendsTitle;
+
+  /// Title for the friend requests section
+  ///
+  /// In en, this message translates to:
+  /// **'Friend Requests'**
+  String get friendRequestsTitle;
 
   /// Button text for claiming a player
   ///
@@ -509,6 +524,24 @@ abstract class AppLocalizations {
   /// **'Please select the account owner from the list to sync the game stats to their account:'**
   String get accountOwner;
 
+  /// Short field label for the account owner dropdown, used on phones where the full sentence would wrap to three lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Owner'**
+  String get accountOwnerShort;
+
+  /// Account owner dropdown option meaning the current user is not one of the players
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m not playing'**
+  String get notPlayingOption;
+
+  /// Tooltip for the badge shown on a standings row linked to another account
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to a friend\'s account'**
+  String get linkedAccountBadge;
+
   /// Cancel button text
   ///
   /// In en, this message translates to:
@@ -596,26 +629,98 @@ abstract class AppLocalizations {
   /// Title for average placement stat
   ///
   /// In en, this message translates to:
-  /// **'Average Placement'**
+  /// **'Average\nPlacement'**
   String get averagePlacementTitle;
 
   /// Title for unique commanders stat
   ///
   /// In en, this message translates to:
-  /// **'Unique Commanders'**
+  /// **'Unique\nCommanders'**
   String get uniqueCommandersTitle;
+
+  /// Message shown when game ID is copied
+  ///
+  /// In en, this message translates to:
+  /// **'Copied game ID'**
+  String get copiedGameId;
 
   /// Title for times went first stat
   ///
   /// In en, this message translates to:
-  /// **'Times Went First'**
+  /// **'Times\nWent First'**
   String get timesWentFirstTitle;
 
   /// Title for average EDHRec rank stat
   ///
   /// In en, this message translates to:
-  /// **'Avg EDHRec Rank'**
+  /// **'Average\nEDHRec Rank'**
   String get avgEdhRecRankTitle;
+
+  /// Title for most played commander stat
+  ///
+  /// In en, this message translates to:
+  /// **'Most Played\nCommander'**
+  String get mostPlayedCommanderTitle;
+
+  /// Title for average game duration stat
+  ///
+  /// In en, this message translates to:
+  /// **'Average\nGame Duration'**
+  String get averageGameDurationTitle;
+
+  /// Title for win rate when going first stat
+  ///
+  /// In en, this message translates to:
+  /// **'Win Rate\nWhen First'**
+  String get winRateWhenFirstTitle;
+
+  /// Title for highest win rate commander stat
+  ///
+  /// In en, this message translates to:
+  /// **'Best\nCommander'**
+  String get bestCommanderTitle;
+
+  /// Title for current win/loss streak stat
+  ///
+  /// In en, this message translates to:
+  /// **'Current\nStreak'**
+  String get currentStreakTitle;
+
+  /// Title for most common opponent stat
+  ///
+  /// In en, this message translates to:
+  /// **'Most Common\nOpponent'**
+  String get mostCommonOpponentTitle;
+
+  /// Title for nemesis stat - opponent who beats you most
+  ///
+  /// In en, this message translates to:
+  /// **'Nemesis'**
+  String get nemesisTitle;
+
+  /// Title for average commander damage taken per game
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Commander\nDamage Taken'**
+  String get avgCommanderDamageTakenTitle;
+
+  /// Title for times eliminated by 21+ commander damage
+  ///
+  /// In en, this message translates to:
+  /// **'Killed by\nCommander Dmg'**
+  String get timesKilledByCommanderTitle;
+
+  /// Title for best win rate by exact color identity combination
+  ///
+  /// In en, this message translates to:
+  /// **'Best Color\nCombo'**
+  String get bestColorComboTitle;
+
+  /// Title for best win rate by individual color
+  ///
+  /// In en, this message translates to:
+  /// **'Best Single\nColor'**
+  String get bestSingleColorTitle;
 
   /// Text shown for features under construction
   ///
@@ -628,9 +733,796 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Feature Coming Soon!'**
   String get comingSoonText;
+
+  /// No description provided for @achievementColumnHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievement'**
+  String get achievementColumnHeader;
+
+  /// No description provided for @youTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get youTooltip;
+
+  /// No description provided for @wentFirstTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Went First'**
+  String get wentFirstTooltip;
+
+  /// No description provided for @deleteMatchDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Match'**
+  String get deleteMatchDialogTitle;
+
+  /// No description provided for @deleteMatchDialogContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this match?'**
+  String get deleteMatchDialogContent;
+
+  /// No description provided for @cancelButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelButtonLabel;
+
+  /// No description provided for @deleteMatchButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Match'**
+  String get deleteMatchButtonLabel;
+
+  /// Snackbar error message with error details
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorSnackbarMessage(Object error);
+
+  /// Button label for restoring the previous game state on the Game Over page
+  ///
+  /// In en, this message translates to:
+  /// **'Undo / Restore'**
+  String get undoGameOverButtonLabel;
+
+  /// Snackbar message shown when a previous game state is successfully restored from the Game Over page
+  ///
+  /// In en, this message translates to:
+  /// **'Previous game restored!'**
+  String get gameRestoredMessage;
+
+  /// Label for PIN input field
+  ///
+  /// In en, this message translates to:
+  /// **'4-Digit PIN'**
+  String get pinInputLabel;
+
+  /// Helper text for PIN input field
+  ///
+  /// In en, this message translates to:
+  /// **'Confirms your identity when friends add you to a game'**
+  String get pinInputHelper;
+
+  /// Error text when PIN is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Must be 4 digits'**
+  String get pinInputError;
+
+  /// Title for the friend search page
+  ///
+  /// In en, this message translates to:
+  /// **'Find Friends'**
+  String get findFriendsTitle;
+
+  /// Hint text for the friend search input, which accepts either a username or a friend code
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or friend code (e.g. A3F9K2XQ)'**
+  String get friendCodeSearchHint;
+
+  /// Message shown after sending a friend request
+  ///
+  /// In en, this message translates to:
+  /// **'Friend request sent!'**
+  String get friendRequestSentMessage;
+
+  /// Message shown when a name or friend code search returns no results
+  ///
+  /// In en, this message translates to:
+  /// **'No user found.'**
+  String get noUserFoundMessage;
+
+  /// Prompt shown on the friend search page before searching
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or friend code to find players.'**
+  String get friendCodeSearchPrompt;
+
+  /// Hint text shown in the owner/friend link dropdown on the customize player page before anything is selected
+  ///
+  /// In en, this message translates to:
+  /// **'Select an account'**
+  String get selectFriendLabel;
+
+  /// Text shown when a friend is linked to a player slot
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to {name}'**
+  String linkedToFriend(String name);
+
+  /// Button text to clear friend selection
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearButtonText;
+
+  /// Title for the PIN verification dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Verify {name}'**
+  String verifyFriendTitle(String name);
+
+  /// Prompt in the PIN verification dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Enter their 4-digit PIN to confirm identity.'**
+  String get enterPinPrompt;
+
+  /// Button text to verify PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get verifyButtonText;
+
+  /// Dropdown entry / fallback label to link a player slot to the signed-in user's own account
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get accountOwnerOptionLabel;
+
+  /// Error shown when a friend PIN is incorrect, with attempts remaining
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN. {count, plural, =1{1 attempt} other{{count} attempts}} remaining.'**
+  String pinIncorrectError(int count);
+
+  /// Error shown when the PIN flow is locked out after too many failed attempts
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again in {minutes} min.'**
+  String pinLockedOutError(int minutes);
+
+  /// Error shown when the PIN could not be verified due to offline or server error
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t verify the PIN. Check your connection and try again.'**
+  String get pinUnavailableError;
+
+  /// Error shown when the selected friend has no PIN set
+  ///
+  /// In en, this message translates to:
+  /// **'This friend hasn\'t set a PIN yet. Ask them to set one in their profile.'**
+  String get pinNotSetError;
+
+  /// Label for the friend code display on profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Friend Code'**
+  String get friendCodeLabel;
+
+  /// Tooltip for the copy friend code button
+  ///
+  /// In en, this message translates to:
+  /// **'Copy friend code'**
+  String get copyFriendCodeTooltip;
+
+  /// Snackbar message shown when friend code is copied
+  ///
+  /// In en, this message translates to:
+  /// **'Friend code copied!'**
+  String get friendCodeCopiedMessage;
+
+  /// Helper text explaining the friend code is the unique identifier, unlike username
+  ///
+  /// In en, this message translates to:
+  /// **'Your unique code. Share it so a specific friend can add you exactly — even if someone else shares your username.'**
+  String get friendCodeHelperText;
+
+  /// Title for the PIN setup dialog shown to existing users
+  ///
+  /// In en, this message translates to:
+  /// **'Set Your PIN'**
+  String get setYourPinTitle;
+
+  /// Description in the PIN setup dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Set a 4-digit PIN so friends can verify your identity when adding you to a game.'**
+  String get setYourPinDescription;
+
+  /// Button text to save PIN in setup dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Save PIN'**
+  String get savePinButtonText;
+
+  /// Button text to send a friend request
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get addFriendButtonText;
+
+  /// Action label to block a user
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get blockUserAction;
+
+  /// Title for the block-user confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}?'**
+  String blockUserConfirmTitle(String name);
+
+  /// Body copy for the block-user confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'They\'ll be removed from your friends and won\'t be able to find you or send requests. They won\'t be notified.'**
+  String get blockUserConfirmBody;
+
+  /// Action label to unblock a user
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get unblockUserAction;
+
+  /// Body of the unblock confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to unblock {name}?'**
+  String unblockUserConfirmBody(String name);
+
+  /// Title for the blocked-users management page
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked Users'**
+  String get blockedUsersTitle;
+
+  /// Empty state message for the blocked-users page
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t blocked anyone.'**
+  String get blockedUsersEmpty;
+
+  /// Snackbar error shown when accepting a friend request fails because it predates current permission rules
+  ///
+  /// In en, this message translates to:
+  /// **'This request was sent from an older version. Ask them to re-send it.'**
+  String get legacyRequestAcceptError;
+
+  /// Empty state shown on the friend requests tab when the user has no incoming requests
+  ///
+  /// In en, this message translates to:
+  /// **'No pending requests'**
+  String get noPendingRequests;
+
+  /// Snackbar error shown when saving the game-over stats to the database fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the game. Check your connection and try again.'**
+  String get gameSaveFailedError;
+
+  /// Title for the change-PIN section on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get changePinTitle;
+
+  /// Description for the change-PIN section on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Your PIN confirms your identity when friends add you to a game.'**
+  String get changePinDescription;
+
+  /// Label for the new-PIN input field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'New PIN'**
+  String get newPinLabel;
+
+  /// Snackbar message shown after the PIN is changed successfully
+  ///
+  /// In en, this message translates to:
+  /// **'PIN updated!'**
+  String get pinChangedMessage;
+
+  /// Snackbar message shown after the profile is saved successfully
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved'**
+  String get profileSavedMessage;
+
+  /// Snackbar error shown when saving the profile fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your profile. Try again.'**
+  String get profileSaveFailedMessage;
+
+  /// Label for the username field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get usernameLabel;
+
+  /// Helper text under the username field explaining its purpose and that it isn't unique
+  ///
+  /// In en, this message translates to:
+  /// **'How friends find and recognize you. Not unique — others may share this name.'**
+  String get usernameHelperText;
+
+  /// Inline error when the username field is empty or whitespace-only
+  ///
+  /// In en, this message translates to:
+  /// **'Username is required'**
+  String get usernameRequiredError;
+
+  /// Inline error when the trimmed username is shorter than 2 characters
+  ///
+  /// In en, this message translates to:
+  /// **'Username must be at least 2 characters'**
+  String get usernameTooShortError;
+
+  /// Inline error when the trimmed username is longer than 30 characters
+  ///
+  /// In en, this message translates to:
+  /// **'Username must be 30 characters or fewer'**
+  String get usernameTooLongError;
+
+  /// Snackbar shown when a profile save is blocked by an invalid username
+  ///
+  /// In en, this message translates to:
+  /// **'Fix your username before saving.'**
+  String get usernameInvalidMessage;
+
+  /// Friendly error shown when a friend search fails
+  ///
+  /// In en, this message translates to:
+  /// **'Search failed. Check your connection and try again.'**
+  String get searchFailedMessage;
+
+  /// Label for the bio field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get bioLabel;
+
+  /// Label for the read-only email field on the profile page
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get emailLabel;
+
+  /// Placeholder shown for an empty profile field when not editing
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get notSetLabel;
+
+  /// Button text to save profile changes when in editing mode
+  ///
+  /// In en, this message translates to:
+  /// **'Save Profile'**
+  String get saveProfileButton;
+
+  /// Button text to enter profile editing mode
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfileButton;
+
+  /// Placeholder shown instead of the friend list on the customize player page when the user is anonymous
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to link friends to players.'**
+  String get signInToLinkFriends;
+
+  /// Placeholder shown instead of the search field on the find-friends page when the user is anonymous
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to add friends.'**
+  String get signInToSearchFriends;
+
+  /// Action label to remove a friend
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeFriendAction;
+
+  /// Title for the remove-friend confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String removeFriendConfirmTitle(String name);
+
+  /// Body copy for the remove-friend confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'They won\'t be notified. You can add each other again anytime.'**
+  String get removeFriendConfirmBody;
+
+  /// Snackbar error shown when submitting the onboarding form fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save profile. Please try again.'**
+  String get onboardingSaveFailedMessage;
+
+  /// Error message shown when the blocked-users page fails to load or update
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your blocked list. Check your connection and try again.'**
+  String get blockedUsersLoadFailedError;
+
+  /// Tooltip for the edit action on the match details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Edit match'**
+  String get editMatchTooltip;
+
+  /// Label for the save action while editing a match
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveButtonLabel;
+
+  /// Label for the player name field while editing a match
+  ///
+  /// In en, this message translates to:
+  /// **'Player name'**
+  String get playerNameLabel;
+
+  /// Action to add a partner commander while editing a match
+  ///
+  /// In en, this message translates to:
+  /// **'Add partner'**
+  String get addPartnerLabel;
+
+  /// Tooltip to remove a partner commander while editing a match
+  ///
+  /// In en, this message translates to:
+  /// **'Remove partner'**
+  String get removePartnerTooltip;
+
+  /// Title for the commander picker
+  ///
+  /// In en, this message translates to:
+  /// **'Select Commander'**
+  String get selectCommanderTitle;
+
+  /// Title for the partner commander picker
+  ///
+  /// In en, this message translates to:
+  /// **'Select Partner'**
+  String get selectPartnerTitle;
+
+  /// Snackbar confirmation shown after saving match edits
+  ///
+  /// In en, this message translates to:
+  /// **'Match updated'**
+  String get matchUpdatedMessage;
+
+  /// Hint text in the card search field of a two-player (non-Commander) game
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a card'**
+  String get searchCardHintText;
+
+  /// Shown in the card picker of a two-player game before any search
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a card to represent your deck'**
+  String get searchCardEmptyText;
+
+  /// Label above the card that represents a player's deck in a two-player game
+  ///
+  /// In en, this message translates to:
+  /// **'Deck card'**
+  String get deckCardLabel;
+
+  /// Shown when a player in a two-player game has not picked a deck card
+  ///
+  /// In en, this message translates to:
+  /// **'No card selected'**
+  String get noDeckCardSelected;
+
+  /// Home screen filter option that shows every game
+  ///
+  /// In en, this message translates to:
+  /// **'All games'**
+  String get matchFormatAll;
+
+  /// Home screen filter option that shows only Commander (EDH) games, which have more than two players
+  ///
+  /// In en, this message translates to:
+  /// **'EDH'**
+  String get matchFormatCommander;
+
+  /// Home screen filter option that shows only two-player constructed games (Standard, Modern, and so on)
+  ///
+  /// In en, this message translates to:
+  /// **'Constructed'**
+  String get matchFormatConstructed;
+
+  /// Shown in the match history when the selected format filter hides every game
+  ///
+  /// In en, this message translates to:
+  /// **'No games match this filter'**
+  String get noMatchesForFilter;
+
+  /// Heading for the tag section on the game over screen and match details
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get gameTagsHeading;
+
+  /// Hint under the tag section when the app selected tags automatically
+  ///
+  /// In en, this message translates to:
+  /// **'Some tags were selected from the game data. Tap a tag to clear it.'**
+  String get gameTagsAutoHint;
+
+  /// Tooltip for the button that opens the player tag sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Tag player'**
+  String get playerTagsButtonTooltip;
+
+  /// Title of the sheet that edits one player's tags
+  ///
+  /// In en, this message translates to:
+  /// **'Tags for {name}'**
+  String playerTagsSheetTitle(String name);
+
+  /// Shown on match details when a game has no tags
+  ///
+  /// In en, this message translates to:
+  /// **'No tags'**
+  String get noTagsLabel;
+
+  /// Stats filter option that shows games with any tags
+  ///
+  /// In en, this message translates to:
+  /// **'All games'**
+  String get statsTagFilterAll;
+
+  /// Tag group: the bracket of the game
+  ///
+  /// In en, this message translates to:
+  /// **'Power level'**
+  String get tagGroupPowerLevel;
+
+  /// Tag group: how the winner won
+  ///
+  /// In en, this message translates to:
+  /// **'How it ended'**
+  String get tagGroupEnding;
+
+  /// Tag group: how fast or close the game was
+  ///
+  /// In en, this message translates to:
+  /// **'Pace'**
+  String get tagGroupPace;
+
+  /// Tag group: a player's mana and draws
+  ///
+  /// In en, this message translates to:
+  /// **'Mana'**
+  String get tagGroupMana;
+
+  /// Tag group: a player's important plays
+  ///
+  /// In en, this message translates to:
+  /// **'Key plays'**
+  String get tagGroupKeyPlays;
+
+  /// Tag group: how a player was eliminated or eliminated others
+  ///
+  /// In en, this message translates to:
+  /// **'Eliminations'**
+  String get tagGroupEliminations;
+
+  /// Tag: Commander Bracket 1
+  ///
+  /// In en, this message translates to:
+  /// **'Bracket 1'**
+  String get tagBracket1;
+
+  /// Tag: Commander Bracket 2
+  ///
+  /// In en, this message translates to:
+  /// **'Bracket 2'**
+  String get tagBracket2;
+
+  /// Tag: Commander Bracket 3
+  ///
+  /// In en, this message translates to:
+  /// **'Bracket 3'**
+  String get tagBracket3;
+
+  /// Tag: Commander Bracket 4
+  ///
+  /// In en, this message translates to:
+  /// **'Bracket 4'**
+  String get tagBracket4;
+
+  /// Tag: Commander Bracket 5, competitive EDH
+  ///
+  /// In en, this message translates to:
+  /// **'cEDH (Bracket 5)'**
+  String get tagBracket5;
+
+  /// Official name of Commander Bracket 1
+  ///
+  /// In en, this message translates to:
+  /// **'Exhibition'**
+  String get tagBracket1Tooltip;
+
+  /// Official name of Commander Bracket 2
+  ///
+  /// In en, this message translates to:
+  /// **'Core'**
+  String get tagBracket2Tooltip;
+
+  /// Official name of Commander Bracket 3
+  ///
+  /// In en, this message translates to:
+  /// **'Upgraded'**
+  String get tagBracket3Tooltip;
+
+  /// Official name of Commander Bracket 4
+  ///
+  /// In en, this message translates to:
+  /// **'Optimized'**
+  String get tagBracket4Tooltip;
+
+  /// Official name of Commander Bracket 5
+  ///
+  /// In en, this message translates to:
+  /// **'Competitive EDH'**
+  String get tagBracket5Tooltip;
+
+  /// Tag: the winner won with combat damage
+  ///
+  /// In en, this message translates to:
+  /// **'Combat win'**
+  String get tagEndCombat;
+
+  /// Tag: the winner won with a combo
+  ///
+  /// In en, this message translates to:
+  /// **'Combo win'**
+  String get tagEndCombo;
+
+  /// Tag: the winner won with commander damage
+  ///
+  /// In en, this message translates to:
+  /// **'Commander damage'**
+  String get tagEndCommanderDamage;
+
+  /// Tag: the winner won with life drain or burn
+  ///
+  /// In en, this message translates to:
+  /// **'Drain / burn'**
+  String get tagEndDrain;
+
+  /// Tag: the winner won with poison counters
+  ///
+  /// In en, this message translates to:
+  /// **'Poison / infect'**
+  String get tagEndPoison;
+
+  /// Tag: the winner won with an alternate win condition
+  ///
+  /// In en, this message translates to:
+  /// **'Alternate win'**
+  String get tagEndAltWin;
+
+  /// Tag: the other players conceded
+  ///
+  /// In en, this message translates to:
+  /// **'Table conceded'**
+  String get tagEndConceded;
+
+  /// Tag: the game was fast
+  ///
+  /// In en, this message translates to:
+  /// **'Fast game'**
+  String get tagPaceFast;
+
+  /// Tag: the game was long
+  ///
+  /// In en, this message translates to:
+  /// **'Long grind'**
+  String get tagPaceLong;
+
+  /// Tag: every player had a chance to win
+  ///
+  /// In en, this message translates to:
+  /// **'Close game'**
+  String get tagFeelClose;
+
+  /// Tag: the player drew too few lands
+  ///
+  /// In en, this message translates to:
+  /// **'Mana screwed'**
+  String get tagManaScrewed;
+
+  /// Tag: the player drew too many lands
+  ///
+  /// In en, this message translates to:
+  /// **'Mana flooded'**
+  String get tagManaFlooded;
+
+  /// Tag: the player could not get the right colors of mana
+  ///
+  /// In en, this message translates to:
+  /// **'Color screwed'**
+  String get tagManaColorScrewed;
+
+  /// Tag: the player had a great opening hand
+  ///
+  /// In en, this message translates to:
+  /// **'Great opener'**
+  String get tagGreatOpener;
+
+  /// Tag: the player cast Sol Ring on turn 1
+  ///
+  /// In en, this message translates to:
+  /// **'Turn 1 Sol Ring'**
+  String get tagT1SolRing;
+
+  /// Tag: the player stopped another player from winning
+  ///
+  /// In en, this message translates to:
+  /// **'Saved the table'**
+  String get tagSavedTheTable;
+
+  /// Tag: the player drew the card they needed
+  ///
+  /// In en, this message translates to:
+  /// **'Clutch topdeck'**
+  String get tagClutchTopdeck;
+
+  /// Tag: the player paid 6 or more commander tax
+  ///
+  /// In en, this message translates to:
+  /// **'Commander tax 6+'**
+  String get tagCommanderTax6;
+
+  /// Tag: the player was eliminated by commander damage
+  ///
+  /// In en, this message translates to:
+  /// **'Commander dmg KO'**
+  String get tagKoCommanderDamage;
+
+  /// Tag: the player's commander eliminated another player
+  ///
+  /// In en, this message translates to:
+  /// **'Commander kill'**
+  String get tagCommanderKill;
+
+  /// Tag: the player was eliminated first
+  ///
+  /// In en, this message translates to:
+  /// **'First out'**
+  String get tagFirstOut;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -639,25 +1531,26 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'es'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['en', 'es'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
-    case 'es': return AppLocalizationsEs();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
+    'that was used.',
   );
 }

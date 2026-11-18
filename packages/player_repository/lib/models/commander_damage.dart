@@ -39,10 +39,7 @@ class CommanderDamage {
 
   /// Creates a new instance of the `CommanderDamage` class with the same values
   /// as the current instance
-  CommanderDamage copyWith({
-    DamageType? damageType,
-    int? amount,
-  }) =>
+  CommanderDamage copyWith({DamageType? damageType, int? amount}) =>
       CommanderDamage(
         damageType: damageType ?? this.damageType,
         amount: amount ?? this.amount,

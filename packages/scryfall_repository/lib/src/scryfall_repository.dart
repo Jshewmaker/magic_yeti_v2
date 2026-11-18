@@ -1,37 +1,87 @@
 import 'package:api_client/api_client.dart';
+import 'package:scryfall_bulk_client/scryfall_bulk_client.dart';
 
 /// {@template scryfall_repository}
 /// Repository for Scryfall API
 /// {@endtemplate}
 class ScryfallRepository {
   /// {@macro scryfall_repository}
-  ScryfallRepository({ApiClient? apiClient})
+  ScryfallRepository({ApiClient? apiClient, ScryfallBulkClient? bulkClient})
       : _apiClient =
-            apiClient ?? ApiClient(baseUrl: 'https://api.scryfall.com');
+            apiClient ?? ApiClient(baseUrl: 'https://api.scryfall.com'),
+        _bulkClient = bulkClient ?? ScryfallBulkClient();
 
   final ApiClient _apiClient;
+  final ScryfallBulkClient _bulkClient;
 
-  /// Retrieves full text search results for a specific card name from Scryfall API.
+  /// Looks up the oracle ID for a commander name.
   ///
-  /// This method performs a full-text search for a card and filters out cards with:
-  /// - Missing image status
-  /// - Null image URIs
+  /// Checks the bundled commander index first (works offline), then falls
+  /// back to the Scryfall API for names not in the index (e.g. cards
+  /// released after the index was generated).
   ///
-  /// [cardName] The name of the card to search for.
+  /// Returns `null` if the card is not found or the API is unreachable.
+  Future<String?> getOracleIdByName(String cardName) async {
+    final localId = await _bulkClient.getOracleIdByName(cardName);
+    if (localId != null) return localId;
+
+    try {
+      return await _apiClient.getOracleIdByName(cardName);
+    } on Exception {
+      return null;
+    }
+  }
+
+  /// Retrieves full text search results for a specific card name.
   ///
-  /// Returns a [SearchCards] object containing filtered card results.
+  /// Searches the bundled commander index first (works offline). If no
+  /// results are found, falls back to the Scryfall API.
   ///
-  /// Filters out cards that do not have valid images to ensure only
-  /// displayable cards are returned.
-  ///
-  /// Throws an exception if the API call fails or network issues occur.
+  /// Filters out cards with missing images and normalizes double-faced card
+  /// image URIs before returning.
   Future<SearchCards> getCardFullText({required String cardName}) async {
-    final cards = await _apiClient.getCardFullText(cardName);
-    cards.data.removeWhere(
-      (element) =>
-          element.imageStatus == 'missing' || element.imageUris == null,
-    );
+    final localResults = await _bulkClient.searchCards(cardName);
+    if (localResults.data.isNotEmpty) {
+      return _normalizeCards(localResults);
+    }
 
-    return cards;
+    final apiResults = await _apiClient.getCardFullText(cardName);
+    return _normalizeCards(apiResults);
+  }
+
+  /// Searches every card on Scryfall by name, not only commanders.
+  ///
+  /// Skips the bundled commander index, which holds only commanders, and so
+  /// needs a network connection. Filters and normalizes the results the same
+  /// way as [getCardFullText].
+  Future<SearchCards> searchAllCards({required String cardName}) async {
+    final apiResults = await _apiClient.getCardFullText(cardName);
+    return _normalizeCards(apiResults);
+  }
+
+  SearchCards _normalizeCards(SearchCards cards) {
+    final filtered = cards.data
+        .where(
+          (card) => !(card.imageStatus == 'missing' && card.imageUris == null),
+        )
+        .toList();
+
+    final normalizedData = filtered.map((card) {
+      if (card.imageUris == null) {
+        final faceImageUris = card.cardFaces?.first.imageUris;
+        if (faceImageUris != null) {
+          return card.copyWith(imageUris: faceImageUris);
+        }
+      }
+      return card;
+    }).toList();
+
+    return SearchCards(
+      object: cards.object,
+      totalCards: normalizedData.length,
+      hasMore: cards.hasMore,
+      nextPage: cards.nextPage,
+      data: normalizedData,
+    );
   }
 }
