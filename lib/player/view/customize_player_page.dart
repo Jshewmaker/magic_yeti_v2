@@ -31,6 +31,9 @@ class CustomizePlayerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userId = context.read<AppBloc>().state.user.id;
+    // Save writes the page state to the player, so the page must start with
+    // the saved cards. If not, a save removes the partner and the background.
+    final player = context.read<PlayerRepository>().getPlayerById(playerId);
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -41,6 +44,9 @@ class CustomizePlayerPage extends StatelessWidget {
             commanderLibraryRepository: context
                 .read<CommanderLibraryRepository>(),
             isCommanderGame: isCommanderGame,
+            initialCommander: player.commander,
+            initialPartner: player.partner,
+            initialBackground: player.background,
           )..add(const LibraryRequested()),
         ),
         BlocProvider(

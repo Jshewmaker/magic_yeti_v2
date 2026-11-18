@@ -16,11 +16,23 @@ class PlayerCustomizationBloc
     required FirebaseDatabaseRepository firebaseDatabaseRepository,
     required CommanderLibraryRepository commanderLibraryRepository,
     bool isCommanderGame = true,
+    Commander? initialCommander,
+    Commander? initialPartner,
+    Commander? initialBackground,
   }) : _scryfallRepository = scryfallRepository,
        _firebaseDatabaseRepository = firebaseDatabaseRepository,
        _library = commanderLibraryRepository,
        _isCommanderGame = isCommanderGame,
-       super(const PlayerCustomizationState()) {
+       super(
+         PlayerCustomizationState(
+           commander: initialCommander,
+           partner: initialPartner,
+           background: initialBackground,
+           availablePairing: isCommanderGame && initialCommander != null
+               ? commanderPairingFor(initialCommander)
+               : CommanderPairing.none,
+         ),
+       ) {
     on<LibraryRequested>(_onLibraryRequested);
     on<CardListRequested>(_cardListRequested);
     on<CommanderSelected>(_onCommanderSelected);
